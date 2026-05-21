@@ -1,6 +1,6 @@
 {
   "name": "@saashub/skillslint",
-  "version": "3.2.4",
+  "version": "3.2.5",
   "description": "Linter for agents skills",
   "keywords": [
     "cli",
@@ -34,7 +34,7 @@
     "dev": "npm run build && node ./bin/skillslint.js"
   },
   "dependencies": {
-    "@saashub/qoq-utils": "^3.2.4",
+    "@saashub/qoq-utils": "^3.2.5",
     "@textlint/textlint-plugin-markdown": "15.7.1",
     "@textlint/textlint-plugin-text": "15.7.1",
     "agent-skills-cli": "1.1.9",

@@ -1,6 +1,6 @@
 {
   "name": "@saashub/check-engine",
-  "version": "3.2.4",
+  "version": "3.2.5",
   "description": "CLI that checks dependencies engines.node settings and gives You suggestion or errors if needed",
   "keywords": [
     "cli",
@@ -31,7 +31,7 @@
     "dev": "npm run build && node ./bin/check-engine.js"
   },
   "dependencies": {
-    "@saashub/qoq-utils": "^3.2.4",
+    "@saashub/qoq-utils": "^3.2.5",
     "cac": "7.0.0",
     "picocolors": "1.1.1",
     "semver": "7.8.0"
