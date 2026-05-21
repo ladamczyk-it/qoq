@@ -35,14 +35,15 @@
   "files": [
     "bin",
     "lib",
-    "eslint.config.local.js"
+    "eslint.config.local.js",
+    "AGENTS.md"
   ],
   "scripts": {
     "build": "rimraf ./lib && rollup -c rollup.config.js --silent && rimraf ./bin && rollup -c rollup.bin.js --silent",
     "inspect": "node ./bin/bin.cjs"
   },
   "dependencies": {
-    "@eslint-react/eslint-plugin": "5.7.9",
+    "@eslint-react/eslint-plugin": "5.8.3",
     "@saashub/qoq-eslint-v9-js-react": "^3.2.4",
     "@saashub/qoq-eslint-v9-ts": "^3.2.4",
     "@saashub/qoq-utils": "^3.2.4"

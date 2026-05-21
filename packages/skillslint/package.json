@@ -26,7 +26,8 @@
   },
   "files": [
     "bin",
-    ".textlintrc.json"
+    ".textlintrc.json",
+    "AGENTS.md"
   ],
   "scripts": {
     "build": "rimraf ./bin && rollup -c --silent && chmod +x ./bin/skillslint.js",
@@ -34,12 +35,12 @@
   },
   "dependencies": {
     "@saashub/qoq-utils": "^3.2.4",
-    "@textlint/textlint-plugin-markdown": "15.7.0",
-    "@textlint/textlint-plugin-text": "15.7.0",
-    "agent-skills-cli": "1.1.8",
+    "@textlint/textlint-plugin-markdown": "15.7.1",
+    "@textlint/textlint-plugin-text": "15.7.1",
+    "agent-skills-cli": "1.1.9",
     "cac": "7.0.0",
     "picocolors": "1.1.1",
-    "textlint": "15.7.0",
+    "textlint": "15.7.1",
     "textlint-rule-common-misspellings": "1.0.1",
     "textlint-rule-terminology": "5.2.16",
     "textlint-rule-write-good": "2.0.0"

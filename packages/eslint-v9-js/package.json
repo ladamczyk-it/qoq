@@ -42,7 +42,8 @@
   "files": [
     "bin",
     "lib",
-    "eslint.config.local.js"
+    "eslint.config.local.js",
+    "AGENTS.md"
   ],
   "scripts": {
     "build": "rimraf ./lib && rollup -c rollup.config.js --silent && rimraf ./bin && rollup -c rollup.bin.js --silent",

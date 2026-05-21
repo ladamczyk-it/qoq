@@ -23,7 +23,8 @@
     "check-engine": "bin/check-engine.js"
   },
   "files": [
-    "bin"
+    "bin",
+    "AGENTS.md"
   ],
   "scripts": {
     "build": "rimraf ./bin && rollup -c --silent && chmod +x ./bin/check-engine.js",

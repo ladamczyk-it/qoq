@@ -24,7 +24,8 @@
   "main": "./index.json",
   "files": [
     "src",
-    "index.json"
+    "index.json",
+    "AGENTS.md"
   ],
   "scripts": {
     "build": "rimraf ./index.json && node ./src/index.js"

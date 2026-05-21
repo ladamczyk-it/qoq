@@ -27,8 +27,7 @@
   "files": [
     "bin/qoq.js",
     "bin/types.d.ts",
-    "skills",
-    "docs"
+    "AGENTS.md"
   ],
   "scripts": {
     "build": "rimraf ./bin && rollup -c rollup.bin.js --silent && rollup -c rollup.config.js --silent && chmod +x ./bin/qoq.js",

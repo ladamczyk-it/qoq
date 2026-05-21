@@ -29,13 +29,14 @@
   "module": "./lib/index.mjs",
   "types": "./lib/index.d.ts",
   "files": [
-    "lib"
+    "lib",
+    "AGENTS.md"
   ],
   "scripts": {
     "build": "rimraf ./lib && rollup -c --silent"
   },
   "dependencies": {
-    "local-pkg": "1.1.2"
+    "local-pkg": "1.2.1"
   },
   "devDependencies": {
     "rimraf": "6.1.3",

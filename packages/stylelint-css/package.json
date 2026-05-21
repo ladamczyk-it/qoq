@@ -29,7 +29,8 @@
   "module": "./lib/index.mjs",
   "types": "./lib/index.d.ts",
   "files": [
-    "lib"
+    "lib",
+    "AGENTS.md"
   ],
   "scripts": {
     "build": "rimraf ./lib && rollup -c --silent"
@@ -37,7 +38,7 @@
   "dependencies": {
     "browserslist": "latest",
     "stylelint": "^17.10.0",
-    "stylelint-config-clean-order": "8.0.1",
+    "stylelint-config-clean-order": "8.0.2",
     "stylelint-config-standard": "40.0.0",
     "stylelint-file-max-lines": "1.0.0",
     "stylelint-high-performance-animation": "2.0.0",
