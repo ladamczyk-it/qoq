@@ -18,7 +18,11 @@ const getModifiedFiles = async () =>
     });
   });
 
-await getModifiedFiles();
+const regenerateAll = process.argv.slice(2).includes('all');
+
+if (!regenerateAll) {
+  await getModifiedFiles();
+}
 
 const allPackages = readdirSync('./packages').filter((path) => path.startsWith('eslint-v9-'));
 const emptyPackages = allPackages.filter(
@@ -69,6 +73,10 @@ const executeInspector = async (packageName) =>
     });
   });
 
-for (const packageName of new Set(emptyPackages.concat(packagesToCheck))) {
+const packages = regenerateAll
+  ? allPackages
+  : new Set(emptyPackages.concat(packagesToCheck));
+
+for (const packageName of packages) {
   await executeInspector(packageName);
 }
