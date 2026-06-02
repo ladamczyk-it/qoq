@@ -145,6 +145,10 @@ export class EslintExecutor extends AbstractExecutor {
         args.push(`--concurrency ${options.concurrency}`);
       }
 
+      if (options.json) {
+        args.push(`--format json --output-file "${options.output}/eslint-report.json"`);
+      }
+
       return super.prepare(args, options, files);
     } catch (e) {
       if (e instanceof TerminateExecutorGracefully) {

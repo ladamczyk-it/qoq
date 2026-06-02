@@ -142,11 +142,13 @@ export const getConfig = async (
 export const execute = async (
   modulesConfig: IModulesConfig,
   options: IExecutorOptions,
-  files?: string[]
+  files?: string[],
+  tools?: string[]
 ): Promise<void> => {
   const { silent, warmup, skipNpm, skipPrettier, skipJscpd, skipKnip, skipEslint } = options;
 
   const hideMessages = !!silent || !!warmup;
+  const shouldRun = (name: string) => !tools || tools.includes(name);
 
   const consoleTimeName = `Total execution time:`;
   console.time(c.italic(c.gray(consoleTimeName)));
@@ -169,31 +171,31 @@ export const execute = async (
     [skillslintExecutor.getName()]: EExitCode.OK,
   };
 
-  if (!skipNpm) {
+  if (!skipNpm && shouldRun('npm')) {
     responses[npmExecutor.getName()] = await npmExecutor.run(options, files, 'pipe');
   }
 
-  if (!skipKnip) {
+  if (!skipKnip && shouldRun('knip')) {
     responses[knipExecutor.getName()] = await knipExecutor.run(options, files);
   }
 
-  if (!skipPrettier) {
+  if (!skipPrettier && shouldRun('prettier')) {
     responses[prettierExecutor.getName()] = await prettierExecutor.run(options, files);
   }
 
-  if (!skipJscpd) {
+  if (!skipJscpd && shouldRun('jscpd')) {
     responses[jscpdExecutor.getName()] = await jscpdExecutor.run(options, files);
   }
 
-  if (!skipEslint) {
+  if (!skipEslint && shouldRun('eslint')) {
     responses[eslintExecutor.getName()] = await eslintExecutor.run(options, files);
   }
 
-  if (modulesConfig.modules.stylelint) {
+  if (modulesConfig.modules.stylelint && shouldRun('stylelint')) {
     responses[stylelintExecutor.getName()] = await stylelintExecutor.run(options, files);
   }
 
-  if (modulesConfig.modules.skillslint) {
+  if (modulesConfig.modules.skillslint && shouldRun('skillslint')) {
     responses[skillslintExecutor.getName()] = await skillslintExecutor.run(options, files);
   }
 

@@ -76,9 +76,7 @@ export class StylelintExecutor extends AbstractExecutor {
       throw new Error('Bad config!');
     }
 
-    const { disableCache, fix } = options;
-
-    if (!disableCache) {
+    if (!options.disableCache) {
       args.push('--cache-strategy', 'metadata');
     }
 
@@ -141,8 +139,14 @@ export class StylelintExecutor extends AbstractExecutor {
         args.push('--stdin-filename', ...filteredFiles);
       }
 
-      if (fix) {
+      if (options.fix) {
         args.push('--fix');
+      }
+
+      if (options.json) {
+        args.push(
+          `--formatter json --output-file "${resolveCliRelativePath('/bin/report')}/stylelint-report.json"`
+        );
       }
 
       return super.prepare(args, options, files);

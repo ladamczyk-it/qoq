@@ -5,23 +5,26 @@
 ## Commands
 
 ```bash
-qoq --init          # interactive wizard — writes qoq.config.js, eslint.config.js, .prettierrc
-qoq --check         # full quality check (CI / pre-push)
-qoq staged [files]  # check staged files only (pre-commit / lint-staged)
-qoq --fix           # auto-fix across all tools
+qoq --init              # interactive wizard — writes qoq.config.js, eslint.config.js, .prettierrc
+qoq --check             # full quality check (CI / pre-push)
+qoq staged [files]      # check staged files only (pre-commit / lint-staged)
+qoq --fix               # auto-fix across all tools
+qoq [tools...]          # run only the named tools, e.g. `qoq eslint prettier`
 ```
 
 All commands accept these flags:
 
-| Flag                                      | Effect                                          |
-| ----------------------------------------- | ----------------------------------------------- |
-| `--disable-cache`                         | Skip caching for all tools                      |
-| `--skip-{prettier,jscpd,knip,eslint,npm}` | Skip individual tools                           |
-| `--concurrency <off\|auto>`               | Run tools concurrently where possible           |
-| `--production`                            | Run Knip in production mode                     |
-| `--config-hints`                          | Enable Knip config hints                        |
-| `--silent`                                | Suppress QoQ output                             |
-| `--warmup`                                | Pre-generate config files without running tools |
+| Flag                                      | Effect                                                                |
+| ----------------------------------------- | --------------------------------------------------------------------- |
+| `--disable-cache`                         | Skip caching for all tools                                            |
+| `--skip-{prettier,jscpd,knip,eslint,npm}` | Skip individual tools                                                 |
+| `--concurrency <off\|auto>`               | Run tools concurrently where possible                                 |
+| `--production`                            | Run Knip in production mode                                           |
+| `--config-hints`                          | Enable Knip config hints                                              |
+| `--silent`                                | Suppress QoQ output                                                   |
+| `--warmup`                                | Pre-generate config files without running tools                       |
+| `--json`                                  | Write each tool's output to a JSON file in `--output`                 |
+| `--output <path>`                         | Directory for JSON reports (default: `bin/report`); requires `--json` |
 
 Add `"postinstall": "qoq --warmup"` to the consumer's `package.json` so IDEs get valid ESLint/Stylelint configs immediately after `npm install`.
 
@@ -103,10 +106,15 @@ QoQ writes tool configs into its own `bin/` at runtime — the consumer project 
 
 **Runtime-generated inside `node_modules/@saashub/qoq-cli/bin/`** (do not edit):
 
-| File                       | Notes                                                                  |
-| -------------------------- | ---------------------------------------------------------------------- |
-| `eslint.config.{m,c}js`    | Merges `baseConfig` from each template; includes `.gitignore` patterns |
-| `knip.config.{m,c}js`      | Monorepo-aware: maps `workspaces` into Knip's workspace config         |
-| `stylelint.config.{m,c}js` | Assembled from the stylelint template                                  |
-| `.npm-outdated-lock`       | Timestamp file that throttles npm checks to `checkOutdatedEvery` days  |
-| `.<tool>cache`             | Per-tool cache directories (cleared on `--warmup`)                     |
+| File                           | Notes                                                                  |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| `eslint.config.{m,c}js`        | Merges `baseConfig` from each template; includes `.gitignore` patterns |
+| `knip.config.{m,c}js`          | Monorepo-aware: maps `workspaces` into Knip's workspace config         |
+| `stylelint.config.{m,c}js`     | Assembled from the stylelint template                                  |
+| `.npm-outdated-lock`           | Timestamp file that throttles npm checks to `checkOutdatedEvery` days  |
+| `.<tool>cache`                 | Per-tool cache directories (cleared on `--warmup`)                     |
+| `report/eslint-report.json`    | ESLint findings (written when `--json` is passed)                      |
+| `report/knip-report.json`      | Knip findings (written when `--json` is passed)                        |
+| `report/jscpd-report.json`     | JSCPD JSON output directory (written when `--json` is passed)          |
+| `report/prettier-report.json`  | List of files with formatting issues (written when `--json` is passed) |
+| `report/stylelint-report.json` | Stylelint findings (written when `--json` is passed)                   |

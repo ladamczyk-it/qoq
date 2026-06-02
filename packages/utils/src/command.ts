@@ -33,10 +33,12 @@ export async function executeCommand(
       stdio,
     });
 
+    let capturedOutput = '';
+
     if (child.stdout) {
       child.stdout.on('data', (data: Buffer) => {
         if (captureOutput) {
-          resolve(data.toString('utf-8'));
+          capturedOutput += data.toString('utf-8');
         } else {
           process.stdout.write(data.toString('utf-8'));
         }
@@ -54,7 +56,11 @@ export async function executeCommand(
     });
 
     child.on('close', (code) => {
-      resolve(code ?? EExitCode.OK);
+      if (captureOutput) {
+        resolve(capturedOutput);
+      } else {
+        resolve(code ?? EExitCode.OK);
+      }
     });
   });
 }

@@ -67,6 +67,10 @@ export class JscpdExecutor extends AbstractExecutor {
         args.push('-i', ignore.join());
       }
 
+      if (options.json) {
+        args.push(`--reporters json --output "${options.output}"`);
+      }
+
       return super.prepare(args, { ...options, disableCache: true });
     } catch {
       process.stderr.write(c.red(`Can't load ${this.getName()} package config!\n`));

@@ -1,8 +1,14 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { existsSync } from 'fs';
+import { CommonSpawnOptions } from 'child_process';
+import { existsSync, writeFileSync } from 'fs';
 import { open } from 'fs/promises';
 
-import { EExitCode, resolveCwdPath, resolveCwdRelativePath } from '@saashub/qoq-utils';
+import {
+  EExitCode,
+  executeCommand,
+  resolveCwdPath,
+  resolveCwdRelativePath,
+} from '@saashub/qoq-utils';
 import micromatch from 'micromatch';
 import c from 'picocolors';
 
@@ -19,6 +25,71 @@ export class PrettierExecutor extends AbstractExecutor {
   getName(): string {
     return capitalizeFirstLetter(this.getCommandName());
   }
+
+  async run(
+    options: IExecutorOptions,
+    files?: string[],
+    stdio?: CommonSpawnOptions['stdio']
+  ): Promise<EExitCode>;
+  async run(
+    options: IExecutorOptions,
+    files?: string[],
+    stdio?: CommonSpawnOptions['stdio'],
+    captureOutput?: boolean
+  ): Promise<string>;
+  async run(
+    options: IExecutorOptions,
+    files?: string[],
+    stdio: CommonSpawnOptions['stdio'] = 'inherit',
+    captureOutput: boolean = false
+  ): Promise<string | EExitCode> {
+    const consoleTimeName = `${this.getName()} execution time:`;
+    console.time(c.italic(c.gray(consoleTimeName)));
+
+    if (!this.silent) {
+      process.stdout.write(c.green(`\nRunning ${this.getName()}:\n`));
+    }
+
+    const args = [...this.getCommandArgs()];
+
+    try {
+      await this.prepare(args, options, files);
+
+      if (options.warmup) {
+        return EExitCode.OK;
+      }
+
+      if (options.json) {
+        const checkIndex = args.indexOf('--check');
+
+        if (checkIndex !== -1) {
+          args.splice(checkIndex, 1, '--list-different');
+        }
+
+        const output = await executeCommand(this.getCommandName(), args, 'pipe', true);
+        const files = output.split('\n').filter(Boolean);
+
+        writeFileSync(`${options.output}/prettier-report.json`, JSON.stringify({ issues: files }));
+
+        return files.length > 0 ? EExitCode.ERROR : EExitCode.OK;
+      }
+
+      return await executeCommand(this.getCommandName(), args, stdio, captureOutput);
+    } catch (e) {
+      if (!(e instanceof TerminateExecutorGracefully)) {
+        process.stderr.write('Unknown error!\n');
+
+        process.exit(EExitCode.EXCEPTION);
+      }
+
+      return EExitCode.OK;
+    } finally {
+      if (!this.silent && !this.hideTimer) {
+        console.timeEnd(c.italic(c.gray(consoleTimeName)));
+      }
+    }
+  }
+
   protected getCommandName(): string {
     return 'prettier';
   }

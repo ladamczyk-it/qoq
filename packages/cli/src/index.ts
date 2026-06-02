@@ -1,38 +1,47 @@
 #!/usr/bin/env node
 
+import { existsSync, mkdirSync } from 'fs';
+
 import { readPackage } from '@npmcli/package-json/lib/read-package';
 import cac from 'cac';
 
 import { PACKAGE_JSON_PATH } from './helpers/constants.ts';
+import { resolveCliRelativePath } from './helpers/paths.ts';
 import { getConfig, initConfig, execute } from './modules/index.ts';
 import { IExecuteOptions, IExecuteStagedOptions } from './modules/types.ts';
 
 const cli = cac('qoq');
 
 cli
-  .command('')
-  .option('--init', 'Initialize QoQ cli config')
-  .option('--check', 'Perform QoQ quality checks')
-  .option('--fix', 'Apply fixes to QoQ check findings where possible')
-  .option('--disable-cache', 'Disable cache to all tools')
-  .option('--skip-npm', 'Skip NPM checks')
-  .option('--skip-prettier', 'Skip Prettier checks')
-  .option('--skip-jscpd', 'Skip JSCPD checks')
-  .option('--skip-knip', 'Skip Knip checks')
-  .option('--skip-eslint', 'Skip Eslint checks')
-  .option('--warmup', 'Create configs for tools without QoQ execution')
-  .option('--silent', 'Mute all QoQ messages')
-  .option('--config-hints', 'Enable config hints')
-  .option('--production', 'Run tools in production mode')
-  .option(
-    '--concurrency <type>',
-    'Enable concurent execution for tools if possible. [off | auto]',
-    { default: 'off' }
-  )
-  .action(async (options: IExecuteOptions) => {
+  .command('[...tools]', 'Run quality checks (optionally filtered to named tools)')
+  .option('--init', 'Scaffold a qoq.config.js in the current project')
+  .option('--check', 'Run all enabled tools and report issues (exit 1 on findings)')
+  .option('--fix', 'Re-run tools in fix mode to auto-correct issues where supported')
+  .option('--disable-cache', 'Bypass per-tool caches and force a full re-run')
+  .option('--skip-npm', 'Skip npm dependency/package checks')
+  .option('--skip-prettier', 'Skip Prettier formatting checks')
+  .option('--skip-jscpd', 'Skip JSCPD copy-paste detection')
+  .option('--skip-knip', 'Skip Knip unused-exports/dead-code checks')
+  .option('--skip-eslint', 'Skip ESLint linting')
+  .option('--warmup', 'Pre-generate tool configs in bin/ without running any checks')
+  .option('--silent', 'Suppress all QoQ console output')
+  .option('--config-hints', 'Print config suggestions alongside check results')
+  .option('--production', 'Run tools in production mode (excludes dev-only rules)')
+  .option('--json', "Write each tool's output to a JSON file in --output")
+  .option('--output <path>', 'Directory for JSON reports (requires --json)', {
+    default: resolveCliRelativePath('/bin/report'),
+  })
+  .option('--concurrency <type>', 'Run tools in parallel when possible. [off | auto]', {
+    default: 'off',
+  })
+  .action(async (tools: string[], options: IExecuteOptions) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const { workspaces } = (await readPackage(PACKAGE_JSON_PATH)) as { workspaces?: string[] };
-    const { init, fix, disableCache, concurrency } = options;
+    const { init, fix, disableCache, concurrency, json, output } = options;
+
+    if (json && !existsSync(output)) {
+      mkdirSync(output);
+    }
 
     if (init) {
       return await initConfig(workspaces);
@@ -40,31 +49,34 @@ cli
 
     const config = await getConfig(workspaces);
 
-    return await execute(config, {
-      ...options,
-      fix: !!fix,
-      disableCache: !!disableCache,
-      concurrency: concurrency ?? 'off',
-    });
+    return await execute(
+      config,
+      {
+        ...options,
+        fix: !!fix,
+        disableCache: !!disableCache,
+        concurrency: concurrency ?? 'off',
+      },
+      undefined,
+      tools.length ? tools : undefined
+    );
   });
 
 cli
   .command(
     'staged [...files]',
-    'Perform QoQ quality checks but only on filelist, usefull for eg `lint-staged` config'
+    'Run quality checks on a specific file list (e.g. for use with lint-staged)'
   )
-  .option('--disable-cache', 'Disable cache to all tools')
-  .option('--skip-npm', 'Skip NPM checks')
-  .option('--skip-prettier', 'Skip Prettier checks')
-  .option('--skip-jscpd', 'Skip JSCPD checks')
-  .option('--skip-knip', 'Skip Knip checks')
-  .option('--skip-eslint', 'Skip Eslint checks')
-  .option('--config-hints', 'Enable config hints')
-  .option(
-    '--concurrency <type>',
-    'Enable concurent execution for tools if possible. [off | auto]',
-    { default: 'off' }
-  )
+  .option('--disable-cache', 'Bypass per-tool caches and force a full re-run')
+  .option('--skip-npm', 'Skip npm dependency/package checks')
+  .option('--skip-prettier', 'Skip Prettier formatting checks')
+  .option('--skip-jscpd', 'Skip JSCPD copy-paste detection')
+  .option('--skip-knip', 'Skip Knip unused-exports/dead-code checks')
+  .option('--skip-eslint', 'Skip ESLint linting')
+  .option('--config-hints', 'Print config suggestions alongside check results')
+  .option('--concurrency <type>', 'Run tools in parallel when possible. [off | auto]', {
+    default: 'off',
+  })
   // eslint-disable-next-line @typescript-eslint/default-param-last
   .action(async (files: string[] = [], options: IExecuteStagedOptions) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call

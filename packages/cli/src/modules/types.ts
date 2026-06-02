@@ -39,6 +39,8 @@ export interface IExecuteStagedOptions {
   silent?: boolean;
   configHints?: boolean;
   production?: boolean;
+  json?: string;
+  output: string;
   concurrency?: 'off' | 'auto';
 }
 

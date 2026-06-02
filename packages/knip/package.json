@@ -43,19 +43,19 @@
     "build": "rimraf ./lib && rollup -c --silent"
   },
   "dependencies": {
-    "knip": "6.14.1"
+    "knip": "6.15.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "12.3.0",
     "rimraf": "6.1.3",
-    "rollup": "4.60.4",
+    "rollup": "4.61.0",
     "typescript": "6.0.3"
   },
   "peerDependencies": {
     "knip": "^5"
   },
   "engines": {
-    "node": ">=22.13.1"
+    "node": ">=22.15.0"
   },
   "publishConfig": {
     "access": "public"

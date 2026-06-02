@@ -34,22 +34,22 @@
     "@saashub/qoq-utils": "^3.2.5",
     "cac": "7.0.0",
     "picocolors": "1.1.1",
-    "semver": "7.8.0"
+    "semver": "7.8.1"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "29.0.2",
+    "@rollup/plugin-commonjs": "29.0.3",
     "@rollup/plugin-node-resolve": "16.0.3",
     "@rollup/plugin-terser": "1.0.0",
     "@types/semver": "7.7.1",
     "esbuild": "0.28.0",
     "rimraf": "6.1.3",
-    "rollup": "4.60.4",
+    "rollup": "4.61.0",
     "rollup-plugin-esbuild": "6.2.1",
-    "type-fest": "5.6.0",
+    "type-fest": "5.7.0",
     "typescript": "6.0.3"
   },
   "engines": {
-    "node": ">=22.13.1"
+    "node": ">=22.15.0"
   },
   "publishConfig": {
     "access": "public"

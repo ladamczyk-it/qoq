@@ -28,20 +28,6 @@ export class KnipExecutor extends AbstractExecutor {
   }
 
   protected async prepare(args: string[], options: IExecutorOptions): Promise<EExitCode> {
-    const { configHints, production, fix } = options;
-
-    if (!configHints) {
-      args.push('--no-config-hints');
-    }
-
-    if (production) {
-      args.push('--production');
-    }
-
-    if (fix) {
-      args.push('--fix');
-    }
-
     try {
       const {
         srcPath,
@@ -94,6 +80,22 @@ export class KnipExecutor extends AbstractExecutor {
       }
 
       args.push('-c', getRelativePath(configFilePath));
+
+      if (!options.configHints) {
+        args.push('--no-config-hints');
+      }
+
+      if (options.production) {
+        args.push('--production');
+      }
+
+      if (options.fix) {
+        args.push('--fix');
+      }
+
+      if (options.json) {
+        args.push(`--reporter json > "${options.output}/knip-report.json"`);
+      }
 
       return super.prepare(args, options);
     } catch {
