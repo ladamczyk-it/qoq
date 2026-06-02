@@ -73,9 +73,7 @@ const executeInspector = async (packageName) =>
     });
   });
 
-const packages = regenerateAll
-  ? allPackages
-  : new Set(emptyPackages.concat(packagesToCheck));
+const packages = regenerateAll ? allPackages : new Set(emptyPackages.concat(packagesToCheck));
 
 for (const packageName of packages) {
   await executeInspector(packageName);
