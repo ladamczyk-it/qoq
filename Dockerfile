@@ -1,7 +1,7 @@
 FROM node:22-alpine AS build
 WORKDIR /usr/src/app
 COPY . .
-RUN npm ci --ignore-scripts
+RUN npm i --ignore-scripts
 RUN npm run build
 RUN npm run config-inspector -- all
 RUN for dir in packages/eslint-v9-*/stats; do \
