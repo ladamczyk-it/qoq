@@ -1,6 +1,6 @@
 {
   "name": "@saashub/qoq-eslint-v9-ts",
-  "version": "3.2.5",
+  "version": "3.3.0",
   "description": "Eslint flat config template for TS",
   "keywords": [
     "eslint TypeScript template",
@@ -43,8 +43,8 @@
     "inspect": "node ./bin/bin.cjs"
   },
   "dependencies": {
-    "@saashub/qoq-eslint-v9-js": "^3.2.5",
-    "@saashub/qoq-utils": "^3.2.5",
+    "@saashub/qoq-eslint-v9-js": "^3.3.0",
+    "@saashub/qoq-utils": "^3.3.0",
     "eslint-import-resolver-typescript": "4.4.5",
     "typescript-eslint": "8.60.1"
   },

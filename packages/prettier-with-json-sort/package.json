@@ -1,6 +1,6 @@
 {
   "name": "@saashub/qoq-prettier-with-json-sort",
-  "version": "3.2.5",
+  "version": "3.3.0",
   "homepage": "https://github.com/saashub-it/qoq/tree/master/packages/prettier-with-json-sort",
   "bugs": {
     "url": "https://github.com/saashub-it/qoq/issues"
@@ -31,7 +31,7 @@
     "build": "rimraf ./index.json && node ./src/index.js"
   },
   "dependencies": {
-    "@saashub/qoq-prettier": "^3.2.5",
+    "@saashub/qoq-prettier": "^3.3.0",
     "prettier-plugin-sort-json": "4.2.0"
   },
   "devDependencies": {
