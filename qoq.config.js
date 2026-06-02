@@ -33,6 +33,7 @@ export default {
       '@rollup/*',
       'rollup-*',
       'esbuild',
+      'dotenv',
       // this is subpackage specific
       'pkg-types',
       '@eslint/compat',
