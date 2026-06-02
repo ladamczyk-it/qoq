@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, sonarjs/cognitive-complexity */
 import { existsSync, rmSync, writeFileSync } from 'fs';
 
-import { getPackageInfo } from '@saashub/qoq-utils';
+import { getPackageInfo } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 import prompts from 'prompts';
 
@@ -212,7 +212,7 @@ export class EslintConfigHandler extends AbstractConfigHandler {
       formatCode(
         this.modulesConfig.configType,
         {
-          config: `@saashub/qoq-cli/bin/eslint.config.${this.modulesConfig.configType === EConfigType.ESM ? 'm' : 'c'}js`,
+          config: `@ladamczyk/qoq-cli/bin/eslint.config.${this.modulesConfig.configType === EConfigType.ESM ? 'm' : 'c'}js`,
         },
         [],
         'config'

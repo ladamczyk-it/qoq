@@ -1,6 +1,6 @@
-# @saashub/qoq-stylelint-css — Agent Context
+# @ladamczyk/qoq-stylelint-css — Agent Context
 
-Stylelint configuration template for CSS projects. All other `@saashub/qoq-stylelint-*` packages extend this one.
+Stylelint configuration template for CSS projects. All other `@ladamczyk/qoq-stylelint-*` packages extend this one.
 
 ## Exports
 
@@ -8,10 +8,10 @@ Stylelint configuration template for CSS projects. All other `@saashub/qoq-style
 
 ## Usage
 
-Typically consumed via `qoq.config.js` using the `template` field (handled by `@saashub/qoq-cli`). For manual use:
+Typically consumed via `qoq.config.js` using the `template` field (handled by `@ladamczyk/qoq-cli`). For manual use:
 
 ```js
-import { baseConfig } from '@saashub/qoq-stylelint-css';
+import { baseConfig } from '@ladamczyk/qoq-stylelint-css';
 
 export default baseConfig;
 ```

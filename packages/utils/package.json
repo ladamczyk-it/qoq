@@ -1,20 +1,20 @@
 {
-  "name": "@saashub/qoq-utils",
+  "name": "@ladamczyk/qoq-utils",
   "version": "3.3.0",
   "description": "QoQ utils",
   "keywords": [
     "QoQ utils",
-    "saashub",
+    "ladamczyk",
     "qoq",
     "QualityOverQuantity"
   ],
-  "homepage": "https://github.com/saashub-it/qoq/tree/master/packages/utils",
+  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/utils",
   "bugs": {
-    "url": "https://github.com/saashub-it/qoq/issues"
+    "url": "https://github.com/ladamczyk-it/qoq/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/saashub-it/qoq.git",
+    "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
     "directory": "packages/utils"
   },
   "license": "MIT",

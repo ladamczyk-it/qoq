@@ -94,24 +94,24 @@ where:
 - `entry` described in [source docs](https://knip.dev/reference/configuration#entry), defaults to `[${srcPath}/{index,cli,main,root}.{ts,tsx,js,jsx}]` (file extensions are retreived from installed qoq modules)
 - `project` described in [source docs](https://knip.dev/reference/configuration#project-1), defaults to `[${srcPath}/**/*.{ts,tsx,js,jsx}]` (file extensions are retreived from installed qoq modules)
 - `ignore` described in [source docs](https://knip.dev/reference/configuration#ignore)
-- `ignoreDependencies` described in [source docs](https://knip.dev/reference/configuration#ignoredependencies), defaults to `['@saashub/qoq-*']`
+- `ignoreDependencies` described in [source docs](https://knip.dev/reference/configuration#ignoredependencies), defaults to `['@ladamczyk/qoq-*']`
 - `ignoreBinaries` described in [source docs](https://knip.dev/reference/configuration#ignorebinaries)
 
 # Eslint
 
-Requires standard [configuration objects](https://eslint.org/docs/latest/use/configure/configuration-files#configuration-objects) but You can extend QoQ templates via `template` prop in each config where value is valid [@saashub/qoq-eslint-v9-\*](https://www.npmjs.com/search?q=%40saashub%2Fqoq-eslint-v9-) package eg:
+Requires standard [configuration objects](https://eslint.org/docs/latest/use/configure/configuration-files#configuration-objects) but You can extend QoQ templates via `template` prop in each config where value is valid [@ladamczyk/qoq-eslint-v9-\*](https://www.npmjs.com/search?q=%40ladamczyk%2Fqoq-eslint-v9-) package eg:
 
 ```js
 {
     eslint: [
         {
-            template: '@saashub/qoq-eslint-v9-ts',
+            template: '@ladamczyk/qoq-eslint-v9-ts',
             files: ['packages/**/src/**/*.ts'],
             ignores: ['**/*.spec.ts'],
             ...
         },
         {
-            template: '@saashub/qoq-eslint-v9-ts-vitest',
+            template: '@ladamczyk/qoq-eslint-v9-ts-vitest',
             files: ['packages/**/src/**/*.spec.ts'],
             ignores: [],
             ...
@@ -123,13 +123,13 @@ Requires standard [configuration objects](https://eslint.org/docs/latest/use/con
 
 # Stylelint
 
-Requires standard [configuration object](https://stylelint.io/user-guide/configure) but You can extend QoQ templates via `template` prop in each config where value is valid [@saashub/qoq-stylelint-\*](https://www.npmjs.com/search?q=%40saashub%2Fqoq-stylelint-) package eg:
+Requires standard [configuration object](https://stylelint.io/user-guide/configure) but You can extend QoQ templates via `template` prop in each config where value is valid [@ladamczyk/qoq-stylelint-\*](https://www.npmjs.com/search?q=%40ladamczyk%2Fqoq-stylelint-) package eg:
 
 ```js
 {
     stylelint: {
         strict: false
-        template: '@saashub/qoq-stylelint-css',
+        template: '@ladamczyk/qoq-stylelint-css',
         ...
     }
 }

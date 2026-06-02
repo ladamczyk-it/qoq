@@ -17,14 +17,14 @@ QoQ provides essential tooling to ensure code quality across all your projects:
 - **Knip** – Detect and remove unused code effortlessly.
 - **JSCPD** – Identify and eliminate duplicate code.
 
-Each tool is available as an independent package under the `@saashub/qoq-*` namespace, making it easy to integrate and customize.
+Each tool is available as an independent package under the `@ladamczyk/qoq-*` namespace, making it easy to integrate and customize.
 
 ## 🚀 Getting Started
 
 ### 1️⃣ Install QoQ
 
 ```sh
-npm install @saashub/qoq-cli
+npm install @ladamczyk/qoq-cli
 ```
 
 ### 2️⃣ Set Up Configuration
@@ -32,7 +32,7 @@ npm install @saashub/qoq-cli
 QoQ uses an intuitive **Config Wizard** to guide you through setup. Run:
 
 ```sh
-npx -y @saashub/qoq-cli --init
+npx -y @ladamczyk/qoq-cli --init
 ```
 
 This will generate a `qoq.config.js` file with all necessary configurations.
@@ -55,10 +55,10 @@ For more details, check out our [technical documentation](./packages/cli/README.
 
 ## 🌍 Contributing
 
-Join us in making QoQ even better! Read our [Contributing Guidelines](https://github.com/saashub-it/qoq/blob/master/.github/CONTRIBUTING.md) before submitting changes.
+Join us in making QoQ even better! Read our [Contributing Guidelines](https://github.com/ladamczyk-it/qoq/blob/master/.github/CONTRIBUTING.md) before submitting changes.
 
 ---
 
 💡 **QoQ: Focus on writing great code, we handle the rest.**
 
-_Feel free to join us, please read [Contributing Guidelines](https://github.com/saashub-it/qoq/blob/master/.github/CONTRIBUTING.md)_
+_Feel free to join us, please read [Contributing Guidelines](https://github.com/ladamczyk-it/qoq/blob/master/.github/CONTRIBUTING.md)_

@@ -1,21 +1,21 @@
 {
-  "name": "@saashub/qoq-eslint-v9-js-react",
+  "name": "@ladamczyk/qoq-eslint-v9-js-react",
   "version": "3.3.0",
   "description": "Eslint flat config template for JS + React",
   "keywords": [
     "eslint JavaScript + React template",
     "flat config",
-    "saashub",
+    "ladamczyk",
     "qoq",
     "QualityOverQuantity"
   ],
-  "homepage": "https://github.com/saashub-it/qoq/tree/master/packages/eslint-v9-js-react",
+  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/eslint-v9-js-react",
   "bugs": {
-    "url": "https://github.com/saashub-it/qoq/issues"
+    "url": "https://github.com/ladamczyk-it/qoq/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/saashub-it/qoq.git",
+    "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
     "directory": "packages/eslint-v9-js-react"
   },
   "license": "MIT",
@@ -30,7 +30,7 @@
   "module": "./lib/index.mjs",
   "types": "./lib/index.d.ts",
   "bin": {
-    "@saashub/qoq-eslint-v9-js-react": "./bin/bin.js"
+    "@ladamczyk/qoq-eslint-v9-js-react": "./bin/bin.js"
   },
   "files": [
     "bin",
@@ -44,8 +44,8 @@
   },
   "dependencies": {
     "@eslint-react/eslint-plugin": "5.8.10",
-    "@saashub/qoq-eslint-v9-js": "^3.3.0",
-    "@saashub/qoq-utils": "^3.3.0",
+    "@ladamczyk/qoq-eslint-v9-js": "^3.3.0",
+    "@ladamczyk/qoq-utils": "^3.3.0",
     "@stylistic/eslint-plugin": "5.10.0",
     "browserslist": "latest",
     "eslint-plugin-compat": "7.0.2"

@@ -1,4 +1,4 @@
-import { getNoRestrictedImportsPaths } from '@saashub/qoq-eslint-v9-js';
+import { getNoRestrictedImportsPaths } from '@ladamczyk/qoq-eslint-v9-js';
 
 const rules = {
   'no-restricted-imports': [
@@ -25,6 +25,7 @@ export default {
       '**/vitest.config.js',
       'eslint.config.js',
       'qoq.config.js',
+      'release.config.js',
       'packages/cli/src/types.ts',
     ],
     ignoreDependencies: [
@@ -41,31 +42,29 @@ export default {
       'stylelint-*',
       'eslint-plugin-import-x',
       '@typescript-eslint/utils',
-      '@textlint/*',
-      'textlint*',
     ],
   },
   eslint: [
     {
-      template: '@saashub/qoq-eslint-v9-ts',
+      template: 'qoq-eslint-v9-ts',
       files: ['packages/**/src/**/*.ts'],
       ignores: ['**/*.spec.ts'],
       rules,
     },
     {
-      template: '@saashub/qoq-eslint-v9-js',
+      template: 'qoq-eslint-v9-js',
       files: ['packages/**/src/**/*.js'],
       ignores: ['**/*.spec.js'],
       rules,
     },
     {
-      template: '@saashub/qoq-eslint-v9-ts-vitest',
+      template: 'qoq-eslint-v9-ts-vitest',
       files: ['packages/**/src/**/*.spec.ts'],
       ignores: [],
       rules,
     },
     {
-      template: '@saashub/qoq-eslint-v9-js-vitest',
+      template: 'qoq-eslint-v9-js-vitest',
       files: ['packages/**/src/**/*.spec.js'],
       ignores: [],
       rules,

@@ -1,21 +1,21 @@
 {
-  "name": "@saashub/qoq-eslint-v9-js-vitest-rtl",
+  "name": "@ladamczyk/qoq-eslint-v9-js-vitest-rtl",
   "version": "3.3.0",
   "description": "Eslint flat config template for JS + Vitest + RTL",
   "keywords": [
     "eslint JavaScript + Vitest + RTL template",
     "flat config",
-    "saashub",
+    "ladamczyk",
     "qoq",
     "QualityOverQuantity"
   ],
-  "homepage": "https://github.com/saashub-it/qoq/tree/master/packages/eslint-v9-js-vitest-rtl",
+  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/eslint-v9-js-vitest-rtl",
   "bugs": {
-    "url": "https://github.com/saashub-it/qoq/issues"
+    "url": "https://github.com/ladamczyk-it/qoq/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/saashub-it/qoq.git",
+    "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
     "directory": "packages/eslint-v9-js-vitest-rtl"
   },
   "license": "MIT",
@@ -30,7 +30,7 @@
   "module": "./lib/index.mjs",
   "types": "./lib/index.d.ts",
   "bin": {
-    "@saashub/qoq-eslint-v9-js-vitest-rtl": "./bin/bin.js"
+    "@ladamczyk/qoq-eslint-v9-js-vitest-rtl": "./bin/bin.js"
   },
   "files": [
     "bin",
@@ -43,8 +43,8 @@
     "inspect": "node ./bin/bin.cjs"
   },
   "dependencies": {
-    "@saashub/qoq-eslint-v9-js-vitest": "^3.3.0",
-    "@saashub/qoq-utils": "^3.3.0",
+    "@ladamczyk/qoq-eslint-v9-js-vitest": "^3.3.0",
+    "@ladamczyk/qoq-utils": "^3.3.0",
     "eslint-plugin-testing-library": "7.16.2"
   },
   "devDependencies": {

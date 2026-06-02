@@ -1,6 +1,6 @@
 import { resolve } from 'path';
 
-import { getPackageInfo, getRelativePath } from '@saashub/qoq-utils';
+import { getPackageInfo, getRelativePath } from '@ladamczyk/qoq-utils';
 
 import pkg from '../../package.json';
 

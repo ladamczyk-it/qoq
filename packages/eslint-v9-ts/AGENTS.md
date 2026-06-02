@@ -1,6 +1,6 @@
-# @saashub/qoq-eslint-v9-ts — Agent Context
+# @ladamczyk/qoq-eslint-v9-ts — Agent Context
 
-ESLint flat config template for TypeScript projects. Extends `@saashub/qoq-eslint-v9-js` and adds TypeScript-specific rules.
+ESLint flat config template for TypeScript projects. Extends `@ladamczyk/qoq-eslint-v9-js` and adds TypeScript-specific rules.
 
 ## Exports
 
@@ -12,7 +12,7 @@ ESLint flat config template for TypeScript projects. Extends `@saashub/qoq-eslin
 Typically consumed via `qoq.config.js` using the `template` field. For manual use:
 
 ```js
-import { baseConfig } from '@saashub/qoq-eslint-v9-ts';
+import { baseConfig } from '@ladamczyk/qoq-eslint-v9-ts';
 
 export default [baseConfig];
 ```

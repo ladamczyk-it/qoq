@@ -81,7 +81,7 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
       formatCode(
         this.modulesConfig.configType,
         {
-          config: `@saashub/qoq-cli/bin/stylelint.config.${this.modulesConfig.configType === EConfigType.ESM ? 'm' : 'c'}js`,
+          config: `@ladamczyk/qoq-cli/bin/stylelint.config.${this.modulesConfig.configType === EConfigType.ESM ? 'm' : 'c'}js`,
         },
         [],
         'config'

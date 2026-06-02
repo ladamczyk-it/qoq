@@ -1,20 +1,20 @@
 {
-  "name": "@saashub/qoq-stylelint-scss",
+  "name": "@ladamczyk/qoq-stylelint-scss",
   "version": "3.3.0",
   "description": "Stylelint config template for SCSS",
   "keywords": [
     "stylelint SCSS template",
-    "saashub",
+    "ladamczyk",
     "qoq",
     "QualityOverQuantity"
   ],
-  "homepage": "https://github.com/saashub-it/qoq/tree/master/packages/stylelint-scss",
+  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/stylelint-scss",
   "bugs": {
-    "url": "https://github.com/saashub-it/qoq/issues"
+    "url": "https://github.com/ladamczyk-it/qoq/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/saashub-it/qoq.git",
+    "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
     "directory": "packages/stylelint-scss"
   },
   "license": "MIT",
@@ -36,7 +36,7 @@
     "build": "rimraf ./lib && rollup -c --silent"
   },
   "dependencies": {
-    "@saashub/qoq-stylelint-css": "^3.3.0",
+    "@ladamczyk/qoq-stylelint-css": "^3.3.0",
     "stylelint-config-standard-scss": "17.0.0"
   },
   "devDependencies": {

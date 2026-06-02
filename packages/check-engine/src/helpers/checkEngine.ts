@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { getPackageInfo } from '@saashub/qoq-utils';
+import { getPackageInfo } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 import { valid, SemVer, validRange, Range } from 'semver';
 

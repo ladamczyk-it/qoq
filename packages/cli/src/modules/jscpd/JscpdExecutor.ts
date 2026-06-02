@@ -1,6 +1,6 @@
 import { readdirSync } from 'fs';
 
-import { EExitCode, getRelativePath, resolveCwdPath } from '@saashub/qoq-utils';
+import { EExitCode, getRelativePath, resolveCwdPath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
 import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';

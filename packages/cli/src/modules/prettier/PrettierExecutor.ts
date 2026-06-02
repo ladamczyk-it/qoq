@@ -8,7 +8,7 @@ import {
   executeCommand,
   resolveCwdPath,
   resolveCwdRelativePath,
-} from '@saashub/qoq-utils';
+} from '@ladamczyk/qoq-utils';
 import micromatch from 'micromatch';
 import c from 'picocolors';
 

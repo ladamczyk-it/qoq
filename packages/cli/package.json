@@ -1,20 +1,20 @@
 {
-  "name": "@saashub/qoq-cli",
+  "name": "@ladamczyk/qoq-cli",
   "version": "3.3.0",
   "description": "CLI that handles formatting, linting and testing Your JS/TS code",
   "keywords": [
     "cli",
-    "saashub",
+    "ladamczyk",
     "qoq",
     "QualityOverQuantity"
   ],
-  "homepage": "https://github.com/saashub-it/qoq/tree/master/packages/cli",
+  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/cli",
   "bugs": {
-    "url": "https://github.com/saashub-it/qoq/issues"
+    "url": "https://github.com/ladamczyk-it/qoq/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/saashub-it/qoq.git",
+    "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
     "directory": "packages/cli"
   },
   "license": "MIT",
@@ -36,8 +36,8 @@
   "dependencies": {
     "@antfu/install-pkg": "1.1.0",
     "@eslint/compat": "2.1.0",
+    "@ladamczyk/qoq-utils": "^3.3.0",
     "@npmcli/package-json": "7.0.5",
-    "@saashub/qoq-utils": "^3.3.0",
     "cac": "7.0.0",
     "cosmiconfig": "9.0.1",
     "es-toolkit": "1.47.0",

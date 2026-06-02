@@ -1,19 +1,19 @@
 {
-  "name": "@saashub/check-engine",
+  "name": "@ladamczyk/check-engine",
   "version": "3.3.0",
   "description": "CLI that checks dependencies engines.node settings and gives You suggestion or errors if needed",
   "keywords": [
     "cli",
-    "saashub",
+    "ladamczyk",
     "check-engine"
   ],
-  "homepage": "https://github.com/saashub-it/qoq/tree/master/packages/check-engine",
+  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/check-engine",
   "bugs": {
-    "url": "https://github.com/saashub-it/qoq/issues"
+    "url": "https://github.com/ladamczyk-it/qoq/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/saashub-it/qoq.git",
+    "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
     "directory": "packages/check-engine"
   },
   "license": "MIT",
@@ -31,7 +31,7 @@
     "dev": "npm run build && node ./bin/check-engine.js"
   },
   "dependencies": {
-    "@saashub/qoq-utils": "^3.3.0",
+    "@ladamczyk/qoq-utils": "^3.3.0",
     "cac": "7.0.0",
     "picocolors": "1.1.1",
     "semver": "7.8.1"

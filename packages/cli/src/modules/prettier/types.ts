@@ -1,6 +1,6 @@
 export enum EModulesPrettier {
-  PRETTIER = '@saashub/qoq-prettier',
-  PRETTIER_WITH_JSON_SORT = '@saashub/qoq-prettier-with-json-sort',
+  PRETTIER = '@ladamczyk/qoq-prettier',
+  PRETTIER_WITH_JSON_SORT = '@ladamczyk/qoq-prettier-with-json-sort',
 }
 
 export interface IModulePrettierConfig {

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**QoQ (Quality over Quantity)** is a monorepo of npm packages published under `@saashub/qoq-*` that orchestrate Prettier, ESLint, Knip, JSCPD, Stylelint, and Skillslint via a single CLI. Node >=22.15.0 is required.
+**QoQ (Quality over Quantity)** is a monorepo of npm packages published under `@ladamczyk/qoq-*` that orchestrate Prettier, ESLint, Knip, JSCPD, Stylelint, and Skillslint via a single CLI. Node >=22.15.0 is required.
 
 ## Commands
 

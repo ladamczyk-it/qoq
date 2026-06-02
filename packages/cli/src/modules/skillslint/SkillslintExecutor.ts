@@ -1,4 +1,4 @@
-import { EExitCode } from '@saashub/qoq-utils';
+import { EExitCode } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
 import { capitalizeFirstLetter } from '../../helpers/common.ts';

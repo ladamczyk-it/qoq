@@ -84,7 +84,7 @@ export class JscpdConfigHandler extends AbstractConfigHandler {
   }
 
   getPackages(): string[] {
-    this.packages = ['@saashub/qoq-jscpd'];
+    this.packages = ['@ladamczyk/qoq-jscpd'];
 
     return super.getPackages();
   }

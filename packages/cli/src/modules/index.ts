@@ -1,6 +1,6 @@
 import { existsSync, rmSync, writeFileSync } from 'fs';
 
-import { EExitCode, executeCommand, resolveCwdRelativePath } from '@saashub/qoq-utils';
+import { EExitCode, executeCommand, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import { cosmiconfig } from 'cosmiconfig';
 import c from 'picocolors';
 import prompts from 'prompts';

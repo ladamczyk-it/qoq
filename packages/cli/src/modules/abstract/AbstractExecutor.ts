@@ -1,7 +1,7 @@
 import { CommonSpawnOptions } from 'child_process';
 import { existsSync, rmSync } from 'fs';
 
-import { EExitCode, executeCommand } from '@saashub/qoq-utils';
+import { EExitCode, executeCommand } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';

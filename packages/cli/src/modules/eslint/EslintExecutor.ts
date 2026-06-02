@@ -1,7 +1,7 @@
 import { existsSync, writeFileSync } from 'fs';
 import { pathToFileURL } from 'url';
 
-import { EExitCode, resolveCwdRelativePath } from '@saashub/qoq-utils';
+import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import { flattenDeep } from 'es-toolkit/compat';
 import micromatch from 'micromatch';
 import c from 'picocolors';
@@ -47,7 +47,7 @@ export class EslintExecutor extends AbstractExecutor {
       );
 
       const imports: Record<string, string> = {
-        '{ objectMergeRight }': '@saashub/qoq-utils',
+        '{ objectMergeRight }': '@ladamczyk/qoq-utils',
         '{ includeIgnoreFile }': '@eslint/compat',
       };
 
@@ -57,9 +57,9 @@ export class EslintExecutor extends AbstractExecutor {
 
           if (Object.values(EModulesEslint).includes(template as EModulesEslint)) {
             if (configType === EConfigType.ESM) {
-              imports[`{ baseConfig as baseConfig${index} }`] = String(template);
+              imports[`{ baseConfig as baseConfig${index} }`] = `@ladamczyk/${template}`;
             } else {
-              imports[`{ baseConfig: baseConfig${index} }`] = String(template);
+              imports[`{ baseConfig: baseConfig${index} }`] = `@ladamczyk/${template}`;
             }
 
             acc.push(

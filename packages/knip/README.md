@@ -1,7 +1,7 @@
-# @saashub/qoq-knip
+# @ladamczyk/qoq-knip
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/saashub-it/qoq/main.yml) ![NPM Version](https://img.shields.io/npm/v/%40saashub%2Fqoq-knip)
-![NPM Type Definitions](https://img.shields.io/npm/types/%40saashub%2Fqoq-knip) ![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/%40saashub%2Fqoq-knip) ![NPM License](https://img.shields.io/npm/l/%40saashub%2Fqoq-knip)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ladamczyk-it/qoq/main.yml) ![NPM Version](https://img.shields.io/npm/v/%40ladamczyk%2Fqoq-knip)
+![NPM Type Definitions](https://img.shields.io/npm/types/%40ladamczyk%2Fqoq-knip) ![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/%40ladamczyk%2Fqoq-knip) ![NPM License](https://img.shields.io/npm/l/%40ladamczyk%2Fqoq-knip)
 
 ## Rationale
 
@@ -11,7 +11,7 @@ The configuration is opinionated, shaped by years of development experience, and
 
 ## Install
 
-    npm install @saashub/qoq-knip
+    npm install @ladamczyk/qoq-knip
 
 ## Usage
 
@@ -20,7 +20,7 @@ Package exports both CommonJS and ESM code just import it in Your knip config fi
 ### For CommonJS
 
 ```js
-const { jsConfig, jsReactConfig, tsConfig, tsReactConfig } = require('@saashub/qoq-knip');
+const { jsConfig, jsReactConfig, tsConfig, tsReactConfig } = require('@ladamczyk/qoq-knip');
 
 module.exports = jsConfig;
 ```
@@ -28,11 +28,11 @@ module.exports = jsConfig;
 ### For ESM
 
 ```js
-import { jsConfig, jsReactConfig, tsConfig, tsReactConfig } from '@saashub/qoq-knip';
+import { jsConfig, jsReactConfig, tsConfig, tsReactConfig } from '@ladamczyk/qoq-knip';
 
 export default jsConfig;
 ```
 
 ### Last but not least
 
-_Feel free to join us, please read [General Contributing Guidelines](https://github.com/saashub-it/qoq/blob/master/.github/CONTRIBUTING.md)_
+_Feel free to join us, please read [General Contributing Guidelines](https://github.com/ladamczyk-it/qoq/blob/master/.github/CONTRIBUTING.md)_

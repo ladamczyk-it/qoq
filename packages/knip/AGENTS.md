@@ -1,6 +1,6 @@
-# @saashub/qoq-knip — Agent Context
+# @ladamczyk/qoq-knip — Agent Context
 
-Knip configuration builder used internally by `@saashub/qoq-cli`. Can also be used directly.
+Knip configuration builder used internally by `@ladamczyk/qoq-cli`. Can also be used directly.
 
 ## Exports
 
@@ -20,7 +20,7 @@ Returns a Knip configuration object. All parameters are optional with sensible d
 ### Pre-built configs
 
 ```js
-import { jsConfig, jsReactConfig, tsConfig, tsReactConfig } from '@saashub/qoq-knip';
+import { jsConfig, jsReactConfig, tsConfig, tsReactConfig } from '@ladamczyk/qoq-knip';
 ```
 
 | Export          | Entry           | Project glob               |

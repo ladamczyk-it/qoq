@@ -1,15 +1,14 @@
 {
-  "name": "@saashub/qoq",
+  "name": "@ladamczyk/qoq",
   "private": true,
   "bugs": {
-    "url": "https://github.com/saashub-it/qoq/issues"
+    "url": "https://github.com/ladamczyk-it/qoq/issues"
   },
   "license": "MIT",
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build": "lerna run build",
     "check:engine": "check-engine",
@@ -18,8 +17,9 @@
     "husky:pre-push": "run-s build check:engine test qoq:check",
     "postinstall": "qoq --warmup",
     "pre:test": "npm run config-inspector",
+    "prepare": "husky",
     "publish:full": "run-s husky:pre-push publish:lerna",
-    "publish:lerna": "lerna publish --no-private --force-publish && npm run config-inspector:clean",
+    "publish:release": "npx --package semantic-release --package @semantic-release/changelog --package @semantic-release/git --package semantic-release-lerna -y semantic-release",
     "qoq:check": "qoq --check",
     "qoq:fix": "qoq --fix",
     "sort:packages:json": "npx -y sort-package-json 'package.json' 'packages/*/package.json'",
@@ -28,16 +28,20 @@
     "test:execute": "vitest run"
   },
   "devDependencies": {
-    "@saashub/check-engine": "latest",
-    "@saashub/qoq-cli": "latest",
-    "@saashub/qoq-eslint-v9-ts": "latest",
-    "@saashub/qoq-eslint-v9-ts-jest": "latest",
-    "@saashub/qoq-jscpd": "latest",
-    "@saashub/qoq-knip": "latest",
-    "@saashub/qoq-prettier-with-json-sort": "latest",
-    "@saashub/skillslint": "latest",
+    "@commitlint/cli": "21.0.2",
+    "@commitlint/config-conventional": "21.0.2",
+    "@ladamczyk/check-engine": "latest",
+    "@ladamczyk/qoq-cli": "latest",
+    "@ladamczyk/qoq-eslint-v9-ts": "latest",
+    "@ladamczyk/qoq-eslint-v9-ts-jest": "latest",
+    "@ladamczyk/qoq-jscpd": "latest",
+    "@ladamczyk/qoq-knip": "latest",
+    "@ladamczyk/qoq-prettier-with-json-sort": "latest",
+    "@ladamczyk/skillslint": "latest",
     "@types/node": "^22",
     "@vitest/coverage-v8": "4.1.8",
+    "dotenv": "17.4.0",
+    "husky": "9.1.7",
     "lerna": "9.0.7",
     "npm-run-all": "4.1.5",
     "rimraf": "6.1.3",

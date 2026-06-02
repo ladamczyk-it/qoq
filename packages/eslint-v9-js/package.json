@@ -1,21 +1,21 @@
 {
-  "name": "@saashub/qoq-eslint-v9-js",
+  "name": "@ladamczyk/qoq-eslint-v9-js",
   "version": "3.3.0",
   "description": "Eslint flat config template for JS",
   "keywords": [
     "eslint JavaScript template",
     "flat config",
-    "saashub",
+    "ladamczyk",
     "qoq",
     "QualityOverQuantity"
   ],
-  "homepage": "https://github.com/saashub-it/qoq/tree/master/packages/eslint-v9-js",
+  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/eslint-v9-js",
   "bugs": {
-    "url": "https://github.com/saashub-it/qoq/issues"
+    "url": "https://github.com/ladamczyk-it/qoq/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/saashub-it/qoq.git",
+    "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
     "directory": "packages/eslint-v9-js"
   },
   "license": "MIT",
@@ -37,7 +37,7 @@
   "module": "./lib/index.mjs",
   "types": "./lib/index.d.ts",
   "bin": {
-    "@saashub/qoq-eslint-v9-js": "./bin/bin.js"
+    "@ladamczyk/qoq-eslint-v9-js": "./bin/bin.js"
   },
   "files": [
     "bin",
@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
-    "@saashub/qoq-utils": "^3.3.0",
+    "@ladamczyk/qoq-utils": "^3.3.0",
     "eslint": "^10.3.0",
     "eslint-plugin-file-progress": "4.0.0",
     "eslint-plugin-import-x": "4.16.2",

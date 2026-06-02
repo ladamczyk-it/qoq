@@ -1,7 +1,7 @@
 import { CommonSpawnOptions } from 'child_process';
 import { existsSync, rmSync, statSync, writeFileSync } from 'fs';
 
-import { EExitCode } from '@saashub/qoq-utils';
+import { EExitCode } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 import { parse, lt, gt } from 'semver';
 

@@ -1,7 +1,7 @@
 ---
 name: lint
 description: Run the `qoq --check` quality aggregator to surface lint/test/duplication findings, group issues by tool, propose fixes and optionally run `qoq --fix` to attempt auto-fixes. Use for repository health checks and pre-PR validation.
-compatibility: Requires `node` and npm, network access to install `@saashub/qoq-cli` if missing, and available test/build commands for validation.
+compatibility: Requires `node` and npm, network access to install `@ladamczyk/qoq-cli` if missing, and available test/build commands for validation.
 user-invocable: true
 ---
 
@@ -19,8 +19,8 @@ Trigger whenever you want a consolidated code-quality audit and suggested remedi
 
 ## Mandatory Preparation
 
-1. Ensure `@saashub/qoq-cli` is installed or available via `npx`.
-   - Install locally: `npm install --no-save @saashub/qoq-cli` or globally if preferred.
+1. Ensure `@ladamczyk/qoq-cli` is installed or available via `npx`.
+   - Install locally: `npm install --no-save @ladamczyk/qoq-cli` or globally if preferred.
 2. Confirm presence of `qoq.config.js|cjs|mjs|ts` in repo root or run `qoq --init` to create one.
 3. Ensure `npm ci` (or equivalent) and project build/test scripts are functional for validation steps.
 4. Be aware checks may take several minutes on large repositories.
@@ -29,8 +29,8 @@ Trigger whenever you want a consolidated code-quality audit and suggested remedi
 
 1. Verify `qoq` availability
 
-- Prefer running `npx qoq --version` or `npx -y @saashub/qoq-cli --version` to verify the binary.
-- If not available, suggest `npm install --no-save @saashub/qoq-cli` and then `npx qoq --init` to create a config.
+- Prefer running `npx qoq --version` or `npx -y @ladamczyk/qoq-cli --version` to verify the binary.
+- If not available, suggest `npm install --no-save @ladamczyk/qoq-cli` and then `npx qoq --init` to create a config.
 
 2. Run the checks
 

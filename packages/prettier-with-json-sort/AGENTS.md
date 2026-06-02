@@ -1,19 +1,19 @@
-# @saashub/qoq-prettier-with-json-sort — Agent Context
+# @ladamczyk/qoq-prettier-with-json-sort — Agent Context
 
-Prettier configuration template that extends `@saashub/qoq-prettier` with automatic JSON key sorting.
+Prettier configuration template that extends `@ladamczyk/qoq-prettier` with automatic JSON key sorting.
 
 ## Usage
 
 Reference it in `.prettierrc`:
 
 ```json
-"@saashub/qoq-prettier-with-json-sort"
+"@ladamczyk/qoq-prettier-with-json-sort"
 ```
 
 Or in `prettier.config.js`:
 
 ```js
-export default '@saashub/qoq-prettier-with-json-sort';
+export default '@ladamczyk/qoq-prettier-with-json-sort';
 ```
 
 ## Config

@@ -1,6 +1,6 @@
-# @saashub/qoq-eslint-v9-ts-jest — Agent Context
+# @ladamczyk/qoq-eslint-v9-ts-jest — Agent Context
 
-ESLint flat config template for TypeScript test files using Jest. Merges `@saashub/qoq-eslint-v9-js-jest` and `@saashub/qoq-eslint-v9-ts` (testConfig variant).
+ESLint flat config template for TypeScript test files using Jest. Merges `@ladamczyk/qoq-eslint-v9-js-jest` and `@ladamczyk/qoq-eslint-v9-ts` (testConfig variant).
 
 ## Exports
 
@@ -11,7 +11,7 @@ ESLint flat config template for TypeScript test files using Jest. Merges `@saash
 Typically consumed via `qoq.config.js` using the `template` field, scoped to test file patterns. For manual use:
 
 ```js
-import { baseConfig } from '@saashub/qoq-eslint-v9-ts-jest';
+import { baseConfig } from '@ladamczyk/qoq-eslint-v9-ts-jest';
 
 export default [baseConfig];
 ```

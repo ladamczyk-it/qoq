@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { readFileSync, existsSync } from 'fs';
 
-import { resolveCwdRelativePath } from '@saashub/qoq-utils';
+import { resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import prompts from 'prompts';
 
 import { DEFAULT_SRC } from '../../helpers/constants.ts';
@@ -102,7 +102,7 @@ export class BasicConfigHandler extends AbstractConfigHandler {
   }
 
   getPackages(): string[] {
-    this.packages = ['@saashub/qoq-cli'];
+    this.packages = ['@ladamczyk/qoq-cli'];
 
     return super.getPackages();
   }

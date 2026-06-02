@@ -1,6 +1,6 @@
-# @saashub/check-engine — Agent Context
+# @ladamczyk/check-engine — Agent Context
 
-`@saashub/check-engine` validates that a project's `engines.node` field is consistent with the `engines.node` requirements declared by its dependencies. It is monorepo-aware and fetches live Node.js LTS data for reference.
+`@ladamczyk/check-engine` validates that a project's `engines.node` field is consistent with the `engines.node` requirements declared by its dependencies. It is monorepo-aware and fetches live Node.js LTS data for reference.
 
 ## Command
 
@@ -29,7 +29,7 @@ On each run the tool fetches `https://nodejs.org/download/release/index.json` to
 
 ## Integration
 
-Typically wired into the pre-push hook via `@saashub/qoq-cli`:
+Typically wired into the pre-push hook via `@ladamczyk/qoq-cli`:
 
 ```json
 "scripts": {

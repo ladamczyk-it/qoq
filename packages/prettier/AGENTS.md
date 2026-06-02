@@ -1,4 +1,4 @@
-# @saashub/qoq-prettier — Agent Context
+# @ladamczyk/qoq-prettier — Agent Context
 
 Prettier configuration template for QoQ projects.
 
@@ -7,13 +7,13 @@ Prettier configuration template for QoQ projects.
 Reference it in `.prettierrc`:
 
 ```json
-"@saashub/qoq-prettier"
+"@ladamczyk/qoq-prettier"
 ```
 
 Or in `prettier.config.js`:
 
 ```js
-export default '@saashub/qoq-prettier';
+export default '@ladamczyk/qoq-prettier';
 ```
 
 ## Config

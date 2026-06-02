@@ -1,8 +1,8 @@
-# @saashub/qoq-stylelint-css
+# @ladamczyk/qoq-stylelint-css
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/saashub-it/qoq/main.yml) ![NPM Version](https://img.shields.io/npm/v/%40saashub%2Fqoq-stylelint-css)
-![NPM Type Definitions](https://img.shields.io/npm/types/%40saashub%2Fqoq-stylelint-css) ![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/%40saashub%2Fqoq-stylelint-css) ![NPM License](https://img.shields.io/npm/l/%40saashub%2Fqoq-stylelint-css)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ladamczyk-it/qoq/main.yml) ![NPM Version](https://img.shields.io/npm/v/%40ladamczyk%2Fqoq-stylelint-css)
+![NPM Type Definitions](https://img.shields.io/npm/types/%40ladamczyk%2Fqoq-stylelint-css) ![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/%40ladamczyk%2Fqoq-stylelint-css) ![NPM License](https://img.shields.io/npm/l/%40ladamczyk%2Fqoq-stylelint-css)
 
 ### Last but not least
 
-_Feel free to join us, please read [General Contributing Guidelines](https://github.com/saashub-it/qoq/blob/master/.github/CONTRIBUTING.md)_
+_Feel free to join us, please read [General Contributing Guidelines](https://github.com/ladamczyk-it/qoq/blob/master/.github/CONTRIBUTING.md)_

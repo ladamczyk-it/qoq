@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Consumer-facing context (what the tool checks, monorepo support, Node LTS reference) lives in `AGENTS.md` — that file is shipped with the npm package so any agent in a consumer project can read it from `node_modules/@saashub/check-engine/AGENTS.md`.
+Consumer-facing context (what the tool checks, monorepo support, Node LTS reference) lives in `AGENTS.md` — that file is shipped with the npm package so any agent in a consumer project can read it from `node_modules/@ladamczyk/check-engine/AGENTS.md`.
 
 ## Commands
 

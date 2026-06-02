@@ -1,5 +1,5 @@
-import { EslintConfig, baseConfig as jsBaseConfig } from '@saashub/qoq-eslint-v9-js';
-import { objectMergeRight } from '@saashub/qoq-utils';
+import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import jestPlugin from 'eslint-plugin-jest';
 import globals from 'globals';
 
@@ -11,7 +11,7 @@ const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(jsBaseConfigRest, {
-    name: '@saashub/qoq-eslint-v9-js-jest',
+    name: '@ladamczyk/qoq-eslint-v9-js-jest',
     languageOptions: {
       globals: {
         ...globals.jest,

@@ -1,6 +1,6 @@
-import { EslintConfig } from '@saashub/qoq-eslint-v9-js';
-import { baseConfig as jsJestBaseConfig } from '@saashub/qoq-eslint-v9-js-jest';
-import { objectMergeRight } from '@saashub/qoq-utils';
+import { EslintConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { baseConfig as jsJestBaseConfig } from '@ladamczyk/qoq-eslint-v9-js-jest';
+import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import testingLibrary from 'eslint-plugin-testing-library';
 
 export const disabledRules: EslintConfig['rules'] = {
@@ -14,7 +14,7 @@ const { plugins: jsRtlBaseConfigPlugins, ...jsRtlBaseConfigRest } =
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(jsJestBaseConfigRest, {
     ...jsRtlBaseConfigRest,
-    name: '@saashub/qoq-eslint-v9-js-jest-rtl',
+    name: '@ladamczyk/qoq-eslint-v9-js-jest-rtl',
     rules: { ...disabledRules },
   }),
   plugins: {

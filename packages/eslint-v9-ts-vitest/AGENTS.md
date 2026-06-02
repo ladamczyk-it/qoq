@@ -1,6 +1,6 @@
-# @saashub/qoq-eslint-v9-ts-vitest — Agent Context
+# @ladamczyk/qoq-eslint-v9-ts-vitest — Agent Context
 
-ESLint flat config template for TypeScript test files using Vitest. Merges `@saashub/qoq-eslint-v9-js-vitest` and `@saashub/qoq-eslint-v9-ts` (testConfig variant).
+ESLint flat config template for TypeScript test files using Vitest. Merges `@ladamczyk/qoq-eslint-v9-js-vitest` and `@ladamczyk/qoq-eslint-v9-ts` (testConfig variant).
 
 ## Exports
 
@@ -11,7 +11,7 @@ ESLint flat config template for TypeScript test files using Vitest. Merges `@saa
 Typically consumed via `qoq.config.js` using the `template` field, scoped to test file patterns. For manual use:
 
 ```js
-import { baseConfig } from '@saashub/qoq-eslint-v9-ts-vitest';
+import { baseConfig } from '@ladamczyk/qoq-eslint-v9-ts-vitest';
 
 export default [baseConfig];
 ```

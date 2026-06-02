@@ -1,4 +1,4 @@
-import config from '@saashub/qoq-prettier/config';
+import config from '@ladamczyk/qoq-prettier/config';
 
 export default {
   ...config,

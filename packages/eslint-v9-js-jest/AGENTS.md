@@ -1,6 +1,6 @@
-# @saashub/qoq-eslint-v9-js-jest — Agent Context
+# @ladamczyk/qoq-eslint-v9-js-jest — Agent Context
 
-ESLint flat config template for JavaScript test files using Jest. Extends `@saashub/qoq-eslint-v9-js`.
+ESLint flat config template for JavaScript test files using Jest. Extends `@ladamczyk/qoq-eslint-v9-js`.
 
 ## Exports
 
@@ -12,7 +12,7 @@ ESLint flat config template for JavaScript test files using Jest. Extends `@saas
 Typically consumed via `qoq.config.js` using the `template` field, scoped to test file patterns. For manual use:
 
 ```js
-import { baseConfig } from '@saashub/qoq-eslint-v9-js-jest';
+import { baseConfig } from '@ladamczyk/qoq-eslint-v9-js-jest';
 
 export default [baseConfig];
 ```

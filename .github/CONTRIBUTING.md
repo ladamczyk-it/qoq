@@ -10,7 +10,7 @@
 
 ## :inbox_tray: Opening an Issue
 
-Before [creating an issue](https://github.com/saashub-it/qoq/issues/new), check if you are using the latest version of the project. If you are not up-to-date, see if updating fixes your issue first.
+Before [creating an issue](https://github.com/ladamczyk-it/qoq/issues/new), check if you are using the latest version of the project. If you are not up-to-date, see if updating fixes your issue first.
 
 ### :lock: Reporting Security Issues
 

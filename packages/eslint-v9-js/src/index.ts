@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import jsRules from '@eslint/js';
-import { getPackageInfo } from '@saashub/qoq-utils';
+import { getPackageInfo } from '@ladamczyk/qoq-utils';
 import fileProgressPlugin from 'eslint-plugin-file-progress';
 import importPlugin, { createNodeResolver } from 'eslint-plugin-import-x';
 import prettierPlugin from 'eslint-plugin-prettier';
@@ -64,7 +64,7 @@ export const getNoRestrictedImportsPaths = (paths: IPath[] = []): IPath[] => {
 };
 
 export const baseConfig: EslintConfig = {
-  name: '@saashub/qoq-eslint-v9-js',
+  name: '@ladamczyk/qoq-eslint-v9-js',
   linterOptions: {
     reportUnusedDisableDirectives: true,
   },

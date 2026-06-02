@@ -1,6 +1,6 @@
 import reactPlugin from '@eslint-react/eslint-plugin';
-import { EslintConfig, baseConfig as jsBaseConfig } from '@saashub/qoq-eslint-v9-js';
-import { objectMergeRight } from '@saashub/qoq-utils';
+import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 import compatPlugin from 'eslint-plugin-compat';
 
@@ -61,7 +61,7 @@ const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(jsBaseConfigRest, {
-    name: '@saashub/qoq-eslint-v9-js-react',
+    name: '@ladamczyk/qoq-eslint-v9-js-react',
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {

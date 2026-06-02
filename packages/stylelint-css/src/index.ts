@@ -6,7 +6,7 @@ export interface StylelintConfig extends Config {
 }
 
 export const baseConfig: StylelintConfig = {
-  name: '@saashub/qoq-stylelint-css',
+  name: '@ladamczyk/qoq-stylelint-css',
   extends: ['stylelint-config-standard', 'stylelint-config-clean-order', 'stylelint-prettier'],
   plugins: [
     'stylelint-file-max-lines',

@@ -64,7 +64,7 @@ export class SkillslintConfigHandler extends AbstractConfigHandler {
   }
 
   getPackages(): string[] {
-    this.packages = ['@saashub/skillslint'];
+    this.packages = ['@ladamczyk/skillslint'];
 
     return super.getPackages();
   }

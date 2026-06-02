@@ -1,7 +1,7 @@
-# @saashub/qoq-prettier
+# @ladamczyk/qoq-prettier
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/saashub-it/qoq/main.yml) [![codecov](https://codecov.io/gh/saashub-it/qoq/graph/badge.svg?flag=prettier&token=PQ1XAQQ257)](https://codecov.io/gh/saashub-it/qoq/flags/prettier) ![NPM Version](https://img.shields.io/npm/v/%40saashub%2Fqoq-eslint-v9-ts-vitest)
-![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/%40saashub%2Fqoq-eslint-v9-ts-vitest) ![NPM License](https://img.shields.io/npm/l/%40saashub%2Fqoq-eslint-v9-ts-vitest)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ladamczyk-it/qoq/main.yml) [![codecov](https://codecov.io/gh/ladamczyk-it/qoq/graph/badge.svg?flag=prettier&token=PQ1XAQQ257)](https://codecov.io/gh/ladamczyk-it/qoq/flags/prettier) ![NPM Version](https://img.shields.io/npm/v/%40ladamczyk%2Fqoq-eslint-v9-ts-vitest)
+![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/%40ladamczyk%2Fqoq-eslint-v9-ts-vitest) ![NPM License](https://img.shields.io/npm/l/%40ladamczyk%2Fqoq-eslint-v9-ts-vitest)
 
 ## Rationale
 
@@ -9,16 +9,16 @@ Tired of setting up [Prettier](https://www.npmjs.com/package/prettier) from scra
 
 ## Install
 
-    npm install @saashub/qoq-prettier
+    npm install @ladamczyk/qoq-prettier
 
 ## Usage
 
-You can simply put `"@saashub/qoq-prettier"` in Your `.prettierrc` file. or use it as a template:
+You can simply put `"@ladamczyk/qoq-prettier"` in Your `.prettierrc` file. or use it as a template:
 
 ### For CommonJS
 
 ```js
-const config = require('@saashub/qoq-prettier/config');
+const config = require('@ladamczyk/qoq-prettier/config');
 
 module.exports = {
   ...config,
@@ -28,7 +28,7 @@ module.exports = {
 ### For ESM
 
 ```js
-import config from '@saashub/qoq-prettier/config';
+import config from '@ladamczyk/qoq-prettier/config';
 
 export default {
   ...config,
@@ -37,4 +37,4 @@ export default {
 
 ### Last but not least
 
-_Feel free to join us, please read [General Contributing Guidelines](https://github.com/saashub-it/qoq/blob/master/.github/CONTRIBUTING.md)_
+_Feel free to join us, please read [General Contributing Guidelines](https://github.com/ladamczyk-it/qoq/blob/master/.github/CONTRIBUTING.md)_

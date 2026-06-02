@@ -25,7 +25,7 @@ describe('KnipConfigHandler', () => {
           knip: {
             entry: ['/{index,cli,main,root}.{js}'],
             ignore: [],
-            ignoreDependencies: ['@saashub/*'],
+            ignoreDependencies: ['@ladamczyk/*'],
             ignoreBinaries: [],
             project: ['/**/*.{js}'],
           },

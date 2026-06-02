@@ -1,10 +1,10 @@
-import { EslintConfig } from '@saashub/qoq-eslint-v9-js';
+import { EslintConfig } from '@ladamczyk/qoq-eslint-v9-js';
 import {
   baseConfig as jsVitestRtlBaseConfig,
   disabledRules,
-} from '@saashub/qoq-eslint-v9-js-vitest-rtl';
-import { baseConfig as tsBaseConfig } from '@saashub/qoq-eslint-v9-ts-vitest';
-import { objectMergeRight } from '@saashub/qoq-utils';
+} from '@ladamczyk/qoq-eslint-v9-js-vitest-rtl';
+import { baseConfig as tsBaseConfig } from '@ladamczyk/qoq-eslint-v9-ts-vitest';
+import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import importPlugin from 'eslint-plugin-import-x';
 
 const { plugins: jsVitestRtlBaseConfigPlugins, ...jsVitestRtlBaseConfigRest } =
@@ -26,7 +26,7 @@ export const baseConfig: EslintConfig = {
     },
     tsBaseConfigRest,
     {
-      name: '@saashub/qoq-eslint-v9-ts-vitest-rtl',
+      name: '@ladamczyk/qoq-eslint-v9-ts-vitest-rtl',
       rules: { ...disabledRules },
     }
   ),

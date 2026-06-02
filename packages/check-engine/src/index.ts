@@ -2,7 +2,7 @@
 
 import { existsSync, readdirSync } from 'node:fs';
 
-import { getPackageJson, getRelativePath, resolveCwdPath } from '@saashub/qoq-utils';
+import { getPackageJson, getRelativePath, resolveCwdPath } from '@ladamczyk/qoq-utils';
 import cac from 'cac';
 
 import { checkEngine } from './helpers/checkEngine.ts';

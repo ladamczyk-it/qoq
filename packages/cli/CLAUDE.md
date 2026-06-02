@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Consumer-facing context (commands, qoq.config.js schema, generated files) lives in `AGENTS.md` — that file is shipped with the npm package so any agent in a consumer project can read it from `node_modules/@saashub/qoq-cli/AGENTS.md`.
+Consumer-facing context (commands, qoq.config.js schema, generated files) lives in `AGENTS.md` — that file is shipped with the npm package so any agent in a consumer project can read it from `node_modules/@ladamczyk/qoq-cli/AGENTS.md`.
 
 ## Commands
 
@@ -43,4 +43,4 @@ All tools (except npm) use `--cache` by default; cache files land in `bin/.<tool
 
 ## JSON reporting (`--json`)
 
-When `--json` is passed, each tool writes its output to `bin/report/` (or `--output <path>`). The directory is created automatically by `src/index.ts` before tools run. `executeCommand()` in `@saashub/qoq-utils` accumulates all stdout chunks before resolving when `captureOutput=true` (fixed from resolving on the first chunk only).
+When `--json` is passed, each tool writes its output to `bin/report/` (or `--output <path>`). The directory is created automatically by `src/index.ts` before tools run. `executeCommand()` in `@ladamczyk/qoq-utils` accumulates all stdout chunks before resolving when `captureOutput=true` (fixed from resolving on the first chunk only).

@@ -1,7 +1,7 @@
-# @saashub/qoq-cli
+# @ladamczyk/qoq-cli
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/saashub-it/qoq/main.yml) ![NPM Version](https://img.shields.io/npm/v/%40saashub%2Fqoq-cli)
-![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/%40saashub%2Fqoq-cli) ![NPM License](https://img.shields.io/npm/l/%40saashub%2Fqoq-cli)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ladamczyk-it/qoq/main.yml) ![NPM Version](https://img.shields.io/npm/v/%40ladamczyk%2Fqoq-cli)
+![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/%40ladamczyk%2Fqoq-cli) ![NPM License](https://img.shields.io/npm/l/%40ladamczyk%2Fqoq-cli)
 
 ## Rationale
 
@@ -15,11 +15,11 @@ With **QoQ CLI**, keeping your code clean and compliant is easier than ever.
 
 ## Install
 
-    npm install @saashub/qoq-cli
+    npm install @ladamczyk/qoq-cli
 
 or run wizard directly via npx with
 
-    npx -y @saashub/qoq-cli --init
+    npx -y @ladamczyk/qoq-cli --init
 
 ## Usage
 
@@ -31,7 +31,7 @@ But if no config file found, it will ask to create one every time You'll run che
 
 ## Automatic configuration
 
-Simply answer all the questions, and the wizard will generate initial configuration values for you. Once complete, it will install all necessary packages from the [@saashub/qoq-\*](https://www.npmjs.com/search?q=%40saashub%2Fqoq-) workspace and create three files in your project's root directory:
+Simply answer all the questions, and the wizard will generate initial configuration values for you. Once complete, it will install all necessary packages from the [@ladamczyk/qoq-\*](https://www.npmjs.com/search?q=%40ladamczyk%2Fqoq-) workspace and create three files in your project's root directory:
 
 - `.prettierrc` – Supports IDE formatting with a pre-configured template.
 - `eslint.config.js` – Connects the CLI-generated ESLint config with your IDE.
@@ -43,11 +43,11 @@ With this setup, you’ll be up and running quickly with minimal manual configur
 
 When setting things up by yourself all three files needs to be created manually,
 
-1. `.prettierrc` with custom config or QoQ templeate eg `"@saashub/qoq-prettier"`
+1. `.prettierrc` with custom config or QoQ templeate eg `"@ladamczyk/qoq-prettier"`
 2. `eslint.config.js` with custom config or re-export of QoQ settings in CommonJs
 
    ```js
-   const config = require('@saashub/qoq-cli/bin/eslint.config.cjs');
+   const config = require('@ladamczyk/qoq-cli/bin/eslint.config.cjs');
 
    module.exports = config;
    ```
@@ -55,7 +55,7 @@ When setting things up by yourself all three files needs to be created manually,
    or ESM
 
    ```js
-   import config from '@saashub/qoq-cli/bin/eslint.config.mjs';
+   import config from '@ladamczyk/qoq-cli/bin/eslint.config.mjs';
 
    export default config;
    ```
@@ -80,6 +80,6 @@ CLI has its own documentation just run `qoq -help` or `qoq -h`.
 
 ### Last but not least
 
-_Feel free to join us, please read [General Contributing Guidelines](https://github.com/saashub-it/qoq/blob/master/.github/CONTRIBUTING.md)_
+_Feel free to join us, please read [General Contributing Guidelines](https://github.com/ladamczyk-it/qoq/blob/master/.github/CONTRIBUTING.md)_
 
 CLI technical documentation can be found [here](./docs/PROJECT.md)

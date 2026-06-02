@@ -1,6 +1,6 @@
-import { EslintConfig } from '@saashub/qoq-eslint-v9-js';
-import { baseConfig as jsVitestBaseConfig } from '@saashub/qoq-eslint-v9-js-vitest';
-import { objectMergeRight } from '@saashub/qoq-utils';
+import { EslintConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { baseConfig as jsVitestBaseConfig } from '@ladamczyk/qoq-eslint-v9-js-vitest';
+import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import testingLibrary from 'eslint-plugin-testing-library';
 
 export const disabledRules: EslintConfig['rules'] = {
@@ -14,7 +14,7 @@ const { plugins: jsRtlBaseConfigPlugins, ...jsRtlBaseConfigRest } =
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(jsVitestBaseConfigRest, {
     ...jsRtlBaseConfigRest,
-    name: '@saashub/qoq-eslint-v9-js-vitest-rtl',
+    name: '@ladamczyk/qoq-eslint-v9-js-vitest-rtl',
     rules: {
       ...disabledRules,
     },

@@ -10,7 +10,7 @@ import { IModulesConfig } from '../types.ts';
 
 export class KnipConfigHandler extends AbstractConfigHandler {
   static readonly DEFAULT_IGNORE = [];
-  static readonly DEFAULT_IGNORE_DEPENDENCIES = ['@saashub/*'];
+  static readonly DEFAULT_IGNORE_DEPENDENCIES = ['@ladamczyk/*'];
   static readonly DEFAULT_IGNORE_BINARIES = [];
 
   async getPrompts(): Promise<void> {
@@ -141,7 +141,7 @@ export class KnipConfigHandler extends AbstractConfigHandler {
   }
 
   getPackages(): string[] {
-    this.packages = ['@saashub/qoq-knip'];
+    this.packages = ['@ladamczyk/qoq-knip'];
 
     return super.getPackages();
   }

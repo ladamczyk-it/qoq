@@ -1,6 +1,6 @@
-# @saashub/qoq-eslint-v9-js-react — Agent Context
+# @ladamczyk/qoq-eslint-v9-js-react — Agent Context
 
-ESLint flat config template for JavaScript + React projects. Extends `@saashub/qoq-eslint-v9-js`.
+ESLint flat config template for JavaScript + React projects. Extends `@ladamczyk/qoq-eslint-v9-js`.
 
 ## Exports
 
@@ -12,7 +12,7 @@ ESLint flat config template for JavaScript + React projects. Extends `@saashub/q
 Typically consumed via `qoq.config.js` using the `template` field. For manual use:
 
 ```js
-import { baseConfig } from '@saashub/qoq-eslint-v9-js-react';
+import { baseConfig } from '@ladamczyk/qoq-eslint-v9-js-react';
 
 export default [baseConfig];
 ```

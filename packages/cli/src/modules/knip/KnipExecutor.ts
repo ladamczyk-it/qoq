@@ -1,7 +1,7 @@
 import { writeFileSync } from 'fs';
 
-import { getKnipConfig } from '@saashub/qoq-knip';
-import { EExitCode, getRelativePath } from '@saashub/qoq-utils';
+import { getKnipConfig } from '@ladamczyk/qoq-knip';
+import { EExitCode, getRelativePath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
 import { capitalizeFirstLetter } from '../../helpers/common.ts';

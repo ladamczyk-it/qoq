@@ -2,8 +2,8 @@
 import { existsSync, writeFileSync } from 'fs';
 import { open } from 'fs/promises';
 
-import { StylelintConfig } from '@saashub/qoq-stylelint-css';
-import { EExitCode, resolveCwdRelativePath } from '@saashub/qoq-utils';
+import { StylelintConfig } from '@ladamczyk/qoq-stylelint-css';
+import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import micromatch from 'micromatch';
 import c from 'picocolors';
 
@@ -90,15 +90,15 @@ export class StylelintExecutor extends AbstractExecutor {
       );
 
       const imports: Record<string, string> = {
-        '{ objectMergeRight }': '@saashub/qoq-utils',
+        '{ objectMergeRight }': '@ladamczyk/qoq-utils',
       };
 
       const content: string[] = [];
 
       if ((<IModuleStylelintConfigWithTemplate>stylelint).template) {
-        imports[`{ baseConfig }`] = String(
-          (<IModuleStylelintConfigWithTemplate>stylelint).template
-        );
+        imports[`{ baseConfig }`] =
+          `@ladamczyk/${(<IModuleStylelintConfigWithTemplate>stylelint).template}`;
+
         content.push(`const config = objectMergeRight(baseConfig, ${JSON.stringify(rest)})`);
       } else {
         content.push(`const config = ${JSON.stringify(rest)}`);

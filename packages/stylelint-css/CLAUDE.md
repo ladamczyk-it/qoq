@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Consumer-facing context (exported config, plugins) lives in `AGENTS.md` — shipped with the npm package at `node_modules/@saashub/qoq-stylelint-css/AGENTS.md`.
+Consumer-facing context (exported config, plugins) lives in `AGENTS.md` — shipped with the npm package at `node_modules/@ladamczyk/qoq-stylelint-css/AGENTS.md`.
 
 ## Commands
 

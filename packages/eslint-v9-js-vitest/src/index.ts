@@ -1,5 +1,5 @@
-import { EslintConfig, baseConfig as jsBaseConfig } from '@saashub/qoq-eslint-v9-js';
-import { objectMergeRight } from '@saashub/qoq-utils';
+import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import vitestPlugin from '@vitest/eslint-plugin';
 
 export const disabledRules: EslintConfig['rules'] = {
@@ -15,7 +15,7 @@ const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(jsBaseConfigRest, {
-    name: '@saashub/qoq-eslint-v9-js-vitest',
+    name: '@ladamczyk/qoq-eslint-v9-js-vitest',
     languageOptions: {
       globals: {
         ...vitestPlugin.environments.env.globals,

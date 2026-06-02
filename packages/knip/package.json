@@ -1,20 +1,20 @@
 {
-  "name": "@saashub/qoq-knip",
+  "name": "@ladamczyk/qoq-knip",
   "version": "3.3.0",
   "description": "Knip configs template",
   "keywords": [
     "Knip template",
-    "saashub",
+    "ladamczyk",
     "qoq",
     "QualityOverQuantity"
   ],
-  "homepage": "https://github.com/saashub-it/qoq/tree/master/packages/knip",
+  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/knip",
   "bugs": {
-    "url": "https://github.com/saashub-it/qoq/issues"
+    "url": "https://github.com/ladamczyk-it/qoq/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/saashub-it/qoq.git",
+    "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
     "directory": "packages/knip"
   },
   "license": "MIT",
