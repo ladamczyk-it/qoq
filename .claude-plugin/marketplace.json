@@ -14,14 +14,7 @@
       "description": "Collection of packages related capabilities",
       "source": "./",
       "strict": false,
-      "skills": ["./skills/bump"]
-    },
-    {
-      "name": "quality-skills",
-      "description": "Collection of quality related capabilities",
-      "source": "./",
-      "strict": false,
-      "skills": ["./skills/lint"]
+      "skills": ["./skills/npm-bump-packages"]
     }
   ]
 }
