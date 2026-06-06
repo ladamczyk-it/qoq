@@ -35,7 +35,7 @@ allowed-tools:
 
 # qoq-code-refactor
 
-This skill applies the QoQ code-quality analysis to a **scope you choose** — one or more paths/globs, a monorepo package, a directory, or, by default, the whole project — rather than to the changes a branch introduced. There is no base branch and no diff.
+This skill applies the QoQ code-quality analysis to a **scope you choose** — one or more paths/globs, a monorepo package, a directory, or, by default, the whole project — rather than to the changes a branch introduced. It uses no base branch and no diff.
 
 It does **not** redefine the analysis. Everything about _how_ each quality dimension is detected and turned into a patch — the six dimensions, the three tooling tiers, the `qoq`-report mapping, the edit→diff→restore→check patch recipe, the design-pattern catalog, and the apply/validate/regenerate execution mechanics — lives in the **`qoq-code-review`** skill, which is its single source of truth. This skill is a thin layer on top that changes two things:
 
@@ -169,7 +169,7 @@ Because slices own disjoint files, patches _across_ slices rarely conflict; the 
 
 ## Phase 5 — Readability & cleanup (deltas)
 
-Identical to `qoq-code-review`'s Phase 5, substituting the workspace name: once everything is in and green, format the changed files (`qoq --fix` / `qoq:fix` in QoQ mode, else Prettier), run the validation step one final time, summarize what landed (ideally grouped by area), then `rm -rf .qoq-code-refactor` so the intermediate patches and reports aren't committed.
+Identical to `qoq-code-review`'s Phase 5, substituting the workspace name: once everything is in and green, format the changed files (`qoq --fix` / `qoq:fix` in QoQ mode, else Prettier), run the validation step one final time, summarize what landed (ideally grouped by area), then `rm -rf .qoq-code-refactor` to keep the intermediate patches and reports out of the commit.
 
 ---
 
