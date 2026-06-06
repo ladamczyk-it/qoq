@@ -30,6 +30,18 @@ Add `"postinstall": "qoq --warmup"` to the consumer's `package.json` so IDEs get
 
 ## qoq.config.js schema
 
+The config can be authored as `qoq.config.{js,ts,mjs,cjs}`. For a TypeScript
+config, import the exported `QoqConfig` type and annotate with `satisfies` to get
+autocomplete and type-checking while keeping the literal's inferred type:
+
+```ts
+import type { QoqConfig } from '@ladamczyk/qoq-cli';
+
+export default {
+  srcPath: './src',
+} satisfies QoqConfig;
+```
+
 All fields are optional. Defaults apply when omitted.
 
 ```js

@@ -15,6 +15,13 @@
       "source": "./",
       "strict": false,
       "skills": ["./skills/npm-bump-packages"]
+    },
+    {
+      "name": "code-quality-skills",
+      "description": "QoQ \"quality over quantity\" code-quality capabilities: branch review and scope-driven refactoring. qoq-code-refactor reuses qoq-code-review's analysis engine, so both ship together.",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/qoq-code-review", "./skills/qoq-code-refactor"]
     }
   ]
 }

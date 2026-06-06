@@ -21,6 +21,12 @@
   "type": "module",
   "main": "./bin/qoq.js",
   "types": "./bin/types.d.ts",
+  "exports": {
+    ".": {
+      "types": "./bin/types.d.ts",
+      "default": "./bin/qoq.js"
+    }
+  },
   "bin": {
     "qoq": "bin/qoq.js"
   },
