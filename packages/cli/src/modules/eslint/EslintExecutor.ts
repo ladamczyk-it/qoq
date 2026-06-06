@@ -6,7 +6,6 @@ import { flattenDeep } from 'es-toolkit/compat';
 import micromatch from 'micromatch';
 import c from 'picocolors';
 
-import { capitalizeFirstLetter } from '../../helpers/common.ts';
 import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { formatCode } from '../../helpers/formatCode.ts';
@@ -20,9 +19,6 @@ import { EModulesEslint, IModuleEslintConfig } from './types.ts';
 export class EslintExecutor extends AbstractExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.eslintcache');
 
-  getName(): string {
-    return capitalizeFirstLetter(this.getCommandName());
-  }
   protected getCommandName(): string {
     return 'eslint';
   }

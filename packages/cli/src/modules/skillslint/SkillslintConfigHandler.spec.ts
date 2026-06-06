@@ -1,4 +1,5 @@
 import { dummyModulesConfig } from '__tests__/common.ts';
+import prompts from 'prompts';
 import { describe, it, expect } from 'vitest';
 
 import { SkillslintConfigHandler } from './SkillslintConfigHandler.ts';
@@ -24,6 +25,44 @@ describe('SkillslintConfigHandler', () => {
         modules: {},
         srcPath: '',
       });
+    });
+
+    it('should read the skillslint path from config when present', () => {
+      const handler = new SkillslintConfigHandler(structuredClone(dummyModulesConfig), {
+        skillslint: { path: 'docs/skills' },
+      });
+
+      expect(handler.getModulesFromConfig().modules.skillslint).toStrictEqual({
+        path: 'docs/skills',
+      });
+    });
+  });
+
+  describe('getPrompts', () => {
+    it('should not register a skillslint module when the user declines', async () => {
+      prompts.inject([false]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new SkillslintConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(modulesConfig.modules.skillslint).toBeUndefined();
+    });
+
+    it('should store the provided path when the user opts in', async () => {
+      prompts.inject([true, 'my/skills']);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new SkillslintConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(modulesConfig.modules.skillslint).toStrictEqual({ path: 'my/skills' });
+    });
+  });
+
+  describe('getPackages', () => {
+    it('should expose the skillslint package', () => {
+      expect(configHandler.getPackages()).toStrictEqual(['@ladamczyk/skillslint']);
     });
   });
 });

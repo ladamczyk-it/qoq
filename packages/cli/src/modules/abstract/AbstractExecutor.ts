@@ -4,6 +4,7 @@ import { existsSync, rmSync } from 'fs';
 import { EExitCode, executeCommand } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
+import { capitalizeFirstLetter } from '../../helpers/common.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { IExecutorOptions, IModulesConfig } from '../types.ts';
 
@@ -20,6 +21,10 @@ export abstract class AbstractExecutor implements IExecutor {
     this.modulesConfig = modulesConfig;
     this.silent = silent;
     this.hideTimer = hideTimer;
+  }
+
+  getName(): string {
+    return capitalizeFirstLetter(this.getCommandName());
   }
 
   async run(
@@ -55,7 +60,7 @@ export abstract class AbstractExecutor implements IExecutor {
         return EExitCode.OK;
       }
 
-      return await executeCommand(this.getCommandName(), args, stdio, captureOutput);
+      return await this.execute(args, options, stdio, captureOutput);
     } catch (e) {
       if (!(e instanceof TerminateExecutorGracefully)) {
         process.stderr.write('Unknown error!\n');
@@ -69,6 +74,15 @@ export abstract class AbstractExecutor implements IExecutor {
         console.timeEnd(c.italic(c.gray(consoleTimeName)));
       }
     }
+  }
+
+  protected async execute(
+    args: string[],
+    options: IExecutorOptions,
+    stdio: CommonSpawnOptions['stdio'] = 'inherit',
+    captureOutput: boolean = false
+  ): Promise<string | EExitCode> {
+    return executeCommand(this.getCommandName(), args, stdio, captureOutput);
   }
 
   protected async prepare(
@@ -93,8 +107,6 @@ export abstract class AbstractExecutor implements IExecutor {
 
     return Promise.resolve(EExitCode.OK);
   }
-
-  abstract getName(): string;
 
   protected abstract getCommandName(): string;
   protected abstract getCommandArgs(): string[];

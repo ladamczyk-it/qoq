@@ -1,7 +1,5 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import { CommonSpawnOptions } from 'child_process';
-import { existsSync, writeFileSync } from 'fs';
-import { open } from 'fs/promises';
+import { writeFileSync } from 'fs';
 
 import {
   EExitCode,
@@ -12,7 +10,7 @@ import {
 import micromatch from 'micromatch';
 import c from 'picocolors';
 
-import { capitalizeFirstLetter } from '../../helpers/common.ts';
+import { readIgnorePatterns } from '../../helpers/common.ts';
 import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { resolveCliRelativePath } from '../../helpers/paths.ts';
@@ -22,72 +20,28 @@ import { IExecutorOptions } from '../types.ts';
 export class PrettierExecutor extends AbstractExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.prettiercache');
 
-  getName(): string {
-    return capitalizeFirstLetter(this.getCommandName());
-  }
-
-  async run(
+  protected async execute(
+    args: string[],
     options: IExecutorOptions,
-    files?: string[],
-    stdio?: CommonSpawnOptions['stdio']
-  ): Promise<EExitCode>;
-  async run(
-    options: IExecutorOptions,
-    files?: string[],
-    stdio?: CommonSpawnOptions['stdio'],
-    captureOutput?: boolean
-  ): Promise<string>;
-  async run(
-    options: IExecutorOptions,
-    files?: string[],
     stdio: CommonSpawnOptions['stdio'] = 'inherit',
     captureOutput: boolean = false
   ): Promise<string | EExitCode> {
-    const consoleTimeName = `${this.getName()} execution time:`;
-    console.time(c.italic(c.gray(consoleTimeName)));
+    if (options.json) {
+      const checkIndex = args.indexOf('--check');
 
-    if (!this.silent) {
-      process.stdout.write(c.green(`\nRunning ${this.getName()}:\n`));
+      if (checkIndex !== -1) {
+        args.splice(checkIndex, 1, '--list-different');
+      }
+
+      const output = await executeCommand(this.getCommandName(), args, 'pipe', true);
+      const files = output.split('\n').filter(Boolean);
+
+      writeFileSync(`${options.output}/prettier-report.json`, JSON.stringify({ issues: files }));
+
+      return files.length > 0 ? EExitCode.ERROR : EExitCode.OK;
     }
 
-    const args = [...this.getCommandArgs()];
-
-    try {
-      await this.prepare(args, options, files);
-
-      if (options.warmup) {
-        return EExitCode.OK;
-      }
-
-      if (options.json) {
-        const checkIndex = args.indexOf('--check');
-
-        if (checkIndex !== -1) {
-          args.splice(checkIndex, 1, '--list-different');
-        }
-
-        const output = await executeCommand(this.getCommandName(), args, 'pipe', true);
-        const files = output.split('\n').filter(Boolean);
-
-        writeFileSync(`${options.output}/prettier-report.json`, JSON.stringify({ issues: files }));
-
-        return files.length > 0 ? EExitCode.ERROR : EExitCode.OK;
-      }
-
-      return await executeCommand(this.getCommandName(), args, stdio, captureOutput);
-    } catch (e) {
-      if (!(e instanceof TerminateExecutorGracefully)) {
-        process.stderr.write('Unknown error!\n');
-
-        process.exit(EExitCode.EXCEPTION);
-      }
-
-      return EExitCode.OK;
-    } finally {
-      if (!this.silent && !this.hideTimer) {
-        console.timeEnd(c.italic(c.gray(consoleTimeName)));
-      }
-    }
+    return executeCommand(this.getCommandName(), args, stdio, captureOutput);
   }
 
   protected getCommandName(): string {
@@ -122,27 +76,10 @@ export class PrettierExecutor extends AbstractExecutor {
 
       if (files.length > 0) {
         try {
-          const ignores: string[] = [];
-
-          if (existsSync(GITIGNORE_FILE_PATH)) {
-            const file = await open(GITIGNORE_FILE_PATH);
-
-            for await (const line of file.readLines()) {
-              if (!line.startsWith('#') && line !== '') {
-                ignores.push(line);
-              }
-            }
-          }
-
-          if (existsSync(prettierignorePath)) {
-            const file = await open(prettierignorePath);
-
-            for await (const line of file.readLines()) {
-              if (!line.startsWith('#') && line !== '') {
-                ignores.push(line);
-              }
-            }
-          }
+          const ignores = [
+            ...(await readIgnorePatterns(GITIGNORE_FILE_PATH)),
+            ...(await readIgnorePatterns(prettierignorePath)),
+          ];
 
           sources = files.filter((file) => !micromatch.isMatch(file, ignores));
         } catch {

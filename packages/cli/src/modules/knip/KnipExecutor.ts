@@ -4,7 +4,6 @@ import { getKnipConfig } from '@ladamczyk/qoq-knip';
 import { EExitCode, getRelativePath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
-import { capitalizeFirstLetter } from '../../helpers/common.ts';
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath } from '../../helpers/paths.ts';
 import { EConfigType } from '../../helpers/types.ts';
@@ -16,9 +15,6 @@ import { IModuleKnipConfig } from './types.ts';
 export class KnipExecutor extends AbstractExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.knipcache');
 
-  getName(): string {
-    return capitalizeFirstLetter(this.getCommandName());
-  }
   protected getCommandName(): string {
     return 'knip';
   }

@@ -1,4 +1,5 @@
 import { dummyModulesConfig } from '__tests__/common.ts';
+import prompts from 'prompts';
 import { describe, it, expect } from 'vitest';
 
 import { NpmConfigHandler } from './NpmConfigHandler.ts';
@@ -9,6 +10,15 @@ describe('NpmConfigHandler', () => {
   describe('getConfigFromModules', () => {
     it('should return the config for modules', () => {
       expect(configHandler.getConfigFromModules()).toStrictEqual({});
+    });
+
+    it('should serialize a configured npm schedule', () => {
+      const handler = new NpmConfigHandler(
+        { ...structuredClone(dummyModulesConfig), modules: { npm: { checkOutdatedEvery: 7 } } },
+        {}
+      );
+
+      expect(handler.getConfigFromModules()).toStrictEqual({ npm: { checkOutdatedEvery: 7 } });
     });
   });
 
@@ -28,6 +38,26 @@ describe('NpmConfigHandler', () => {
         },
         srcPath: '',
       });
+    });
+
+    it('should read the schedule from config when present', () => {
+      const handler = new NpmConfigHandler(structuredClone(dummyModulesConfig), {
+        npm: { checkOutdatedEvery: 5 },
+      });
+
+      expect(handler.getModulesFromConfig().modules.npm).toStrictEqual({ checkOutdatedEvery: 5 });
+    });
+  });
+
+  describe('getPrompts', () => {
+    it('should store the answered schedule on the modules config', async () => {
+      prompts.inject([3]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new NpmConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(modulesConfig.modules.npm).toStrictEqual({ checkOutdatedEvery: 3 });
     });
   });
 });

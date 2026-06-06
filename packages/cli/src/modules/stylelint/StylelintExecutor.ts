@@ -1,13 +1,12 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import { existsSync, writeFileSync } from 'fs';
-import { open } from 'fs/promises';
+import { writeFileSync } from 'fs';
 
 import { StylelintConfig } from '@ladamczyk/qoq-stylelint-css';
 import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import micromatch from 'micromatch';
 import c from 'picocolors';
 
-import { capitalizeFirstLetter } from '../../helpers/common.ts';
+import { readIgnorePatterns } from '../../helpers/common.ts';
 import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { formatCode } from '../../helpers/formatCode.ts';
@@ -24,10 +23,6 @@ import {
 
 export class StylelintExecutor extends AbstractExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.stylelintcache');
-
-  getName(): string {
-    return capitalizeFirstLetter(this.getCommandName());
-  }
 
   protected getCommandName(): string {
     return 'stylelint';
@@ -115,17 +110,7 @@ export class StylelintExecutor extends AbstractExecutor {
         let filteredFiles = [...files];
 
         try {
-          const ignores: string[] = [];
-
-          if (existsSync(GITIGNORE_FILE_PATH)) {
-            const file = await open(GITIGNORE_FILE_PATH);
-
-            for await (const line of file.readLines()) {
-              if (!line.startsWith('#') && line !== '') {
-                ignores.push(line);
-              }
-            }
-          }
+          const ignores = await readIgnorePatterns(GITIGNORE_FILE_PATH);
 
           filteredFiles = files.filter((file) => !micromatch.isMatch(file, ignores));
         } catch {

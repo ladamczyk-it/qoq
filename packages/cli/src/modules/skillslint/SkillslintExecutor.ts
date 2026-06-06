@@ -1,16 +1,11 @@
 import { EExitCode } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
-import { capitalizeFirstLetter } from '../../helpers/common.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 export class SkillslintExecutor extends AbstractExecutor {
-  getName(): string {
-    return capitalizeFirstLetter(this.getCommandName());
-  }
-
   protected getCommandName(): string {
     return 'skillslint';
   }
