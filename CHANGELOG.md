@@ -1,3 +1,17 @@
+# [4.2.0](https://github.com/ladamczyk-it/qoq/compare/v4.1.0...v4.2.0) (2026-06-06)
+
+
+### Bug Fixes
+
+* automatic refactor + CLI test coverage update ([1a36edb](https://github.com/ladamczyk-it/qoq/commit/1a36edb3acfbf24b0598fbf62af8ae41f7e55b4f))
+* bump packages ([beaf542](https://github.com/ladamczyk-it/qoq/commit/beaf542dd4bc829ca99d646ed162e64a20c6eeaa))
+* linter complains ([dd8872e](https://github.com/ladamczyk-it/qoq/commit/dd8872ef0f37dd1451c3724adda493bd0bd5bd54))
+
+
+### Features
+
+* add code review and refactor skills ([77fd544](https://github.com/ladamczyk-it/qoq/commit/77fd544eb9b6148778e56c1bfaa36adb2a7922d7))
+
 # [4.1.0](https://github.com/ladamczyk-it/qoq/compare/v4.0.1...v4.1.0) (2026-06-05)
 
 
