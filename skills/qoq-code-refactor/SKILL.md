@@ -4,8 +4,10 @@ description: >-
   Refactor an existing JavaScript/TypeScript codebase in the QoQ "quality over
   quantity" spirit — the same analysis as qoq-code-review (spelling &
   intention-revealing naming, unused dependencies, cognitive complexity / SOLID,
-  copy-paste duplication, modern TypeScript idioms, and design-pattern code
-  smells) but applied to a scope YOU choose rather than a branch diff. The scope
+  copy-paste duplication, code conventions (arrow functions over the `function`
+  keyword, named exports over default), modern TypeScript idioms, and
+  design-pattern code smells) but applied to a scope YOU choose rather than a
+  branch diff. The scope
   can be one or more paths/globs, a package in the monorepo, a directory, or — by
   default — the whole project. Use this skill whenever the user wants to "clean
   up / refactor / tidy / improve / modernize" a file, folder, package, or the
@@ -31,13 +33,15 @@ allowed-tools:
   - Bash(git stash:*)
   - Bash(git log:*)
   - Bash(git ls-files:*)
+metadata:
+  version: 1.0.0
 ---
 
 # qoq-code-refactor
 
 This skill applies the QoQ code-quality analysis to a **scope you choose** — one or more paths/globs, a monorepo package, a directory, or, by default, the whole project — rather than to the changes a branch introduced. It uses no base branch and no diff.
 
-It does **not** redefine the analysis. Everything about _how_ each quality dimension is detected and turned into a patch — the six dimensions, the three tooling tiers, the `qoq`-report mapping, the edit→diff→restore→check patch recipe, the design-pattern catalog, and the apply/validate/regenerate execution mechanics — lives in the **`qoq-code-review`** skill, which is its single source of truth. This skill is a thin layer on top that changes two things:
+It does **not** redefine the analysis. Everything about _how_ each quality dimension is detected and turned into a patch — the seven dimensions, the three tooling tiers, the `qoq`-report mapping, the edit→diff→restore→check patch recipe, the design-pattern catalog, and the apply/validate/regenerate execution mechanics — lives in the **`qoq-code-review`** skill, which is its single source of truth. This skill is a thin layer on top that changes two things:
 
 1. **Where the work comes from** — a user-chosen _scope_ instead of a branch-vs-base diff.
 2. **How the work is carried out at size** — an _orchestrator_ that fans the analysis across subagents by code area.
@@ -67,7 +71,7 @@ Hold that document as the base procedure. Everything below is a **diff against i
 | Optional fan-out **by dimension**                             | Orchestrated fan-out **by code area**. See **Phase 2** below.                                        |
 | Patches live directly in the workspace root                   | Per-area patches live in `.qoq-code-refactor/<area>/`; the orchestrator regroups them for execution. |
 
-Everything not in this table — the clean-tree check, QoQ-tier detection, validation-command discovery and green baseline, the six dimensions and their tooling, the patch recipe, the design-patterns reference, the apply/validate loop, and the readability pass — you perform **exactly as `qoq-code-review` describes**, substituting the workspace directory name.
+Everything not in this table — the clean-tree check, QoQ-tier detection, validation-command discovery and green baseline, the seven dimensions and their tooling, the patch recipe, the design-patterns reference, the apply/validate loop, and the readability pass — you perform **exactly as `qoq-code-review` describes**, substituting the workspace directory name.
 
 ---
 
@@ -90,16 +94,16 @@ Follow `qoq-code-review`'s Phase 1, with these changes:
 
   Everything downstream is bounded by this set. Read enough of the code to learn its natural seams (packages, directories, layers) — you'll divide work along them in Phase 2.
 
-- **Use `.qoq-code-refactor/` as the workspace** (`mkdir -p .qoq-code-refactor`). When fanning out, each area gets its own subdirectory so subagents never write to the same path.
+- **Use `.qoq-code-refactor/` as the workspace** (`mkdir -p .qoq-code-refactor`). When fanning out, each area gets its own subdirectory so subagents never write to the same path. As `qoq-code-review`'s Phase 1 describes (substituting this workspace name), temporarily add `.qoq-code-refactor/` to `.gitignore` so its patches and JSON reports don't pollute `git status` or trip the Prettier gate — you'll revert that ignore rule in Phase 5.
 - **Size the scope and decide on subagents.** If the resolved set is small (a file or two, one small module), do the analysis yourself — skip the fan-out. If it's broad (several packages, a large directory, the whole project), it's too much for one agent to do well in a single pass and it parallelizes cleanly: **tell the user, be specific about how many subagents and how you'd divide the work, and ask permission.** Recommend it whenever the scope feels too big for one agent.
 
 ---
 
 ## Phase 2 — Orchestration (deltas)
 
-Run the same six analyses `qoq-code-review` defines, over the resolved scope. The only addition is _how_ you run them at size. Note that Knip, JSCPD, and the sonarjs rule are naturally whole-project tools — this is their native mode, no diff-filtering needed; just keep findings inside the resolved scope.
+Run the same seven analyses `qoq-code-review` defines, over the resolved scope. The only addition is _how_ you run them at size. Note that Knip, JSCPD, and the sonarjs rule are naturally whole-project tools — this is their native mode, no diff-filtering needed; just keep findings inside the resolved scope.
 
-**If the scope is small or subagents were declined:** run the six dimensions yourself, sequentially, exactly as `qoq-code-review`'s Phase 2 describes, writing patches into `.qoq-code-refactor/` with the standard names. You're done with this phase — go to Phase 3.
+**If the scope is small or subagents were declined:** run the seven dimensions yourself, sequentially, exactly as `qoq-code-review`'s Phase 2 describes, writing patches into `.qoq-code-refactor/` with the standard names. You're done with this phase — go to Phase 3.
 
 **If the scope is broad and subagents are approved, you are the orchestrator.** You don't do the per-file analysis yourself — you divide, brief, collect, and regroup:
 
@@ -113,13 +117,13 @@ Run the same six analyses `qoq-code-review` defines, over the resolved scope. Th
 
 2. **Divide the scope by code area** into disjoint slices along the seams from Phase 1 — one package, directory, or coherent module each. The cardinal rule: **no two slices may share a file.** Disjoint ownership is what lets subagents use the edit→restore patch recipe without trampling each other (see `qoq-code-review`'s "Producing a patch"). Aim for comparable sizes; split a very large package further.
 
-3. **Brief one subagent per slice.** Each runs **all six dimensions** on its slice and writes patches into its own subdirectory. Give each this brief:
+3. **Brief one subagent per slice.** Each runs **all seven dimensions** on its slice and writes patches into its own subdirectory. Give each this brief:
 
    ```
    Refactor a slice of this project in the QoQ "quality over quantity" spirit.
    - FIRST read the qoq-code-review skill's SKILL.md (installed alongside the
      qoq-code-refactor skill, at ../qoq-code-review/SKILL.md). Its "Phase 2 —
-     Analysis" (the six dimensions + the "Producing a patch" recipe) and
+     Analysis" (the seven dimensions + the "Producing a patch" recipe) and
      "Tooling: prefer qoq" are your procedure. Apply them to your file list
      instead of to a branch diff.
    - Your scope is EXACTLY these files (touch nothing outside them):
@@ -130,7 +134,7 @@ Run the same six analyses `qoq-code-review` defines, over the resolved scope. Th
    - Produce one patch per dimension that has findings (MINIMUM change, project
      code standards). Use edit → diff → restore → check so your tree ends clean.
    - Save to: .qoq-code-refactor/<slice-name>/{spellings,dependencies,complexity,
-     copy_paste,patterns,typescript}.patch  (skip any dimension with no finding).
+     copy_paste,conventions,patterns,typescript}.patch  (skip any dimension with no finding).
    - Return a short per-dimension summary (one line each) + the patch paths.
    ```
 
@@ -160,8 +164,9 @@ Use `qoq-code-review`'s Phase 4 mechanics unchanged — `git apply --check` → 
 2. `dependencies.patch` (project-wide)
 3. `complexity.patch` (all slices)
 4. `copy_paste.patch` (all slices + cross-slice)
-5. `patterns.patch` (all slices)
-6. `typescript.patch` (all slices)
+5. `conventions.patch` (all slices)
+6. `patterns.patch` (all slices)
+7. `typescript.patch` (all slices)
 
 Because slices own disjoint files, patches _across_ slices rarely conflict; the conflicts that do arise are between **dimensions touching the same file**, handled by the regenerate step exactly as the sibling describes.
 
@@ -169,7 +174,7 @@ Because slices own disjoint files, patches _across_ slices rarely conflict; the 
 
 ## Phase 5 — Readability & cleanup (deltas)
 
-Identical to `qoq-code-review`'s Phase 5, substituting the workspace name: once everything is in and green, format the changed files (`qoq --fix` / `qoq:fix` in QoQ mode, else Prettier), run the validation step one final time, summarize what landed (ideally grouped by area), then `rm -rf .qoq-code-refactor` to keep the intermediate patches and reports out of the commit.
+Identical to `qoq-code-review`'s Phase 5, substituting the workspace name: once everything is in and green, format the changed files (`qoq --fix` / `qoq:fix` in QoQ mode, else Prettier), run the validation step one final time, summarize what landed (ideally grouped by area), then `rm -rf .qoq-code-refactor` to keep the intermediate patches and reports out of the commit, and finally revert the temporary `.qoq-code-refactor/` entry you added to `.gitignore` in Phase 1 (remove the block, or `git restore .gitignore`) so the tree ends with only the refactor.
 
 ---
 
@@ -177,6 +182,6 @@ Identical to `qoq-code-review`'s Phase 5, substituting the workspace name: once 
 
 - **Engine:** `qoq-code-review`'s `SKILL.md` (read it first — Step 0). All dimension/tooling/patch/execution detail lives there; this skill only overrides scope, workspace name, and the fan-out strategy. It is a **mandatory dependency** — if it isn't installed, stop and have the user add it (the `code-quality-skills` plugin from the `qoq-agent-skills` marketplace bundles both; or `npx skills add qoq-code-review` / `npx -p agent-skills-cli skills add qoq-code-review`) before running.
 - **Scope:** user-chosen paths/globs/package, or the whole project (`srcPath`) by default — resolved to an explicit file list in Phase 1. Not a branch diff.
-- **Orchestrator model:** broad scope + subagents approved → divide into disjoint code-area slices, brief one subagent per slice (all six dimensions, reading the sibling skill), keep dependencies and cross-slice duplication yourself, regroup, then execute by dimension.
+- **Orchestrator model:** broad scope + subagents approved → divide into disjoint code-area slices, brief one subagent per slice (all seven dimensions, reading the sibling skill), keep dependencies and cross-slice duplication yourself, regroup, then execute by dimension.
 - **Workspace:** `.qoq-code-refactor/` (per-area subdirs + `reports/`), removed in Phase 5.
 - **Relationship to `qoq-code-review`:** same standards by construction; use the review skill to vet a branch before merge, this one to improve a chosen area or the whole project on demand.

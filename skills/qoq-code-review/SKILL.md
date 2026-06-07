@@ -4,8 +4,10 @@ description: >-
   Review the JavaScript/TypeScript changes on a branch against a base branch,
   in the QoQ "quality over quantity" spirit — spelling & intention-revealing
   naming, unused dependencies, cognitive complexity / SOLID, copy-paste
-  duplication, modern TypeScript idioms (immutable methods, no `any`,
-  target-appropriate syntax), and design-pattern code smells. Use this skill
+  duplication, code conventions (arrow functions over the `function` keyword,
+  named exports over default), modern TypeScript idioms (immutable methods,
+  no `any`, target-appropriate syntax), and design-pattern code smells. Use
+  this skill
   whenever the user
   asks to "review my changes/branch/diff/PR", wants a code review before
   merging, asks to check code quality, naming, dead dependencies, duplication,
@@ -27,6 +29,8 @@ allowed-tools:
   - Bash(git restore:*)
   - Bash(git status:*)
   - Bash(git log:*)
+metadata:
+  version: 1.0.0
 ---
 
 # qoq-code-review
@@ -50,7 +54,7 @@ A note on tooling — three tiers, in order of preference:
 
 This skill works on **any** JS/TS project — detect which tier applies and prefer the highest one available.
 
-A note on its sibling: **`qoq-code-refactor`** runs the exact same six analyses, tooling tiers, and patch conventions, but over a **user-chosen scope** (a path, a package, or the whole project) instead of a branch diff — and it can fan the work out across subagents by code area. Reach for that one when there's no branch to review and the user wants to improve an existing area or the whole codebase on demand; reach for _this_ one when the task is vetting what a branch changed against its base.
+A note on its sibling: **`qoq-code-refactor`** runs the exact same seven analyses, tooling tiers, and patch conventions, but over a **user-chosen scope** (a path, a package, or the whole project) instead of a branch diff — and it can fan the work out across subagents by code area. Reach for that one when there's no branch to review and the user wants to improve an existing area or the whole codebase on demand; reach for _this_ one when the task is vetting what a branch changed against its base.
 
 ---
 
@@ -72,7 +76,7 @@ Before anything changes, make sure you can tell "working" from "broken" and that
 
    Read the diff. Note which files are new, which are modified, and which areas are the substance of the change. The review only covers these changed lines and the files they touch — not the whole repo.
 
-4. **Ask about subagents.** Tell the user the six analyses in Phase 2 are independent and can run in parallel via subagents to save wall-clock time. Ask whether that's allowed. If yes, fan them out — one subagent per dimension, each writing its own patch file into `.qoq-code-review/`, each in an isolated worktree or scoped to disjoint files (see [Producing a patch](#producing-a-patch) for why this matters). If no, run them in sequence yourself.
+4. **Ask about subagents.** Tell the user the seven analyses in Phase 2 are independent and can run in parallel via subagents to save wall-clock time. Ask whether that's allowed. If yes, fan them out — one subagent per dimension, each writing its own patch file into `.qoq-code-review/`, each in an isolated worktree or scoped to disjoint files (see [Producing a patch](#producing-a-patch) for why this matters). If no, run them in sequence yourself.
 
 5. **Detect the QoQ CLI.** Check whether the project is on the preferred tier: is `@ladamczyk/qoq-cli` in `package.json` dependencies, and does a `qoq.config.js` exist at the project root? (A `qoq:check` / `qoq:fix` script or a resolvable `qoq` binary is corroborating evidence.) Both the install **and** the config must be present — `qoq.config.js` is what tells `qoq` which tools and rules to run, so an installed-but-unconfigured CLI is _not_ the preferred tier. Record the result: it decides whether Phase 2 drives the analyses through `qoq` (see [Tooling: prefer `qoq`](#tooling-prefer-qoq)) or through the project's own tools.
 
@@ -84,11 +88,20 @@ Create a workspace for the patch files so they don't clutter the repo:
 mkdir -p .qoq-code-review
 ```
 
+Then keep that workspace out of the way of `git status` and the formatter for the duration of the review. As it fills with `.patch` files and JSON reports, an un-ignored workspace causes two distinct problems: it shows up as untracked noise in every `git status` you run, and — because Prettier 3 honors `.gitignore` by default when it walks the tree — the formatter (the Phase 4 validation step and the Phase 5 pass) treats those generated files as source and flags them as "unformatted", turning the gate red for reasons that have nothing to do with the branch. Exclude it from both. Append a clearly-labeled block to `.gitignore` (use the Edit tool; create `.gitignore` if the project doesn't have one):
+
+```gitignore
+# qoq-code-review workspace — temporary, removed when the review finishes
+.qoq-code-review/
+```
+
+This is a deliberate, self-reverting change you'll undo in Phase 5 — not a breach of the clean-tree principle, since you control it precisely. Note whether you had to **create** `.gitignore` (you'll delete it at the end) or **appended** to an existing one (you'll strip just this block); the label keeps the revert unambiguous even if the review is interrupted partway.
+
 ---
 
 ## Phase 2 — Analysis
 
-Run the six analyses below (the TypeScript one applies only to TS projects — skip it for plain JavaScript). Each produces **one git patch file** in `.qoq-code-review/` containing the _minimum_ change needed, written to the project's own code standards. A patch should be `git apply`-able; generate them in unified-diff form (e.g. capture your edit as `git diff`, or hand-write a clean diff). If a dimension yields nothing worth changing, say so and skip its patch — quality over quantity means an empty result is a fine result.
+Run the seven analyses below (the TypeScript-idioms one applies only to TS projects — skip it for plain JavaScript). Each produces **one git patch file** in `.qoq-code-review/` containing the _minimum_ change needed, written to the project's own code standards. A patch should be `git apply`-able; generate them in unified-diff form (e.g. capture your edit as `git diff`, or hand-write a clean diff). If a dimension yields nothing worth changing, say so and skip its patch — quality over quantity means an empty result is a fine result.
 
 Only review the changed code from Phase 1. The point is to evaluate _this branch's_ contribution, not to relitigate the whole codebase.
 
@@ -108,7 +121,7 @@ If Phase 1 found QoQ on the preferred tier (CLI installed _and_ `qoq.config.js` 
 
 `qoq` runs across the project's configured `srcPath`, not just the branch diff — so after reading a report, **filter its findings down to the files and lines Phase 1 identified** before turning anything into a patch. Knip is whole-project by nature regardless; report only the unused deps/exports _this branch_ introduced.
 
-Mapping from the six dimensions to `qoq`:
+Mapping from the seven dimensions to `qoq`:
 
 | Dimension          | `qoq` source                                          |
 | ------------------ | ----------------------------------------------------- |
@@ -117,7 +130,7 @@ Mapping from the six dimensions to `qoq`:
 | Complexity / SOLID | `eslint-report.json` (`sonarjs/cognitive-complexity`) |
 | Copy-paste         | `jscpd-report.json`                                   |
 
-Spelling beyond identifiers, the TypeScript-idioms dimension, and the design-patterns dimension have no `qoq` tool behind them — handle those by reading as before. When QoQ is _not_ the active tier, ignore this section and use each dimension's documented fallback.
+Spelling beyond identifiers, the code-conventions dimension, the TypeScript-idioms dimension, and the design-patterns dimension have no `qoq` tool behind them — handle those by reading as before. When QoQ is _not_ the active tier, ignore this section and use each dimension's documented fallback.
 
 ### Producing a patch
 
@@ -159,6 +172,13 @@ Code should stay easy to reason about. Measure cognitive complexity with **`esli
 
 Duplicated logic drifts out of sync. Detect near-duplicates with **JSCPD**: in QoQ mode read `jscpd-report.json` (or run `qoq jscpd`), which already uses the project's configured duplication threshold; otherwise JSCPD is the qoq default and `npx jscpd` works. Look across the changed files and the rest of the repo. When the change clones existing logic, propose extracting the shared piece into one well-named unit and pointing both call sites at it — _but only if the abstraction is honest_. Two blocks that look alike today but answer to different reasons to change should stay separate; say so rather than forcing a premature shared helper.
 
+### Code conventions → `conventions.patch`
+
+These aren't language idioms — they're house style: choosing one canonical _form_ where the language offers two equivalent ones, so the codebase reads consistently and a reader never has to wonder which of two shapes a given file happened to use. They apply to both JavaScript and TypeScript. There's no `qoq` tool behind them by default, so it's a careful read — but if the project's ESLint already enforces one (e.g. `prefer-arrow-callback`, `eslint-plugin-prefer-arrow`, or `import/no-default-export`), trust a clean lint and don't re-derive it; reason manually only where no rule covers the case.
+
+- **Prefer arrow functions over the `function` keyword — except where a dynamic `this` is genuinely needed.** An arrow function has no `this`, `arguments`, or `prototype` of its own, which is exactly what you want for the common case: a callback, a small transformation, a handler passed around as a value — there it reads as a pure "inputs → output" and sidesteps the classic "lost `this`" bug when a method is detached and called elsewhere. So suggest converting a `function` expression to an arrow when none of those own-binding features are used. The caveat is load-bearing, not cosmetic: keep `function` where the code _relies_ on a dynamically-bound `this` (an object/prototype method invoked as `obj.method()`, a function deliberately `call`/`apply`/`bind`-ed or an event handler that reads `this`), and where you need a generator (`function*`), `arguments`, or declaration hoisting. Those aren't violations — they're the reason `function` still exists. Don't flag them, and when in doubt whether `this` is dynamic, leave it alone.
+- **Prefer named exports over a default export — except a React component that must be lazy-loaded.** A named export pins one canonical identifier to the symbol, so every import site spells it the same way: it stays greppable, rename refactors propagate cleanly, and tooling can auto-import it. A default export lets each importer invent its own local name, which fragments the vocabulary and hides usages. So flag an `export default` and propose a named export, updating its import sites in the same patch. The one honest exception is a React component loaded through `React.lazy(() => import('./X'))`, which _requires_ the dynamically-imported module to expose the component as its default — rewriting that to a named export would break the lazy boundary, so leave a component's default export in place when it exists for `lazy`/dynamic-import, and say why.
+
 ### Design patterns → `patterns.patch`
 
 Look for code smells that a standard, well-understood pattern would resolve more cleanly. **Read [`references/design-patterns.md`](references/design-patterns.md)** for the catalog — it's a bundled, offline reference (a smell→pattern index plus JS/TS-idiomatic notes, distilled from GoF and Refactoring Guru) so you don't refetch the web each run. Reach for the web only if the change involves a pattern the reference doesn't cover.
@@ -177,7 +197,7 @@ TypeScript-only — skip this dimension entirely for a plain-JavaScript change. 
 
 ## Phase 3 — Present the plan & get approval
 
-Summarize what each analysis found and what its patch would change — grouped by the six dimensions, each with a one-line rationale and a sense of size (lines/files touched). Keep it scannable; this is the user's chance to steer.
+Summarize what each analysis found and what its patch would change — grouped by the seven dimensions, each with a one-line rationale and a sense of size (lines/files touched). Keep it scannable; this is the user's chance to steer.
 
 Then ask whether they want to **edit the plan** (drop or adjust specific patches) or whether you may **execute it**. Wait for an answer. Don't apply anything yet.
 
@@ -191,8 +211,9 @@ Apply the approved patches **in sequence**, no subagents — order matters becau
 2. `dependencies.patch`
 3. `complexity.patch`
 4. `copy_paste.patch`
-5. `patterns.patch`
-6. `typescript.patch`
+5. `conventions.patch`
+6. `patterns.patch`
+7. `typescript.patch`
 
 For each approved patch, in this order:
 
@@ -214,21 +235,27 @@ If validation goes red after a patch, stop, report which patch broke what, and a
 
 Highly readable code follows one consistent format so reviewers spend attention on logic, not whitespace. Once all approved patches are in and green, format the changed files with the project's formatter. In QoQ mode prefer `qoq --fix` (or the `qoq:fix` script) — it runs Prettier (and the other auto-fixers) with the project's exact config in one pass. Otherwise **Prettier** is the qoq default (`npm run format`, or `npx prettier --write` on the changed paths; if the project lacks Prettier, suggest `@ladamczyk/qoq-prettier` or the `qoq` CLI). Run the validation step one final time so the formatted result is confirmed green, then summarize what landed.
 
-Finally, clean up: the `.qoq-code-review/` directory holds only the intermediate patch files and isn't part of the change. Remove it (`rm -rf .qoq-code-review`) so it doesn't get committed, and leave the working tree containing only the applied, formatted improvements ready for the user to commit.
+Finally, clean up so the working tree ends with only the applied, formatted improvements — nothing from the review's scaffolding. Do these two in order:
+
+1. **Remove the workspace.** The `.qoq-code-review/` directory holds only the intermediate patch files and reports and isn't part of the change — `rm -rf .qoq-code-review` to keep it out of the commit.
+2. **Revert the `.gitignore` change from Phase 1.** The workspace only needed ignoring while the review ran. Strip the temporary block you added — or delete `.gitignore` entirely if you created it solely for this. When `.gitignore` was already tracked and started clean, `git restore .gitignore` is the quickest exact revert.
+
+Removing the workspace _before_ reverting the ignore rule means the directory is gone by the time it stops being ignored, so it never flashes back into `git status`. The result is a clean tree containing exactly the improvements, ready for the user to commit.
 
 ---
 
 ## Quick reference
 
-| Dimension          | `qoq` mode (preferred)                            | qoq default               | Generic fallback                 | Patch file           |
-| ------------------ | ------------------------------------------------- | ------------------------- | -------------------------------- | -------------------- |
-| Spelling & naming  | `eslint-report.json` / `qoq eslint` + read        | ESLint naming rule + read | `cspell` / careful read          | `spellings.patch`    |
-| TypeScript idioms  | `tsconfig.json` + careful read (TS projects only) | same                      | same                             | `typescript.patch`   |
-| Dependencies       | `knip-report.json` / `qoq knip`                   | Knip                      | `npx knip`                       | `dependencies.patch` |
-| Complexity / SOLID | `eslint-report.json` (`sonarjs/*`) / `qoq eslint` | `eslint-plugin-sonarjs`   | `npx eslint` / `complexity` rule | `complexity.patch`   |
-| Copy-paste         | `jscpd-report.json` / `qoq jscpd`                 | JSCPD                     | `npx jscpd`                      | `copy_paste.patch`   |
-| Design patterns    | bundled `references/design-patterns.md`           | same                      | same                             | `patterns.patch`     |
-| Formatting         | `qoq --fix` / `qoq:fix`                           | Prettier                  | `npx prettier`                   | (Phase 5)            |
+| Dimension          | `qoq` mode (preferred)                            | qoq default               | Generic fallback                          | Patch file           |
+| ------------------ | ------------------------------------------------- | ------------------------- | ----------------------------------------- | -------------------- |
+| Spelling & naming  | `eslint-report.json` / `qoq eslint` + read        | ESLint naming rule + read | `cspell` / careful read                   | `spellings.patch`    |
+| TypeScript idioms  | `tsconfig.json` + careful read (TS projects only) | same                      | same                                      | `typescript.patch`   |
+| Dependencies       | `knip-report.json` / `qoq knip`                   | Knip                      | `npx knip`                                | `dependencies.patch` |
+| Complexity / SOLID | `eslint-report.json` (`sonarjs/*`) / `qoq eslint` | `eslint-plugin-sonarjs`   | `npx eslint` / `complexity` rule          | `complexity.patch`   |
+| Copy-paste         | `jscpd-report.json` / `qoq jscpd`                 | JSCPD                     | `npx jscpd`                               | `copy_paste.patch`   |
+| Code conventions   | careful read (JS + TS)                            | same                      | `prefer-arrow` / `no-default-export` lint | `conventions.patch`  |
+| Design patterns    | bundled `references/design-patterns.md`           | same                      | same                                      | `patterns.patch`     |
+| Formatting         | `qoq --fix` / `qoq:fix`                           | Prettier                  | `npx prettier`                            | (Phase 5)            |
 
 **QoQ mode** = the project has `@ladamczyk/qoq-cli` installed _and_ a `qoq.config.js` at its root (Phase 1, step 5). When on, prime all reports once with `qoq --json --output .qoq-code-review/reports` and have each analysis read its report.
 

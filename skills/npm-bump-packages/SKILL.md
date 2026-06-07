@@ -18,6 +18,8 @@ allowed-tools:
   - Bash(mkdir -p .npm-bump)
   - Bash(git checkout:*)
   - Bash(git apply *)
+metadata:
+  version: 1.0.0
 ---
 
 # npm-bump-packages
