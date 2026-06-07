@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./logo.png" alt="QoQ logo" width="200" height="200" />
+</p>
+
 # Quality over Quantity (QoQ)
 
 **A streamlined suite of tools to format, lint, and analyze any JavaScript/TypeScript project with minimal setup.**
