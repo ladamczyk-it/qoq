@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./logo.png" alt="QoQ logo" width="200" height="200" />
+  <img src="./logo.png" alt="QoQ logo" width="300" height="300" />
 </p>
 
 # Quality over Quantity (QoQ)
