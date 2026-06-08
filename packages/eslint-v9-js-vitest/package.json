@@ -21,14 +21,14 @@
   "license": "MIT",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
+      "types": "./lib/src/index.d.ts",
       "import": "./lib/index.mjs",
       "require": "./lib/index.cjs"
     }
   },
   "main": "./lib/index.cjs",
   "module": "./lib/index.mjs",
-  "types": "./lib/index.d.ts",
+  "types": "./lib/src/index.d.ts",
   "bin": {
     "@ladamczyk/qoq-eslint-v9-js-vitest": "./bin/bin.js"
   },

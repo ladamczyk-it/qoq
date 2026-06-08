@@ -39,7 +39,7 @@
     "@ladamczyk/qoq-utils": "^4.2.0",
     "@npmcli/package-json": "7.0.5",
     "cac": "7.0.0",
-    "cosmiconfig": "9.0.1",
+    "cosmiconfig": "9.0.2",
     "es-toolkit": "1.47.0",
     "micromatch": "4.0.8",
     "picocolors": "1.1.1",

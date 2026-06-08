@@ -21,12 +21,12 @@
   "license": "MIT",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
+      "types": "./lib/src/index.d.ts",
       "import": "./lib/index.mjs",
       "require": "./lib/index.cjs"
     },
     "./tools": {
-      "types": "./lib/tools.d.ts",
+      "types": "./lib/src/tools.d.ts",
       "module": "./lib/tools.mjs",
       "import": "./lib/tools.mjs",
       "require": "./lib/tools.cjs",
@@ -35,7 +35,7 @@
   },
   "main": "./lib/index.cjs",
   "module": "./lib/index.mjs",
-  "types": "./lib/index.d.ts",
+  "types": "./lib/src/index.d.ts",
   "bin": {
     "@ladamczyk/qoq-eslint-v9-js": "./bin/bin.js"
   },

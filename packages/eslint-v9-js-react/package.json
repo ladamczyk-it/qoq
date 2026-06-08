@@ -21,14 +21,14 @@
   "license": "MIT",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
+      "types": "./lib/src/index.d.ts",
       "import": "./lib/index.mjs",
       "require": "./lib/index.cjs"
     }
   },
   "main": "./lib/index.cjs",
   "module": "./lib/index.mjs",
-  "types": "./lib/index.d.ts",
+  "types": "./lib/src/index.d.ts",
   "bin": {
     "@ladamczyk/qoq-eslint-v9-js-react": "./bin/bin.js"
   },
@@ -43,7 +43,7 @@
     "inspect": "node ./bin/bin.cjs"
   },
   "dependencies": {
-    "@eslint-react/eslint-plugin": "5.8.12",
+    "@eslint-react/eslint-plugin": "5.8.16",
     "@ladamczyk/qoq-eslint-v9-js": "^4.2.0",
     "@ladamczyk/qoq-utils": "^4.2.0",
     "@stylistic/eslint-plugin": "5.10.0",

@@ -17,7 +17,7 @@
     "AGENTS.md"
   ],
   "dependencies": {
-    "jscpd": "4.2.4"
+    "jscpd": "4.2.5"
   },
   "engines": {
     "node": ">=22.15.0"
