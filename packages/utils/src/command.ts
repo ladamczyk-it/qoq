@@ -24,8 +24,6 @@ export async function executeCommand(
   stdio: CommonSpawnOptions['stdio'] = 'inherit',
   captureOutput: boolean = false
 ): Promise<string | EExitCode> {
-  // const commandArgs
-
   return new Promise((resolve, reject) => {
     // eslint-disable-next-line sonarjs/os-command
     const child = spawn(command, args, {

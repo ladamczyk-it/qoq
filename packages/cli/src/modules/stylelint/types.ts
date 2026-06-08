@@ -1,8 +1,8 @@
 import { StylelintConfig } from '../../../../stylelint-css/src';
 
 export enum EModulesStylelint {
-  STYLELINT_CSS = '@ladamczyk/qoq-stylelint-css',
-  STYLELINT_SCSS = '@ladamczyk/qoq-stylelint-scss',
+  STYLELINT_CSS = 'qoq-stylelint-css',
+  STYLELINT_SCSS = 'qoq-stylelint-scss',
 }
 
 interface IModuleStylelintConfig extends StylelintConfig {
@@ -10,7 +10,7 @@ interface IModuleStylelintConfig extends StylelintConfig {
 }
 
 export interface IModuleStylelintConfigWithTemplate extends IModuleStylelintConfig {
-  template: EModulesStylelint;
+  template?: `${EModulesStylelint}`;
 }
 
 export interface IModuleStylelintConfigWithPattern extends IModuleStylelintConfig {

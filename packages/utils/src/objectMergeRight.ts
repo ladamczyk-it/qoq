@@ -1,5 +1,13 @@
 export type TObjectType = object & { length?: never };
 
+const safeClone = <V>(value: V): V => {
+  try {
+    return structuredClone(value);
+  } catch {
+    return value;
+  }
+};
+
 const walk = <T extends TObjectType>(first: T, second: Partial<T>) => {
   const firstObjectKeys = Object.keys(first);
 
@@ -21,18 +29,10 @@ const walk = <T extends TObjectType>(first: T, second: Partial<T>) => {
       ) {
         acc[key] = walk(firstValue as TObjectType, secondValue as TObjectType);
       } else {
-        try {
-          acc[key] = structuredClone(secondValue);
-        } catch {
-          acc[key] = secondValue;
-        }
+        acc[key] = safeClone(secondValue);
       }
     } else {
-      try {
-        acc[key] = structuredClone(firstValue);
-      } catch {
-        acc[key] = firstValue;
-      }
+      acc[key] = safeClone(firstValue);
     }
 
     return acc;
@@ -41,11 +41,7 @@ const walk = <T extends TObjectType>(first: T, second: Partial<T>) => {
   Object.keys(second)
     .filter((key) => !firstObjectKeys.includes(key))
     .forEach((key) => {
-      try {
-        mergedObject[key] = structuredClone(second[key]);
-      } catch {
-        mergedObject[key] = second[key];
-      }
+      mergedObject[key] = safeClone(second[key]);
     });
 
   return mergedObject as T;
@@ -60,7 +56,7 @@ const walk = <T extends TObjectType>(first: T, second: Partial<T>) => {
  * @param args input objects
  * @returns merged object
  */
-export function objectMergeRight<T extends TObjectType>(first: T, ...args: Partial<T>[]): T {
+export const objectMergeRight = <T extends TObjectType>(first: T, ...args: Partial<T>[]): T => {
   if (args.length < 1) {
     throw new Error('objectMergeRight needs at least two objects as arguments!');
   }
@@ -73,4 +69,4 @@ export function objectMergeRight<T extends TObjectType>(first: T, ...args: Parti
   }
 
   return mergedObject;
-}
+};

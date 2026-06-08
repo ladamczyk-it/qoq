@@ -18,5 +18,5 @@ export enum EModulesEslint {
 }
 
 export interface IModuleEslintConfig extends TPartialBy<EslintConfig, 'rules'> {
-  template?: EModulesEslint;
+  template?: `${EModulesEslint}`;
 }

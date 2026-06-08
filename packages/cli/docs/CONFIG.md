@@ -105,13 +105,13 @@ Requires standard [configuration objects](https://eslint.org/docs/latest/use/con
 {
     eslint: [
         {
-            template: '@ladamczyk/qoq-eslint-v9-ts',
+            template: 'qoq-eslint-v9-ts',
             files: ['packages/**/src/**/*.ts'],
             ignores: ['**/*.spec.ts'],
             ...
         },
         {
-            template: '@ladamczyk/qoq-eslint-v9-ts-vitest',
+            template: 'qoq-eslint-v9-ts-vitest',
             files: ['packages/**/src/**/*.spec.ts'],
             ignores: [],
             ...
@@ -129,7 +129,7 @@ Requires standard [configuration object](https://stylelint.io/user-guide/configu
 {
     stylelint: {
         strict: false
-        template: '@ladamczyk/qoq-stylelint-css',
+        template: 'qoq-stylelint-css',
         ...
     }
 }

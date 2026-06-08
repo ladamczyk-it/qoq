@@ -79,20 +79,20 @@ export default {
 
   eslint: [
     {
-      template: '@ladamczyk/qoq-eslint-v9-ts', // merges baseConfig from this template
+      template: 'qoq-eslint-v9-ts', // merges baseConfig from this template
       files: ['src/**/*.ts'],
       ignores: ['**/*.spec.ts'],
       rules: {}, // additional ESLint rules
     },
     {
-      template: '@ladamczyk/qoq-eslint-v9-ts-vitest',
+      template: 'qoq-eslint-v9-ts-vitest',
       files: ['src/**/*.spec.ts'],
     },
   ],
 
   stylelint: {
     // omit entirely to disable
-    template: '@ladamczyk/qoq-stylelint-css', // or '@ladamczyk/qoq-stylelint-scss'
+    template: 'qoq-stylelint-css', // or 'qoq-stylelint-scss'
     strict: false, // true = fail on warnings
   },
 

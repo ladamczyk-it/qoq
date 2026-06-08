@@ -240,7 +240,9 @@ export class EslintConfigHandler extends AbstractConfigHandler {
 
   getPackages(): string[] {
     const templates = (this.modulesConfig.modules.eslint ?? [])
-      .filter((config) => config.template && config.template !== EModulesEslint.ESLINT_V9_JS)
+      .filter(
+        (config) => config.template && config.template !== String(EModulesEslint.ESLINT_V9_JS)
+      )
       .map((config) => String(config.template));
 
     this.packages = templates.length > 0 ? templates : [EModulesEslint.ESLINT_V9_JS];

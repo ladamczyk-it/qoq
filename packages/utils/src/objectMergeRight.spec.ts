@@ -65,4 +65,24 @@ describe('objectMergeRight', () => {
 
     expect(objectMergeRight<any>(firstDeep, secondDeep)).toStrictEqual({ deep: {} });
   });
+
+  const noop = () => 'noop';
+
+  it('keeps a non-cloneable colliding value as-is', () => {
+    const result = objectMergeRight<any>({ a: 1 }, { a: noop });
+
+    expect(result.a).toBe(noop);
+  });
+
+  it('keeps a non-cloneable first-only value as-is', () => {
+    const result = objectMergeRight<any>({ fn: noop }, { other: 1 });
+
+    expect(result.fn).toBe(noop);
+  });
+
+  it('keeps a non-cloneable second-only value as-is', () => {
+    const result = objectMergeRight<any>({}, { fn: noop });
+
+    expect(result.fn).toBe(noop);
+  });
 });

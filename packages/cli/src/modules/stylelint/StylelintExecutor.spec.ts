@@ -111,11 +111,7 @@ describe('StylelintExecutor', () => {
 
     it('should report and exit on an invalid config', async () => {
       const exitMock = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
-      const executor = new StylelintExecutor(
-        configWith({ strict: false } as TModuleStylelintConfig),
-        true,
-        true
-      );
+      const executor = new StylelintExecutor(configWith({ strict: false }), true, true);
 
       await executor.run(baseOptions);
 

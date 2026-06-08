@@ -1,7 +1,7 @@
-import { isPackageExists, getPackageInfoSync } from 'local-pkg';
+import { isPackageExists, getPackageInfoSync, loadPackageJSONSync } from 'local-pkg';
 import { describe, it, expect, vi } from 'vitest';
 
-import { isPackageInstalled, getPackageInfo } from './packages';
+import { isPackageInstalled, getPackageInfo, getPackageJson } from './packages';
 
 vi.mock('@antfu/install-pkg', () => ({
   installPackage: vi.fn(),
@@ -10,6 +10,7 @@ vi.mock('@antfu/install-pkg', () => ({
 vi.mock('local-pkg', () => ({
   isPackageExists: vi.fn(),
   getPackageInfoSync: vi.fn(),
+  loadPackageJSONSync: vi.fn(),
 }));
 
 describe('isPackageInstalled', () => {
@@ -69,5 +70,21 @@ describe('getPackageInfo', () => {
 
     // Ensure that getPackageInfoSync was called with the correct package name
     expect(getPackageInfoSync).toHaveBeenCalledWith('non-existent-package');
+  });
+});
+
+describe('getPackageJson', () => {
+  it('returns the loaded package.json', () => {
+    const mockPackageJson = { name: 'eslint', version: '7.0.0' };
+    vi.mocked(loadPackageJSONSync).mockReturnValue(mockPackageJson);
+
+    expect(getPackageJson()).toEqual(mockPackageJson);
+  });
+
+  it('forwards the cwd argument and returns null when nothing is found', () => {
+    vi.mocked(loadPackageJSONSync).mockReturnValue(null);
+
+    expect(getPackageJson('/some/dir')).toBeNull();
+    expect(loadPackageJSONSync).toHaveBeenCalledWith('/some/dir');
   });
 });
