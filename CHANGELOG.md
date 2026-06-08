@@ -1,3 +1,13 @@
+## [4.2.2](https://github.com/ladamczyk-it/qoq/compare/v4.2.1...v4.2.2) (2026-06-08)
+
+
+### Bug Fixes
+
+* improve typing ([921673d](https://github.com/ladamczyk-it/qoq/commit/921673d0636d9bb657f7ae93a7c211bfd080ac07))
+* improve typing ([c7dacdc](https://github.com/ladamczyk-it/qoq/commit/c7dacdc4da951e61e8d7c154c7947f471f4eeb34))
+* minor types changes + increase coverage ([ed94e1d](https://github.com/ladamczyk-it/qoq/commit/ed94e1df0a05a3cf2aa6eb43651abc5e99f619b7))
+* script name change ([92afe73](https://github.com/ladamczyk-it/qoq/commit/92afe738cb770e00b5ed80841e91005f3334c707))
+
 ## [4.2.1](https://github.com/ladamczyk-it/qoq/compare/v4.2.0...v4.2.1) (2026-06-08)
 
 
