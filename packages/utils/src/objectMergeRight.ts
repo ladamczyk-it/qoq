@@ -1,4 +1,4 @@
-export type TObjectType = object & { length?: never };
+export type TObjectType = Record<string, unknown>;
 
 const safeClone = <V>(value: V): V => {
   try {
@@ -8,29 +8,28 @@ const safeClone = <V>(value: V): V => {
   }
 };
 
-const walk = <T extends TObjectType>(first: T, second: Partial<T>) => {
+const isMergeableObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const walk = <T extends TObjectType>(first: T, second: Partial<T>): T => {
   const firstObjectKeys = Object.keys(first);
 
-  const mergedObject = firstObjectKeys.reduce((acc, key: string) => {
-    if (Object.prototype.hasOwnProperty.call(second, key) && second[key] === undefined) {
+  const mergedObject = firstObjectKeys.reduce<TObjectType>((acc, key) => {
+    const hasSecondValue = Object.prototype.hasOwnProperty.call(second, key);
+
+    if (hasSecondValue && second[key] === undefined) {
       return acc;
     }
 
     const firstValue = first[key];
 
-    if (Object.prototype.hasOwnProperty.call(second, key)) {
+    if (hasSecondValue) {
       const secondValue = second[key];
 
-      if (
-        typeof firstValue === 'object' &&
-        !Array.isArray(firstValue) &&
-        typeof secondValue === 'object' &&
-        !Array.isArray(secondValue)
-      ) {
-        acc[key] = walk(firstValue as TObjectType, secondValue as TObjectType);
-      } else {
-        acc[key] = safeClone(secondValue);
-      }
+      acc[key] =
+        isMergeableObject(firstValue) && isMergeableObject(secondValue)
+          ? walk(firstValue, secondValue)
+          : safeClone(secondValue);
     } else {
       acc[key] = safeClone(firstValue);
     }
@@ -61,12 +60,5 @@ export const objectMergeRight = <T extends TObjectType>(first: T, ...args: Parti
     throw new Error('objectMergeRight needs at least two objects as arguments!');
   }
 
-  const [second, third, ...rest] = args;
-  const mergedObject = walk<T>(first, second);
-
-  if (third) {
-    return objectMergeRight<T>(mergedObject, third, ...rest);
-  }
-
-  return mergedObject;
+  return args.reduce<T>((merged, next) => walk(merged, next), first);
 };
