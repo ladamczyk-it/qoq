@@ -1,3 +1,13 @@
+## [4.2.1](https://github.com/ladamczyk-it/qoq/compare/v4.2.0...v4.2.1) (2026-06-08)
+
+
+### Bug Fixes
+
+* add logo ([9fa193b](https://github.com/ladamczyk-it/qoq/commit/9fa193b7bfd4902c62dc2707a030298ff0486c84))
+* bump packages ([c67c3ae](https://github.com/ladamczyk-it/qoq/commit/c67c3ae4f8e72eb0a22b2c58d995f32d8a19e9b0))
+* resize logo ([fba7c09](https://github.com/ladamczyk-it/qoq/commit/fba7c093596a7f34ac62b3a371933ea6ad08a355))
+* skills update + metadata versioning ([7a356d3](https://github.com/ladamczyk-it/qoq/commit/7a356d34c022a0356404e09741fa9ac00655c371))
+
 # [4.2.0](https://github.com/ladamczyk-it/qoq/compare/v4.1.0...v4.2.0) (2026-06-06)
 
 

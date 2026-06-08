@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-js-vitest-rtl",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "Eslint flat config template for JS + Vitest + RTL",
   "keywords": [
     "eslint JavaScript + Vitest + RTL template",
@@ -43,8 +43,8 @@
     "inspect": "node ./bin/bin.cjs"
   },
   "dependencies": {
-    "@ladamczyk/qoq-eslint-v9-js-vitest": "^4.2.0",
-    "@ladamczyk/qoq-utils": "^4.2.0",
+    "@ladamczyk/qoq-eslint-v9-js-vitest": "^4.2.1",
+    "@ladamczyk/qoq-utils": "^4.2.1",
     "eslint-plugin-testing-library": "7.16.2"
   },
   "devDependencies": {
