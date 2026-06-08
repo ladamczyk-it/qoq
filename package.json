@@ -18,7 +18,7 @@
     "postinstall": "qoq --warmup",
     "pre:test": "npm run config-inspector",
     "prepare": "husky",
-    "publish:full": "run-s husky:pre-push publish:lerna",
+    "publish:full": "run-s husky:pre-push publish:release",
     "publish:release": "npx --package semantic-release --package @semantic-release/changelog --package @semantic-release/git --package semantic-release-lerna -y semantic-release",
     "qoq:check": "qoq --check",
     "qoq:fix": "qoq --fix",
