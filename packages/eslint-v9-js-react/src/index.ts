@@ -4,13 +4,19 @@ import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 import compatPlugin from 'eslint-plugin-compat';
 
+import type { Linter } from 'eslint';
+
+const baseNoRestrictedImports = jsBaseConfig.rules['no-restricted-imports'] as [
+  Linter.RuleSeverity,
+  { paths: unknown[] },
+];
+
 const noRestrictedImportsRule: EslintConfig['rules'][0] = [
-  jsBaseConfig.rules['no-restricted-imports'][0],
+  baseNoRestrictedImports[0],
   {
-    ...jsBaseConfig.rules['no-restricted-imports'][1],
+    ...baseNoRestrictedImports[1],
     paths: [
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ...jsBaseConfig.rules['no-restricted-imports'][1].paths,
+      ...baseNoRestrictedImports[1].paths,
       {
         name: 'lodash/debounce',
         message:
@@ -25,10 +31,15 @@ const noRestrictedImportsRule: EslintConfig['rules'][0] = [
   },
 ];
 
+const baseImportOrder = jsBaseConfig.rules['import-x/order'] as [
+  Linter.RuleSeverity,
+  Record<string, unknown>,
+];
+
 const importOrderRule: EslintConfig['rules'][0] = [
-  jsBaseConfig.rules['import-x/order'][0],
+  baseImportOrder[0],
   {
-    ...jsBaseConfig.rules['import-x/order'][1],
+    ...baseImportOrder[1],
     pathGroups: [
       {
         pattern: 'react*',

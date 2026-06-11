@@ -1,1 +1,1 @@
-export type { QoqConfig } from './helpers/types';
+export type { QoqConfig } from './helpers/types.ts';

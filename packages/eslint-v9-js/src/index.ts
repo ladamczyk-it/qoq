@@ -98,7 +98,7 @@ export const baseConfig: EslintConfig = {
         'newlines-between': 'always',
       },
     ],
-    ...sonarJsPlugin.configs.recommended.rules,
+    ...(sonarJsPlugin.configs?.recommended as ESLint.Plugin).rules,
     'sonarjs/no-alphabetical-sort': 0,
     'sonarjs/no-nested-functions': 0,
     'sonarjs/no-misleading-array-reverse': 0,

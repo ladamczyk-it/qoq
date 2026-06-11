@@ -64,6 +64,10 @@ export class NpmExecutor extends AbstractExecutor {
       (acc, packageName: string) => {
         let info = jsonResult[packageName];
 
+        if (!info) {
+          return acc;
+        }
+
         if (Array.isArray(info)) {
           info = info.reduce(
             (newInfo, innerInfo) => {

@@ -89,7 +89,9 @@ describe('PrettierConfigHandler', () => {
 
   describe('getPackages', () => {
     it('should default to the basic prettier package when no config file exists', () => {
-      expect(configHandler.getPackages()).toStrictEqual([EModulesPrettier.PRETTIER]);
+      expect(configHandler.getPackages()).toStrictEqual([
+        `@ladamczyk/${EModulesPrettier.PRETTIER}`,
+      ]);
     });
   });
 });

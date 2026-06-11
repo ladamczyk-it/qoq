@@ -19,20 +19,14 @@ export const checkEngine = (path: string, workspaces: boolean = false): void => 
     process.stderr.write(c.green('Found engines.node config:\n'));
     process.stderr.write(`${nodeConfigured}\n\n`);
 
-    try {
-      valid(nodeConfigured);
-    } catch {
-      try {
-        validRange(nodeConfigured);
-      } catch {
-        process.stderr.write(c.red(`Bad engines.node version!\n`));
+    if (!valid(nodeConfigured) && !validRange(nodeConfigured)) {
+      process.stderr.write(c.red(`Bad engines.node version!\n`));
 
-        process.exit(1);
-      }
+      process.exit(1);
     }
   }
 
-  const dependenciesKeys = Object.keys(new Object(dependencies));
+  const dependenciesKeys = Object.keys(dependencies ?? {});
 
   if (dependenciesKeys.length === 0) {
     process.stderr.write(
@@ -41,7 +35,7 @@ export const checkEngine = (path: string, workspaces: boolean = false): void => 
   }
 
   const dependenciesList =
-    dependenciesKeys.length > 0 ? dependenciesKeys : [...Object.keys(new Object(devDependencies))];
+    dependenciesKeys.length > 0 ? dependenciesKeys : Object.keys(devDependencies ?? {});
 
   const enginesRaw = dependenciesList.reduce((acc: string[], dependency) => {
     const { packageJson } = getPackageInfo(dependency);
@@ -71,7 +65,7 @@ export const checkEngine = (path: string, workspaces: boolean = false): void => 
     try {
       const nodeVersion = new SemVer(nodeConfigured);
 
-      if (enginesRaw.some((versionString: string) => new Range(versionString).test(nodeVersion))) {
+      if (enginesRaw.some((versionString: string) => !new Range(versionString).test(nodeVersion))) {
         process.stderr.write(c.red('Your engines.node does not match dependencies criteria!.\n'));
 
         process.exit(1);
@@ -93,7 +87,7 @@ export const checkEngine = (path: string, workspaces: boolean = false): void => 
     }
   } else if (!nodeConfigured) {
     process.stderr.write(
-      c.yellow('No engines.node configured, You should add it to ensure node complience.\n')
+      c.yellow('No engines.node configured, You should add it to ensure node compliance.\n')
     );
   }
 

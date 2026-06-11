@@ -103,16 +103,18 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
 
     if (stylelint) {
       const { strict } = stylelint;
+      const { template } = <IModuleStylelintConfigWithTemplate>stylelint;
+      const { pattern } = <IModuleStylelintConfigWithPattern>stylelint;
 
-      if ((<IModuleStylelintConfigWithTemplate>stylelint).template) {
+      if (template) {
         this.config.stylelint = {
           strict: !!strict,
-          template: (<IModuleStylelintConfigWithTemplate>stylelint).template,
+          template,
         };
-      } else if ((<IModuleStylelintConfigWithPattern>stylelint).pattern) {
+      } else if (pattern) {
         this.config.stylelint = {
           strict: !!strict,
-          pattern: (<IModuleStylelintConfigWithPattern>stylelint).pattern,
+          pattern,
         };
       } else {
         throw new Error('Bad config!');
@@ -128,17 +130,19 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
 
     if (stylelint) {
       const { strict, ...rest } = stylelint;
+      const { template } = <IModuleStylelintConfigWithTemplate>stylelint;
+      const { pattern } = <IModuleStylelintConfigWithPattern>stylelint;
 
-      if ((<IModuleStylelintConfigWithTemplate>stylelint).template) {
+      if (template) {
         modules.stylelint = {
           strict: !!strict,
-          template: (<IModuleStylelintConfigWithTemplate>stylelint).template,
+          template,
           ...rest,
         };
-      } else if ((<IModuleStylelintConfigWithPattern>stylelint).pattern) {
+      } else if (pattern) {
         modules.stylelint = {
           strict: !!strict,
-          pattern: (<IModuleStylelintConfigWithPattern>stylelint).pattern,
+          pattern,
           ...rest,
         };
       } else {
@@ -151,15 +155,10 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
 
   getPackages(): string[] {
     const { stylelint } = this.modulesConfig.modules;
+    const template = stylelint && (<IModuleStylelintConfigWithTemplate>stylelint).template;
 
-    if (
-      stylelint &&
-      (<IModuleStylelintConfigWithTemplate>stylelint).template &&
-      Object.values(EModulesStylelint).includes(
-        (<IModuleStylelintConfigWithTemplate>stylelint).template
-      )
-    ) {
-      this.packages = [(<IModuleStylelintConfigWithTemplate>stylelint).template];
+    if (template && (Object.values(EModulesStylelint) as string[]).includes(template)) {
+      this.packages = [`@ladamczyk/${template}`];
     }
 
     return super.getPackages();

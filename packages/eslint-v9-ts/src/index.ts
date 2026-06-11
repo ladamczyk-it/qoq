@@ -4,9 +4,10 @@ import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescrip
 import importPlugin, { createNodeResolver } from 'eslint-plugin-import-x';
 import tseslint from 'typescript-eslint';
 
-import type { TSESLint } from '@typescript-eslint/utils';
-
 const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
+
+const tsPluginConfigs = (tseslint.plugin as unknown as { configs: Record<string, EslintConfig> })
+  .configs;
 
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(
@@ -35,15 +36,8 @@ export const baseConfig: EslintConfig = {
         'import-x/no-cycle': 1,
         'import-x/no-duplicates': 1,
         'import-x/no-named-default': 1,
-        ...(
-          (tseslint.plugin.configs as TSESLint.FlatConfig.SharedConfigs)
-            .recommended as TSESLint.FlatConfig.Config
-        ).rules,
-        ...(
-          (tseslint.plugin.configs as TSESLint.FlatConfig.SharedConfigs)[
-            'recommended-requiring-type-checking'
-          ] as TSESLint.FlatConfig.Config
-        ).rules,
+        ...(tsPluginConfigs.recommended as EslintConfig).rules,
+        ...(tsPluginConfigs['recommended-requiring-type-checking'] as EslintConfig).rules,
         '@typescript-eslint/no-unsafe-assignment': 0, // strange rule, turned off for now
         'no-empty-function': 0,
         '@typescript-eslint/no-empty-function': 1,
@@ -122,11 +116,14 @@ export const baseConfig: EslintConfig = {
   },
 };
 
-export const testConfig: EslintConfig = objectMergeRight(baseConfig, {
-  rules: {
-    '@typescript-eslint/no-unsafe-argument': 0,
-    '@typescript-eslint/no-unsafe-assignment': 0,
-    '@typescript-eslint/no-unsafe-member-access': 0,
-    'sonarjs/no-duplicate-string': 0,
-  },
-});
+export const testConfig: EslintConfig = objectMergeRight(
+  baseConfig as EslintConfig & Record<string, unknown>,
+  {
+    rules: {
+      '@typescript-eslint/no-unsafe-argument': 0,
+      '@typescript-eslint/no-unsafe-assignment': 0,
+      '@typescript-eslint/no-unsafe-member-access': 0,
+      'sonarjs/no-duplicate-string': 0,
+    },
+  }
+);

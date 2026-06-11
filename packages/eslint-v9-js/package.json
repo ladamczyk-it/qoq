@@ -31,6 +31,13 @@
       "import": "./lib/tools.mjs",
       "require": "./lib/tools.cjs",
       "default": "./lib/tools.mjs"
+    },
+    "./stats": {
+      "types": "./lib/src/stats.d.ts",
+      "module": "./lib/stats.mjs",
+      "import": "./lib/stats.mjs",
+      "require": "./lib/stats.cjs",
+      "default": "./lib/stats.mjs"
     }
   },
   "main": "./lib/index.cjs",

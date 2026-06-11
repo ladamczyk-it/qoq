@@ -30,9 +30,7 @@ describe('EslintConfigHandler', () => {
 
   describe('getConfigFromModules', () => {
     it('should return the config for modules', () => {
-      expect(configHandler.getConfigFromModules()).toStrictEqual({
-        eslint: undefined,
-      });
+      expect(configHandler.getConfigFromModules()).toStrictEqual({});
     });
   });
 
@@ -45,9 +43,7 @@ describe('EslintConfigHandler', () => {
           stylelint: './stylelint.config.js',
         },
         configType: 'ESM',
-        modules: {
-          eslint: undefined,
-        },
+        modules: {},
         srcPath: '',
       });
     });
@@ -83,7 +79,7 @@ describe('EslintConfigHandler', () => {
     it('should default to the base js package when nothing is configured', () => {
       const handler = new EslintConfigHandler(structuredClone(dummyModulesConfig), {});
 
-      expect(handler.getPackages()).toStrictEqual([EModulesEslint.ESLINT_V9_JS]);
+      expect(handler.getPackages()).toStrictEqual([`@ladamczyk/${EModulesEslint.ESLINT_V9_JS}`]);
     });
 
     it('should expose configured non-base templates', () => {
@@ -97,7 +93,9 @@ describe('EslintConfigHandler', () => {
         {}
       );
 
-      expect(handler.getPackages()).toStrictEqual([EModulesEslint.ESLINT_V9_TS_REACT]);
+      expect(handler.getPackages()).toStrictEqual([
+        `@ladamczyk/${EModulesEslint.ESLINT_V9_TS_REACT}`,
+      ]);
     });
   });
 });

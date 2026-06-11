@@ -2,7 +2,7 @@ import { resolve } from 'path';
 
 import { getPackageInfo, getRelativePath } from '@ladamczyk/qoq-utils';
 
-import pkg from '../../package.json';
+import pkg from '../../package.json' with { type: 'json' };
 
 const getCliPackagePath = (): string => {
   try {

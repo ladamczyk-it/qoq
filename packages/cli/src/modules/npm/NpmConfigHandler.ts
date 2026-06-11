@@ -18,7 +18,7 @@ export class NpmConfigHandler extends AbstractConfigHandler {
         name: 'npmSchedule',
         initial: 1,
         message: c.reset(`How often should we check dependencies? (in days, 0 means in every run)`),
-        validate: (npmSchedule) => (npmSchedule < 0 ? `Schedule must me => 0` : true),
+        validate: (npmSchedule: number) => (npmSchedule < 0 ? `Schedule must me => 0` : true),
       },
     ]);
 

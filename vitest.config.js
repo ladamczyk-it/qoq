@@ -5,7 +5,14 @@ export const commonConfig = {
     projects: ['packages/*'],
     coverage: {
       include: ['**/src'],
-      exclude: ['**/*.spec.[jt]s', '**/__tests__/**', '**/types.ts'],
+      exclude: [
+        '**/__tests__/**',
+        '**/lib/**',
+        '**/*.spec.[jt]s',
+        '**/types.ts',
+        '**/*.d.ts',
+        '**/bin.{ts,js}',
+      ],
     },
   },
 };

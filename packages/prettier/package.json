@@ -28,7 +28,7 @@
     "AGENTS.md"
   ],
   "scripts": {
-    "build": "rimraf ./index.json && node ./src/index.js"
+    "build": "rimraf ./index.json && node ./src/bin.js"
   },
   "dependencies": {
     "prettier": "3.8.4"

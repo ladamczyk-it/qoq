@@ -7,6 +7,7 @@ Base ESLint flat config template for vanilla JavaScript projects. All other `@la
 - `baseConfig` — ESLint flat config object, ready to use or extend
 - `EslintConfig` / `EslintConfigPlugin` — TypeScript types for config objects
 - `getNoRestrictedImportsPaths(extra?)` — returns `no-restricted-imports` paths array; auto-detects lodash and es-toolkit in the consumer project and adds usage guidance
+- `@ladamczyk/qoq-eslint-v9-js/stats` subpath — `getEnabledRuleNames(statsDir)` and `getEnabledDeprecatedRules(statsDir)` read a `@eslint/config-inspector build` payload (a package's `stats/` dir) so a test can fail when the config enables a deprecated rule
 
 ## Usage
 

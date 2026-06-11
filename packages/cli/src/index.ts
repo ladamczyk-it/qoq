@@ -35,7 +35,6 @@ cli
     default: 'off',
   })
   .action(async (tools: string[], options: IExecuteOptions) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const { workspaces } = (await readPackage(PACKAGE_JSON_PATH)) as { workspaces?: string[] };
     const { init, fix, disableCache, concurrency, json, output } = options;
 
@@ -79,7 +78,6 @@ cli
   })
   // eslint-disable-next-line @typescript-eslint/default-param-last
   .action(async (files: string[] = [], options: IExecuteStagedOptions) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const { workspaces } = (await readPackage(PACKAGE_JSON_PATH)) as { workspaces?: string[] };
     const { disableCache, concurrency } = options;
     const config = await getConfig(workspaces, true);

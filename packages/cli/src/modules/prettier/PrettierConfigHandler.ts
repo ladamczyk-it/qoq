@@ -99,15 +99,17 @@ export class PrettierConfigHandler extends AbstractConfigHandler {
         const configFileContent = readFileSync(PrettierConfigHandler.CONFIG_FILE_PATH, 'utf-8');
 
         this.packages = [
-          configFileContent.includes(EModulesPrettier.PRETTIER_WITH_JSON_SORT)
-            ? EModulesPrettier.PRETTIER_WITH_JSON_SORT
-            : EModulesPrettier.PRETTIER,
+          `@ladamczyk/${
+            configFileContent.includes(EModulesPrettier.PRETTIER_WITH_JSON_SORT)
+              ? EModulesPrettier.PRETTIER_WITH_JSON_SORT
+              : EModulesPrettier.PRETTIER
+          }`,
         ];
       } catch {
-        this.packages = [EModulesPrettier.PRETTIER];
+        this.packages = [`@ladamczyk/${EModulesPrettier.PRETTIER}`];
       }
     } else {
-      this.packages = [EModulesPrettier.PRETTIER];
+      this.packages = [`@ladamczyk/${EModulesPrettier.PRETTIER}`];
     }
 
     return super.getPackages();

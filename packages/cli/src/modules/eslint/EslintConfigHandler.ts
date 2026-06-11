@@ -11,7 +11,7 @@ import { EConfigType, QoqConfig } from '../../helpers/types.ts';
 import { AbstractConfigHandler } from '../abstract/AbstractConfigHandler.ts';
 import { IModulesConfig } from '../types.ts';
 
-import { EModulesEslint, IModuleEslintConfig } from './types.ts';
+import { EModulesEslint } from './types.ts';
 
 export class EslintConfigHandler extends AbstractConfigHandler {
   static readonly CONFIG_FILE_PATH = '/eslint.config.js';
@@ -227,13 +227,19 @@ export class EslintConfigHandler extends AbstractConfigHandler {
       modules: { eslint },
     } = this.modulesConfig;
 
-    this.config.eslint = eslint as IModuleEslintConfig[];
+    if (eslint) {
+      this.config.eslint = eslint;
+    }
 
     return super.getConfigFromModules();
   }
 
   getModulesFromConfig(): IModulesConfig {
-    this.modulesConfig.modules.eslint = this.config.eslint;
+    const { eslint } = this.config;
+
+    if (eslint) {
+      this.modulesConfig.modules.eslint = eslint;
+    }
 
     return super.getModulesFromConfig();
   }
@@ -243,9 +249,10 @@ export class EslintConfigHandler extends AbstractConfigHandler {
       .filter(
         (config) => config.template && config.template !== String(EModulesEslint.ESLINT_V9_JS)
       )
-      .map((config) => String(config.template));
+      .map((config) => `@ladamczyk/${config.template}`);
 
-    this.packages = templates.length > 0 ? templates : [EModulesEslint.ESLINT_V9_JS];
+    this.packages =
+      templates.length > 0 ? templates : [`@ladamczyk/${EModulesEslint.ESLINT_V9_JS}`];
 
     return super.getPackages();
   }

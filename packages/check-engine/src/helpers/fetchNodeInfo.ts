@@ -44,7 +44,7 @@ export const fetchNodeInfo = async (
   );
 
   return {
-    currentLts: ltsDictionary[currentLtsKey],
-    maintainedLts: ltsDictionary[maintainedLtsKey],
+    currentLts: ltsDictionary[Number(currentLtsKey)] ?? '',
+    maintainedLts: ltsDictionary[Number(maintainedLtsKey)] ?? '',
   };
 };

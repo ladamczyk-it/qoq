@@ -74,6 +74,25 @@ describe('getKnipConfig', () => {
     });
   });
 
+  it('should return custom ignoreBinaries', () => {
+    const ignoreBinaries = ['custom-binary'];
+    const result = getKnipConfig(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      ignoreBinaries
+    );
+    expect(result).toEqual({
+      entry: ['.src/index.js'],
+      project: ['.src/**/*.js'],
+      ignore: ['package.json'],
+      ignoreDependencies: [],
+      ignoreBinaries,
+    });
+  });
+
   it('should return multiple custom values', () => {
     const srcPath = 'custom-src';
     const entry = ['custom-entry.js'];

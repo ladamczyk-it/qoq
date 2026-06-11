@@ -81,7 +81,8 @@ describe('PrettierExecutor', () => {
 
       const result = await executor.run({ ...baseOptions, json: 'true', output: outputDir });
 
-      const [[, args]] = vi.mocked(executeCommand).mock.calls;
+      const [firstCall] = vi.mocked(executeCommand).mock.calls;
+      const [, args] = firstCall ?? [];
       expect(args).toContain('--list-different');
       expect(args).not.toContain('--check');
       expect(result).toBe(EExitCode.ERROR);
@@ -105,7 +106,8 @@ describe('PrettierExecutor', () => {
 
       await executor.run(baseOptions, ['src/a.ts', 'node_modules/b.ts']);
 
-      const [[, args]] = vi.mocked(executeCommand).mock.calls;
+      const [firstCall] = vi.mocked(executeCommand).mock.calls;
+      const [, args] = firstCall ?? [];
       expect(args).toContain('src/a.ts');
       expect(args).not.toContain('node_modules/b.ts');
     });

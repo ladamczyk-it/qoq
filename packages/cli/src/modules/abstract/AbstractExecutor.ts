@@ -92,7 +92,7 @@ export abstract class AbstractExecutor implements IExecutor {
     files: string[] = []
   ): Promise<EExitCode> {
     if (!options.disableCache) {
-      const cachePath = this.constructor.CACHE_PATH as string | undefined;
+      const cachePath = (this.constructor as { CACHE_PATH?: string }).CACHE_PATH;
 
       if (!cachePath) {
         throw new Error('No cache path for executor defined!');

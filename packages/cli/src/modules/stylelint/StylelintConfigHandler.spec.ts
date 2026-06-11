@@ -124,7 +124,9 @@ describe('StylelintConfigHandler', () => {
         {}
       );
 
-      expect(handler.getPackages()).toStrictEqual([EModulesStylelint.STYLELINT_SCSS]);
+      expect(handler.getPackages()).toStrictEqual([
+        `@ladamczyk/${EModulesStylelint.STYLELINT_SCSS}`,
+      ]);
     });
   });
 });

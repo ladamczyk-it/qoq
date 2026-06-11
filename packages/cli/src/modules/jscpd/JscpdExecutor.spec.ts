@@ -25,7 +25,8 @@ const configWithJscpd = {
 };
 
 const getArgs = (): string[] => {
-  const [[, args]] = vi.mocked(executeCommand).mock.calls;
+  const [firstCall] = vi.mocked(executeCommand).mock.calls;
+  const [, args] = firstCall ?? [];
 
   return args as string[];
 };
