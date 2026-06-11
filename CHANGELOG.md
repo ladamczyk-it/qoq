@@ -1,3 +1,11 @@
+## [4.2.3](https://github.com/ladamczyk-it/qoq/compare/v4.2.2...v4.2.3) (2026-06-11)
+
+
+### Bug Fixes
+
+* bump packages ([d923931](https://github.com/ladamczyk-it/qoq/commit/d9239314dc492dba1a997d1b9d3873faa6360571))
+* refactor for tsc complience + coverage bump ([b722ff5](https://github.com/ladamczyk-it/qoq/commit/b722ff5ff7dbcb6878be758bcfe6ad37d80e74ac))
+
 ## [4.2.2](https://github.com/ladamczyk-it/qoq/compare/v4.2.1...v4.2.2) (2026-06-08)
 
 
