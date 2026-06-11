@@ -26,7 +26,7 @@ export const baseConfig: EslintConfig = {
     },
     tsBaseConfigRest,
     {
-      name: '@ladamczyk/qoq-eslint-v9-ts-vitest-rtl',
+      name: 'qoq-eslint-v9-ts-vitest-rtl',
       rules: { ...disabledRules },
     }
   ),

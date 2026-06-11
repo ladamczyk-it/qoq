@@ -13,7 +13,7 @@ description: >-
   isolate and revert.
 allowed-tools:
   - Bash(npm outdated *)
-  - Bash(npm run:*)
+  - Bash(npm run *)
   - Bash(npm i *)
   - Bash(mkdir -p .npm-bump)
   - Bash(git checkout:*)

@@ -64,7 +64,7 @@ export const getNoRestrictedImportsPaths = (paths: IPath[] = []): IPath[] => {
 };
 
 export const baseConfig: EslintConfig = {
-  name: '@ladamczyk/qoq-eslint-v9-js',
+  name: 'qoq-eslint-v9-js',
   linterOptions: {
     reportUnusedDisableDirectives: true,
   },

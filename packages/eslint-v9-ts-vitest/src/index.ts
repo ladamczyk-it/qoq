@@ -25,7 +25,7 @@ export const baseConfig: EslintConfig = {
     },
     tsTestConfigRest,
     {
-      name: '@ladamczyk/qoq-eslint-v9-ts-vitest',
+      name: 'qoq-eslint-v9-ts-vitest',
       rules: { ...disabledRules },
       settings: {
         vitest: {

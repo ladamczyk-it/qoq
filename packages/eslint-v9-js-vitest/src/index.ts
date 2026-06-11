@@ -15,7 +15,7 @@ const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(jsBaseConfigRest, {
-    name: '@ladamczyk/qoq-eslint-v9-js-vitest',
+    name: 'qoq-eslint-v9-js-vitest',
     languageOptions: {
       globals: {
         ...vitestPlugin.environments.env.globals,

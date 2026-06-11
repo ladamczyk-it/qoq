@@ -11,7 +11,7 @@ const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(jsBaseConfigRest, {
-    name: '@ladamczyk/qoq-eslint-v9-js-jest',
+    name: 'qoq-eslint-v9-js-jest',
     languageOptions: {
       globals: {
         ...globals.jest,

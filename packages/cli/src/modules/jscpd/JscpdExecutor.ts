@@ -50,7 +50,6 @@ export class JscpdExecutor extends AbstractExecutor {
 
         return acc;
       }, []),
-      '-g',
       '-a',
       '-f',
       format.join(),

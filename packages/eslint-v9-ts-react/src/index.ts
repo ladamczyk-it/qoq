@@ -23,7 +23,7 @@ export const baseConfig: EslintConfig = {
     },
     tsBaseConfigRest,
     {
-      name: '@ladamczyk/qoq-eslint-v9-ts-react',
+      name: 'qoq-eslint-v9-ts-react',
       rules: { ...disabledRules, ...(reactPlugin.configs['recommended-typescript'].rules ?? {}) },
     }
   ),

@@ -14,7 +14,7 @@ const { plugins: jsRtlBaseConfigPlugins, ...jsRtlBaseConfigRest } =
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(jsVitestBaseConfigRest, {
     ...jsRtlBaseConfigRest,
-    name: '@ladamczyk/qoq-eslint-v9-js-vitest-rtl',
+    name: 'qoq-eslint-v9-js-vitest-rtl',
     rules: {
       ...disabledRules,
     },

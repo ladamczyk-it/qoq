@@ -22,7 +22,7 @@ export const baseConfig: EslintConfig = {
     },
     tsTestConfigRest,
     {
-      name: '@ladamczyk/qoq-eslint-v9-ts-jest',
+      name: 'qoq-eslint-v9-ts-jest',
       rules: {
         ...disabledRules,
       },

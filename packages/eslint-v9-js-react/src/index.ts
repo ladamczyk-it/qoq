@@ -61,7 +61,7 @@ const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(jsBaseConfigRest, {
-    name: '@ladamczyk/qoq-eslint-v9-js-react',
+    name: 'qoq-eslint-v9-js-react',
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {

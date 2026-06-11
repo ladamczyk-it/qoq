@@ -22,7 +22,7 @@ export const baseConfig: EslintConfig = {
       ) as unknown as EslintConfig['rules'],
     },
     {
-      name: '@ladamczyk/qoq-eslint-v9-ts',
+      name: 'qoq-eslint-v9-ts',
       languageOptions: {
         parser: tseslint.parser,
         parserOptions: {
