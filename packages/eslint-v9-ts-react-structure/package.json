@@ -1,0 +1,68 @@
+{
+  "name": "@ladamczyk/qoq-eslint-v9-ts-react-structure",
+  "version": "4.2.4",
+  "description": "Eslint flat config template enforcing the folder/file structure of a TS + React project",
+  "keywords": [
+    "eslint TypeScript + React structure template",
+    "project structure",
+    "folder structure",
+    "flat config",
+    "ladamczyk",
+    "qoq",
+    "QualityOverQuantity"
+  ],
+  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/eslint-v9-ts-react-structure",
+  "bugs": {
+    "url": "https://github.com/ladamczyk-it/qoq/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
+    "directory": "packages/eslint-v9-ts-react-structure"
+  },
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./lib/src/index.d.ts",
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.cjs"
+    }
+  },
+  "main": "./lib/index.cjs",
+  "module": "./lib/index.mjs",
+  "types": "./lib/src/index.d.ts",
+  "bin": {
+    "@ladamczyk/qoq-eslint-v9-ts-react-structure": "./bin/bin.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "eslint.config.local.js",
+    "AGENTS.md"
+  ],
+  "scripts": {
+    "build": "rimraf ./lib && rollup -c rollup.config.js --silent && rimraf ./bin && rollup -c rollup.bin.js --silent",
+    "inspect": "node ./bin/bin.cjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ladamczyk/qoq-eslint-v9-js": "^4.2.4",
+    "eslint-plugin-project-structure": "3.14.3"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "12.3.0",
+    "rimraf": "6.1.3",
+    "rollup": "4.62.0",
+    "typescript": "6.0.3"
+  },
+  "peerDependencies": {
+    "eslint": "^10.3.0",
+    "typescript": ">=4.8.4 <7.0.0"
+  },
+  "engines": {
+    "node": ">=22.15.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
