@@ -1,5 +1,4 @@
 import { EExitCode } from '@ladamczyk/qoq-utils';
-import c from 'picocolors';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
@@ -36,13 +35,7 @@ export class SkillslintExecutor extends AbstractExecutor {
 
       return super.prepare(args, { ...options, disableCache: true });
     } catch (e) {
-      if (e instanceof TerminateExecutorGracefully) {
-        throw e;
-      }
-
-      process.stderr.write(c.red(`Can't load ${this.getName()} package config!\n`));
-
-      return process.exit(EExitCode.EXCEPTION);
+      return this.handlePrepareError(e);
     }
   }
 }

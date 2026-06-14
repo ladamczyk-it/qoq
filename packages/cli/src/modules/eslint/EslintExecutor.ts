@@ -4,7 +4,6 @@ import { pathToFileURL } from 'url';
 import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import { flattenDeep } from 'es-toolkit/compat';
 import micromatch from 'micromatch';
-import c from 'picocolors';
 
 import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
@@ -147,13 +146,7 @@ export class EslintExecutor extends AbstractExecutor {
 
       return super.prepare(args, options, files);
     } catch (e) {
-      if (e instanceof TerminateExecutorGracefully) {
-        throw e;
-      }
-
-      process.stderr.write(c.red(`Can't load ${this.getName()} package config!\n`));
-
-      return process.exit(EExitCode.EXCEPTION);
+      return this.handlePrepareError(e);
     }
   }
 }

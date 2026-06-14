@@ -8,7 +8,6 @@ import {
   resolveCwdRelativePath,
 } from '@ladamczyk/qoq-utils';
 import micromatch from 'micromatch';
-import c from 'picocolors';
 
 import { readIgnorePatterns } from '../../helpers/common.ts';
 import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
@@ -99,13 +98,7 @@ export class PrettierExecutor extends AbstractExecutor {
 
       return super.prepare(args, options, files);
     } catch (e) {
-      if (e instanceof TerminateExecutorGracefully) {
-        throw e;
-      }
-
-      process.stderr.write(c.red(`Can't load ${this.getName()} package config!\n`));
-
-      return process.exit(EExitCode.EXCEPTION);
+      return this.handlePrepareError(e);
     }
   }
 }

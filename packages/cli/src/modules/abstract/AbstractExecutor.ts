@@ -108,6 +108,16 @@ export abstract class AbstractExecutor implements IExecutor {
     return Promise.resolve(EExitCode.OK);
   }
 
+  protected handlePrepareError(error: unknown): never {
+    if (error instanceof TerminateExecutorGracefully) {
+      throw error;
+    }
+
+    process.stderr.write(c.red(`Can't load ${this.getName()} package config!\n`));
+
+    return process.exit(EExitCode.EXCEPTION);
+  }
+
   protected abstract getCommandName(): string;
   protected abstract getCommandArgs(): string[];
 }
