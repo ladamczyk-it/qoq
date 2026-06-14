@@ -9,11 +9,7 @@ describe('JscpdConfigHandler', () => {
 
   describe('getConfigFromModules', () => {
     it('should return the config for modules', () => {
-      expect(configHandler.getConfigFromModules()).toStrictEqual({
-        jscpd: {
-          format: undefined,
-        },
-      });
+      expect(configHandler.getConfigFromModules()).toStrictEqual({});
     });
 
     it('should keep non-default threshold and ignore values', () => {
@@ -65,6 +61,34 @@ describe('JscpdConfigHandler', () => {
         format: ['typescript'],
         ignore: ['**/*.spec.ts'],
       });
+    });
+  });
+
+  describe('minimal config from wizard defaults', () => {
+    // defaults derived from an empty project (see getModulesFromConfig spec above)
+    const defaultFormat = ['javascript'];
+    const defaultIgnore = ['**/*.spec.js'];
+
+    it('omits everything when the user accepts the defaults', async () => {
+      prompts.inject([JscpdConfigHandler.DEFAULT_THRESHOLD, defaultFormat, defaultIgnore]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new JscpdConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      // desired: a format equal to the default must not be serialized
+      // currently RED — getConfigFromModules always writes `jscpd.format`
+      expect(handler.getConfigFromModules()).toStrictEqual({});
+    });
+
+    it('serializes only the threshold when the user changes it', async () => {
+      prompts.inject([5, defaultFormat, defaultIgnore]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new JscpdConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({ jscpd: { threshold: 5 } });
     });
   });
 

@@ -93,6 +93,32 @@ describe('KnipConfigHandler', () => {
     });
   });
 
+  describe('minimal config from wizard defaults', () => {
+    // defaults derived from an empty project (see getModulesFromConfig spec above)
+    const defaultEntry = ['/{index,cli,main,root}.{js}'];
+    const defaultProject = ['/**/*.{js}'];
+
+    it('emits an empty config when the user accepts every default', async () => {
+      prompts.inject([defaultEntry, defaultProject, [], [], []]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new KnipConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({});
+    });
+
+    it('serializes only the entry when the user changes it', async () => {
+      prompts.inject([['custom.ts'], defaultProject, [], [], []]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new KnipConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({ knip: { entry: ['custom.ts'] } });
+    });
+  });
+
   describe('getPackages', () => {
     it('should expose the knip package', () => {
       expect(configHandler.getPackages()).toStrictEqual(['@ladamczyk/qoq-knip']);

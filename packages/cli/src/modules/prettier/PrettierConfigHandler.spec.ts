@@ -87,6 +87,28 @@ describe('PrettierConfigHandler', () => {
     });
   });
 
+  describe('minimal config from wizard defaults', () => {
+    it('emits an empty config when the user keeps the default sources', async () => {
+      prompts.inject([EModulesPrettier.PRETTIER, false]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new PrettierConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({});
+    });
+
+    it('serializes only the sources when the user adds extra paths', async () => {
+      prompts.inject([EModulesPrettier.PRETTIER, true, ['lib']]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new PrettierConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({ prettier: { sources: ['lib'] } });
+    });
+  });
+
   describe('getPackages', () => {
     it('should default to the basic prettier package when no config file exists', () => {
       expect(configHandler.getPackages()).toStrictEqual([

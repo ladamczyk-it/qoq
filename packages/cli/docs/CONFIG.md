@@ -21,7 +21,9 @@ Let's say You execute `qoq --check` in project root path and `Eslint` config is 
 
 # NPM
 
-NPM dependencies check execution can be configured via:
+The **NPM packages check** is a default check — it runs on every `qoq --check`, `qoq staged`, and `qoq --fix` without any configuration, surfacing outdated dependencies via `npm outdated`. Skip it for a single run with `--skip-npm`.
+
+Its execution can be configured via:
 
 ```js
 {
@@ -33,7 +35,7 @@ NPM dependencies check execution can be configured via:
 
 where:
 
-- `checkOutdatedEvery` is `number` that tells how often should we check dependencies. Defaults to `1` day.
+- `checkOutdatedEvery` is `number` that tells how often should we check dependencies. Defaults to `1` day. Set `0` to check on every run.
 
 # Prettier
 
@@ -123,14 +125,37 @@ Requires standard [configuration objects](https://eslint.org/docs/latest/use/con
 
 # Stylelint
 
+**Optional check.** Stylelint runs only when a `stylelint` block is present in `qoq.config.js`; omit the block entirely to disable it. The orchestrator ships two compliant templates, [@ladamczyk/qoq-stylelint-css](https://www.npmjs.com/package/@ladamczyk/qoq-stylelint-css) and [@ladamczyk/qoq-stylelint-scss](https://www.npmjs.com/package/@ladamczyk/qoq-stylelint-scss); the wizard installs the one you pick.
+
 Requires standard [configuration object](https://stylelint.io/user-guide/configure) but You can extend QoQ templates via `template` prop in each config where value is valid [@ladamczyk/qoq-stylelint-\*](https://www.npmjs.com/search?q=%40ladamczyk%2Fqoq-stylelint-) package eg:
 
 ```js
 {
     stylelint: {
-        strict: false
-        template: 'qoq-stylelint-css',
+        strict: false,
+        template: 'qoq-stylelint-css', // or 'qoq-stylelint-scss'
         ...
     }
 }
 ```
+
+where:
+
+- `template` is a valid `@ladamczyk/qoq-stylelint-*` package — `qoq-stylelint-css` or `qoq-stylelint-scss`.
+- `strict` is `boolean`; when `true` the check fails on warnings (not only errors). Defaults to `false`.
+
+# Skillslint
+
+**Optional check.** Skillslint lints Claude Code skill documentation (textlint-based) and runs only when a `skillslint` block is present in `qoq.config.js`; omit the block entirely to disable it. It is backed by the compliant [@ladamczyk/skillslint](https://www.npmjs.com/package/@ladamczyk/skillslint) package, which the wizard installs when you enable it.
+
+```js
+{
+    skillslint: {
+        path: './skills',
+    }
+}
+```
+
+where:
+
+- `path` is `string` pointing at the directory of skill docs to lint. Defaults to `./skills`.

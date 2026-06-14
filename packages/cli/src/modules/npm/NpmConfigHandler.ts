@@ -7,6 +7,8 @@ import { AbstractConfigHandler } from '../abstract/AbstractConfigHandler.ts';
 import { IModulesConfig } from '../types.ts';
 
 export class NpmConfigHandler extends AbstractConfigHandler {
+  static readonly DEFAULT_CHECK_OUTDATED_EVERY = 1;
+
   async getPrompts(): Promise<void> {
     const {
       npmSchedule,
@@ -16,7 +18,7 @@ export class NpmConfigHandler extends AbstractConfigHandler {
       {
         type: 'number',
         name: 'npmSchedule',
-        initial: 1,
+        initial: NpmConfigHandler.DEFAULT_CHECK_OUTDATED_EVERY,
         message: c.reset(`How often should we check dependencies? (in days, 0 means in every run)`),
         validate: (npmSchedule: number) => (npmSchedule < 0 ? `Schedule must me => 0` : true),
       },
@@ -34,7 +36,11 @@ export class NpmConfigHandler extends AbstractConfigHandler {
       modules: { npm },
     } = this.modulesConfig;
 
-    if (npm?.checkOutdatedEvery && Number(npm.checkOutdatedEvery) >= 0) {
+    if (
+      npm &&
+      Number(npm.checkOutdatedEvery) >= 0 &&
+      Number(npm.checkOutdatedEvery) !== NpmConfigHandler.DEFAULT_CHECK_OUTDATED_EVERY
+    ) {
       this.config.npm = { ...npm };
     }
 
@@ -45,7 +51,8 @@ export class NpmConfigHandler extends AbstractConfigHandler {
     const { modules } = this.modulesConfig;
 
     modules.npm = {
-      checkOutdatedEvery: this.config.npm?.checkOutdatedEvery ?? 1,
+      checkOutdatedEvery:
+        this.config.npm?.checkOutdatedEvery ?? NpmConfigHandler.DEFAULT_CHECK_OUTDATED_EVERY,
     };
 
     return super.getModulesFromConfig();

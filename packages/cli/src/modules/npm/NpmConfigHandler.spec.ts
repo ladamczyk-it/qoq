@@ -60,4 +60,28 @@ describe('NpmConfigHandler', () => {
       expect(modulesConfig.modules.npm).toStrictEqual({ checkOutdatedEvery: 3 });
     });
   });
+
+  describe('minimal config from wizard defaults', () => {
+    it('omits the schedule when the user accepts the default (1 day)', async () => {
+      prompts.inject([1]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new NpmConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      // desired: accepting the default must not bloat qoq.config.js
+      // currently RED — getConfigFromModules serializes any truthy `checkOutdatedEvery`
+      expect(handler.getConfigFromModules()).toStrictEqual({});
+    });
+
+    it('serializes only the schedule when the user changes it', async () => {
+      prompts.inject([7]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new NpmConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({ npm: { checkOutdatedEvery: 7 } });
+    });
+  });
 });

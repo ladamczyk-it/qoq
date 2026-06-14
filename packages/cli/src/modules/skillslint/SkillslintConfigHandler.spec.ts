@@ -60,6 +60,32 @@ describe('SkillslintConfigHandler', () => {
     });
   });
 
+  describe('minimal config from wizard defaults', () => {
+    it('emits an empty config when the user declines skill linting', async () => {
+      prompts.inject([false]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new SkillslintConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({});
+    });
+
+    it('serializes the skills path when the user opts in', async () => {
+      prompts.inject([true, SkillslintConfigHandler.DEFAULT_SKILLS_PATH]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new SkillslintConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      // desired: opting in must persist to qoq.config.js
+      // currently RED — SkillslintConfigHandler has no getConfigFromModules override
+      expect(handler.getConfigFromModules()).toStrictEqual({
+        skillslint: { path: SkillslintConfigHandler.DEFAULT_SKILLS_PATH },
+      });
+    });
+  });
+
   describe('getPackages', () => {
     it('should expose the skillslint package', () => {
       expect(configHandler.getPackages()).toStrictEqual(['@ladamczyk/skillslint']);

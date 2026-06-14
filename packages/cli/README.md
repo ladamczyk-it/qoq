@@ -13,6 +13,18 @@ To maintain high code quality and simplify the use of static code analysis tools
 
 With **QoQ CLI**, keeping your code clean and compliant is easier than ever.
 
+## Orchestrated checks
+
+**Default checks** run on every command and need no configuration. Each can be skipped for a single run with its `--skip-*` flag:
+
+- **npm packages check** – flags outdated dependencies via `npm outdated`, throttled to `npm.checkOutdatedEvery` days (`--skip-npm`).
+- **Prettier** formatting (`--skip-prettier`), **JSCPD** copy-paste detection (`--skip-jscpd`), **Knip** unused-exports/dead-code (`--skip-knip`), and **ESLint** linting (`--skip-eslint`).
+
+**Optional checks** run only when their config block is present in `qoq.config.js`; omit the block to disable them (there is no `--skip-*` flag for these):
+
+- **Stylelint** – CSS/SCSS linting, backed by the compliant `@ladamczyk/qoq-stylelint-css` or `@ladamczyk/qoq-stylelint-scss` template. Enabled via a `stylelint` block.
+- **Skillslint** – lints Claude Code skill documentation, backed by `@ladamczyk/skillslint`. Enabled via a `skillslint` block.
+
 ## Install
 
     npm install @ladamczyk/qoq-cli

@@ -14,7 +14,7 @@ export default {
     sources: ['.'],
   },
   jscpd: {
-    threshold: 10,
+    threshold: 3,
   },
   knip: {
     entry: './src/index.{js,ts}',

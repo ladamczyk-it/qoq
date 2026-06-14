@@ -2,6 +2,7 @@
 import c from 'picocolors';
 import prompts from 'prompts';
 
+import { QoqConfig } from '../../helpers/types.ts';
 import { AbstractConfigHandler } from '../abstract/AbstractConfigHandler.ts';
 import { IModulesConfig } from '../types.ts';
 
@@ -46,6 +47,18 @@ export class SkillslintConfigHandler extends AbstractConfigHandler {
     };
 
     return super.getPrompts();
+  }
+
+  getConfigFromModules(): QoqConfig {
+    const {
+      modules: { skillslint },
+    } = this.modulesConfig;
+
+    if (skillslint) {
+      this.config.skillslint = { path: skillslint.path };
+    }
+
+    return super.getConfigFromModules();
   }
 
   getModulesFromConfig(): IModulesConfig {

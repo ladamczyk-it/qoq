@@ -114,6 +114,30 @@ describe('StylelintConfigHandler', () => {
     });
   });
 
+  describe('minimal config from wizard defaults', () => {
+    it('emits an empty config when the user declines style linting', async () => {
+      prompts.inject([false]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new StylelintConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({});
+    });
+
+    it('serializes the chosen template when the user opts in', async () => {
+      prompts.inject([true, EModulesStylelint.STYLELINT_CSS, false]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new StylelintConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({
+        stylelint: { strict: false, template: EModulesStylelint.STYLELINT_CSS },
+      });
+    });
+  });
+
   describe('getPackages', () => {
     it('should expose the chosen stylelint template package', () => {
       const handler = new StylelintConfigHandler(

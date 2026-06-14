@@ -3,6 +3,9 @@ import prompts from 'prompts';
 import { describe, it, expect } from 'vitest';
 
 import { EConfigType } from '../../helpers/types.ts';
+import { EslintConfigHandler } from '../eslint/EslintConfigHandler.ts';
+import { PrettierConfigHandler } from '../prettier/PrettierConfigHandler.ts';
+import { StylelintConfigHandler } from '../stylelint/StylelintConfigHandler.ts';
 
 import { BasicConfigHandler } from './BasicConfigHandler.ts';
 
@@ -58,6 +61,40 @@ describe('BasicConfigHandler', () => {
       );
 
       expect(handler.getConfigFromModules()).not.toHaveProperty('srcPath');
+    });
+  });
+
+  describe('minimal config from wizard defaults', () => {
+    const canonicalConfigPaths = {
+      eslint: EslintConfigHandler.CONFIG_FILE_PATH,
+      prettier: PrettierConfigHandler.CONFIG_FILE_PATH,
+      stylelint: StylelintConfigHandler.CONFIG_FILE_PATH,
+    };
+
+    it('emits an empty config when the user accepts the default source path', async () => {
+      prompts.inject(['./src', EConfigType.ESM]);
+      const modulesConfig = {
+        ...structuredClone(dummyModulesConfig),
+        configPaths: { ...canonicalConfigPaths },
+      };
+      const handler = new BasicConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({});
+    });
+
+    it('serializes only the source path when the user changes it', async () => {
+      prompts.inject(['app', EConfigType.ESM]);
+      const modulesConfig = {
+        ...structuredClone(dummyModulesConfig),
+        configPaths: { ...canonicalConfigPaths },
+      };
+      const handler = new BasicConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(handler.getConfigFromModules()).toStrictEqual({ srcPath: 'app' });
     });
   });
 

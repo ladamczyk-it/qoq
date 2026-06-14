@@ -75,6 +75,19 @@ describe('EslintConfigHandler', () => {
     });
   });
 
+  describe('minimal config from wizard defaults', () => {
+    it('emits an empty config when no eslint template is selected', async () => {
+      prompts.inject([true, []]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new EslintConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      // eslint config is required per chosen template — with none chosen nothing is serialized
+      expect(handler.getConfigFromModules()).toStrictEqual({});
+    });
+  });
+
   describe('getPackages', () => {
     it('should default to the base js package when nothing is configured', () => {
       const handler = new EslintConfigHandler(structuredClone(dummyModulesConfig), {});

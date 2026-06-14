@@ -28,6 +28,18 @@ All commands accept these flags:
 
 Add `"postinstall": "qoq --warmup"` to the consumer's `package.json` so IDEs get valid ESLint/Stylelint configs immediately after `npm install`.
 
+## Checks
+
+**Default checks** run on every command unless explicitly skipped with the matching `--skip-*` flag:
+
+- **npm packages check** — `npm outdated`, throttled to `npm.checkOutdatedEvery` days (`--skip-npm`)
+- **Prettier** (`--skip-prettier`), **JSCPD** (`--skip-jscpd`), **Knip** (`--skip-knip`), **ESLint** (`--skip-eslint`)
+
+**Optional checks** run only when their config block is present in `qoq.config.js`; omit the block to disable them (there is no `--skip-*` flag for these):
+
+- **Stylelint** — backed by the compliant `@ladamczyk/qoq-stylelint-{css,scss}` templates; enabled via a `stylelint` block
+- **Skillslint** — lints Claude Code skill docs; backed by `@ladamczyk/skillslint`; enabled via a `skillslint` block
+
 ## qoq.config.js schema
 
 The config can be authored as `qoq.config.{js,ts,mjs,cjs}`. For a TypeScript
