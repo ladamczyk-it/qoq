@@ -1,3 +1,12 @@
+## [4.2.4](https://github.com/ladamczyk-it/qoq/compare/v4.2.3...v4.2.4) (2026-06-14)
+
+
+### Bug Fixes
+
+* bump packages ([9298bcb](https://github.com/ladamczyk-it/qoq/commit/9298bcb4f16546c158c3538778e15484460cdf0d))
+* coverage bump ([596f361](https://github.com/ladamczyk-it/qoq/commit/596f361d6c807dfeb99ba06964809be1c0852f7c))
+* coverage bump ([53e9b68](https://github.com/ladamczyk-it/qoq/commit/53e9b68811b1ad6745fd29a97054879a44d65ed9))
+
 ## [4.2.3](https://github.com/ladamczyk-it/qoq/compare/v4.2.2...v4.2.3) (2026-06-11)
 
 

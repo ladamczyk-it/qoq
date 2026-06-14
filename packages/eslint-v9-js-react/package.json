@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-js-react",
-  "version": "4.2.3",
+  "version": "4.2.4",
   "description": "Eslint flat config template for JS + React",
   "keywords": [
     "eslint JavaScript + React template",
@@ -45,8 +45,8 @@
   },
   "dependencies": {
     "@eslint-react/eslint-plugin": "5.9.0",
-    "@ladamczyk/qoq-eslint-v9-js": "^4.2.3",
-    "@ladamczyk/qoq-utils": "^4.2.3",
+    "@ladamczyk/qoq-eslint-v9-js": "^4.2.4",
+    "@ladamczyk/qoq-utils": "^4.2.4",
     "@stylistic/eslint-plugin": "5.10.0",
     "browserslist": "latest",
     "eslint-plugin-compat": "7.0.2"

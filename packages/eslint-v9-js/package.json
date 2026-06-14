@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-js",
-  "version": "4.2.3",
+  "version": "4.2.4",
   "description": "Eslint flat config template for JS",
   "keywords": [
     "eslint JavaScript template",
@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
-    "@ladamczyk/qoq-utils": "^4.2.3",
+    "@ladamczyk/qoq-utils": "^4.2.4",
     "eslint": "^10.3.0",
     "eslint-plugin-file-progress": "4.0.0",
     "eslint-plugin-import-x": "4.16.2",

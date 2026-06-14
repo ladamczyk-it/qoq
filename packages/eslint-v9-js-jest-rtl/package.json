@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-js-jest-rtl",
-  "version": "4.2.3",
+  "version": "4.2.4",
   "description": "Eslint flat config template for JS + Jest + RTL",
   "keywords": [
     "eslint JavaScript + Jest + RTL template",
@@ -44,8 +44,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ladamczyk/qoq-eslint-v9-js-jest": "^4.2.3",
-    "@ladamczyk/qoq-utils": "^4.2.3",
+    "@ladamczyk/qoq-eslint-v9-js-jest": "^4.2.4",
+    "@ladamczyk/qoq-utils": "^4.2.4",
     "eslint-plugin-testing-library": "7.16.2"
   },
   "devDependencies": {
