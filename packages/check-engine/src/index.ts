@@ -8,7 +8,7 @@ import cac from 'cac';
 import { checkEngine } from './helpers/checkEngine.ts';
 import { fetchNodeInfo } from './helpers/fetchNodeInfo.ts';
 
-const cli = cac('check-engine');
+export const cli = cac('check-engine');
 
 cli.command('', 'Check Your engines.node config for project').action(async () => {
   const packageJson = getPackageJson();
@@ -49,4 +49,8 @@ cli.command('', 'Check Your engines.node config for project').action(async () =>
 
 cli.help();
 
-cli.parse();
+// Skip auto-parsing when imported under Vitest so the command wiring can be
+// exercised in isolation; the published bin still parses on startup.
+if (!process.env.VITEST) {
+  cli.parse();
+}

@@ -1,4 +1,4 @@
-import { StylelintConfig } from '../../../../stylelint-css/src';
+import { StylelintConfig } from '@ladamczyk/qoq-stylelint-css';
 
 export enum EModulesStylelint {
   STYLELINT_CSS = 'qoq-stylelint-css',

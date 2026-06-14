@@ -33,7 +33,8 @@
     "AGENTS.md"
   ],
   "scripts": {
-    "build": "rimraf ./lib && rollup -c --silent"
+    "build": "rimraf ./lib && rollup -c --silent",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@ladamczyk/qoq-stylelint-css": "^4.2.3",

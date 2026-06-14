@@ -10,7 +10,7 @@ import { resolveCliRelativePath } from './helpers/paths.ts';
 import { getConfig, initConfig, execute } from './modules/index.ts';
 import { IExecuteOptions, IExecuteStagedOptions } from './modules/types.ts';
 
-const cli = cac('qoq');
+export const cli = cac('qoq');
 
 cli
   .command('[...tools]', 'Run quality checks (optionally filtered to named tools)')
@@ -91,4 +91,8 @@ cli
 
 cli.help();
 
-cli.parse();
+// Skip auto-parsing when imported under Vitest so the command wiring can be
+// exercised in isolation; the published bin still parses on startup.
+if (!process.env.VITEST) {
+  cli.parse();
+}

@@ -28,7 +28,8 @@
   ],
   "scripts": {
     "build": "rimraf ./bin && rollup -c --silent && chmod +x ./bin/check-engine.js",
-    "dev": "npm run build && node ./bin/check-engine.js"
+    "dev": "npm run build && node ./bin/check-engine.js",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@ladamczyk/qoq-utils": "^4.2.3",

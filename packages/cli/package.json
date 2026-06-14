@@ -31,7 +31,8 @@
   ],
   "scripts": {
     "build": "rimraf ./bin && rollup -c rollup.bin.js --silent && rollup -c rollup.config.js --silent && chmod +x ./bin/qoq.js",
-    "dev": "npm run build && node ./bin/qoq.js"
+    "dev": "npm run build && node ./bin/qoq.js",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@antfu/install-pkg": "1.1.0",

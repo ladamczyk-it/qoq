@@ -2,7 +2,6 @@ import { baseConfig as baseCssConfig, StylelintConfig } from '@ladamczyk/qoq-sty
 
 export const baseConfig: StylelintConfig = {
   ...baseCssConfig,
-  name: 'qoq-stylelint-scss',
   extends: ['stylelint-config-standard-scss', 'stylelint-config-clean-order', 'stylelint-prettier'],
   overrides: [
     {

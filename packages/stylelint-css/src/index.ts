@@ -1,12 +1,9 @@
 import type { Config } from 'stylelint';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export interface StylelintConfig extends Config {
-  name: string;
-}
+// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-empty-object-type
+export interface StylelintConfig extends Config {}
 
 export const baseConfig: StylelintConfig = {
-  name: 'qoq-stylelint-css',
   extends: ['stylelint-config-standard', 'stylelint-config-clean-order', 'stylelint-prettier'],
   plugins: [
     'stylelint-file-max-lines',

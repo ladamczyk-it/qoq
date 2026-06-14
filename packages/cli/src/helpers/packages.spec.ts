@@ -10,9 +10,6 @@ vi.mock('@antfu/install-pkg', () => ({
 
 describe('installPackages', () => {
   it('should call installPackage for each dependency', async () => {
-    // Mock the installPackage function to simulate package installation
-    vi.mocked(installPackage).mockResolvedValue(undefined);
-
     // Capture process.stderr.write to check output
     const writeMock = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 

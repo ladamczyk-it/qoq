@@ -40,7 +40,8 @@
   ],
   "scripts": {
     "build": "rimraf ./lib && rollup -c rollup.config.js --silent && rimraf ./bin && rollup -c rollup.bin.js --silent",
-    "inspect": "node ./bin/bin.cjs"
+    "inspect": "node ./bin/bin.cjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@eslint-react/eslint-plugin": "5.9.0",

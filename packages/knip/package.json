@@ -40,7 +40,8 @@
     "AGENTS.md"
   ],
   "scripts": {
-    "build": "rimraf ./lib && rollup -c --silent"
+    "build": "rimraf ./lib && rollup -c --silent",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "knip": "6.16.1"
