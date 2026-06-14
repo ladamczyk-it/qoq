@@ -23,6 +23,8 @@ cli
   .option('--skip-jscpd', 'Skip JSCPD copy-paste detection')
   .option('--skip-knip', 'Skip Knip unused-exports/dead-code checks')
   .option('--skip-eslint', 'Skip ESLint linting')
+  .option('--skip-stylelint', 'Skip Stylelint CSS/SCSS linting')
+  .option('--skip-skillslint', 'Skip Skillslint skill-doc linting')
   .option('--warmup', 'Pre-generate tool configs in bin/ without running any checks')
   .option('--silent', 'Suppress all QoQ console output')
   .option('--config-hints', 'Print config suggestions alongside check results')
@@ -72,6 +74,8 @@ cli
   .option('--skip-jscpd', 'Skip JSCPD copy-paste detection')
   .option('--skip-knip', 'Skip Knip unused-exports/dead-code checks')
   .option('--skip-eslint', 'Skip ESLint linting')
+  .option('--skip-stylelint', 'Skip Stylelint CSS/SCSS linting')
+  .option('--skip-skillslint', 'Skip Skillslint skill-doc linting')
   .option('--config-hints', 'Print config suggestions alongside check results')
   .option('--concurrency <type>', 'Run tools in parallel when possible. [off | auto]', {
     default: 'off',

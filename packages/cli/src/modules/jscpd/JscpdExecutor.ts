@@ -60,6 +60,14 @@ export class JscpdExecutor extends AbstractExecutor {
 
   protected async prepare(args: string[], options: IExecutorOptions): Promise<EExitCode> {
     try {
+      if (options.concurrency !== 'auto') {
+        args.push(`--workers 1`);
+      }
+
+      if (!options.configHints) {
+        args.push('--no-tips');
+      }
+
       const { ignore } = this.modulesConfig.modules.jscpd as IModuleJscpdConfig;
 
       if (ignore && ignore.length > 0) {

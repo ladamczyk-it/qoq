@@ -35,6 +35,8 @@ export interface IExecuteStagedOptions {
   skipJscpd?: boolean;
   skipKnip?: boolean;
   skipEslint?: boolean;
+  skipStylelint?: boolean;
+  skipSkillslint?: boolean;
   warmup?: boolean;
   silent?: boolean;
   configHints?: boolean;
