@@ -1,3 +1,16 @@
+# [4.3.0](https://github.com/ladamczyk-it/qoq/compare/v4.2.4...v4.3.0) (2026-06-15)
+
+
+### Bug Fixes
+
+* add no-multi-comp + react-refresh/only-export-components ([9bf5b24](https://github.com/ladamczyk-it/qoq/commit/9bf5b24b9b545c48cc0d589d054852535187563a))
+* adjust docs and options ([accdc0b](https://github.com/ladamczyk-it/qoq/commit/accdc0b615a01a6fdf2a2bedd2e381a3b7ff1634))
+
+
+### Features
+
+* add React structure validation ([d2a74a3](https://github.com/ladamczyk-it/qoq/commit/d2a74a3c8136574f818c48f9f9d07437efc1fa02))
+
 ## [4.2.4](https://github.com/ladamczyk-it/qoq/compare/v4.2.3...v4.2.4) (2026-06-14)
 
 

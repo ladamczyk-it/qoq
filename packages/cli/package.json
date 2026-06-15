@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-cli",
-  "version": "4.2.4",
+  "version": "4.3.0",
   "description": "CLI that handles formatting, linting and testing Your JS/TS code",
   "keywords": [
     "cli",
@@ -37,7 +37,7 @@
   "dependencies": {
     "@antfu/install-pkg": "1.1.0",
     "@eslint/compat": "2.1.0",
-    "@ladamczyk/qoq-utils": "^4.2.4",
+    "@ladamczyk/qoq-utils": "^4.3.0",
     "@npmcli/package-json": "7.0.5",
     "cac": "7.0.0",
     "cosmiconfig": "9.0.2",
