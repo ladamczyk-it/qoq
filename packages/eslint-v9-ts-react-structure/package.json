@@ -1,35 +1,38 @@
 {
-  "name": "@ladamczyk/qoq-eslint-v9-ts-react",
+  "name": "@ladamczyk/qoq-eslint-v9-ts-react-structure",
   "version": "4.2.4",
-  "description": "Eslint flat config template for TS + React",
+  "description": "Eslint flat config template enforcing the folder/file structure of a TS + React project",
   "keywords": [
-    "eslint TypeScript + React template",
+    "eslint TypeScript + React structure template",
+    "project structure",
+    "folder structure",
     "flat config",
     "ladamczyk",
     "qoq",
     "QualityOverQuantity"
   ],
-  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/eslint-v9-ts-react",
+  "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/eslint-v9-ts-react-structure",
   "bugs": {
     "url": "https://github.com/ladamczyk-it/qoq/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
-    "directory": "packages/eslint-v9-ts-react"
+    "directory": "packages/eslint-v9-ts-react-structure"
   },
   "license": "MIT",
   "exports": {
     ".": {
       "types": "./lib/src/index.d.ts",
-      "import": "./lib/index.mjs"
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.cjs"
     }
   },
-  "main": "./lib/index.mjs",
+  "main": "./lib/index.cjs",
   "module": "./lib/index.mjs",
   "types": "./lib/src/index.d.ts",
   "bin": {
-    "@ladamczyk/qoq-eslint-v9-ts-react": "./bin/bin.js"
+    "@ladamczyk/qoq-eslint-v9-ts-react-structure": "./bin/bin.js"
   },
   "files": [
     "bin",
@@ -43,10 +46,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@eslint-react/eslint-plugin": "5.9.0",
-    "@ladamczyk/qoq-eslint-v9-js-react": "^4.2.4",
-    "@ladamczyk/qoq-eslint-v9-ts": "^4.2.4",
-    "@ladamczyk/qoq-utils": "^4.2.4"
+    "@ladamczyk/qoq-eslint-v9-js": "^4.2.4",
+    "eslint-plugin-project-structure": "3.14.3"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "12.3.0",
@@ -63,6 +64,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "gitHead": "4c369fd421f71f58eb1d8467eaa02d85d2f09263"
+  }
 }

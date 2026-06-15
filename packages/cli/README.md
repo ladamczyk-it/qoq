@@ -20,10 +20,10 @@ With **QoQ CLI**, keeping your code clean and compliant is easier than ever.
 - **npm packages check** – flags outdated dependencies via `npm outdated`, throttled to `npm.checkOutdatedEvery` days (`--skip-npm`).
 - **Prettier** formatting (`--skip-prettier`), **JSCPD** copy-paste detection (`--skip-jscpd`), **Knip** unused-exports/dead-code (`--skip-knip`), and **ESLint** linting (`--skip-eslint`).
 
-**Optional checks** run only when their config block is present in `qoq.config.js`; omit the block to disable them (there is no `--skip-*` flag for these):
+**Optional checks** run only when their config block is present in `qoq.config.js`; omit the block to disable them, or skip for a single run with the matching `--skip-*` flag:
 
-- **Stylelint** – CSS/SCSS linting, backed by the compliant `@ladamczyk/qoq-stylelint-css` or `@ladamczyk/qoq-stylelint-scss` template. Enabled via a `stylelint` block.
-- **Skillslint** – lints Claude Code skill documentation, backed by `@ladamczyk/skillslint`. Enabled via a `skillslint` block.
+- **Stylelint** – CSS/SCSS linting, backed by the compliant `@ladamczyk/qoq-stylelint-css` or `@ladamczyk/qoq-stylelint-scss` template. Enabled via a `stylelint` block (`--skip-stylelint`).
+- **Skillslint** – lints Claude Code skill documentation, backed by `@ladamczyk/skillslint`. Enabled via a `skillslint` block (`--skip-skillslint`).
 
 ## Install
 
@@ -43,10 +43,11 @@ But if no config file found, it will ask to create one every time You'll run che
 
 ## Automatic configuration
 
-Simply answer all the questions, and the wizard will generate initial configuration values for you. Once complete, it will install all necessary packages from the [@ladamczyk/qoq-\*](https://www.npmjs.com/search?q=%40ladamczyk%2Fqoq-) workspace and create three files in your project's root directory:
+Simply answer all the questions, and the wizard will generate initial configuration values for you. Once complete, it will install all necessary packages from the [@ladamczyk/qoq-\*](https://www.npmjs.com/search?q=%40ladamczyk%2Fqoq-) workspace and create the following files in your project's root directory:
 
 - `.prettierrc` – Supports IDE formatting with a pre-configured template.
 - `eslint.config.js` – Connects the CLI-generated ESLint config with your IDE.
+- `stylelint.config.js` – Connects the CLI-generated Stylelint config with your IDE (only when you enable the Stylelint check).
 - `qoq.config.js` – Provides configuration for the CLI.
 
 With this setup, you’ll be up and running quickly with minimal manual configuration.
@@ -72,11 +73,27 @@ When setting things up by yourself all three files needs to be created manually,
    export default config;
    ```
 
-3. `qoq.config.js` with config only for QoQ CLI, params described below
+3. `stylelint.config.js` (only if you use the Stylelint check) with custom config or re-export of QoQ settings in CommonJs
 
-## Important notice to ESLint config
+   ```js
+   const config = require('@ladamczyk/qoq-cli/bin/stylelint.config.cjs');
 
-Since QoQ CLI re-creates config for the particular tool on execution You may end up with a situation that created `eslint.config.js` config will try to import a file that doesn't exist yet. The same situation will occur when You checkout a fresh project and install dependencies. To avoid that please modify Your `package.json` file in `scripts` section by adding:
+   module.exports = config;
+   ```
+
+   or ESM
+
+   ```js
+   import config from '@ladamczyk/qoq-cli/bin/stylelint.config.mjs';
+
+   export default config;
+   ```
+
+4. `qoq.config.js` with config only for QoQ CLI, params described below
+
+## Important notice to ESLint (and Stylelint) config
+
+Since QoQ CLI re-creates config for the particular tool on execution You may end up with a situation that created `eslint.config.js` (and, when used, `stylelint.config.js`) config will try to import a file that doesn't exist yet. The same situation will occur when You checkout a fresh project and install dependencies. To avoid that please modify Your `package.json` file in `scripts` section by adding:
 
     "postinstall": "qoq --warmup"
 

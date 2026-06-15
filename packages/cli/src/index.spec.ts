@@ -92,11 +92,16 @@ describe('cli', () => {
     });
 
     it('should forward skip flags to execute', async () => {
-      await run('--skip-npm', '--skip-eslint');
+      await run('--skip-npm', '--skip-eslint', '--skip-stylelint', '--skip-skillslint');
 
       expect(execute).toHaveBeenCalledWith(
         dummyConfig,
-        expect.objectContaining({ skipNpm: true, skipEslint: true }),
+        expect.objectContaining({
+          skipNpm: true,
+          skipEslint: true,
+          skipStylelint: true,
+          skipSkillslint: true,
+        }),
         undefined,
         undefined
       );

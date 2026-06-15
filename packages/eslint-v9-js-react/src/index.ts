@@ -3,8 +3,26 @@ import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-
 import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 import compatPlugin from 'eslint-plugin-compat';
+import reactRefreshPlugin from 'eslint-plugin-react-refresh';
 
-import type { Linter } from 'eslint';
+import { NO_MULTI_COMP_RULE_NAME, noMultiCompRule } from './rules/no-multi-comp';
+
+import type { ESLint, Linter } from 'eslint';
+
+export * from './rules/no-multi-comp';
+
+/**
+ * The `@eslint-react/eslint-plugin` plugin, extended with our custom
+ * `no-multi-comp` rule so it is enabled under the `@eslint-react` namespace
+ * (`@eslint-react/no-multi-comp`). The original plugin object is left untouched.
+ */
+const reactPluginWithCustomRules: ESLint.Plugin = {
+  ...reactPlugin,
+  rules: {
+    ...reactPlugin.rules,
+    [NO_MULTI_COMP_RULE_NAME]: noMultiCompRule,
+  },
+};
 
 const baseNoRestrictedImports = jsBaseConfig.rules['no-restricted-imports'] as [
   Linter.RuleSeverity,
@@ -86,6 +104,11 @@ export const baseConfig: EslintConfig = {
       ...stylisticPlugin.configs.recommended.rules,
       'import-x/order': importOrderRule,
       'no-restricted-imports': noRestrictedImportsRule,
+      '@eslint-react/no-multi-comp': 2,
+      // Keep jsx/tsx files Fast-Refresh-safe (HMR): a module may export
+      // multiple components, but mixing component and non-component exports
+      // breaks Fast Refresh. `allowConstantExport` permits Vite-style constants.
+      'react-refresh/only-export-components': [2, { allowConstantExport: true }],
       ...disabledRules,
     },
     settings: {
@@ -98,6 +121,7 @@ export const baseConfig: EslintConfig = {
     ...jsBaseConfigPlugins,
     compat: compatPlugin,
     '@stylistic': stylisticPlugin,
-    '@eslint-react': reactPlugin,
+    '@eslint-react': reactPluginWithCustomRules,
+    'react-refresh': reactRefreshPlugin,
   },
 };

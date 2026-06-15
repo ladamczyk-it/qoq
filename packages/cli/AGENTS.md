@@ -5,7 +5,7 @@
 ## Commands
 
 ```bash
-qoq --init              # interactive wizard — writes qoq.config.js, eslint.config.js, .prettierrc
+qoq --init              # interactive wizard — writes qoq.config.js, eslint.config.js, .prettierrc (+ stylelint.config.js if Stylelint is enabled)
 qoq --check             # full quality check (CI / pre-push)
 qoq staged [files]      # check staged files only (pre-commit / lint-staged)
 qoq --fix               # auto-fix across all tools
@@ -14,17 +14,17 @@ qoq [tools...]          # run only the named tools, e.g. `qoq eslint prettier`
 
 All commands accept these flags:
 
-| Flag                                      | Effect                                                                |
-| ----------------------------------------- | --------------------------------------------------------------------- |
-| `--disable-cache`                         | Skip caching for all tools                                            |
-| `--skip-{prettier,jscpd,knip,eslint,npm}` | Skip individual tools                                                 |
-| `--concurrency <off\|auto>`               | Run tools concurrently where possible                                 |
-| `--production`                            | Run Knip in production mode                                           |
-| `--config-hints`                          | Enable Knip config hints                                              |
-| `--silent`                                | Suppress QoQ output                                                   |
-| `--warmup`                                | Pre-generate config files without running tools                       |
-| `--json`                                  | Write each tool's output to a JSON file in `--output`                 |
-| `--output <path>`                         | Directory for JSON reports (default: `bin/report`); requires `--json` |
+| Flag                                                           | Effect                                                                |
+| -------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `--disable-cache`                                              | Skip caching for all tools                                            |
+| `--skip-{prettier,jscpd,knip,eslint,npm,stylelint,skillslint}` | Skip individual tools                                                 |
+| `--concurrency <off\|auto>`                                    | Run tools concurrently where possible                                 |
+| `--production`                                                 | Run Knip in production mode                                           |
+| `--config-hints`                                               | Enable Knip config hints                                              |
+| `--silent`                                                     | Suppress QoQ output                                                   |
+| `--warmup`                                                     | Pre-generate config files without running tools                       |
+| `--json`                                                       | Write each tool's output to a JSON file in `--output`                 |
+| `--output <path>`                                              | Directory for JSON reports (default: `bin/report`); requires `--json` |
 
 Add `"postinstall": "qoq --warmup"` to the consumer's `package.json` so IDEs get valid ESLint/Stylelint configs immediately after `npm install`.
 
@@ -35,10 +35,10 @@ Add `"postinstall": "qoq --warmup"` to the consumer's `package.json` so IDEs get
 - **npm packages check** — `npm outdated`, throttled to `npm.checkOutdatedEvery` days (`--skip-npm`)
 - **Prettier** (`--skip-prettier`), **JSCPD** (`--skip-jscpd`), **Knip** (`--skip-knip`), **ESLint** (`--skip-eslint`)
 
-**Optional checks** run only when their config block is present in `qoq.config.js`; omit the block to disable them (there is no `--skip-*` flag for these):
+**Optional checks** run only when their config block is present in `qoq.config.js`; omit the block to disable them, or skip for a single run with the matching `--skip-*` flag:
 
-- **Stylelint** — backed by the compliant `@ladamczyk/qoq-stylelint-{css,scss}` templates; enabled via a `stylelint` block
-- **Skillslint** — lints Claude Code skill docs; backed by `@ladamczyk/skillslint`; enabled via a `skillslint` block
+- **Stylelint** (`--skip-stylelint`) — backed by the compliant `@ladamczyk/qoq-stylelint-{css,scss}` templates; enabled via a `stylelint` block
+- **Skillslint** (`--skip-skillslint`) — lints Claude Code skill docs; backed by `@ladamczyk/skillslint`; enabled via a `skillslint` block
 
 ## qoq.config.js schema
 

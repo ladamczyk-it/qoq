@@ -88,6 +88,8 @@ describe('execute', () => {
       skipPrettier: true,
       skipJscpd: true,
       skipEslint: true,
+      skipStylelint: true,
+      skipSkillslint: true,
     });
 
     expect(executors.npm.run).not.toHaveBeenCalled();
@@ -95,8 +97,8 @@ describe('execute', () => {
     expect(executors.prettier.run).not.toHaveBeenCalled();
     expect(executors.jscpd.run).not.toHaveBeenCalled();
     expect(executors.eslint.run).not.toHaveBeenCalled();
-    expect(executors.stylelint.run).toHaveBeenCalledOnce();
-    expect(executors.skillslint.run).toHaveBeenCalledOnce();
+    expect(executors.stylelint.run).not.toHaveBeenCalled();
+    expect(executors.skillslint.run).not.toHaveBeenCalled();
   });
 
   it('should not run stylelint or skillslint when they are absent from the config', async () => {

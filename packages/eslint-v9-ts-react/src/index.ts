@@ -1,6 +1,10 @@
 import reactPlugin from '@eslint-react/eslint-plugin';
 import { EslintConfig } from '@ladamczyk/qoq-eslint-v9-js';
-import { baseConfig as jsReactBaseConfig, disabledRules } from '@ladamczyk/qoq-eslint-v9-js-react';
+import {
+  NO_MULTI_COMP_RULE_NAME,
+  baseConfig as jsReactBaseConfig,
+  disabledRules,
+} from '@ladamczyk/qoq-eslint-v9-js-react';
 import { baseConfig as tsBaseConfig } from '@ladamczyk/qoq-eslint-v9-ts';
 import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import importPlugin from 'eslint-plugin-import-x';
@@ -27,7 +31,10 @@ export const baseConfig: EslintConfig = {
       rules: {
         ...disabledRules,
         ...(reactPlugin.configs['recommended-typescript'].rules ?? {}),
-      } as EslintConfig['rules'],
+        // Our custom rule lives in (and is registered by) `eslint-v9-js-react`;
+        // re-assert it here so it survives the `recommended-typescript` merge.
+        [`@eslint-react/${NO_MULTI_COMP_RULE_NAME}`]: 2,
+      },
     }
   ),
   plugins: { ...jsReactBaseConfigPlugins, ...tsBaseConfigPlugins },

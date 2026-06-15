@@ -15,29 +15,14 @@ These configurations inherit from base presets and include all necessary package
 
 ## Usage
 
-Package exports both CommonJS and ESM code just import it in Your eslint config file.
-
-### For CommonJS
+This package ships **ESM only** (its React plugin dependencies are ESM-only). Import the named `baseConfig` export in your ESLint flat config — use `eslint.config.js` in an ESM project (`"type": "module"`) or `eslint.config.mjs` otherwise.
 
 ```js
-const jsBaseConfig = require("@ladamczyk/qoq-eslint-v9-ts-react");
-
-module.exports = [
-  {
-    ...jsBaseConfig,
-    files: [...]
-  }
-]
-```
-
-### For ESM
-
-```js
-import jsBaseConfig from '@ladamczyk/qoq-eslint-v9-ts-react';
+import { baseConfig } from '@ladamczyk/qoq-eslint-v9-ts-react';
 
 export default [
   {
-    ...jsBaseConfig,
+    ...baseConfig,
     files: [...]
   }
 ];

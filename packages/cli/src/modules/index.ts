@@ -145,7 +145,17 @@ export const execute = async (
   files?: string[],
   tools?: string[]
 ): Promise<void> => {
-  const { silent, warmup, skipNpm, skipPrettier, skipJscpd, skipKnip, skipEslint } = options;
+  const {
+    silent,
+    warmup,
+    skipNpm,
+    skipPrettier,
+    skipJscpd,
+    skipKnip,
+    skipEslint,
+    skipStylelint,
+    skipSkillslint,
+  } = options;
 
   const hideMessages = !!silent || !!warmup;
   const shouldRun = (name: string) => !tools || tools.includes(name);
@@ -191,11 +201,11 @@ export const execute = async (
     responses[eslintExecutor.getName()] = await eslintExecutor.run(options, files);
   }
 
-  if (modulesConfig.modules.stylelint && shouldRun('stylelint')) {
+  if (!skipStylelint && modulesConfig.modules.stylelint && shouldRun('stylelint')) {
     responses[stylelintExecutor.getName()] = await stylelintExecutor.run(options, files);
   }
 
-  if (modulesConfig.modules.skillslint && shouldRun('skillslint')) {
+  if (!skipSkillslint && modulesConfig.modules.skillslint && shouldRun('skillslint')) {
     responses[skillslintExecutor.getName()] = await skillslintExecutor.run(options, files);
   }
 

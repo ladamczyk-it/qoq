@@ -136,7 +136,7 @@ export class EslintExecutor extends AbstractExecutor {
         args.push('--fix');
       }
 
-      if (options.concurrency !== 'off') {
+      if (options.concurrency === 'auto') {
         args.push(`--concurrency ${options.concurrency}`);
       }
 
