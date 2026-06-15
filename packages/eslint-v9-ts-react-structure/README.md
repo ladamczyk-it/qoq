@@ -15,7 +15,7 @@ The preset is opinionated yet intentionally permissive — it validates the fold
 
 ## Usage
 
-This is a **standalone** config block — apply it separately from your linting template, because it uses the project-structure parser instead of the TypeScript parser.
+This is a **standalone** config block — apply it separately from your linting template, because it uses the project-structure parser instead of the TypeScript parser. The structure is rooted at `src/` by default (files outside `src/` are left untouched); override `structureRoot` to fit a single package inside a monorepo.
 
 Package exports both CommonJS and ESM code, just import it in Your eslint config file.
 
@@ -27,7 +27,7 @@ const { baseConfig } = require('@ladamczyk/qoq-eslint-v9-ts-react-structure');
 module.exports = [
   {
     ...baseConfig,
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['**/*.{ts,tsx}'],
   },
 ];
 ```
@@ -40,7 +40,30 @@ import { baseConfig } from '@ladamczyk/qoq-eslint-v9-ts-react-structure';
 export default [
   {
     ...baseConfig,
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['**/*.{ts,tsx}'],
+  },
+];
+```
+
+### Single package in a monorepo
+
+`createFolderStructure` is exported separately so you can scope the same structure to one package. It defaults to `structureRoot: 'src'`; override it to point the rule at the package folder:
+
+```js
+import { createFolderStructure } from '@ladamczyk/qoq-eslint-v9-ts-react-structure';
+import { projectStructureParser, projectStructurePlugin } from 'eslint-plugin-project-structure';
+
+export default [
+  {
+    files: ['packages/ui/**/*.{ts,tsx}'],
+    plugins: { 'project-structure': projectStructurePlugin },
+    languageOptions: { parser: projectStructureParser },
+    rules: {
+      'project-structure/folder-structure': [
+        2,
+        createFolderStructure({ structureRoot: 'packages/ui/src' }),
+      ],
+    },
   },
 ];
 ```

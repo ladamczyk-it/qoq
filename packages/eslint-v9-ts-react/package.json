@@ -22,11 +22,10 @@
   "exports": {
     ".": {
       "types": "./lib/src/index.d.ts",
-      "import": "./lib/index.mjs",
-      "require": "./lib/index.cjs"
+      "import": "./lib/index.mjs"
     }
   },
-  "main": "./lib/index.cjs",
+  "main": "./lib/index.mjs",
   "module": "./lib/index.mjs",
   "types": "./lib/src/index.d.ts",
   "bin": {
