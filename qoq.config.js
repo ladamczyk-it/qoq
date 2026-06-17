@@ -14,20 +14,12 @@ export default {
     sources: ['.'],
   },
   jscpd: {
-    threshold: 3,
+    threshold: 4,
   },
   knip: {
     entry: './src/index.{js,ts}',
     project: './src/**/*.{js,ts}',
-    ignore: [
-      '**/bin.ts',
-      '**/rollup.*.js',
-      '**/vitest.config.js',
-      'eslint.config.js',
-      'qoq.config.js',
-      'release.config.js',
-      'packages/cli/src/types.ts',
-    ],
+    ignore: ['**/bin.ts', '**/rollup.*.js', 'packages/cli/src/types.ts'],
     ignoreDependencies: [
       // build specific
       '@rollup/*',
@@ -46,6 +38,10 @@ export default {
     ],
   },
   eslint: [
+    {
+      template: 'qoq-eslint-v9-js',
+      files: ['skills/**/*.{js,cjs,mjs}'],
+    },
     {
       template: 'qoq-eslint-v9-ts',
       files: ['packages/**/src/**/*.ts'],

@@ -64,8 +64,7 @@ describe('JscpdExecutor', () => {
         'typescript,tsx',
         '-t',
         '5',
-        '--workers 1',
-        '--no-tips',
+        '--noTips',
         '-i',
         'dist',
       ]);

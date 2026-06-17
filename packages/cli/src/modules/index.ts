@@ -72,12 +72,7 @@ export const initConfig = async (
 
   await getHandlerBySequence(modulesConfig, config).getPrompts();
 
-  [
-    `${moduleName}.config.js`,
-    `${moduleName}.config.ts`,
-    `${moduleName}.config.mjs`,
-    `${moduleName}.config.cjs`,
-  ].forEach((filename) => {
+  [`${moduleName}.config.js`, `${moduleName}.config.ts`].forEach((filename) => {
     const filepath = resolveCwdRelativePath(`/${filename}`);
     if (existsSync(filepath)) {
       rmSync(filepath);

@@ -10,18 +10,11 @@
   },
   "plugins": [
     {
-      "name": "packages-skills",
-      "description": "Collection of packages related capabilities",
+      "name": "qoq",
+      "description": "QoQ \"quality over quantity\" toolkit: one skill, three user-facing commands plus a gate. `/qoq review` reviews a branch against a base, `/qoq refactor` applies the same analysis to a scope you choose, `/qoq bump packages` safely upgrades npm dependencies in stages, and `/qoq gate` is a non-interactive quality gate other skills call before declaring work done (auto-fixes a producer's changes against the standards, returns PASS/FAIL). All share an internal qoq-CLI engine (linter/formatter discovery, the `qoq --json` digest) and the bundled qoq-analyzer worker.",
       "source": "./",
       "strict": false,
-      "skills": ["./skills/npm-bump-packages"]
-    },
-    {
-      "name": "code-quality-skills",
-      "description": "QoQ \"quality over quantity\" code-quality capabilities: branch review and scope-driven refactoring. qoq-code-refactor reuses qoq-code-review's analysis engine, so both ship together.",
-      "source": "./",
-      "strict": false,
-      "skills": ["./skills/qoq-code-review", "./skills/qoq-code-refactor"]
+      "skills": ["./skills/qoq"]
     }
   ]
 }

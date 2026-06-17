@@ -76,9 +76,6 @@
     "rollup": "4.62.0",
     "typescript": "6.0.3"
   },
-  "peerDependencies": {
-    "eslint": "^10.3.0"
-  },
   "engines": {
     "node": ">=22.15.0"
   },

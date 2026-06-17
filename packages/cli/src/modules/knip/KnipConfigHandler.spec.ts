@@ -53,7 +53,14 @@ describe('KnipConfigHandler', () => {
         modules: {
           knip: {
             entry: ['/{index,cli,main,root}.{js}'],
-            ignore: [],
+            ignore: [
+              'skills/**',
+              'qoq.config.{js,ts}',
+              'eslint.config.{js,ts}',
+              'release.config.{js,ts}',
+              'stylelint.config.{js,ts}',
+              'vitest.config.{js,ts}',
+            ],
             ignoreDependencies: ['@ladamczyk/*'],
             ignoreBinaries: [],
             project: ['/**/*.{js}'],
