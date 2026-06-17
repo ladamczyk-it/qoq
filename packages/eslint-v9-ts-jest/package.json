@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-ts-jest",
-  "version": "4.3.1",
+  "version": "4.3.2",
   "description": "Eslint flat config template for TS + Jest",
   "keywords": [
     "eslint TypeScript + Jest template",
@@ -44,9 +44,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ladamczyk/qoq-eslint-v9-js-jest": "^4.3.1",
-    "@ladamczyk/qoq-eslint-v9-ts": "^4.3.1",
-    "@ladamczyk/qoq-utils": "^4.3.1"
+    "@ladamczyk/qoq-eslint-v9-js-jest": "^4.3.2",
+    "@ladamczyk/qoq-eslint-v9-ts": "^4.3.2",
+    "@ladamczyk/qoq-utils": "^4.3.2"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "12.3.0",

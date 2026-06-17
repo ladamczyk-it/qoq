@@ -1,3 +1,10 @@
+## [4.3.2](https://github.com/ladamczyk-it/qoq/compare/v4.3.1...v4.3.2) (2026-06-17)
+
+
+### Bug Fixes
+
+* change configType detection to base on package.json type ([5070905](https://github.com/ladamczyk-it/qoq/commit/507090519861bb01dce5a65ad79d85513649f06f))
+
 ## [4.3.1](https://github.com/ladamczyk-it/qoq/compare/v4.3.0...v4.3.1) (2026-06-17)
 
 
