@@ -28,6 +28,12 @@ import { StylelintExecutor } from './stylelint/StylelintExecutor.ts';
 import { IExecutorOptions, IModulesConfig } from './types.ts';
 
 const moduleName = 'qoq';
+const searchPlaces = [
+  `${moduleName}.config.js`,
+  `${moduleName}.config.cjs`,
+  `${moduleName}.config.mjs`,
+  `${moduleName}.config.ts`,
+];
 
 const getHandlerBySequence = (
   modulesConfig: IModulesConfig,
@@ -72,7 +78,7 @@ export const initConfig = async (
 
   await getHandlerBySequence(modulesConfig, config).getPrompts();
 
-  [`${moduleName}.config.js`, `${moduleName}.config.ts`].forEach((filename) => {
+  searchPlaces.forEach((filename) => {
     const filepath = resolveCwdRelativePath(`/${filename}`);
     if (existsSync(filepath)) {
       rmSync(filepath);
@@ -103,7 +109,7 @@ export const getConfig = async (
 ): Promise<IModulesConfig> => {
   const qoqConfig = await cosmiconfig(moduleName, {
     searchStrategy: 'project',
-    searchPlaces: [`${moduleName}.config.js`, `${moduleName}.config.ts`],
+    searchPlaces,
   }).search();
 
   if (!skipInit && !qoqConfig) {
