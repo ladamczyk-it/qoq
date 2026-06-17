@@ -3,6 +3,7 @@ import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-
 import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 import compatPlugin from 'eslint-plugin-compat';
+import fileProgressPlugin from 'eslint-plugin-file-progress';
 import reactRefreshPlugin from 'eslint-plugin-react-refresh';
 
 import { NO_MULTI_COMP_RULE_NAME, noMultiCompRule } from './rules/no-multi-comp';
@@ -99,6 +100,7 @@ export const baseConfig: EslintConfig = {
       },
     },
     rules: {
+      'progress/activate': 1,
       ...compatPlugin.configs['flat/recommended'].rules,
       ...reactPlugin.configs.recommended.rules,
       ...stylisticPlugin.configs.recommended.rules,
@@ -123,5 +125,6 @@ export const baseConfig: EslintConfig = {
     '@stylistic': stylisticPlugin,
     '@eslint-react': reactPluginWithCustomRules,
     'react-refresh': reactRefreshPlugin,
+    progress: fileProgressPlugin,
   },
 };
