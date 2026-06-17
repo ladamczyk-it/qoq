@@ -1,3 +1,10 @@
+## [4.3.1](https://github.com/ladamczyk-it/qoq/compare/v4.3.0...v4.3.1) (2026-06-17)
+
+
+### Bug Fixes
+
+* consolidate skills to one + JSCPD revert + minor reconfigure for Knip ([0420678](https://github.com/ladamczyk-it/qoq/commit/0420678216edc8782cf273ccba36a83afc73d17e))
+
 # [4.3.0](https://github.com/ladamczyk-it/qoq/compare/v4.2.4...v4.3.0) (2026-06-15)
 
 

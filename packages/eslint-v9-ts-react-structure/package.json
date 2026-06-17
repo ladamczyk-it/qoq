@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-ts-react-structure",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "description": "Eslint flat config template enforcing the folder/file structure of a TS + React project",
   "keywords": [
     "eslint TypeScript + React structure template",
@@ -46,7 +46,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ladamczyk/qoq-eslint-v9-js": "^4.3.0",
+    "@ladamczyk/qoq-eslint-v9-js": "^4.3.1",
     "eslint-plugin-project-structure": "3.14.3"
   },
   "devDependencies": {
