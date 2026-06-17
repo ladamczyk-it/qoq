@@ -1,3 +1,10 @@
+## [4.3.4](https://github.com/ladamczyk-it/qoq/compare/v4.3.3...v4.3.4) (2026-06-17)
+
+
+### Bug Fixes
+
+* revert cjs/mjs config removal ([70f34cf](https://github.com/ladamczyk-it/qoq/commit/70f34cfffd8fd1b31c08c707e5b644e43f94f2a6))
+
 ## [4.3.3](https://github.com/ladamczyk-it/qoq/compare/v4.3.2...v4.3.3) (2026-06-17)
 
 
