@@ -1,3 +1,10 @@
+## [4.3.3](https://github.com/ladamczyk-it/qoq/compare/v4.3.2...v4.3.3) (2026-06-17)
+
+
+### Bug Fixes
+
+* move eslint-plugin-file-progress to react package since it breaks cjs build ([3530d9c](https://github.com/ladamczyk-it/qoq/commit/3530d9c27d85dbf0f84744a259ff92d2ee125f56))
+
 ## [4.3.2](https://github.com/ladamczyk-it/qoq/compare/v4.3.1...v4.3.2) (2026-06-17)
 
 
