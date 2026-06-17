@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { readFileSync, existsSync } from 'fs';
-
-import { resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
+import { getPackageJson, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import prompts from 'prompts';
 
 import { DEFAULT_SRC } from '../../helpers/constants.ts';
@@ -80,23 +78,8 @@ export class BasicConfigHandler extends AbstractConfigHandler {
       stylelint: this.config.configPaths?.stylelint ?? StylelintConfigHandler.CONFIG_FILE_PATH,
     };
 
-    try {
-      if (existsSync(resolveCwdRelativePath('/qoq.config.cjs'))) {
-        this.modulesConfig.configType = EConfigType.CJS;
-
-        return super.getModulesFromConfig();
-      }
-
-      const configFileContent = readFileSync(resolveCwdRelativePath('/qoq.config.js'), 'utf-8');
-
-      this.modulesConfig.configType =
-        configFileContent.includes('module.exports-') ||
-        configFileContent.includes('module.exports ')
-          ? EConfigType.CJS
-          : EConfigType.ESM;
-    } catch {
-      this.modulesConfig.configType = EConfigType.ESM;
-    }
+    this.modulesConfig.configType =
+      getPackageJson()?.type === 'module' ? EConfigType.ESM : EConfigType.CJS;
 
     return super.getModulesFromConfig();
   }

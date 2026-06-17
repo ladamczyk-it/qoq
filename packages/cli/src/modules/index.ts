@@ -103,12 +103,7 @@ export const getConfig = async (
 ): Promise<IModulesConfig> => {
   const qoqConfig = await cosmiconfig(moduleName, {
     searchStrategy: 'project',
-    searchPlaces: [
-      `${moduleName}.config.js`,
-      `${moduleName}.config.ts`,
-      `${moduleName}.config.mjs`,
-      `${moduleName}.config.cjs`,
-    ],
+    searchPlaces: [`${moduleName}.config.js`, `${moduleName}.config.ts`],
   }).search();
 
   if (!skipInit && !qoqConfig) {
