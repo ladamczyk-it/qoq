@@ -25,7 +25,6 @@ export async function executeCommand(
   captureOutput: boolean = false
 ): Promise<string | EExitCode> {
   return new Promise((resolve, reject) => {
-    // eslint-disable-next-line sonarjs/os-command
     const child = spawn(command, args, {
       shell: true,
       stdio,
