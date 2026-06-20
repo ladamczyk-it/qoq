@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-prettier-with-json-sort",
-  "version": "4.3.4",
+  "version": "4.3.5",
   "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/prettier-with-json-sort",
   "bugs": {
     "url": "https://github.com/ladamczyk-it/qoq/issues"
@@ -31,7 +31,7 @@
     "build": "rimraf ./index.json && node ./src/bin.js"
   },
   "dependencies": {
-    "@ladamczyk/qoq-prettier": "^4.3.4",
+    "@ladamczyk/qoq-prettier": "^4.3.5",
     "prettier-plugin-sort-json": "4.2.0"
   },
   "devDependencies": {
