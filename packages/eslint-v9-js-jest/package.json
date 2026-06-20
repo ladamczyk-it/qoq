@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/ladamczyk-it/qoq.git",
+    "url": "git+https://github.com/ladamczyk-it/qoq.git",
     "directory": "packages/eslint-v9-js-jest"
   },
   "license": "MIT",
