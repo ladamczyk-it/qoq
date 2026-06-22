@@ -15,15 +15,88 @@ import { IExecutorOptions } from '../types.ts';
 
 import { EModulesEslint, IModuleEslintConfig } from './types.ts';
 
+import type { ESLint } from 'eslint';
+
+interface IEslintReportMessage {
+  ruleId: string | null;
+  severity: number;
+  message: string;
+  line: number;
+  column: number;
+  fix: boolean;
+}
+
+type TEslintReport = { filePath: string; messages: IEslintReportMessage[] }[];
+
 export class EslintExecutor extends AbstractExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.eslintcache');
+
+  // Resolved in prepare(), consumed in execute() — eslint runs through its JS API
+  // rather than a spawned binary, so there are no CLI args to carry state.
+  private targets: string[] = ['.'];
+  private configFile = '';
 
   protected getCommandName(): string {
     return 'eslint';
   }
 
+  // eslint runs through its JS API in execute(); no binary args are spawned.
   protected getCommandArgs(): string[] {
-    return ['--max-warnings', '0'];
+    return [];
+  }
+
+  protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
+    // Resolved from the consumer's on-demand install (via the @ladamczyk/qoq-eslint-v9-*
+    // templates that bring in `eslint`); kept external in rollup.bin.js.
+    const { ESLint } = await import('eslint');
+
+    const eslint = new ESLint({
+      overrideConfigFile: this.configFile,
+      cache: !options.disableCache,
+      cacheLocation: EslintExecutor.CACHE_PATH,
+      cacheStrategy: 'metadata',
+      fix: options.fix,
+      concurrency: options.concurrency,
+    });
+
+    const results = await eslint.lintFiles(this.targets);
+
+    if (options.fix) {
+      await ESLint.outputFixes(results);
+    }
+
+    const { errorCount, warningCount } = results.reduce(
+      (acc, result) => ({
+        errorCount: acc.errorCount + result.errorCount,
+        warningCount: acc.warningCount + result.warningCount,
+      }),
+      { errorCount: 0, warningCount: 0 }
+    );
+
+    // Mirrors the spawned CLI's `--max-warnings 0`: any warning fails the run.
+    const tooManyWarnings = warningCount > 0;
+
+    if (options.json) {
+      writeFileSync(
+        `${options.output}/eslint-report.json`,
+        JSON.stringify(this.buildReport(results))
+      );
+    } else {
+      const formatter = await eslint.loadFormatter('stylish');
+      const output = await formatter.format(results);
+
+      if (output) {
+        process.stdout.write(`${output}\n`);
+      }
+    }
+
+    // The stylish formatter doesn't surface the warning cap; the CLI prints this
+    // line separately, only when warnings (not errors) break the threshold.
+    if (errorCount === 0 && tooManyWarnings) {
+      process.stderr.write('ESLint found too many warnings (maximum: 0).\n');
+    }
+
+    return errorCount > 0 || tooManyWarnings ? EExitCode.ERROR : EExitCode.OK;
   }
 
   protected async prepare(
@@ -79,7 +152,11 @@ export class EslintExecutor extends AbstractExecutor {
 
       writeFileSync(configFilePath, formatCode(configType, imports, content, exports));
 
-      args.push('-c', resolveCwdRelativePath(configPath));
+      this.configFile = resolveCwdRelativePath(configPath);
+
+      // No explicit files: mirror the CLI's no-pattern default of linting the cwd
+      // and letting the flat config's own `files`/`ignores` decide the scope.
+      this.targets = ['.'];
 
       if (files.length > 0) {
         // eslint-disable-next-line sonarjs/no-dead-store
@@ -129,24 +206,30 @@ export class EslintExecutor extends AbstractExecutor {
           throw new TerminateExecutorGracefully();
         }
 
-        args.push('--stdin-filename', ...filteredFiles);
-      }
-
-      if (options.fix) {
-        args.push('--fix');
-      }
-
-      if (options.concurrency === 'auto') {
-        args.push(`--concurrency ${options.concurrency}`);
-      }
-
-      if (options.json) {
-        args.push(`--format json --output-file "${options.output}/eslint-report.json"`);
+        this.targets = filteredFiles;
       }
 
       return super.prepare(args, options, files);
     } catch (e) {
       return this.handlePrepareError(e);
     }
+  }
+
+  // Lean JSON report for `--json`: drop each result's full `source`/`output`
+  // file blobs (eslint's reports can be tens of thousands of lines) and keep
+  // only what summarize.mjs needs — per-file messages with rule, severity,
+  // location and a `fix` flag derived from eslint's fix object.
+  private buildReport(results: ESLint.LintResult[]): TEslintReport {
+    return results.map((result) => ({
+      filePath: result.filePath,
+      messages: result.messages.map((message) => ({
+        ruleId: message.ruleId,
+        severity: message.severity,
+        message: message.message,
+        line: message.line,
+        column: message.column,
+        fix: Boolean(message.fix),
+      })),
+    }));
   }
 }

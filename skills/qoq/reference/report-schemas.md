@@ -27,7 +27,10 @@ whose formatting differs.
 
 ## eslint-report.json
 
-Native ESLint JSON formatter output — an array, one entry per linted file.
+QoQ writes this from ESLint's JS API — a lean array, one entry per linted file.
+It mirrors the native JSON formatter's `filePath`/`messages` but drops each
+result's heavy `source`/`output` file blobs and the per-file count fields, and
+flattens each message's `fix` object to a boolean.
 
 ```json
 [
@@ -40,19 +43,15 @@ Native ESLint JSON formatter output — an array, one entry per linted file.
         "message": "Unexpected any.",
         "line": 4,
         "column": 12,
-        "fix": { "range": [40, 43], "text": "unknown" }
+        "fix": true
       }
-    ],
-    "errorCount": 1,
-    "warningCount": 0,
-    "fixableErrorCount": 1,
-    "fixableWarningCount": 0
+    ]
   }
 ]
 ```
 
-`severity`: `2` = error, `1` = warning. A `fix` key present ⇒ ESLint can
-auto-fix it (so `qoq --fix` will). `ruleId` is `null` for parse/syntax errors.
+`severity`: `2` = error, `1` = warning. `fix: true` ⇒ ESLint can auto-fix it
+(so `qoq --fix` will). `ruleId` is `null` for parse/syntax errors.
 
 ---
 

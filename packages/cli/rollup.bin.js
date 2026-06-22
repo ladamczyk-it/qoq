@@ -17,12 +17,12 @@ const plugins = [
   ...binPlugins,
 ];
 
-// Skillslint, Stylelint, JSCPD and Prettier are run through their JS APIs via
-// runtime dynamic import() and resolve from the consumer's on-demand install
+// Skillslint, Stylelint, JSCPD, Prettier and ESLint are run through their JS APIs
+// via runtime dynamic import() and resolve from the consumer's on-demand install
 // (skillslint via its peer dependency, stylelint via the @ladamczyk/qoq-stylelint-*
 // templates, jscpd via the @ladamczyk/qoq-jscpd template, prettier via the
-// @ladamczyk/qoq-prettier* templates), so they must stay external rather than be
-// bundled here.
+// @ladamczyk/qoq-prettier* templates, eslint via the @ladamczyk/qoq-eslint-v9-*
+// templates), so they must stay external rather than be bundled here.
 const external = [
   ...builtinModules,
   ...Object.keys(pkg.dependencies),
@@ -30,6 +30,7 @@ const external = [
   'stylelint',
   'jscpd',
   'prettier',
+  'eslint',
 ];
 
 export default {

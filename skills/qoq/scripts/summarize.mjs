@@ -125,6 +125,10 @@ if (prettier && !prettier.__parseError) {
 }
 
 // ---------- ESLint ----------
+// Report is written by EslintExecutor's JS-API path: a lean array of
+// { filePath, messages:[{ ruleId, severity, message, line, column, fix }] } —
+// eslint's heavy per-file `source`/`output` blobs are dropped at the source and
+// `fix` is flattened to a boolean (truthy when the message is auto-fixable).
 const eslint = read('eslint-report.json');
 if (Array.isArray(eslint)) {
   const byRule = new Map(); // ruleId -> { count, errors, fixable, locs:[] }
