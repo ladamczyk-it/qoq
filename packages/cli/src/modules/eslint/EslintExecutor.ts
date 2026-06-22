@@ -10,7 +10,7 @@ import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateE
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath } from '../../helpers/paths.ts';
 import { EConfigType } from '../../helpers/types.ts';
-import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
+import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { EModulesEslint, IModuleEslintConfig } from './types.ts';
@@ -28,7 +28,7 @@ interface IEslintReportMessage {
 
 type TEslintReport = { filePath: string; messages: IEslintReportMessage[] }[];
 
-export class EslintExecutor extends AbstractExecutor {
+export class EslintExecutor extends AbstractApiExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.eslintcache');
 
   // Resolved in prepare(), consumed in execute() — eslint runs through its JS API
@@ -38,11 +38,6 @@ export class EslintExecutor extends AbstractExecutor {
 
   protected getCommandName(): string {
     return 'eslint';
-  }
-
-  // eslint runs through its JS API in execute(); no binary args are spawned.
-  protected getCommandArgs(): string[] {
-    return [];
   }
 
   protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
@@ -77,10 +72,7 @@ export class EslintExecutor extends AbstractExecutor {
     const tooManyWarnings = warningCount > 0;
 
     if (options.json) {
-      writeFileSync(
-        `${options.output}/eslint-report.json`,
-        JSON.stringify(this.buildReport(results))
-      );
+      this.writeReport(this.buildReport(results), options.output);
     } else {
       const formatter = await eslint.loadFormatter('stylish');
       const output = await formatter.format(results);

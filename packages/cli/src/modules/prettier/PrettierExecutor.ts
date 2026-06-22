@@ -5,7 +5,7 @@ import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
-import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
+import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import type { Options } from 'prettier';
@@ -16,7 +16,7 @@ const IGNORED_DIRECTORIES = ['.git', '.sl', '.svn', '.hg', '.jj', 'node_modules'
 // Ignore files prettier respects by default (the CLI's `--ignore-path` default).
 const IGNORE_FILES = ['.gitignore', '.prettierignore'];
 
-export class PrettierExecutor extends AbstractExecutor {
+export class PrettierExecutor extends AbstractApiExecutor {
   // Set in prepare(), consumed in execute(): the explicit patterns to format and
   // whether they came from a caller-supplied file list (vs. the configured sources).
   private patterns: string[] = [];
@@ -24,10 +24,6 @@ export class PrettierExecutor extends AbstractExecutor {
 
   protected getCommandName(): string {
     return 'prettier';
-  }
-
-  protected getCommandArgs(): string[] {
-    return [];
   }
 
   protected prepare(
@@ -82,7 +78,7 @@ export class PrettierExecutor extends AbstractExecutor {
       }
     }
 
-    writeFileSync(`${output}/prettier-report.json`, JSON.stringify({ issues }));
+    this.writeReport({ issues }, output);
 
     return issues.length > 0 ? EExitCode.ERROR : EExitCode.OK;
   }

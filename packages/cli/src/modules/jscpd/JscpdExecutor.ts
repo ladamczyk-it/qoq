@@ -1,11 +1,11 @@
-import { readdirSync, writeFileSync } from 'fs';
+import { readdirSync } from 'fs';
 import { createRequire } from 'module';
 
 import { EExitCode, getRelativePath, resolveCwdPath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
-import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
+import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { JscpdConfigHandler } from './JscpdConfigHandler.ts';
@@ -13,18 +13,13 @@ import { IModuleJscpdConfig } from './types.ts';
 
 import type { IClone, IStatistic } from '@jscpd/core';
 
-export class JscpdExecutor extends AbstractExecutor {
+export class JscpdExecutor extends AbstractApiExecutor {
   getName(): string {
     return this.getCommandName().toUpperCase();
   }
 
   protected getCommandName(): string {
     return 'jscpd';
-  }
-
-  // jscpd runs through its JS API in execute(); no binary args are spawned.
-  protected getCommandArgs(): string[] {
-    return [];
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -61,10 +56,7 @@ export class JscpdExecutor extends AbstractExecutor {
     const { clones, statistic } = await detectClonesAndStatistic(detectionOptions);
 
     if (options.json) {
-      writeFileSync(
-        `${options.output}/jscpd-report.json`,
-        JSON.stringify(this.buildReport(clones, statistic))
-      );
+      this.writeReport(this.buildReport(clones, statistic), options.output);
     }
 
     const exceeded = statistic.total.percentage > detectionOptions.threshold;

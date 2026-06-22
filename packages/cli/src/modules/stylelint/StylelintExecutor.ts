@@ -11,7 +11,7 @@ import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateE
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath } from '../../helpers/paths.ts';
 import { EConfigType } from '../../helpers/types.ts';
-import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
+import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import {
@@ -33,7 +33,7 @@ interface IStylelintReportWarning {
 
 type TStylelintReport = { source: string | undefined; warnings: IStylelintReportWarning[] }[];
 
-export class StylelintExecutor extends AbstractExecutor {
+export class StylelintExecutor extends AbstractApiExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.stylelintcache');
 
   // Resolved in prepare(), consumed in execute() — stylelint runs through its JS
@@ -44,10 +44,6 @@ export class StylelintExecutor extends AbstractExecutor {
 
   protected getCommandName(): string {
     return 'stylelint';
-  }
-
-  protected getCommandArgs(): string[] {
-    return [];
   }
 
   protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
@@ -66,10 +62,7 @@ export class StylelintExecutor extends AbstractExecutor {
     });
 
     if (options.json) {
-      writeFileSync(
-        `${options.output}/stylelint-report.json`,
-        JSON.stringify(this.buildReport(result))
-      );
+      this.writeReport(this.buildReport(result), options.output);
     } else {
       process.stdout.write(result.report);
     }
