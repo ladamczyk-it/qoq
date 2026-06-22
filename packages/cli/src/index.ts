@@ -10,21 +10,30 @@ import { resolveCliRelativePath } from './helpers/paths.ts';
 import { getConfig, initConfig, execute } from './modules/index.ts';
 import { IExecuteOptions, IExecuteStagedOptions } from './modules/types.ts';
 
+import type { Command } from 'cac';
+
 export const cli = cac('qoq');
 
-cli
-  .command('[...tools]', 'Run quality checks (optionally filtered to named tools)')
-  .option('--init', 'Scaffold a qoq.config.js in the current project')
-  .option('--check', 'Run all enabled tools and report issues (exit 1 on findings)')
-  .option('--fix', 'Re-run tools in fix mode to auto-correct issues where supported')
-  .option('--disable-cache', 'Bypass per-tool caches and force a full re-run')
-  .option('--skip-npm', 'Skip npm dependency/package checks')
-  .option('--skip-prettier', 'Skip Prettier formatting checks')
-  .option('--skip-jscpd', 'Skip JSCPD copy-paste detection')
-  .option('--skip-knip', 'Skip Knip unused-exports/dead-code checks')
-  .option('--skip-eslint', 'Skip ESLint linting')
-  .option('--skip-stylelint', 'Skip Stylelint CSS/SCSS linting')
-  .option('--skip-skillslint', 'Skip Skillslint skill-doc linting')
+// The default and `staged` commands accept the same cache + per-tool skip flags;
+// register them once so a newly added tool's --skip-<tool> can't drift between them.
+const withSkipOptions = (command: Command): Command =>
+  command
+    .option('--disable-cache', 'Bypass per-tool caches and force a full re-run')
+    .option('--skip-npm', 'Skip npm dependency/package checks')
+    .option('--skip-prettier', 'Skip Prettier formatting checks')
+    .option('--skip-jscpd', 'Skip JSCPD copy-paste detection')
+    .option('--skip-knip', 'Skip Knip unused-exports/dead-code checks')
+    .option('--skip-eslint', 'Skip ESLint linting')
+    .option('--skip-stylelint', 'Skip Stylelint CSS/SCSS linting')
+    .option('--skip-skillslint', 'Skip Skillslint skill-doc linting');
+
+withSkipOptions(
+  cli
+    .command('[...tools]', 'Run quality checks (optionally filtered to named tools)')
+    .option('--init', 'Scaffold a qoq.config.js in the current project')
+    .option('--check', 'Run all enabled tools and report issues (exit 1 on findings)')
+    .option('--fix', 'Re-run tools in fix mode to auto-correct issues where supported')
+)
   .option('--warmup', 'Pre-generate tool configs in bin/ without running any checks')
   .option('--silent', 'Suppress all QoQ console output')
   .option('--config-hints', 'Print config suggestions alongside check results')
@@ -63,19 +72,12 @@ cli
     );
   });
 
-cli
-  .command(
+withSkipOptions(
+  cli.command(
     'staged [...files]',
     'Run quality checks on a specific file list (e.g. for use with lint-staged)'
   )
-  .option('--disable-cache', 'Bypass per-tool caches and force a full re-run')
-  .option('--skip-npm', 'Skip npm dependency/package checks')
-  .option('--skip-prettier', 'Skip Prettier formatting checks')
-  .option('--skip-jscpd', 'Skip JSCPD copy-paste detection')
-  .option('--skip-knip', 'Skip Knip unused-exports/dead-code checks')
-  .option('--skip-eslint', 'Skip ESLint linting')
-  .option('--skip-stylelint', 'Skip Stylelint CSS/SCSS linting')
-  .option('--skip-skillslint', 'Skip Skillslint skill-doc linting')
+)
   .option('--config-hints', 'Print config suggestions alongside check results')
   .option('--concurrency <type>', 'Run tools in parallel when possible. [off | auto]', {
     default: 'off',

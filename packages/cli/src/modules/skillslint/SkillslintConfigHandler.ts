@@ -18,7 +18,7 @@ export class SkillslintConfigHandler extends AbstractConfigHandler {
       {
         type: 'toggle',
         name: 'skillslint',
-        message: 'Should we include agents skills linting?',
+        message: 'Should we include agent skills linting?',
         initial: false,
         active: c.green('yes'),
         inactive: c.red('no'),
@@ -37,7 +37,7 @@ export class SkillslintConfigHandler extends AbstractConfigHandler {
       {
         type: 'text',
         name: 'skillslintPath',
-        message: c.reset(`Where do You have agents skills?`),
+        message: c.reset(`Where do You have agent skills?`),
         initial: SkillslintConfigHandler.DEFAULT_SKILLS_PATH,
       },
     ]);

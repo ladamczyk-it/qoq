@@ -1,24 +1,26 @@
 import { EConfigType } from './types.ts';
 
 const formatCjs = (imports: Record<string, string>, content: string[], exports: string): string => {
-  const importArray = Object.keys(imports).map(
-    (name) => `const ${name} = require('${imports[name]}')`
+  const importArray = Object.entries(imports).map(
+    ([name, source]) => `const ${name} = require('${source}')`
   );
 
   const code = [...importArray, ...content];
 
   return code.length > 0
-    ? `${[...importArray, ...content].join(';')}; module.exports = ${exports};`
+    ? `${code.join(';')}; module.exports = ${exports};`
     : `module.exports = ${exports};`;
 };
 
 const formatEsm = (imports: Record<string, string>, content: string[], exports: string): string => {
-  const importArray = Object.keys(imports).map((name) => `import ${name} from '${imports[name]}'`);
+  const importArray = Object.entries(imports).map(
+    ([name, source]) => `import ${name} from '${source}'`
+  );
 
   const code = [...importArray, ...content];
 
   return code.length > 0
-    ? `${[...importArray, ...content].join(';')}; export default ${exports};`
+    ? `${code.join(';')}; export default ${exports};`
     : `export default ${exports};`;
 };
 
