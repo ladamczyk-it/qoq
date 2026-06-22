@@ -106,6 +106,8 @@ let totalFindings = 0;
 const machine = { reportDir, tools: {} };
 
 // ---------- Prettier ----------
+// Report is written by PrettierExecutor's JS-API path: { issues: string[] } —
+// the list of files that are not Prettier-formatted (relative paths).
 const prettier = read('prettier-report.json');
 if (prettier && !prettier.__parseError) {
   const files = (prettier.issues ?? []).map(rel);
