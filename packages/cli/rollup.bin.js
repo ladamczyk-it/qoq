@@ -17,13 +17,15 @@ const plugins = [
   ...binPlugins,
 ];
 
-// Skillslint is run through its JS API via runtime dynamic import() and is
-// installed on demand into the consumer project (see SkillslintConfigHandler),
-// so it must stay external rather than be bundled here.
+// Skillslint and Stylelint are run through their JS APIs via runtime dynamic
+// import() and resolve from the consumer's on-demand install (skillslint via
+// its peer dependency, stylelint via the @ladamczyk/qoq-stylelint-* templates),
+// so they must stay external rather than be bundled here.
 const external = [
   ...builtinModules,
   ...Object.keys(pkg.dependencies),
   ...Object.keys(pkg.peerDependencies),
+  'stylelint',
 ];
 
 export default {

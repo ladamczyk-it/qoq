@@ -20,8 +20,27 @@ import {
   type IModuleStylelintConfigWithTemplate,
 } from './types.ts';
 
+import type { LinterResult } from 'stylelint';
+
+interface IStylelintReportWarning {
+  line: number;
+  column: number;
+  rule: string;
+  severity: string;
+  text: string;
+  fixable: boolean;
+}
+
+type TStylelintReport = { source: string | undefined; warnings: IStylelintReportWarning[] }[];
+
 export class StylelintExecutor extends AbstractExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.stylelintcache');
+
+  // Resolved in prepare(), consumed in execute() — stylelint runs through its JS
+  // API rather than a spawned binary, so there are no CLI args to carry state.
+  private targets: string[] = [];
+  private strict = false;
+  private configFile = '';
 
   protected getCommandName(): string {
     return 'stylelint';
@@ -29,6 +48,33 @@ export class StylelintExecutor extends AbstractExecutor {
 
   protected getCommandArgs(): string[] {
     return [];
+  }
+
+  protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
+    const { default: stylelint } = await import('stylelint');
+
+    const result = await stylelint.lint({
+      files: this.targets,
+      configFile: this.configFile,
+      fix: options.fix,
+      cache: !options.disableCache,
+      cacheLocation: StylelintExecutor.CACHE_PATH,
+      cacheStrategy: 'metadata',
+      formatter: 'string',
+      allowEmptyInput: true,
+      ...(this.strict ? { maxWarnings: 0 } : {}),
+    });
+
+    if (options.json) {
+      writeFileSync(
+        `${options.output}/stylelint-report.json`,
+        JSON.stringify(this.buildReport(result))
+      );
+    } else {
+      process.stdout.write(result.report);
+    }
+
+    return result.errored || result.maxWarningsExceeded ? EExitCode.ERROR : EExitCode.OK;
   }
 
   protected async prepare(
@@ -48,37 +94,29 @@ export class StylelintExecutor extends AbstractExecutor {
     }
 
     const { strict } = stylelint;
+    this.strict = strict;
+
     let rest: StylelintConfig;
+    let glob: string;
 
     if ((<IModuleStylelintConfigWithPattern>stylelint).pattern) {
       const { pattern, ...other } = <IModuleStylelintConfigWithPattern>stylelint;
 
       rest = other;
-
-      args.push(`"${pattern}"`);
+      glob = pattern;
     } else if ((<IModuleStylelintConfigWithTemplate>stylelint).template) {
       const { template, ...other } = <IModuleStylelintConfigWithTemplate>stylelint;
 
       rest = other;
-
-      if (template === EModulesStylelint.STYLELINT_SCSS) {
-        args.push(`${srcPath}/**/*.{css,scss,sass}`);
-      } else {
-        args.push(`${srcPath}/**/*.css`);
-      }
+      glob =
+        template === EModulesStylelint.STYLELINT_SCSS
+          ? `${srcPath}/**/*.{css,scss,sass}`
+          : `${srcPath}/**/*.css`;
     } else {
       throw new Error('Bad config!');
     }
 
-    if (!options.disableCache) {
-      args.push('--cache-strategy', 'metadata');
-    }
-
     try {
-      if (strict) {
-        args.push('--max-warnings', '0');
-      }
-
       const configFilePath = resolveCliPackagePath(
         `/bin/stylelint.config.${configType === EConfigType.ESM ? 'm' : 'c'}js`
       );
@@ -102,11 +140,10 @@ export class StylelintExecutor extends AbstractExecutor {
 
       writeFileSync(configFilePath, formatCode(configType, imports, content, exports));
 
-      args.push('-c', resolveCwdRelativePath(configPath));
+      this.configFile = resolveCwdRelativePath(configPath);
 
       if (files.length > 0) {
-        // eslint-disable-next-line sonarjs/no-dead-store
-        let filteredFiles = [...files];
+        let filteredFiles: string[];
 
         try {
           const ignores = await readIgnorePatterns(GITIGNORE_FILE_PATH);
@@ -120,22 +157,33 @@ export class StylelintExecutor extends AbstractExecutor {
           throw new TerminateExecutorGracefully();
         }
 
-        args.push('--stdin-filename', ...filteredFiles);
-      }
-
-      if (options.fix) {
-        args.push('--fix');
-      }
-
-      if (options.json) {
-        args.push(
-          `--formatter json --output-file "${resolveCliRelativePath('/bin/report')}/stylelint-report.json"`
-        );
+        this.targets = filteredFiles;
+      } else {
+        this.targets = [glob];
       }
 
       return super.prepare(args, options, files);
     } catch (e) {
       return this.handlePrepareError(e);
     }
+  }
+
+  // Lean JSON report for `--json`: drop stylelint's internal `_postcssResult`
+  // blobs and keep only what summarize.mjs needs — per-file warnings, plus a
+  // `fixable` flag derived from rule metadata (the json formatter omits it).
+  private buildReport(result: LinterResult): TStylelintReport {
+    const meta = result.ruleMetadata ?? {};
+
+    return result.results.map((file) => ({
+      source: file.source,
+      warnings: file.warnings.map((warning) => ({
+        line: warning.line,
+        column: warning.column,
+        rule: warning.rule,
+        severity: warning.severity,
+        text: warning.text,
+        fixable: Boolean(meta[warning.rule]?.fixable),
+      })),
+    }));
   }
 }
