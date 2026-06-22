@@ -130,15 +130,16 @@ QoQ writes tool configs into its own `bin/` at runtime — the consumer project 
 
 **Runtime-generated inside `node_modules/@ladamczyk/qoq-cli/bin/`** (do not edit):
 
-| File                           | Notes                                                                  |
-| ------------------------------ | ---------------------------------------------------------------------- |
-| `eslint.config.{m,c}js`        | Merges `baseConfig` from each template; includes `.gitignore` patterns |
-| `knip.config.{m,c}js`          | Monorepo-aware: maps `workspaces` into Knip's workspace config         |
-| `stylelint.config.{m,c}js`     | Assembled from the stylelint template                                  |
-| `.npm-outdated-lock`           | Timestamp file that throttles npm checks to `checkOutdatedEvery` days  |
-| `.<tool>cache`                 | Per-tool cache directories (cleared on `--warmup`)                     |
-| `report/eslint-report.json`    | ESLint findings (written when `--json` is passed)                      |
-| `report/knip-report.json`      | Knip findings (written when `--json` is passed)                        |
-| `report/jscpd-report.json`     | JSCPD JSON output directory (written when `--json` is passed)          |
-| `report/prettier-report.json`  | List of files with formatting issues (written when `--json` is passed) |
-| `report/stylelint-report.json` | Stylelint findings (written when `--json` is passed)                   |
+| File                            | Notes                                                                         |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| `eslint.config.{m,c}js`         | Merges `baseConfig` from each template; includes `.gitignore` patterns        |
+| `knip.config.{m,c}js`           | Monorepo-aware: maps `workspaces` into Knip's workspace config                |
+| `stylelint.config.{m,c}js`      | Assembled from the stylelint template                                         |
+| `.npm-outdated-lock`            | Timestamp file that throttles npm checks to `checkOutdatedEvery` days         |
+| `.<tool>cache`                  | Per-tool cache directories (cleared on `--warmup`)                            |
+| `report/eslint-report.json`     | ESLint findings (written when `--json` is passed)                             |
+| `report/knip-report.json`       | Knip findings (written when `--json` is passed)                               |
+| `report/jscpd-report.json`      | JSCPD JSON output directory (written when `--json` is passed)                 |
+| `report/prettier-report.json`   | List of files with formatting issues (written when `--json` is passed)        |
+| `report/stylelint-report.json`  | Stylelint findings (written when `--json` is passed)                          |
+| `report/skillslint-report.json` | Skillslint textlint problems + skill scores (written when `--json` is passed) |

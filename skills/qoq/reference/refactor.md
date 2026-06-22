@@ -19,7 +19,7 @@ top that changes two things:
 
 Reusing the engine this way is deliberate: when `review`'s standards evolve (a new
 dimension, a sharper patch recipe), this command inherits the change automatically —
-there is nothing here to keep in sync.
+nothing here to keep in sync.
 
 ## Step 0 — Load the shared engine
 

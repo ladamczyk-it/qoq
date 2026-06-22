@@ -1,8 +1,12 @@
+import { writeFileSync } from 'fs';
+
 import { EExitCode } from '@ladamczyk/qoq-utils';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
+
+import type { ILintResult, TTextlintLintResult } from '@ladamczyk/skillslint';
 
 export class SkillslintExecutor extends AbstractExecutor {
   protected getCommandName(): string {
@@ -13,7 +17,8 @@ export class SkillslintExecutor extends AbstractExecutor {
     return [];
   }
 
-  protected async prepare(args: string[], options: IExecutorOptions): Promise<EExitCode> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected prepare(_args: string[], _options: IExecutorOptions): Promise<EExitCode> {
     const {
       modules: { skillslint },
     } = this.modulesConfig;
@@ -22,20 +27,50 @@ export class SkillslintExecutor extends AbstractExecutor {
       throw new TerminateExecutorGracefully();
     }
 
-    const { path } = skillslint;
+    return Promise.resolve(EExitCode.OK);
+  }
 
-    args.push('--path', path);
+  protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
+    const {
+      modules: { skillslint },
+    } = this.modulesConfig;
 
-    const { fix } = options;
-
-    try {
-      if (fix) {
-        args.push('--fix');
-      }
-
-      return super.prepare(args, { ...options, disableCache: true });
-    } catch (e) {
-      return this.handlePrepareError(e);
+    // prepare() already guards this; re-narrow here so `path` is a defined string.
+    if (!skillslint) {
+      throw new TerminateExecutorGracefully();
     }
+
+    const { lint, format } = await import('@ladamczyk/skillslint');
+    const result = await lint({ path: skillslint.path, fix: options.fix });
+
+    if (options.json) {
+      writeFileSync(
+        `${options.output}/skillslint-report.json`,
+        JSON.stringify(this.buildReport(result))
+      );
+    } else {
+      process.stdout.write(await format(result));
+    }
+
+    return result.passed ? EExitCode.OK : EExitCode.ERROR;
+  }
+
+  // Lean JSON report for `--json`: drop textlint's full fixed-file `output` blobs
+  // and keep only what summarize.mjs needs — per-file messages plus skill scores.
+  private buildReport(result: ILintResult): {
+    passed: boolean;
+    fixed: boolean;
+    skills: ILintResult['skills'];
+    textlint: { filePath: string; messages: TTextlintLintResult['messages'] }[];
+  } {
+    return {
+      passed: result.passed,
+      fixed: result.fixed,
+      skills: result.skills,
+      textlint: result.textlint.map((file) => ({
+        filePath: file.filePath,
+        messages: 'remainingMessages' in file ? file.remainingMessages : file.messages,
+      })),
+    };
   }
 }

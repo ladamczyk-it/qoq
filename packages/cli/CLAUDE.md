@@ -31,6 +31,8 @@ Each tool is a pair of classes in `src/modules/<tool>/`:
 
 `PrettierExecutor` overrides `run()` entirely to handle `--json` mode: it swaps `--check` for `--list-different`, captures stdout via `executeCommand(..., captureOutput=true)`, and writes `prettier-report.json` itself rather than relying on a Prettier CLI flag.
 
+`SkillslintExecutor` does not spawn a binary at all — it overrides `execute()` to call `@ladamczyk/skillslint`'s `lint()` + `format()` JS API directly (dynamically imported at runtime, so it resolves from the consumer's on-demand install; kept external in `rollup.bin.js`). `format()` returns the skillslint CLI's console output verbatim; under `--json` it skips `format()` and writes `skillslint-report.json` itself.
+
 `execute()` in `src/modules/index.ts` accepts an optional `tools?: string[]` fourth argument — when present, only executors whose name appears in the list are run. This powers the `qoq [tools...]` positional-arg feature.
 
 To add a new tool: create `src/modules/<tool>/{*ConfigHandler.ts,*Executor.ts,types.ts}`, register the handler in the `setNext()` chain and the executor in `execute()` in `src/modules/index.ts`. Add `shouldRun('<name>')` guard to the executor call in `execute()` and, if `--json` output is needed, push the appropriate flag inside `prepare()`.

@@ -69,7 +69,8 @@ npx qoq --check --json --output .qoq/reports
 
 A non-zero exit just means findings exist — the reports are still written. This
 writes `prettier-report.json`, `eslint-report.json`, `knip-report.json`,
-`jscpd-report.json` (and `stylelint-report.json` when Stylelint is enabled).
+`jscpd-report.json` (and `stylelint-report.json` / `skillslint-report.json` when
+Stylelint / Skillslint are enabled).
 
 Now collapse them into the digest — **this is the step that keeps tokens low, so
 do it instead of reading the raw reports**:

@@ -17,7 +17,14 @@ const plugins = [
   ...binPlugins,
 ];
 
-const external = [...builtinModules, ...Object.keys(pkg.dependencies)];
+// Skillslint is run through its JS API via runtime dynamic import() and is
+// installed on demand into the consumer project (see SkillslintConfigHandler),
+// so it must stay external rather than be bundled here.
+const external = [
+  ...builtinModules,
+  ...Object.keys(pkg.dependencies),
+  ...Object.keys(pkg.peerDependencies),
+];
 
 export default {
   input,

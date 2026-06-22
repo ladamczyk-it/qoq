@@ -329,6 +329,72 @@ if (Array.isArray(stylelint)) {
   }
 }
 
+// ---------- Skillslint (optional) ----------
+const skillslint = read('skillslint-report.json');
+if (skillslint && !skillslint.__parseError) {
+  // Two finding kinds: textlint prose problems (per file) and skills whose
+  // quality scores fall below the configured threshold.
+  const byRule = new Map(); // ruleId -> { count, errors, locs:[] }
+  let textErrors = 0;
+  let textWarnings = 0;
+  for (const file of skillslint.textlint ?? []) {
+    const fp = rel(file.filePath);
+    for (const m of file.messages ?? []) {
+      const rule = m.ruleId ?? '(text)';
+      const isErr = m.severity === 2;
+      if (isErr) {
+        textErrors++;
+      } else {
+        textWarnings++;
+      }
+      const g = byRule.get(rule) ?? { count: 0, errors: 0, locs: [] };
+      g.count++;
+      if (isErr) {
+        g.errors++;
+      }
+      g.locs.push(`${fp}:${m.line ?? '?'}`);
+      byRule.set(rule, g);
+    }
+  }
+  const textTotal = textErrors + textWarnings;
+  const failingSkills = (skillslint.skills ?? []).filter((s) => !s.passed);
+  const count = textTotal + failingSkills.length;
+  machine.tools.skillslint = {
+    total: count,
+    textlint: textTotal,
+    failingSkills: failingSkills.length,
+    skills: (skillslint.skills ?? []).length,
+  };
+  if (count) {
+    totalFindings += count;
+    const lines = [];
+    if (textTotal) {
+      lines.push(
+        `  textlint  ${textTotal} problem(s) / ${byRule.size} rule(s)  (${textErrors} error, ${textWarnings} warn)`
+      );
+      for (const [rule, g] of [...byRule.entries()].sort((a, b) => b[1].count - a[1].count)) {
+        const tag = severityTag(g);
+        lines.push(
+          `    ${String(rule).padEnd(36)} x${String(g.count).padEnd(3)} ${tag.padEnd(8)} ${cap(g.locs)}`
+        );
+      }
+    }
+    for (const s of failingSkills) {
+      const below = ['overall', 'structure', 'clarity', 'specificity', 'advanced']
+        .map((d) => `${d} ${s.scores?.[d] ?? '?'}`)
+        .join(', ');
+      lines.push(`  /${s.name}  below threshold  (${below})`);
+    }
+    sections.push(
+      `SKILLSLINT  ${count} finding(s)  [textlint auto-fixable via qoq --fix; low scores need rewriting]\n${lines.join(
+        '\n'
+      )}`
+    );
+  }
+} else if (skillslint?.__parseError) {
+  sections.push(`SKILLSLINT  ⚠ could not parse report: ${skillslint.__parseError}`);
+}
+
 machine.totalFindings = totalFindings;
 
 machine.reportsFound = reportsFound;

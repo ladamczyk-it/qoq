@@ -135,3 +135,44 @@ Native Stylelint JSON formatter output — an array, one entry per source file.
 
 Some Stylelint versions add a `fixable` boolean per warning; the summarizer uses
 it when present.
+
+---
+
+## skillslint-report.json
+
+Emitted by the Skillslint JS API (`lint()`), not a native CLI formatter. Two
+finding kinds live side by side: `textlint` prose problems (one entry per scanned
+`SKILL.md`, with textlint messages) and `skills` quality scores, where
+`passed: false` means a skill fell below its configured threshold.
+
+```json
+{
+  "passed": false,
+  "fixed": false,
+  "skills": [
+    {
+      "name": "my-skill",
+      "scores": {
+        "overall": 40,
+        "structure": 60,
+        "clarity": 30,
+        "specificity": 55,
+        "advanced": 50
+      },
+      "passed": false
+    }
+  ],
+  "textlint": [
+    {
+      "filePath": "/abs/path/skills/my-skill/SKILL.md",
+      "messages": [
+        { "ruleId": "common-misspellings", "severity": 2, "line": 12, "column": 4, "message": "…" }
+      ]
+    }
+  ]
+}
+```
+
+textlint `severity` follows ESLint's convention (`2` error, `1` warning). When
+`--fix` ran, `fixed` is `true` and `messages` holds the problems that remained
+unfixable.

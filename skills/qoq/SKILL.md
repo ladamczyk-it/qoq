@@ -10,8 +10,8 @@ description: >-
   whole project — when there is no branch to diff. Use `bump packages` to safely
   update npm dependencies in stages (minor/patch first, then majors one major at
   a time with changelog research). Use `fix` to concentrate on _fixing_ findings:
-  it reuses the `gate` engine to analyze a dirty working tree (or a chosen scope)
-  and stages every fix — both the safe tier and the judgment calls `gate` only
+  it reuses the `gate` engine to run `qoq --check` over the full project (or a
+  chosen scope) and stages every fix — both the safe tier and the judgment calls `gate` only
   reports — as reviewable git patches applied one at a time behind the project's
   lint/test/build gate. Trigger whenever the user wants to "review my
   branch/diff/PR", check if changes are "ready to merge", "clean up / refactor /
@@ -67,10 +67,12 @@ and `gate` all build on.
    and revert them as their safety net, so a dirty tree gets tangled in that. If
    there are uncommitted changes, point them out and ask the user to commit,
    stash, or confirm stashing is fine before continuing. **Exception: `gate` and
-   `fix`.** Both are invoked precisely _because_ a producer just wrote code, so
-   their scope is the dirty working tree — they do not demand a clean one and use a
-   `git stash create` snapshot as their safety net instead (see
-   [reference/gate.md](reference/gate.md) and [reference/fix.md](reference/fix.md)).
+   `fix`.** Both lean on a `git stash create` snapshot as their safety net instead
+   of demanding a clean tree, so they tolerate uncommitted work. `gate`'s scope _is_
+   the producer's dirty working tree; `fix`'s scope is the **full project** (or a
+   scope you name) — it runs `qoq --check` over the whole codebase and never scans
+   for modified files (see [reference/gate.md](reference/gate.md) and
+   [reference/fix.md](reference/fix.md)).
 
 2. **Locate the QoQ engine.** The linters and formatters (Prettier, ESLint,
    Knip, JSCPD, Stylelint) and their `--json` digest are owned by one place —
@@ -120,13 +122,13 @@ truth for everything specific.
 
 ## Commands
 
-| Command         | Description                                                                                 | Reference                                      |
-| --------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `review`        | Review a branch's changes against a base branch and stage fixes as patches                  | [reference/review.md](reference/review.md)     |
-| `refactor`      | Run the same analysis over a scope you choose (path/package/directory/whole project)        | [reference/refactor.md](reference/refactor.md) |
-| `fix`           | Fix findings over a dirty tree / chosen scope — stage both tiers as patches behind the gate | [reference/fix.md](reference/fix.md)           |
-| `bump packages` | Safely update npm dependencies in stages — minor/patch first, then majors one at a time     | [reference/bump.md](reference/bump.md)         |
-| `gate`          | Non-interactive quality gate over a producer's just-written changes; returns PASS/FAIL      | [reference/gate.md](reference/gate.md)         |
+| Command         | Description                                                                                     | Reference                                      |
+| --------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `review`        | Review a branch's changes against a base branch and stage fixes as patches                      | [reference/review.md](reference/review.md)     |
+| `refactor`      | Run the same analysis over a scope you choose (path/package/directory/whole project)            | [reference/refactor.md](reference/refactor.md) |
+| `fix`           | Fix findings over the full project / chosen scope — stage both tiers as patches behind the gate | [reference/fix.md](reference/fix.md)           |
+| `bump packages` | Safely update npm dependencies in stages — minor/patch first, then majors one at a time         | [reference/bump.md](reference/bump.md)         |
+| `gate`          | Non-interactive quality gate over a producer's just-written changes; returns PASS/FAIL          | [reference/gate.md](reference/gate.md)         |
 
 `gate` is the **integration entry point** — the command another skill (or you,
 mid-task) calls before declaring work done. It auto-fixes against the standards
@@ -134,8 +136,9 @@ and returns a verdict rather than running an interactive plan. See
 [Consuming `/qoq` from another skill](#consuming-qoq-from-another-skill).
 
 `fix` is gate's **interactive, patch-first sibling.** It reuses the same gate
-engine (dirty-tree scope, the `git stash create` snapshot, the seven-dimension
-analysis) but instead of silently auto-applying the safe tier and merely _reporting_
+engine (the `git stash create` snapshot, the seven-dimension analysis) over the
+**full project** (or a chosen scope) — running `qoq --check`, not scanning for
+modified files — but instead of silently auto-applying the safe tier and merely _reporting_
 the judgment calls, it stages **every** fix — both tiers — as a reviewable git
 patch, then applies the approved ones one at a time behind the validation gate
 (`review`/`refactor` mechanics). Reach for `fix` when the goal is to _land_ the
@@ -159,13 +162,13 @@ src/foo.test.ts src/foo.ts`; `bump packages` → command `bump`, the word
    reference picks up from its own first phase without re-doing the engine handoff.
 3. **First word doesn't match**: infer the closest command from the request —
    "is this ready to merge?" → `review`; "clean up the auth module" →
-   `refactor`; "fix the lint errors / findings in what I just wrote" → `fix`;
+   `refactor`; "fix the lint errors / findings" → `fix`;
    "our deps are stale" → `bump packages`; "check the code I just generated meets
    our standards" → `gate` — then load that reference. Disambiguating `fix` from its
-   neighbors: `fix` lands findings as approved patches over a dirty tree (or chosen
-   scope); `gate` wants a non-interactive PASS/FAIL verdict; `review` wants a branch
-   reviewed against a base; `refactor` improves a chosen area with no findings yet in
-   hand.
+   neighbors: `fix` lands findings as approved patches over the full project (or a
+   chosen scope), running `qoq --check`; `gate` wants a non-interactive PASS/FAIL
+   verdict over a producer's just-changed files; `review` wants a branch reviewed
+   against a base; `refactor` improves a chosen area with no findings yet in hand.
 
 The command reference owns its own phases (scoping, analysis, presentation,
 execution, cleanup); this file owns only the shared setup, principles, and

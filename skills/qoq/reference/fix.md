@@ -9,10 +9,13 @@ patch** applied one at a time behind the project's own lint/test/build gate.
 It is built entirely out of two existing pieces, so there is no third standard to
 keep in sync:
 
-- It **utilizes `gate`** for the front half — scope resolution over a dirty
-  working tree, the `git stash create` safety snapshot, the baseline validation
-  run, and the same seven-dimension analysis (verbatim, via the engine). `fix` is
-  a _profile_ over the gate engine, exactly as `gate` is a profile over `review`.
+- It **utilizes `gate`** for the front half — the `git stash create` safety
+  snapshot, the baseline validation run, and the same seven-dimension analysis
+  (verbatim, via the engine). The one thing it changes is **scope**: where `gate`
+  scopes to the producer's just-changed files, `fix` runs `qoq --check` over the
+  **full project** (or a scope you name) and works the findings it surfaces — it
+  **does not scan for modified files**. `fix` is a _profile_ over the gate engine,
+  exactly as `gate` is a profile over `review`.
 - It **leverages the `review` / `refactor` best practices** for the back half —
   the edit→diff→restore→check patch recipe, the plan→approve→execute split, the
   apply-one-at-a-time-and-revalidate loop, and the readability/cleanup pass.
@@ -24,40 +27,42 @@ autonomously. `fix` escalates: it stages **both** tiers as patches, so the
 advisories gate would have left on the floor become concrete, individually
 approvable, individually revertible changes the user can accept, edit, or drop.
 
-| Aspect        | `gate`                                       | `fix`                                                                |
-| ------------- | -------------------------------------------- | -------------------------------------------------------------------- |
-| Question      | "is this good enough?" → PASS / FAIL         | "make this good" → patches that land the fixes                       |
-| Working tree  | expected dirty (the changes _are_ the scope) | same — reuses gate's scope resolution                                |
-| Safe tier     | auto-applied with `Edit`                     | **staged as a patch** (approved by default, still revalidated)       |
-| Advisory tier | reported, never applied                      | **staged as a patch too**, surfaced for explicit approval            |
-| Delivery      | direct edits + a verdict                     | **every change is a `git apply`-able patch** applied behind the gate |
-| Approval      | none (caller pre-authorized)                 | present the plan, get sign-off, then execute (review-style)          |
+| Aspect        | `gate`                                       | `fix`                                                                             |
+| ------------- | -------------------------------------------- | --------------------------------------------------------------------------------- |
+| Question      | "is this good enough?" → PASS / FAIL         | "make this good" → patches that land the fixes                                    |
+| Scope         | the producer's just-changed files            | **the full project** (or a scope you name) — `qoq --check`, never the dirty files |
+| Working tree  | expected dirty (the changes _are_ the scope) | clean or dirty — tolerated via the snapshot, but the scope is the project         |
+| Safe tier     | auto-applied with `Edit`                     | **staged as a patch** (approved by default, still revalidated)                    |
+| Advisory tier | reported, never applied                      | **staged as a patch too**, surfaced for explicit approval                         |
+| Delivery      | direct edits + a verdict                     | **every change is a `git apply`-able patch** applied behind the gate              |
+| Approval      | none (caller pre-authorized)                 | present the plan, get sign-off, then execute (review-style)                       |
 
-Use `fix` when you have a scope that you already know needs work — a `gate` or
-`review` just flagged it, or you simply want the findings _fixed_ rather than
-reported — and you want the fixes as a clean, reviewable patch series rather than a
-silent auto-apply or a wall of prose.
+Use `fix` when you want findings _fixed_ rather than reported — across the whole
+project by default, or over a scope you name — and you want the fixes as a clean,
+reviewable patch series rather than a silent auto-apply or a wall of prose.
 
 ---
 
 ## Phase 1 — Resolve scope & baseline (reuse `gate` Phase 1)
 
-Setup already located the engine. Follow [gate.md](gate.md)'s **Phase 1**
-exactly — there is no clean-tree gate, because a dirty tree is the point:
+Setup already located the engine. Follow [gate.md](gate.md)'s **Phase 1** for the
+snapshot and baseline, with one deliberate change: **`fix` does not scan for
+modified files.** Its scope is the whole codebase by default, not the dirty tree.
 
-1. **Determine the scope.** Explicit paths passed in are fixed verbatim (gate
-   exactly those, ignoring unrelated dirty files); with no paths, infer it from the
-   working tree (`git status --porcelain` + `git diff` over the source globs).
-   `fix` will also accept a `refactor`-style scope — a path, glob, package, or
-   directory — when the user names one instead of relying on the dirty tree; resolve
-   it with `git ls-files` as [refactor.md](refactor.md)'s Phase 1 describes. If the
-   resolved scope is empty, there is nothing to fix — say so and stop.
+1. **Determine the scope.** With no argument, the scope is the **full project** —
+   run `qoq --check` over the entire codebase (the engine's default) and let the
+   findings it surfaces define the work. When the user names a scope instead — a
+   path, glob, package, or directory ([refactor.md](refactor.md)-style) — resolve it
+   with `git ls-files` and work exactly that. Either way the scope comes from the
+   argument (or its absence), **never** from `git status` / `git diff`. If a named
+   scope resolves to nothing, say so and stop.
 
 2. **Take the safety snapshot.** `git stash create "qoq-fix snapshot"`; record the
    SHA. This is the restore point if a patch regresses validation
-   (`git checkout <sha> -- <files>`), the same net gate relies on instead of the
-   clean-tree baseline. (If it prints nothing the tree was clean against HEAD — fall
-   back to `HEAD` for tracked files, and keep untracked produced files in mind.)
+   (`git checkout <sha> -- <files>`), the same net `gate` relies on instead of the
+   clean-tree baseline — it lets `fix` tolerate a dirty tree without making the dirty
+   files the scope. (If it prints nothing the tree was clean against HEAD — fall back
+   to `HEAD` for tracked files, and keep untracked files in mind.)
 
 3. **Establish the baseline gate result.** Run the engine's lint gate
    (`qoq --check` in QoQ mode) plus the project's test/build over the scope once, so
@@ -85,14 +90,14 @@ tree stays untouched until Phase 4:
 # 2. Capture as a patch:
 git diff -- <changed paths> > .qoq/<name>.patch
 # 3. Restore the tree so the next dimension starts clean:
-git checkout <snapshot-sha> -- <changed paths>   # restore to the producer's snapshot, not HEAD
+git checkout <snapshot-sha> -- <changed paths>   # restore to the Phase 1 snapshot, not HEAD
 # 4. Verify it applies:
 git apply --check .qoq/<name>.patch
 ```
 
-Because the tree is intentionally dirty here (unlike `review`, which restores to a
-clean HEAD), restore to the **snapshot SHA from Phase 1**, never `git restore`/`HEAD`
-— that would throw away the producer's uncommitted work. Name patches with the
+Restore to the **snapshot SHA from Phase 1**, not `git restore`/`HEAD` — the
+snapshot captures whatever uncommitted work the tree had, so restoring to it never
+throws that away (on a clean tree the snapshot equals HEAD). Name patches with the
 standard dimension names so Phase 4 can order them: `spellings`, `dependencies`,
 `complexity`, `copy_paste`, `conventions`, `patterns`, `typescript`.
 
@@ -174,8 +179,8 @@ validation step one final time, and summarize what landed — grouped by dimensi
 noting which advisories were applied and which were left staged.
 
 Then clean up, in order: `rm -rf .qoq/`, then revert the `.gitignore` block added in
-Phase 1 (or `git restore .gitignore`). The tree ends with only the producer's code
-plus the fixes that landed.
+Phase 1 (or `git restore .gitignore`). The tree ends with the snapshot's original
+contents plus the fixes that landed.
 
 **Optional gate-style verdict.** Because `fix` is built on the gate engine, it can
 close with the same structured verdict so a calling skill can branch on it — emit it
@@ -199,14 +204,16 @@ requested, a plain prose summary of what landed is enough.
 
 ## Quick reference
 
-- **Relationship:** front half = [gate.md](gate.md) (dirty-tree scope, snapshot,
-  seven-dimension analysis); back half = [review.md](review.md) (patch recipe,
-  plan→approve→execute, validate-after-each, readability). `fix` only adds: stage
-  **both** tiers as patches and apply the approved ones behind the gate.
-- **Scope:** the dirty working tree by default (explicit paths preferred), or a
-  `refactor`-style chosen scope when named. Bounded, never the whole repo unasked.
+- **Relationship:** front half = [gate.md](gate.md) (snapshot, baseline,
+  seven-dimension analysis — but full-project scope, not the dirty tree); back half =
+  [review.md](review.md) (patch recipe, plan→approve→execute, validate-after-each,
+  readability). `fix` only adds: stage **both** tiers as patches and apply the
+  approved ones behind the gate.
+- **Scope:** the **full project** by default (`qoq --check` over the whole
+  codebase), or a `refactor`-style chosen scope when named. `fix` never scans for
+  modified files.
 - **Safety net:** the `git stash create` snapshot — restore to that SHA, never to
-  HEAD, because the tree is intentionally dirty.
+  HEAD, because the snapshot captures any uncommitted work the tree had.
 - **Delivery:** every change is a reviewable, individually-revertible `git apply`-able
   patch, applied one at a time behind the project's lint/test/build gate.
 - **vs. `gate`:** `gate` auto-applies the safe tier and reports advisories for a

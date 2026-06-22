@@ -62,6 +62,80 @@
     "rollup-plugin-esbuild": "6.2.1",
     "typescript": "6.0.3"
   },
+  "peerDependencies": {
+    "@ladamczyk/qoq-eslint-v9-js": "^4",
+    "@ladamczyk/qoq-eslint-v9-js-jest": "^4",
+    "@ladamczyk/qoq-eslint-v9-js-jest-rtl": "^4",
+    "@ladamczyk/qoq-eslint-v9-js-react": "^4",
+    "@ladamczyk/qoq-eslint-v9-js-vitest": "^4",
+    "@ladamczyk/qoq-eslint-v9-js-vitest-rtl": "^4",
+    "@ladamczyk/qoq-eslint-v9-ts": "^4",
+    "@ladamczyk/qoq-eslint-v9-ts-jest": "^4",
+    "@ladamczyk/qoq-eslint-v9-ts-jest-rtl": "^4",
+    "@ladamczyk/qoq-eslint-v9-ts-react": "^4",
+    "@ladamczyk/qoq-eslint-v9-ts-vitest": "^4",
+    "@ladamczyk/qoq-eslint-v9-ts-vitest-rtl": "^4",
+    "@ladamczyk/qoq-knip": "^4",
+    "@ladamczyk/qoq-jscpd": "^4",
+    "@ladamczyk/qoq-prettier": "^4",
+    "@ladamczyk/qoq-prettier-with-json-sort": "^4",
+    "@ladamczyk/qoq-stylelint-css": "^4",
+    "@ladamczyk/qoq-stylelint-scss": "^4",
+    "@ladamczyk/skillslint": "^4.1.1"
+  },
+  "peerDependenciesMeta": {
+    "@ladamczyk/qoq-eslint-v9-js": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-js-jest": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-js-jest-rtl": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-js-react": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-js-vitest": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-js-vitest-rtl": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-ts": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-ts-jest": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-ts-jest-rtl": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-ts-react": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-ts-vitest": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-eslint-v9-ts-vitest-rtl": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-prettier": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-prettier-with-json-sort": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-stylelint-css": {
+      "optional": true
+    },
+    "@ladamczyk/qoq-stylelint-scss": {
+      "optional": true
+    },
+    "@ladamczyk/skillslint": {
+      "optional": true
+    }
+  },
   "engines": {
     "node": ">=22.15.0"
   },
