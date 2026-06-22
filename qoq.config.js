@@ -29,6 +29,7 @@ export default {
       // this is subpackage specific
       'pkg-types',
       '@eslint/compat',
+      '@jscpd/core',
       'jscpd',
       'prettier-plugin-sort-json',
       'browserslist',

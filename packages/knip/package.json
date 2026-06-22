@@ -44,7 +44,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "knip": "6.17.1"
+    "knip": "6.18.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "12.3.0",

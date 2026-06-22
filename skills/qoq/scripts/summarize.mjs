@@ -266,10 +266,13 @@ if (knip && !knip.__parseError) {
 }
 
 // ---------- JSCPD ----------
+// Report is written by JscpdExecutor's JS-API path: a lean
+// { percentage, clones:[{ format, lines, firstFile:{name,start,end}, secondFile:{…} }] }
+// (jscpd's heavy `fragment`/token/blame data is dropped at the source).
 const jscpd = read('jscpd-report.json');
 if (jscpd && !jscpd.__parseError) {
-  const dups = jscpd.duplicates ?? [];
-  const pct = jscpd.statistics?.total?.percentage;
+  const dups = jscpd.clones ?? [];
+  const pct = jscpd.percentage;
   machine.tools.jscpd = { clones: dups.length, percentage: pct };
   if (dups.length) {
     totalFindings += dups.length;
