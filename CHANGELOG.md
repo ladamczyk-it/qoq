@@ -1,3 +1,11 @@
+## [4.3.6](https://github.com/ladamczyk-it/qoq/compare/v4.3.5...v4.3.6) (2026-06-25)
+
+
+### Bug Fixes
+
+* bump packages ([6ab64e6](https://github.com/ladamczyk-it/qoq/commit/6ab64e6e0f5327a59c469e719623544f7b37f353))
+* tweak `qoq fix` + switch skillslint to javascript API execution ([814a133](https://github.com/ladamczyk-it/qoq/commit/814a1333274d62dc0d44a7494b92f7998ca47bc1))
+
 ## [4.3.5](https://github.com/ladamczyk-it/qoq/compare/v4.3.4...v4.3.5) (2026-06-20)
 
 
