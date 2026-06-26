@@ -36,3 +36,5 @@ steps:
     settings:
       repositories:
         - ladamczyk-it/cv@main
+      token:
+        from_secret: woodpecker_token
