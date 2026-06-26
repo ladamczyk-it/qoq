@@ -20,7 +20,7 @@ steps:
     image: *default_image
     commands:
       - npm run config-inspector -- all
-      - for d in ./packages/eslint-v9-*; do pkg=$(basename "$d"); mkdir -p "./build/$pkg/stats"; cp -r "./packages/$pkg/stats/"* "./build/$pkg/stats/"; done
+      - for d in ./packages/eslint-v9-*; do pkg=$(basename "$d"); mkdir -p "./build/packages/$pkg/stats"; cp -r "./packages/$pkg/stats/"* "./build/packages/$pkg/stats/"; done
 
   - name: deploy-artefact
     image: *default_image
