@@ -31,7 +31,7 @@ steps:
     volumes:
       - /home/joke/artifacts/qoq:/usr/build
 
-  - name: trigger-downstream:
+  - name: trigger-downstream
     image: woodpeckerci/plugin-trigger
     settings:
       repositories:
