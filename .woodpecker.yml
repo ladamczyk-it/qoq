@@ -1,0 +1,32 @@
+when:
+  - event: push
+    branch: main
+
+variables:
+  - &default_image node:22-alpine
+
+steps:
+  - name: install
+    image: *default_image
+    commands:
+      - npm ci
+
+  - name: build
+    image: *default_image
+    commands:
+      - npm run build
+
+  - name: config-inspector
+    image: *default_image
+    commands:
+      - npm run config-inspector -- all
+      - for d in packages/eslint-v9-*/; do pkg=$(basename "$d"); cp -r "$d/stats" "./build/$pkg/stats"; done
+
+  - name: deploy-artefact
+    image: *default_image
+    commands:
+      - rm -rf /usr/build/*
+      - mkdir -p /usr/build
+      - cp -r build/* /usr/build/
+    volumes:
+      - /home/joke/artifacts/qoq:/usr/build
