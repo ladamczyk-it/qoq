@@ -16,7 +16,6 @@
     "config-inspector": "node ./scripts/config-inspector.js",
     "config-inspector:clean": "rimraf -g ./packages/eslint-v9-*/stats/",
     "husky:pre-push": "run-s build check:engine typecheck test qoq:check",
-    "postinstall": "qoq --warmup",
     "pre:test": "npm run config-inspector",
     "prepare": "husky",
     "publish:full": "run-s husky:pre-push publish:release",
