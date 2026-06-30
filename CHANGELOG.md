@@ -1,3 +1,15 @@
+# [4.4.0](https://github.com/ladamczyk-it/qoq/compare/v4.3.6...v4.4.0) (2026-06-30)
+
+
+### Bug Fixes
+
+* bump packages ([eb68b68](https://github.com/ladamczyk-it/qoq/commit/eb68b68b501d03a375b716f3e909e576faaa565a))
+
+
+### Features
+
+* self check config for redundant entries ([af8f00a](https://github.com/ladamczyk-it/qoq/commit/af8f00aef5f087fa77fb32ae91cd5fe442429d54))
+
 ## [4.3.6](https://github.com/ladamczyk-it/qoq/compare/v4.3.5...v4.3.6) (2026-06-25)
 
 
