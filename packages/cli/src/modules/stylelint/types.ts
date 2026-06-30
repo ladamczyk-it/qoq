@@ -18,5 +18,4 @@ export interface IModuleStylelintConfigWithPattern extends IModuleStylelintConfi
 }
 
 export type TModuleStylelintConfig =
-  | IModuleStylelintConfigWithTemplate
-  | IModuleStylelintConfigWithPattern;
+  IModuleStylelintConfigWithTemplate | IModuleStylelintConfigWithPattern;
