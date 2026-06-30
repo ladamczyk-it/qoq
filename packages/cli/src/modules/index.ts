@@ -11,6 +11,7 @@ import { QoqConfig } from '../helpers/types.ts';
 
 import { AbstractConfigHandler } from './abstract/AbstractConfigHandler.ts';
 import { BasicConfigHandler } from './basic/BasicConfigHandler.ts';
+import { BasicExecutor } from './basic/BasicExecutor.ts';
 import { EslintConfigHandler } from './eslint/EslintConfigHandler.ts';
 import { EslintExecutor } from './eslint/EslintExecutor.ts';
 import { JscpdConfigHandler } from './jscpd/JscpdConfigHandler.ts';
@@ -65,8 +66,13 @@ const getModulesFromConfig = (
   workspaces: IModulesConfig['workspaces']
 ): IModulesConfig => {
   const modulesConfig = { modules: {}, workspaces } as IModulesConfig;
+  const resolved = getHandlerBySequence(modulesConfig, config).getModulesFromConfig();
 
-  return getHandlerBySequence(modulesConfig, config).getModulesFromConfig();
+  // Keep the raw user config around so the BasicExecutor health check can compare
+  // it against the defaults the handlers just merged in.
+  resolved.rawConfig = config;
+
+  return resolved;
 };
 
 export const initConfig = async (
@@ -166,6 +172,7 @@ export const execute = async (
   const eslintExecutor = new EslintExecutor(modulesConfig, hideMessages);
   const stylelintExecutor = new StylelintExecutor(modulesConfig, hideMessages);
   const skillslintExecutor = new SkillslintExecutor(modulesConfig, hideMessages);
+  const basicExecutor = new BasicExecutor(modulesConfig, hideMessages);
 
   const responses: Record<string, EExitCode> = {
     [npmExecutor.getName()]: EExitCode.OK,
@@ -175,6 +182,7 @@ export const execute = async (
     [eslintExecutor.getName()]: EExitCode.OK,
     [stylelintExecutor.getName()]: EExitCode.OK,
     [skillslintExecutor.getName()]: EExitCode.OK,
+    [basicExecutor.getName()]: EExitCode.OK,
   };
 
   if (!skipNpm && shouldRun('npm')) {
@@ -204,6 +212,8 @@ export const execute = async (
   if (!skipSkillslint && modulesConfig.modules.skillslint && shouldRun('skillslint')) {
     responses[skillslintExecutor.getName()] = await skillslintExecutor.run(options, files);
   }
+
+  responses[basicExecutor.getName()] = await basicExecutor.run(options, files);
 
   Object.keys(responses)
     .filter((key) => responses[key] !== EExitCode.OK)

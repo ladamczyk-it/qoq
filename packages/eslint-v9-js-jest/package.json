@@ -46,7 +46,7 @@
   "dependencies": {
     "@ladamczyk/qoq-eslint-v9-js": "^4.3.6",
     "@ladamczyk/qoq-utils": "^4.3.6",
-    "eslint-plugin-jest": "29.15.2",
+    "eslint-plugin-jest": "29.15.4",
     "globals": "17.7.0"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import { EConfigType } from '../helpers/types.ts';
+import { EConfigType, QoqConfig } from '../helpers/types.ts';
 
 import { IModuleEslintConfig } from './eslint/types.ts';
 import { IModuleJscpdConfig } from './jscpd/types.ts';
@@ -17,6 +17,10 @@ export interface IModulesConfig {
     stylelint: string;
   };
   workspaces?: string[];
+  // Raw, user-authored qoq.config.* (before defaults are merged in). Kept so the
+  // BasicExecutor self-health-check can tell which entries the user actually wrote
+  // versus values that getModulesFromConfig filled in from defaults.
+  rawConfig?: QoqConfig;
   modules: {
     npm?: IModuleNpmConfig;
     prettier?: IModulePrettierConfig;
