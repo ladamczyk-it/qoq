@@ -51,7 +51,7 @@ describe('BasicExecutor', () => {
 
   describe('getName', () => {
     it('should return the capitalized command name', () => {
-      expect(new BasicExecutor(dummyModulesConfig, true, true).getName()).toBe('Basic');
+      expect(new BasicExecutor(dummyModulesConfig, true, true).getName()).toBe('Selfcheck');
     });
   });
 

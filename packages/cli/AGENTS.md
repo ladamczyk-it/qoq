@@ -1,6 +1,6 @@
 # @ladamczyk/qoq-cli — Agent Context
 
-`@ladamczyk/qoq-cli` orchestrates Prettier, ESLint, Knip, JSCPD, Stylelint, Skillslint, and npm-outdated checks behind three commands. It reads `qoq.config.js` from the consumer project root, generates tool-specific config files at runtime into its own `bin/` directory, and delegates to each tool.
+`@ladamczyk/qoq-cli` orchestrates Prettier, ESLint, Knip, JSCPD, Stylelint, Structurelint, Skillslint, and npm-outdated checks behind three commands. It reads `qoq.config.js` from the consumer project root, generates tool-specific config files at runtime into its own `bin/` directory, and delegates to each tool.
 
 ## Commands
 
@@ -14,17 +14,17 @@ qoq [tools...]          # run only the named tools, e.g. `qoq eslint prettier`
 
 All commands accept these flags:
 
-| Flag                                                           | Effect                                                                |
-| -------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `--disable-cache`                                              | Skip caching for all tools                                            |
-| `--skip-{prettier,jscpd,knip,eslint,npm,stylelint,skillslint}` | Skip individual tools                                                 |
-| `--concurrency <off\|auto>`                                    | Run tools concurrently where possible                                 |
-| `--production`                                                 | Run Knip in production mode                                           |
-| `--config-hints`                                               | Enable Knip config hints                                              |
-| `--silent`                                                     | Suppress QoQ output                                                   |
-| `--warmup`                                                     | Pre-generate config files without running tools                       |
-| `--json`                                                       | Write each tool's output to a JSON file in `--output`                 |
-| `--output <path>`                                              | Directory for JSON reports (default: `bin/report`); requires `--json` |
+| Flag                                                                         | Effect                                                                |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `--disable-cache`                                                            | Skip caching for all tools                                            |
+| `--skip-{prettier,jscpd,knip,eslint,npm,stylelint,structurelint,skillslint}` | Skip individual tools                                                 |
+| `--concurrency <off\|auto>`                                                  | Run tools concurrently where possible                                 |
+| `--production`                                                               | Run Knip in production mode                                           |
+| `--config-hints`                                                             | Enable Knip config hints                                              |
+| `--silent`                                                                   | Suppress QoQ output                                                   |
+| `--warmup`                                                                   | Pre-generate config files without running tools                       |
+| `--json`                                                                     | Write each tool's output to a JSON file in `--output`                 |
+| `--output <path>`                                                            | Directory for JSON reports (default: `bin/report`); requires `--json` |
 
 Add `"postinstall": "qoq --warmup"` to the consumer's `package.json` so IDEs get valid ESLint/Stylelint configs immediately after `npm install`.
 
@@ -38,6 +38,7 @@ Add `"postinstall": "qoq --warmup"` to the consumer's `package.json` so IDEs get
 **Optional checks** run only when their config block is present in `qoq.config.js`; omit the block to disable them, or skip for a single run with the matching `--skip-*` flag:
 
 - **Stylelint** (`--skip-stylelint`) — backed by the compliant `@ladamczyk/qoq-stylelint-{css,scss}` templates; enabled via a `stylelint` block
+- **Structurelint** (`--skip-structurelint`) — validates project file/folder structure; backed by `@ladamczyk/structurelint`; enabled via a `structurelint` block; runs before Skillslint
 - **Skillslint** (`--skip-skillslint`) — lints Claude Code skill docs; backed by `@ladamczyk/skillslint`; enabled via a `skillslint` block
 
 ## qoq.config.js schema
@@ -108,6 +109,11 @@ export default {
     strict: false, // true = fail on warnings
   },
 
+  structurelint: {
+    // omit entirely to disable; validates project file/folder structure
+    path: '.',
+  },
+
   skillslint: {
     // omit entirely to disable; lints Claude Code skill docs
     path: './skills',
@@ -130,16 +136,17 @@ QoQ writes tool configs into its own `bin/` at runtime — the consumer project 
 
 **Runtime-generated inside `node_modules/@ladamczyk/qoq-cli/bin/`** (do not edit):
 
-| File                            | Notes                                                                         |
-| ------------------------------- | ----------------------------------------------------------------------------- |
-| `eslint.config.{m,c}js`         | Merges `baseConfig` from each template; includes `.gitignore` patterns        |
-| `knip.config.{m,c}js`           | Monorepo-aware: maps `workspaces` into Knip's workspace config                |
-| `stylelint.config.{m,c}js`      | Assembled from the stylelint template                                         |
-| `.npm-outdated-lock`            | Timestamp file that throttles npm checks to `checkOutdatedEvery` days         |
-| `.<tool>cache`                  | Per-tool cache directories (cleared on `--warmup`)                            |
-| `report/eslint-report.json`     | ESLint findings (written when `--json` is passed)                             |
-| `report/knip-report.json`       | Knip findings (written when `--json` is passed)                               |
-| `report/jscpd-report.json`      | JSCPD JSON output directory (written when `--json` is passed)                 |
-| `report/prettier-report.json`   | List of files with formatting issues (written when `--json` is passed)        |
-| `report/stylelint-report.json`  | Stylelint findings (written when `--json` is passed)                          |
-| `report/skillslint-report.json` | Skillslint textlint problems + skill scores (written when `--json` is passed) |
+| File                               | Notes                                                                         |
+| ---------------------------------- | ----------------------------------------------------------------------------- |
+| `eslint.config.{m,c}js`            | Merges `baseConfig` from each template; includes `.gitignore` patterns        |
+| `knip.config.{m,c}js`              | Monorepo-aware: maps `workspaces` into Knip's workspace config                |
+| `stylelint.config.{m,c}js`         | Assembled from the stylelint template                                         |
+| `.npm-outdated-lock`               | Timestamp file that throttles npm checks to `checkOutdatedEvery` days         |
+| `.<tool>cache`                     | Per-tool cache directories (cleared on `--warmup`)                            |
+| `report/eslint-report.json`        | ESLint findings (written when `--json` is passed)                             |
+| `report/knip-report.json`          | Knip findings (written when `--json` is passed)                               |
+| `report/jscpd-report.json`         | JSCPD JSON output directory (written when `--json` is passed)                 |
+| `report/prettier-report.json`      | List of files with formatting issues (written when `--json` is passed)        |
+| `report/stylelint-report.json`     | Stylelint findings (written when `--json` is passed)                          |
+| `report/structurelint-report.json` | Structurelint violations (written when `--json` is passed)                    |
+| `report/skillslint-report.json`    | Skillslint textlint problems + skill scores (written when `--json` is passed) |

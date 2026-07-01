@@ -10,6 +10,7 @@ import { installPackages } from '../helpers/packages.ts';
 import { QoqConfig } from '../helpers/types.ts';
 
 import { AbstractConfigHandler } from './abstract/AbstractConfigHandler.ts';
+import { AbstractExecutor } from './abstract/AbstractExecutor.ts';
 import { BasicConfigHandler } from './basic/BasicConfigHandler.ts';
 import { BasicExecutor } from './basic/BasicExecutor.ts';
 import { EslintConfigHandler } from './eslint/EslintConfigHandler.ts';
@@ -24,16 +25,18 @@ import { PrettierConfigHandler } from './prettier/PrettierConfigHandler.ts';
 import { PrettierExecutor } from './prettier/PrettierExecutor.ts';
 import { SkillslintConfigHandler } from './skillslint/SkillslintConfigHandler.ts';
 import { SkillslintExecutor } from './skillslint/SkillslintExecutor.ts';
+import { StructurelintConfigHandler } from './structurelint/StructurelintConfigHandler.ts';
+import { StructurelintExecutor } from './structurelint/StructurelintExecutor.ts';
 import { StylelintConfigHandler } from './stylelint/StylelintConfigHandler.ts';
 import { StylelintExecutor } from './stylelint/StylelintExecutor.ts';
 import { IExecutorOptions, IModulesConfig } from './types.ts';
 
 const moduleName = 'qoq';
 const searchPlaces = [
+  `${moduleName}.config.ts`,
   `${moduleName}.config.js`,
   `${moduleName}.config.cjs`,
   `${moduleName}.config.mjs`,
-  `${moduleName}.config.ts`,
 ];
 
 const getHandlerBySequence = (
@@ -47,6 +50,7 @@ const getHandlerBySequence = (
   const jscpdConfigHandler = new JscpdConfigHandler(modulesConfig, config);
   const knipConfigHandler = new KnipConfigHandler(modulesConfig, config);
   const stylelintConfigHandler = new StylelintConfigHandler(modulesConfig, config);
+  const structurelintConfigHandler = new StructurelintConfigHandler(modulesConfig, config);
   const skillslintConfigHandler = new SkillslintConfigHandler(modulesConfig, config);
 
   basicConfigHandler
@@ -56,6 +60,7 @@ const getHandlerBySequence = (
     .setNext(eslintConfigHandler)
     .setNext(jscpdConfigHandler)
     .setNext(stylelintConfigHandler)
+    .setNext(structurelintConfigHandler)
     .setNext(skillslintConfigHandler);
 
   return basicConfigHandler;
@@ -156,11 +161,28 @@ export const execute = async (
     skipKnip,
     skipEslint,
     skipStylelint,
+    skipStructurelint,
     skipSkillslint,
   } = options;
 
   const hideMessages = !!silent || !!warmup;
   const shouldRun = (name: string) => !tools || tools.includes(name);
+
+  // Shared gate for tools that only run when their config block is present
+  // (`stylelint`, `structurelint`, `skillslint`) — pulled out of the inline
+  // if-chain below to keep execute()'s cognitive complexity in check.
+  const runOptional = async (
+    executor: AbstractExecutor,
+    moduleKey: keyof IModulesConfig['modules'],
+    name: string,
+    skip: boolean = false
+  ): Promise<EExitCode> => {
+    if (skip || !modulesConfig.modules[moduleKey] || !shouldRun(name)) {
+      return EExitCode.OK;
+    }
+
+    return executor.run(options, files);
+  };
 
   const consoleTimeName = `Total execution time:`;
   console.time(c.italic(c.gray(consoleTimeName)));
@@ -171,6 +193,7 @@ export const execute = async (
   const jscpdExecutor = new JscpdExecutor(modulesConfig, hideMessages, true);
   const eslintExecutor = new EslintExecutor(modulesConfig, hideMessages);
   const stylelintExecutor = new StylelintExecutor(modulesConfig, hideMessages);
+  const structurelintExecutor = new StructurelintExecutor(modulesConfig, hideMessages);
   const skillslintExecutor = new SkillslintExecutor(modulesConfig, hideMessages);
   const basicExecutor = new BasicExecutor(modulesConfig, hideMessages);
 
@@ -181,6 +204,7 @@ export const execute = async (
     [jscpdExecutor.getName()]: EExitCode.OK,
     [eslintExecutor.getName()]: EExitCode.OK,
     [stylelintExecutor.getName()]: EExitCode.OK,
+    [structurelintExecutor.getName()]: EExitCode.OK,
     [skillslintExecutor.getName()]: EExitCode.OK,
     [basicExecutor.getName()]: EExitCode.OK,
   };
@@ -205,13 +229,26 @@ export const execute = async (
     responses[eslintExecutor.getName()] = await eslintExecutor.run(options, files);
   }
 
-  if (!skipStylelint && modulesConfig.modules.stylelint && shouldRun('stylelint')) {
-    responses[stylelintExecutor.getName()] = await stylelintExecutor.run(options, files);
-  }
+  responses[stylelintExecutor.getName()] = await runOptional(
+    stylelintExecutor,
+    'stylelint',
+    'stylelint',
+    skipStylelint
+  );
 
-  if (!skipSkillslint && modulesConfig.modules.skillslint && shouldRun('skillslint')) {
-    responses[skillslintExecutor.getName()] = await skillslintExecutor.run(options, files);
-  }
+  responses[structurelintExecutor.getName()] = await runOptional(
+    structurelintExecutor,
+    'structurelint',
+    'structurelint',
+    skipStructurelint
+  );
+
+  responses[skillslintExecutor.getName()] = await runOptional(
+    skillslintExecutor,
+    'skillslint',
+    'skillslint',
+    skipSkillslint
+  );
 
   responses[basicExecutor.getName()] = await basicExecutor.run(options, files);
 

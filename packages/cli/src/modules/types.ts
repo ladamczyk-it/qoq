@@ -6,6 +6,7 @@ import { IModuleKnipConfig } from './knip/types.ts';
 import { IModuleNpmConfig } from './npm/types.ts';
 import { IModulePrettierConfig } from './prettier/types.ts';
 import { IModuleSkillslintConfig } from './skillslint/types.ts';
+import { IModuleStructurelintConfig } from './structurelint/types.ts';
 import { TModuleStylelintConfig } from './stylelint/types.ts';
 
 export interface IModulesConfig {
@@ -28,6 +29,7 @@ export interface IModulesConfig {
     jscpd?: IModuleJscpdConfig;
     knip?: IModuleKnipConfig;
     stylelint?: TModuleStylelintConfig;
+    structurelint?: IModuleStructurelintConfig;
     skillslint?: IModuleSkillslintConfig;
   };
 }
@@ -40,6 +42,7 @@ export interface IExecuteStagedOptions {
   skipKnip?: boolean;
   skipEslint?: boolean;
   skipStylelint?: boolean;
+  skipStructurelint?: boolean;
   skipSkillslint?: boolean;
   warmup?: boolean;
   silent?: boolean;
