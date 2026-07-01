@@ -1,3 +1,10 @@
+# [4.5.0](https://github.com/ladamczyk-it/qoq/compare/v4.4.0...v4.5.0) (2026-07-01)
+
+
+### Features
+
+* add structurelint as an optional module + bump skill ([26159d3](https://github.com/ladamczyk-it/qoq/commit/26159d3ec692c38bf5a54c665a987685564f4273))
+
 # [4.4.0](https://github.com/ladamczyk-it/qoq/compare/v4.3.6...v4.4.0) (2026-06-30)
 
 
