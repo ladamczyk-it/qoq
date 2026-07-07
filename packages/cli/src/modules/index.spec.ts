@@ -64,8 +64,6 @@ describe('execute', () => {
   beforeEach(() => {
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-    vi.spyOn(console, 'time').mockImplementation(() => undefined);
-    vi.spyOn(console, 'timeEnd').mockImplementation(() => undefined);
 
     Object.values(executors).forEach(({ run }) => run.mockResolvedValue(EExitCode.OK));
     process.exitCode = undefined;
@@ -152,18 +150,18 @@ describe('execute', () => {
   });
 
   it('should print the timing footer when messages are not hidden', async () => {
-    const timeEndMock = vi.spyOn(console, 'timeEnd').mockImplementation(() => undefined);
+    const stdoutMock = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
     await execute(configWithLinters, baseOptions);
 
-    expect(timeEndMock).toHaveBeenCalled();
+    expect(stdoutMock).toHaveBeenCalledWith(expect.stringContaining('Total execution time:'));
   });
 
   it('should suppress the timing footer in silent mode', async () => {
-    const timeEndMock = vi.spyOn(console, 'timeEnd').mockImplementation(() => undefined);
+    const stdoutMock = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
     await execute(configWithLinters, { ...baseOptions, silent: true });
 
-    expect(timeEndMock).not.toHaveBeenCalled();
+    expect(stdoutMock).not.toHaveBeenCalledWith(expect.stringContaining('Total execution time:'));
   });
 });

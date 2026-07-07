@@ -4,7 +4,7 @@ import { existsSync, rmSync } from 'fs';
 import { EExitCode } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
-import { capitalizeFirstLetter } from '../../helpers/common.ts';
+import { capitalizeFirstLetter, formatExecutionTime } from '../../helpers/common.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { IExecutorOptions, IModulesConfig } from '../types.ts';
 
@@ -56,7 +56,7 @@ export abstract class AbstractExecutor implements IExecutor {
     captureOutput: boolean = false
   ): Promise<string | EExitCode> {
     const consoleTimeName = `${this.getName()} execution time:`;
-    console.time(c.italic(c.gray(consoleTimeName)));
+    const startTime = performance.now();
 
     if (!this.silent) {
       process.stdout.write(c.green(`\nRunning ${this.getName()}:\n`));
@@ -82,7 +82,9 @@ export abstract class AbstractExecutor implements IExecutor {
       return EExitCode.OK;
     } finally {
       if (!this.silent && !this.hideTimer) {
-        console.timeEnd(c.italic(c.gray(consoleTimeName)));
+        process.stdout.write(
+          `${c.italic(c.gray(consoleTimeName))} ${formatExecutionTime(performance.now() - startTime)}\n`
+        );
       }
     }
   }

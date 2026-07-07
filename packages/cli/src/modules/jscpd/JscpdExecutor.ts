@@ -53,7 +53,29 @@ export class JscpdExecutor extends AbstractApiExecutor {
       ...(ignore?.length ? { ignore } : {}),
     };
 
-    const { clones, statistic } = await detectClonesAndStatistic(detectionOptions);
+    // jscpd gates its own `console.time('time')`/`console.timeEnd('time')` on the
+    // same `silent` option as the console reporter's duplication table, so we
+    // can't disable one without the other via options alone. We want the table
+    // (the actual finding) but not jscpd's own timer line — we already print a
+    // consistently-formatted one of our own in AbstractExecutor#run — so the
+    // built-in timer is muted for the duration of the call.
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    const noop = (): void => {};
+    const { time: originalTime, timeEnd: originalTimeEnd } = console;
+
+    console.time = noop;
+    console.timeEnd = noop;
+
+    let clones: IClone[];
+    let statistic: IStatistic;
+
+    try {
+      ({ clones, statistic } = await detectClonesAndStatistic(detectionOptions));
+    } finally {
+      console.time = originalTime;
+      console.timeEnd = originalTimeEnd;
+    }
 
     if (options.json) {
       this.writeReport(this.buildReport(clones, statistic), options.output);

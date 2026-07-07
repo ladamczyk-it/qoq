@@ -5,6 +5,7 @@ import { cosmiconfig } from 'cosmiconfig';
 import c from 'picocolors';
 import prompts from 'prompts';
 
+import { formatExecutionTime } from '../helpers/common.ts';
 import { formatCode } from '../helpers/formatCode.ts';
 import { installPackages } from '../helpers/packages.ts';
 import { QoqConfig } from '../helpers/types.ts';
@@ -185,12 +186,12 @@ export const execute = async (
   };
 
   const consoleTimeName = `Total execution time:`;
-  console.time(c.italic(c.gray(consoleTimeName)));
+  const startTime = performance.now();
 
   const npmExecutor = new NpmExecutor(modulesConfig, true);
   const knipExecutor = new KnipExecutor(modulesConfig, hideMessages);
   const prettierExecutor = new PrettierExecutor(modulesConfig, hideMessages);
-  const jscpdExecutor = new JscpdExecutor(modulesConfig, hideMessages, true);
+  const jscpdExecutor = new JscpdExecutor(modulesConfig, hideMessages);
   const eslintExecutor = new EslintExecutor(modulesConfig, hideMessages);
   const stylelintExecutor = new StylelintExecutor(modulesConfig, hideMessages);
   const structurelintExecutor = new StructurelintExecutor(modulesConfig, hideMessages);
@@ -263,6 +264,8 @@ export const execute = async (
   if (!hideMessages) {
     process.stdout.write('\n-------------------------\n\n');
 
-    console.timeEnd(c.italic(c.gray(consoleTimeName)));
+    process.stdout.write(
+      `${c.italic(c.gray(consoleTimeName))} ${formatExecutionTime(performance.now() - startTime)}\n`
+    );
   }
 };
