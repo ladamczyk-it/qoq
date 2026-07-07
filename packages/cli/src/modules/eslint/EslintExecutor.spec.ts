@@ -179,5 +179,31 @@ describe('EslintExecutor', () => {
 
       expect(exitMock).toHaveBeenCalledWith(EExitCode.EXCEPTION);
     });
+
+    it('should inject a progress override config and print a done line when not silent', async () => {
+      const stdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      const executor = new EslintExecutor(configWithEslint, false, true);
+
+      await executor.run(baseOptions);
+
+      expect(getOptions().overrideConfig).toBeTruthy();
+      expect(stdoutWrite).toHaveBeenCalledWith(expect.stringContaining('Eslint done.\n'));
+    });
+
+    it('should not inject a progress override config when silent', async () => {
+      const executor = new EslintExecutor(configWithEslint, true, true);
+
+      await executor.run(baseOptions);
+
+      expect(getOptions().overrideConfig).toBeUndefined();
+    });
+
+    it('should not inject a progress override config under --json', async () => {
+      const executor = new EslintExecutor(configWithEslint, false, true);
+
+      await executor.run({ ...baseOptions, json: 'true' });
+
+      expect(getOptions().overrideConfig).toBeUndefined();
+    });
   });
 });

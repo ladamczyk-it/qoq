@@ -1,5 +1,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { writeFileSync } from 'fs';
+import { relative } from 'path';
+import { pathToFileURL } from 'url';
 
 import { StylelintConfig } from '@ladamczyk/qoq-stylelint-css';
 import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
@@ -11,12 +13,22 @@ import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateE
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath } from '../../helpers/paths.ts';
 import { EConfigType } from '../../helpers/types.ts';
-import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
+import {
+  AbstractApiWithProgressExecutor,
+  PROGRESS_RULE_ID,
+} from '../abstract/AbstractApiWithProgressExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { EModulesStylelint } from './types.ts';
 
-import type { LinterResult } from 'stylelint';
+import type { Root } from 'postcss';
+import type {
+  Config as TStylelintApiConfig,
+  LinterResult,
+  Plugin,
+  PostcssResult,
+  Rule,
+} from 'stylelint';
 
 interface IStylelintReportWarning {
   line: number;
@@ -29,7 +41,7 @@ interface IStylelintReportWarning {
 
 type TStylelintReport = { source: string | undefined; warnings: IStylelintReportWarning[] }[];
 
-export class StylelintExecutor extends AbstractApiExecutor {
+export class StylelintExecutor extends AbstractApiWithProgressExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.stylelintcache');
 
   // Resolved in prepare(), consumed in execute() — stylelint runs through its JS
@@ -45,9 +57,16 @@ export class StylelintExecutor extends AbstractApiExecutor {
   protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
     const { default: stylelint } = await import('stylelint');
 
+    const showProgress = this.showProgress(options);
+
     const result = await stylelint.lint({
       files: this.targets,
-      configFile: this.configFile,
+      // stylelint's `config` fully replaces `configFile` rather than merging
+      // with it, so the progress plugin can only be added by loading the
+      // generated config and appending to it — never both together.
+      ...(showProgress
+        ? { config: await this.getProgressConfig() }
+        : { configFile: this.configFile }),
       fix: options.fix,
       cache: !options.disableCache,
       cacheLocation: StylelintExecutor.CACHE_PATH,
@@ -56,6 +75,10 @@ export class StylelintExecutor extends AbstractApiExecutor {
       allowEmptyInput: true,
       ...(this.strict ? { maxWarnings: 0 } : {}),
     });
+
+    if (showProgress) {
+      this.finishProgress(!result.errored && !result.maxWarningsExceeded);
+    }
 
     if (options.json) {
       this.writeReport(this.buildReport(result), options.output);
@@ -154,6 +177,41 @@ export class StylelintExecutor extends AbstractApiExecutor {
     } catch (e) {
       return this.handlePrepareError(e);
     }
+  }
+
+  // Stylelint's JS API exposes no per-file callback on `lint()`; a plugin
+  // rule's `rule()` (invoked once per linted file, regardless of whether it
+  // reports anything) is the only hook available. Loads the generated config
+  // (rather than passing `configFile`, which `config` would otherwise
+  // override wholesale) and appends the progress plugin to it.
+  private async getProgressConfig(): Promise<TStylelintApiConfig> {
+    const { default: baseConfig } = (await import(pathToFileURL(this.configFile).toString())) as {
+      default: TStylelintApiConfig;
+    };
+
+    const existingPlugins = baseConfig.plugins ? [baseConfig.plugins].flat() : [];
+
+    // Never calls `result.warn()`, so it can't contribute to warning/error
+    // counts. `ruleName`/`messages` are only required to satisfy stylelint's
+    // `Rule` type; they're not read for a plugin rule that reports nothing.
+    const progressRule: Rule = Object.assign(
+      () => (_root: Root, result: PostcssResult) => {
+        const file = result.opts.from;
+
+        if (file) {
+          this.printProgress(relative(process.cwd(), file));
+        }
+      },
+      { ruleName: PROGRESS_RULE_ID, messages: {} }
+    );
+
+    const progressPlugin: Plugin = { ruleName: PROGRESS_RULE_ID, rule: progressRule };
+
+    return {
+      ...baseConfig,
+      plugins: [...existingPlugins, progressPlugin],
+      rules: { ...baseConfig.rules, [PROGRESS_RULE_ID]: true },
+    };
   }
 
   // Lean JSON report for `--json`: drop stylelint's internal `_postcssResult`

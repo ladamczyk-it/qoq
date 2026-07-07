@@ -5,7 +5,7 @@ import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
-import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
+import { AbstractApiWithProgressExecutor } from '../abstract/AbstractApiWithProgressExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import type { Options } from 'prettier';
@@ -16,7 +16,7 @@ const IGNORED_DIRECTORIES = ['.git', '.sl', '.svn', '.hg', '.jj', 'node_modules'
 // Ignore files prettier respects by default (the CLI's `--ignore-path` default).
 const IGNORE_FILES = ['.gitignore', '.prettierignore'];
 
-export class PrettierExecutor extends AbstractApiExecutor {
+export class PrettierExecutor extends AbstractApiWithProgressExecutor {
   // Set in prepare(), consumed in execute(): the explicit patterns to format and
   // whether they came from a caller-supplied file list (vs. the configured sources).
   private patterns: string[] = [];
@@ -57,7 +57,7 @@ export class PrettierExecutor extends AbstractApiExecutor {
       return this.report(prettier, targets, configPath, options.output);
     }
 
-    return this.format(prettier, targets, configPath, options.fix);
+    return this.format(prettier, targets, configPath, options.fix, this.showProgress(options));
   }
 
   // `--json`: collect the files that are not Prettier-formatted into a lean
@@ -89,7 +89,8 @@ export class PrettierExecutor extends AbstractApiExecutor {
     prettier: typeof import('prettier'),
     targets: string[],
     configPath: string,
-    fix: boolean
+    fix: boolean,
+    showProgress: boolean
   ): Promise<EExitCode> {
     process.stdout.write('Checking formatting...\n');
 
@@ -98,41 +99,87 @@ export class PrettierExecutor extends AbstractApiExecutor {
 
     for (const file of targets) {
       const display = toPosix(file);
-      const options = await this.optionsFor(prettier, file, configPath);
-      const input = readFileSync(file, 'utf8');
 
-      let isDifferent: boolean;
-
-      try {
-        if (fix) {
-          const start = Date.now();
-          const output = await prettier.format(input, options);
-          isDifferent = output !== input;
-          const timing = `${Date.now() - start}ms`;
-
-          if (isDifferent) {
-            writeFileSync(file, output);
-            process.stdout.write(`${display} ${timing}\n`);
-          } else {
-            process.stdout.write(c.gray(`${display} ${timing} (unchanged)\n`));
-          }
-        } else {
-          isDifferent = !(await prettier.check(input, options));
-        }
-      } catch (error) {
-        errors += 1;
-        process.stderr.write(`${prefix('error')} ${display}: ${String(error)}\n`);
-
-        continue;
+      if (showProgress) {
+        this.printProgress(display);
       }
 
-      if (isDifferent) {
+      const outcome = await this.formatFile(prettier, file, display, configPath, fix, showProgress);
+
+      if (outcome === 'error') {
+        errors += 1;
+      } else if (outcome === 'unformatted') {
         unformatted += 1;
-        process.stderr.write(`${prefix('warn')} ${display}\n`);
       }
     }
 
+    if (showProgress) {
+      // summarize() below always prints its own final status line, so just
+      // clear the in-place progress line rather than adding a redundant one.
+      this.clearProgress();
+    }
+
     return this.summarize({ unformatted, errors, fix });
+  }
+
+  // Formats (or checks) a single file and reports the outcome. `--fix` mirrors
+  // ESLint's fix mode and prints no per-file lines, only a final summary;
+  // `--check` still prints as it finds issues, via reportIssue().
+  private async formatFile(
+    prettier: typeof import('prettier'),
+    file: string,
+    display: string,
+    configPath: string,
+    fix: boolean,
+    showProgress: boolean
+  ): Promise<'ok' | 'unformatted' | 'error'> {
+    const options = await this.optionsFor(prettier, file, configPath);
+    const input = readFileSync(file, 'utf8');
+
+    let isDifferent: boolean;
+
+    try {
+      if (fix) {
+        const output = await prettier.format(input, options);
+        isDifferent = output !== input;
+
+        if (isDifferent) {
+          writeFileSync(file, output);
+        }
+      } else {
+        isDifferent = !(await prettier.check(input, options));
+      }
+    } catch (error) {
+      this.reportIssue(fix, showProgress, () =>
+        process.stderr.write(`${prefix('error')} ${display}: ${String(error)}\n`)
+      );
+
+      return 'error';
+    }
+
+    if (isDifferent) {
+      this.reportIssue(fix, showProgress, () =>
+        process.stderr.write(`${prefix('warn')} ${display}\n`)
+      );
+
+      return 'unformatted';
+    }
+
+    return 'ok';
+  }
+
+  // Only `--check` prints per-file lines; clear the in-place progress line
+  // first so the persistent line doesn't get appended to it mid-overwrite.
+  private reportIssue(fix: boolean, showProgress: boolean, write: () => void): void {
+    if (fix) {
+      return;
+    }
+
+    if (showProgress) {
+      this.clearProgress();
+    }
+
+    write();
   }
 
   private summarize({
@@ -144,9 +191,15 @@ export class PrettierExecutor extends AbstractApiExecutor {
     errors: number;
     fix: boolean;
   }): EExitCode {
+    // `--fix` prints no per-file lines (matching ESLint's fix mode), so it has
+    // nothing "above" to point back to; `--check` still lists each offending
+    // file as it goes, so the summary can refer back to it.
+    const pluralize = (count: number): string => (count === 1 ? '1 file' : `${count} files`);
+    const describe = (count: number): string =>
+      fix || count > 1 ? pluralize(count) : 'the above file';
+
     if (errors > 0) {
-      const files = errors === 1 ? 'the above file' : `${errors} files`;
-      process.stdout.write(`Error occurred when checking code style in ${files}.\n`);
+      process.stdout.write(`Error occurred when checking code style in ${describe(errors)}.\n`);
 
       return EExitCode.EXCEPTION;
     }
@@ -157,12 +210,11 @@ export class PrettierExecutor extends AbstractApiExecutor {
       return EExitCode.OK;
     }
 
-    const files = unformatted === 1 ? 'the above file' : `${unformatted} files`;
     process.stderr.write(
       `${prefix('warn')} ${
         fix
-          ? `Code style issues fixed in ${files}.`
-          : `Code style issues found in ${files}. Run Prettier with --write to fix.`
+          ? `Code style issues fixed in ${describe(unformatted)}.`
+          : `Code style issues found in ${describe(unformatted)}. Run Prettier with --write to fix.`
       }\n`
     );
 

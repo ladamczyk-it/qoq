@@ -1,4 +1,5 @@
 import { existsSync, writeFileSync } from 'fs';
+import { relative } from 'path';
 import { pathToFileURL } from 'url';
 
 import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
@@ -10,12 +11,17 @@ import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateE
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath } from '../../helpers/paths.ts';
 import { EConfigType } from '../../helpers/types.ts';
-import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
+import {
+  AbstractApiWithProgressExecutor,
+  PROGRESS_PLUGIN_NAMESPACE,
+  PROGRESS_RULE_ID,
+  PROGRESS_RULE_NAME,
+} from '../abstract/AbstractApiWithProgressExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { EModulesEslint, IModuleEslintConfig } from './types.ts';
 
-import type { ESLint } from 'eslint';
+import type { ESLint, Linter, Rule } from 'eslint';
 
 interface IEslintReportMessage {
   ruleId: string | null;
@@ -28,7 +34,7 @@ interface IEslintReportMessage {
 
 type TEslintReport = { filePath: string; messages: IEslintReportMessage[] }[];
 
-export class EslintExecutor extends AbstractApiExecutor {
+export class EslintExecutor extends AbstractApiWithProgressExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.eslintcache');
 
   // Resolved in prepare(), consumed in execute() — eslint runs through its JS API
@@ -45,6 +51,8 @@ export class EslintExecutor extends AbstractApiExecutor {
     // templates that bring in `eslint`); kept external in rollup.bin.js.
     const { ESLint } = await import('eslint');
 
+    const showProgress = this.showProgress(options);
+
     const eslint = new ESLint({
       overrideConfigFile: this.configFile,
       cache: !options.disableCache,
@@ -52,6 +60,7 @@ export class EslintExecutor extends AbstractApiExecutor {
       cacheStrategy: 'metadata',
       fix: options.fix,
       concurrency: options.concurrency,
+      ...(showProgress ? { overrideConfig: this.getProgressOverrideConfig() } : {}),
     });
 
     const results = await eslint.lintFiles(this.targets);
@@ -70,6 +79,10 @@ export class EslintExecutor extends AbstractApiExecutor {
 
     // Mirrors the spawned CLI's `--max-warnings 0`: any warning fails the run.
     const tooManyWarnings = warningCount > 0;
+
+    if (showProgress) {
+      this.finishProgress(errorCount === 0 && !tooManyWarnings);
+    }
 
     if (options.json) {
       this.writeReport(this.buildReport(results), options.output);
@@ -205,6 +218,32 @@ export class EslintExecutor extends AbstractApiExecutor {
     } catch (e) {
       return this.handlePrepareError(e);
     }
+  }
+
+  // ESLint's JS API exposes no per-file callback on `lintFiles()`; a rule's
+  // create() (called once per linted file, before AST traversal, regardless of
+  // what its visitor listens for) is the only hook available. Appended via
+  // `overrideConfig`, which ESLint merges in as the highest-precedence entry of
+  // the flat-config cascade, so it applies to every file without touching the
+  // generated config file itself.
+  private getProgressOverrideConfig(): Linter.Config {
+    const printProgress = (file: string): void => this.printProgress(file);
+
+    const progressRule: Rule.RuleModule = {
+      meta: { type: 'suggestion', schema: [] },
+      create(context) {
+        printProgress(relative(context.cwd, context.filename));
+
+        return {};
+      },
+    };
+
+    return {
+      plugins: { [PROGRESS_PLUGIN_NAMESPACE]: { rules: { [PROGRESS_RULE_NAME]: progressRule } } },
+      // Severity is irrelevant here: the rule never calls context.report(), so
+      // it never contributes to error/warning counts.
+      rules: { [PROGRESS_RULE_ID]: 1 },
+    };
   }
 
   // Lean JSON report for `--json`: drop each result's full `source`/`output`

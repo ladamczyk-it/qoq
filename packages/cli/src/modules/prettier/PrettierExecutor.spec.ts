@@ -107,6 +107,56 @@ describe('PrettierExecutor', () => {
       expect(readFileSync(join(workdir, 'b.ts'), 'utf8')).toBe('FIXED');
       expect(result).toBe(EExitCode.OK);
     });
+
+    it('should print no per-file lines, only the final summary, mirroring ESLint', async () => {
+      format.mockResolvedValue('FIXED');
+
+      await executor.run({ ...baseOptions, fix: true });
+
+      expect(stdout).not.toHaveBeenCalledWith(expect.stringContaining('a.ts'));
+      expect(stdout).not.toHaveBeenCalledWith(expect.stringContaining('b.ts'));
+      expect(stderr).toHaveBeenCalledWith(
+        expect.stringContaining('Code style issues fixed in 2 files.')
+      );
+    });
+
+    it('should stay silent per-file when a file is already formatted', async () => {
+      format.mockImplementation((source: string) => Promise.resolve(source));
+
+      const result = await executor.run({ ...baseOptions, fix: true });
+
+      expect(stdout).toHaveBeenCalledWith('All matched files use Prettier code style!\n');
+      expect(result).toBe(EExitCode.OK);
+    });
+
+    it('should report a formatting error via the aggregate count, not a per-file line', async () => {
+      format.mockRejectedValueOnce(new Error('boom'));
+
+      const result = await executor.run({ ...baseOptions, fix: true });
+
+      expect(stderr).not.toHaveBeenCalled();
+      expect(stdout).toHaveBeenCalledWith('Error occurred when checking code style in 1 file.\n');
+      expect(result).toBe(EExitCode.EXCEPTION);
+    });
+  });
+
+  describe('progress', () => {
+    it('should print per-file progress and clear it before the final summary when not silent', async () => {
+      const progressExecutor = new PrettierExecutor(config, false, true);
+
+      const result = await progressExecutor.run(baseOptions);
+
+      expect(stdout).toHaveBeenCalledWith(expect.stringContaining('a.ts'));
+      expect(stdout).toHaveBeenCalledWith(expect.stringContaining('b.ts'));
+      expect(stdout).toHaveBeenCalledWith('All matched files use Prettier code style!\n');
+      expect(result).toBe(EExitCode.OK);
+    });
+
+    it('should not print progress when silent', async () => {
+      await executor.run(baseOptions);
+
+      expect(stdout).not.toHaveBeenCalledWith(expect.stringContaining('Processing:'));
+    });
   });
 
   describe('json mode', () => {

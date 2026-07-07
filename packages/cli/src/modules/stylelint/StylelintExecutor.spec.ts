@@ -1,4 +1,6 @@
-import { writeFileSync } from 'fs';
+import { closeSync, mkdtempSync, openSync, rmSync, writeFileSync, writeSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 import { EExitCode } from '@ladamczyk/qoq-utils';
 import { dummyModulesConfig } from '__tests__/common.ts';
@@ -146,6 +148,53 @@ describe('StylelintExecutor', () => {
       await executor.run(baseOptions);
 
       expect(exitMock).toHaveBeenCalledWith(EExitCode.EXCEPTION);
+    });
+  });
+
+  describe('progress', () => {
+    it('should load the generated config, append the progress plugin, and pass it as `config` (never together with `configFile`) when not silent', async () => {
+      const workdir = mkdtempSync(join(tmpdir(), 'qoq-stylelint-'));
+      const fd = openSync(join(workdir, 'stylelint.config.js'), 'w');
+      writeSync(fd, 'export default { rules: {} };\n');
+      closeSync(fd);
+      const cwd = process.cwd();
+      process.chdir(workdir);
+
+      try {
+        const executor = new StylelintExecutor(
+          {
+            ...configWith({ strict: false, template: EModulesStylelint.STYLELINT_CSS }),
+            configPaths: { ...dummyModulesConfig.configPaths, stylelint: '/stylelint.config.js' },
+          },
+          false,
+          true
+        );
+
+        await executor.run(baseOptions);
+
+        const arg = lintArg();
+        expect(arg.configFile).toBeUndefined();
+        const config = arg.config as { plugins: unknown[]; rules: Record<string, unknown> };
+        expect(config.plugins).toHaveLength(1);
+        expect(config.rules['qoq-internal/file-progress']).toBe(true);
+      } finally {
+        process.chdir(cwd);
+        rmSync(workdir, { recursive: true, force: true });
+      }
+    });
+
+    it('should not append a progress plugin when silent', async () => {
+      const executor = new StylelintExecutor(
+        configWith({ strict: false, template: EModulesStylelint.STYLELINT_CSS }),
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      const arg = lintArg();
+      expect(arg.configFile).toBeTruthy();
+      expect(arg.config).toBeUndefined();
     });
   });
 });

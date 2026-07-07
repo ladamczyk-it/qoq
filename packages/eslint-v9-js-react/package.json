@@ -50,7 +50,6 @@
     "@stylistic/eslint-plugin": "5.10.0",
     "browserslist": "latest",
     "eslint-plugin-compat": "7.0.2",
-    "eslint-plugin-file-progress": "4.0.0",
     "eslint-plugin-react-refresh": "0.5.3"
   },
   "devDependencies": {
