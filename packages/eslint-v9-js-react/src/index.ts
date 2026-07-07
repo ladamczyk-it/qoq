@@ -84,6 +84,7 @@ export const disabledRules: EslintConfig['rules'] = {
   '@stylistic/jsx-one-expression-per-line': 0,
   '@stylistic/indent-binary-ops': 0,
   '@stylistic/jsx-curly-newline': 0,
+  '@stylistic/jsx-wrap-multilines': 0,
   '@stylistic/quote-props': 0,
 };
 

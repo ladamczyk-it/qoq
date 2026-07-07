@@ -104,7 +104,7 @@ describe('SkillslintExecutor', () => {
 
       expect(writeFileSync).toHaveBeenCalledWith(
         'report-out/skillslint-report.json',
-        expect.any(String)
+        expect.stringContaining('')
       );
     });
   });

@@ -97,7 +97,7 @@ describe('StructurelintExecutor', () => {
 
       expect(writeFileSync).toHaveBeenCalledWith(
         'report-out/structurelint-report.json',
-        expect.any(String)
+        expect.stringContaining('')
       );
       expect(format).not.toHaveBeenCalled();
     });
