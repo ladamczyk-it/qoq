@@ -14,11 +14,7 @@ import { EConfigType } from '../../helpers/types.ts';
 import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
-import {
-  EModulesStylelint,
-  type IModuleStylelintConfigWithPattern,
-  type IModuleStylelintConfigWithTemplate,
-} from './types.ts';
+import { EModulesStylelint } from './types.ts';
 
 import type { LinterResult } from 'stylelint';
 
@@ -92,17 +88,17 @@ export class StylelintExecutor extends AbstractApiExecutor {
     let rest: StylelintConfig;
     let glob: string;
 
-    if ((<IModuleStylelintConfigWithPattern>stylelint).pattern) {
-      const { pattern, ...other } = <IModuleStylelintConfigWithPattern>stylelint;
+    if ('pattern' in stylelint && stylelint.pattern) {
+      const { pattern, ...other } = stylelint;
 
       rest = other;
       glob = pattern;
-    } else if ((<IModuleStylelintConfigWithTemplate>stylelint).template) {
-      const { template, ...other } = <IModuleStylelintConfigWithTemplate>stylelint;
+    } else if ('template' in stylelint && stylelint.template) {
+      const { template, ...other } = stylelint;
 
       rest = other;
       glob =
-        template === EModulesStylelint.STYLELINT_SCSS
+        template === String(EModulesStylelint.STYLELINT_SCSS)
           ? `${srcPath}/**/*.{css,scss,sass}`
           : `${srcPath}/**/*.css`;
     } else {
@@ -120,9 +116,8 @@ export class StylelintExecutor extends AbstractApiExecutor {
 
       const content: string[] = [];
 
-      if ((<IModuleStylelintConfigWithTemplate>stylelint).template) {
-        imports[`{ baseConfig }`] =
-          `@ladamczyk/${(<IModuleStylelintConfigWithTemplate>stylelint).template}`;
+      if ('template' in stylelint && stylelint.template) {
+        imports[`{ baseConfig }`] = `@ladamczyk/${stylelint.template}`;
 
         content.push(`const config = objectMergeRight(baseConfig, ${JSON.stringify(rest)})`);
       } else {

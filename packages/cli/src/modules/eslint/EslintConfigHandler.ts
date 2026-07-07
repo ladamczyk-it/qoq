@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, sonarjs/cognitive-complexity */
-import { existsSync, rmSync, writeFileSync } from 'fs';
-
 import { getPackageInfo } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 import prompts from 'prompts';
@@ -17,13 +15,7 @@ export class EslintConfigHandler extends AbstractConfigHandler {
   static readonly CONFIG_FILE_PATH = '/eslint.config.js';
 
   async getPrompts(): Promise<void> {
-    if (this.configFileExists()) {
-      process.stdout.write(
-        c.red(
-          `\n 'eslint.config.js' already exists in the project root, config will be overwritten by this setup!\n\n`
-        )
-      );
-    }
+    this.warnIfConfigFileExists();
 
     let isTypeScriptInstalled: boolean;
 
@@ -199,12 +191,7 @@ export class EslintConfigHandler extends AbstractConfigHandler {
       }
     }
 
-    if (this.configFileExists()) {
-      rmSync(EslintConfigHandler.CONFIG_FILE_PATH);
-    }
-
-    writeFileSync(
-      EslintConfigHandler.CONFIG_FILE_PATH,
+    this.writeConfigFile(
       formatCode(
         this.modulesConfig.configType,
         {
@@ -251,9 +238,5 @@ export class EslintConfigHandler extends AbstractConfigHandler {
       templates.length > 0 ? templates : [`@ladamczyk/${EModulesEslint.ESLINT_V9_JS}`];
 
     return super.getPackages();
-  }
-
-  protected configFileExists(): boolean {
-    return existsSync(EslintConfigHandler.CONFIG_FILE_PATH);
   }
 }
