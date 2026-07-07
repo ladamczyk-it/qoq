@@ -25,6 +25,7 @@ const withSkipOptions = (command: Command): Command =>
     .option('--skip-knip', 'Skip Knip unused-exports/dead-code checks')
     .option('--skip-eslint', 'Skip ESLint linting')
     .option('--skip-stylelint', 'Skip Stylelint CSS/SCSS linting')
+    .option('--skip-structurelint', 'Skip Structurelint file/folder structure linting')
     .option('--skip-skillslint', 'Skip Skillslint skill-doc linting');
 
 withSkipOptions(

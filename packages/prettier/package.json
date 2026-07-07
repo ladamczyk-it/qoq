@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-prettier",
-  "version": "4.3.5",
+  "version": "4.5.1",
   "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/prettier",
   "bugs": {
     "url": "https://github.com/ladamczyk-it/qoq/issues"
@@ -31,7 +31,7 @@
     "build": "rimraf ./index.json && node ./src/bin.js"
   },
   "dependencies": {
-    "prettier": "3.8.4"
+    "prettier": "3.9.4"
   },
   "devDependencies": {
     "rimraf": "6.1.3"

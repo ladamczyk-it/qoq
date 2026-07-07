@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-cli",
-  "version": "4.3.5",
+  "version": "4.5.1",
   "description": "CLI that handles formatting, linting and testing Your JS/TS code",
   "keywords": [
     "cli",
@@ -37,11 +37,11 @@
   "dependencies": {
     "@antfu/install-pkg": "1.1.0",
     "@eslint/compat": "2.1.0",
-    "@ladamczyk/qoq-utils": "^4.3.5",
+    "@ladamczyk/qoq-utils": "^4.5.1",
     "@npmcli/package-json": "7.0.5",
     "cac": "7.0.0",
     "cosmiconfig": "9.0.2",
-    "es-toolkit": "1.48.1",
+    "es-toolkit": "1.49.0",
     "fast-glob": "3.3.3",
     "micromatch": "4.0.8",
     "picocolors": "1.1.1",
@@ -82,7 +82,8 @@
     "@ladamczyk/qoq-prettier-with-json-sort": "^4",
     "@ladamczyk/qoq-stylelint-css": "^4",
     "@ladamczyk/qoq-stylelint-scss": "^4",
-    "@ladamczyk/skillslint": "^4.1.1"
+    "@ladamczyk/skillslint": "^4.1.1",
+    "@ladamczyk/structurelint": "^1.0.0"
   },
   "peerDependenciesMeta": {
     "@ladamczyk/qoq-eslint-v9-js": {
@@ -134,6 +135,9 @@
       "optional": true
     },
     "@ladamczyk/skillslint": {
+      "optional": true
+    },
+    "@ladamczyk/structurelint": {
       "optional": true
     }
   },

@@ -143,3 +143,34 @@ advisory.
 
 **Trap:** don't restructure CSS the rule didn't flag; keep the patch to the
 reported warnings.
+
+---
+
+## Structurelint (only when enabled)
+
+**What it reports:** file/folder structure violations against the project's own
+`structure.config.{ts,js,mjs}` — `unexpected` (an entry no rule allows) or
+`missing` (a `required` rule with no match), each with a `path` and the
+`expected` rule patterns. See [report-schemas.md](report-schemas.md) for the
+exact shape.
+
+**Fix:** there is no auto-fix — `qoq --fix` never touches Structurelint findings,
+so every violation needs a manual action:
+
+- **`unexpected`** — the entry is in the wrong place or named wrong. Move/rename
+  it to match one of the `expected` patterns, or delete it if it shouldn't exist
+  at all. Update every import that referenced the old path in the same patch —
+  a move that leaves a dangling import breaks the build, which the validation
+  gate will catch, but it's cheaper to get right the first time.
+- **`missing`** — a `required` rule expected an entry that isn't there (e.g. every
+  component folder must have an `index.ts`). Create the missing entry, or drop
+  `required` from the rule in `structure.config.*` if the project no longer wants
+  to enforce it — that's a config change, not a code fix, so call it out
+  separately rather than folding it into the same patch.
+
+**Trap:** a rename ripples to every file that imports the moved path — keep the
+whole ripple (the move plus every updated import) in the single Structurelint
+patch so it applies atomically. Don't touch entries Structurelint didn't flag,
+and don't edit `structure.config.*` to make a violation disappear unless the
+rule itself is what's wrong — that silences the check instead of fixing the
+structure.

@@ -23,6 +23,7 @@ With **QoQ CLI**, keeping your code clean and compliant is easier than ever.
 **Optional checks** run only when their config block is present in `qoq.config.js`; omit the block to disable them, or skip for a single run with the matching `--skip-*` flag:
 
 - **Stylelint** – CSS/SCSS linting, backed by the compliant `@ladamczyk/qoq-stylelint-css` or `@ladamczyk/qoq-stylelint-scss` template. Enabled via a `stylelint` block (`--skip-stylelint`).
+- **Structurelint** – validates project file/folder structure, backed by `@ladamczyk/structurelint`. Enabled via a `structurelint` block (`--skip-structurelint`).
 - **Skillslint** – lints Claude Code skill documentation, backed by `@ladamczyk/skillslint`. Enabled via a `skillslint` block (`--skip-skillslint`).
 
 ## Install

@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq",
-  "version": "4.3.5",
+  "version": "4.5.1",
   "private": true,
   "bugs": {
     "url": "https://github.com/ladamczyk-it/qoq/issues"
@@ -16,7 +16,6 @@
     "config-inspector": "node ./scripts/config-inspector.js",
     "config-inspector:clean": "rimraf -g ./packages/eslint-v9-*/stats/",
     "husky:pre-push": "run-s build check:engine typecheck test qoq:check",
-    "postinstall": "qoq --warmup",
     "pre:test": "npm run config-inspector",
     "prepare": "husky",
     "publish:full": "run-s husky:pre-push publish:release",
@@ -30,8 +29,8 @@
     "typecheck": "lerna run typecheck"
   },
   "devDependencies": {
-    "@commitlint/cli": "21.0.2",
-    "@commitlint/config-conventional": "21.0.2",
+    "@commitlint/cli": "21.2.0",
+    "@commitlint/config-conventional": "21.2.0",
     "@ladamczyk/check-engine": "latest",
     "@ladamczyk/qoq-cli": "latest",
     "@ladamczyk/qoq-eslint-v9-ts": "latest",
@@ -40,14 +39,15 @@
     "@ladamczyk/qoq-knip": "latest",
     "@ladamczyk/qoq-prettier-with-json-sort": "latest",
     "@ladamczyk/skillslint": "4.1.1",
+    "@ladamczyk/structurelint": "1.0.0",
     "@types/node": "^22",
-    "@vitest/coverage-v8": "4.1.9",
+    "@vitest/coverage-v8": "4.1.10",
     "dotenv": "17.4.2",
     "husky": "9.1.7",
     "lerna": "9.0.7",
     "npm-run-all": "4.1.5",
     "rimraf": "6.1.3",
-    "vitest": "4.1.9"
+    "vitest": "4.1.10"
   },
   "engines": {
     "node": ">=22.15.0"

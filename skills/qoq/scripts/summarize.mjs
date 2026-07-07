@@ -353,6 +353,38 @@ if (Array.isArray(stylelint)) {
   }
 }
 
+// ---------- Structurelint (optional) ----------
+const structurelint = read('structurelint-report.json');
+if (structurelint && !structurelint.__parseError) {
+  const violations = structurelint.violations ?? [];
+  const byType = new Map(); // 'unexpected' | 'missing' -> { count, locs: [] }
+  for (const v of violations) {
+    const type = v.type ?? '(unknown)';
+    const g = byType.get(type) ?? { count: 0, locs: [] };
+    g.count++;
+    g.locs.push(v.path ? rel(v.path) : '(root)');
+    byType.set(type, g);
+  }
+  machine.tools.structurelint = {
+    total: violations.length,
+    root: structurelint.root,
+    types: Object.fromEntries([...byType.entries()].map(([k, g]) => [k, g.count])),
+  };
+  if (violations.length) {
+    totalFindings += violations.length;
+    const lines = [...byType.entries()].map(
+      ([type, g]) => `  ${type.padEnd(12)} x${String(g.count).padEnd(3)} ${cap(g.locs)}`
+    );
+    sections.push(
+      `STRUCTURELINT  ${violations.length} violation(s) in ${rel(structurelint.root) || '.'}  [not auto-fixable — move/rename/create by hand]\n${lines.join(
+        '\n'
+      )}`
+    );
+  }
+} else if (structurelint?.__parseError) {
+  sections.push(`STRUCTURELINT  ⚠ could not parse report: ${structurelint.__parseError}`);
+}
+
 // ---------- Skillslint (optional) ----------
 const skillslint = read('skillslint-report.json');
 if (skillslint && !skillslint.__parseError) {

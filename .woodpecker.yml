@@ -1,0 +1,40 @@
+when:
+  - event: push
+    branch: master
+
+variables:
+  - &default_image node:22-alpine
+
+steps:
+  - name: install
+    image: *default_image
+    commands:
+      - npm ci
+
+  - name: build
+    image: *default_image
+    commands:
+      - npm run build
+
+  - name: config-inspector
+    image: *default_image
+    commands:
+      - npm run config-inspector -- all
+      - for d in ./packages/eslint-v9-*; do pkg=$(basename "$d"); mkdir -p "./build/packages/$pkg/stats"; cp -r "./packages/$pkg/stats/"* "./build/packages/$pkg/stats/"; done
+
+  - name: deploy-artefact
+    image: *default_image
+    commands:
+      - rm -rf /usr/build/*
+      - mkdir -p /usr/build
+      - cp -r build/* /usr/build/
+    volumes:
+      - /home/joke/artifacts/qoq:/usr/build
+
+  - name: trigger-downstream
+    image: woodpeckerci/plugin-trigger
+    settings:
+      repositories:
+        - ladamczyk-it/cv@main
+      token:
+        from_secret: woodpecker_token

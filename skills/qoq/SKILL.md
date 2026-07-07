@@ -2,29 +2,19 @@
 name: qoq
 description: >-
   QoQ "quality over quantity" toolkit for JavaScript/TypeScript projects. Four
-  user-facing commands plus a `gate` other skills call. Use `review` to review the changes on a branch against
-  a base branch (spelling & intention-revealing naming, unused dependencies,
-  cognitive complexity / SOLID, copy-paste duplication, code conventions, modern
-  TypeScript idioms, design-pattern smells). Use `refactor` to run that same
-  analysis over a scope YOU choose — a path, a package, a directory, or the
-  whole project — when there is no branch to diff. Use `bump packages` to safely
-  update npm dependencies in stages (minor/patch first, then majors one major at
-  a time with changelog research). Use `fix` to concentrate on _fixing_ findings:
-  it reuses the `gate` engine to run `qoq --check` over the full project (or a
-  chosen scope) and stages every fix — both the safe tier and the judgment calls `gate` only
-  reports — as reviewable git patches applied one at a time behind the project's
-  lint/test/build gate. Trigger whenever the user wants to "review my
-  branch/diff/PR", check if changes are "ready to merge", "clean up / refactor /
-  tidy / modernize" a file/folder/package/codebase, "reduce complexity", "remove
-  dead dependencies", "de-duplicate", "fix naming", "fix the findings / lint
-  errors / issues", "apply our quality standards to <area>", or "update / upgrade
-  / bump dependencies" / "get on the latest versions" — even if they don't name
-  the command. Use `gate` (and have other
-  skills call it) to check freshly produced code against the QoQ standards and
-  auto-fix it before declaring a task done — a non-interactive quality gate over
-  the working-tree changes that returns a PASS/FAIL verdict. Every suggestion is
-  staged as a reviewable git patch and applied one at a time behind the project's
-  own lint/test/build gate, so a bad change is easy to isolate and revert.
+  commands plus a `gate` other skills call. `review` reviews a branch against a
+  base branch (naming, unused deps, complexity/SOLID, copy-paste, conventions,
+  TS idioms, design patterns). `refactor` runs the same analysis over a chosen
+  scope (path/package/dir/whole project) with no branch to diff. `bump
+  packages` updates npm deps in stages (minor/patch first, then majors one at a
+  time with changelog research). `fix` reuses `gate`'s engine to run `qoq
+  --check` over the full project (or a scope) and stages every fix (safe +
+  judgment tiers) as reviewable git patches behind the lint/test/build gate.
+  Trigger on "review my branch/PR", "ready to merge",
+  "clean up/refactor/tidy/modernize", "reduce complexity", "remove dead deps",
+  "de-duplicate", "fix naming/lint errors", "apply quality standards",
+  "bump/update deps". `gate` checks freshly produced code against QoQ
+  standards, auto-fixes it, and returns a non-interactive PASS/FAIL verdict.
 argument-hint: '[review|refactor|fix|bump packages|gate] [target]'
 user-invocable: true
 allowed-tools:
@@ -49,7 +39,7 @@ allowed-tools:
   - Bash(cat package.json)
   - Bash(ls:*)
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 Applies the QoQ — _quality over quantity_ — standard to a JS/TS codebase: a few
@@ -75,7 +65,7 @@ and `gate` all build on.
    [reference/fix.md](reference/fix.md)).
 
 2. **Locate the QoQ engine.** The linters and formatters (Prettier, ESLint,
-   Knip, JSCPD, Stylelint) and their `--json` digest are owned by one place —
+   Knip, JSCPD, Stylelint, Structurelint) and their `--json` digest are owned by one place —
    [reference/engine.md](reference/engine.md). Work out how `qoq` is invoked in
    this project (a `qoq:check` / `qoq:fix` npm script, `npx qoq`, or a build-first
    monorepo) and read its config, exactly as that file describes. Every command

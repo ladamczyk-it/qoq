@@ -6,7 +6,7 @@ export enum EModulesStylelint {
 }
 
 interface IModuleStylelintConfig extends StylelintConfig {
-  strict: boolean;
+  strict?: boolean;
 }
 
 export interface IModuleStylelintConfigWithTemplate extends IModuleStylelintConfig {
@@ -18,5 +18,4 @@ export interface IModuleStylelintConfigWithPattern extends IModuleStylelintConfi
 }
 
 export type TModuleStylelintConfig =
-  | IModuleStylelintConfigWithTemplate
-  | IModuleStylelintConfigWithPattern;
+  IModuleStylelintConfigWithTemplate | IModuleStylelintConfigWithPattern;

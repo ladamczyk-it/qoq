@@ -1,3 +1,37 @@
+## [4.5.1](https://github.com/ladamczyk-it/qoq/compare/v4.5.0...v4.5.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* bump packages ([43d4002](https://github.com/ladamczyk-it/qoq/commit/43d4002a33ee6c4705f08cb05f578385f144794f))
+
+# [4.5.0](https://github.com/ladamczyk-it/qoq/compare/v4.4.0...v4.5.0) (2026-07-01)
+
+
+### Features
+
+* add structurelint as an optional module + bump skill ([26159d3](https://github.com/ladamczyk-it/qoq/commit/26159d3ec692c38bf5a54c665a987685564f4273))
+
+# [4.4.0](https://github.com/ladamczyk-it/qoq/compare/v4.3.6...v4.4.0) (2026-06-30)
+
+
+### Bug Fixes
+
+* bump packages ([eb68b68](https://github.com/ladamczyk-it/qoq/commit/eb68b68b501d03a375b716f3e909e576faaa565a))
+
+
+### Features
+
+* self check config for redundant entries ([af8f00a](https://github.com/ladamczyk-it/qoq/commit/af8f00aef5f087fa77fb32ae91cd5fe442429d54))
+
+## [4.3.6](https://github.com/ladamczyk-it/qoq/compare/v4.3.5...v4.3.6) (2026-06-25)
+
+
+### Bug Fixes
+
+* bump packages ([6ab64e6](https://github.com/ladamczyk-it/qoq/commit/6ab64e6e0f5327a59c469e719623544f7b37f353))
+* tweak `qoq fix` + switch skillslint to javascript API execution ([814a133](https://github.com/ladamczyk-it/qoq/commit/814a1333274d62dc0d44a7494b92f7998ca47bc1))
+
 ## [4.3.5](https://github.com/ladamczyk-it/qoq/compare/v4.3.4...v4.3.5) (2026-06-20)
 
 

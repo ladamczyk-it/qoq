@@ -100,6 +100,7 @@ export const baseConfig: EslintConfig = {
     'sonarjs/no-nested-functions': 0,
     'sonarjs/no-misleading-array-reverse': 0,
     'sonarjs/todo-tag': 0,
+    'sonarjs/no-redundant-optional': 0,
     /**
      * low value, high check complexity, turned off since performance
      */

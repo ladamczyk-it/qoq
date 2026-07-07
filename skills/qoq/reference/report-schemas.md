@@ -137,6 +137,35 @@ it when present.
 
 ---
 
+## structurelint-report.json
+
+Emitted by the Structurelint JS API (`lint()`/`format(result, true)`), not a
+native CLI formatter. `violations` is flat — no per-file grouping — since a
+structure violation names a path directly.
+
+```json
+{
+  "passed": false,
+  "root": "src",
+  "violations": [
+    {
+      "path": "src/components/button.tsx",
+      "type": "unexpected",
+      "message": "Unexpected entry \"button.tsx\" in \"components\".",
+      "expected": ["{PascalCase}.(ts|tsx)"]
+    }
+  ]
+}
+```
+
+`type` is `unexpected` (an entry matched no rule) or `missing` (a `required`
+rule had no match — `path` then names the owning folder, not a nonexistent
+file). `expected` lists the rule name patterns that were allowed/required at
+that location. No key carries an auto-fix; every violation needs a manual
+move/rename/create. `violations` empty ⇒ `passed: true`.
+
+---
+
 ## skillslint-report.json
 
 Emitted by the Skillslint JS API (`lint()`), not a native CLI formatter. Two

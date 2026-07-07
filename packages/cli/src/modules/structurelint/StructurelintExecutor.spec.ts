@@ -6,14 +6,14 @@ import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 
 import { IExecutorOptions } from '../types.ts';
 
-import { SkillslintExecutor } from './SkillslintExecutor.ts';
+import { StructurelintExecutor } from './StructurelintExecutor.ts';
 
 const { lint, format } = vi.hoisted(() => ({
   lint: vi.fn(),
-  format: vi.fn(() => Promise.resolve('')),
+  format: vi.fn(() => ''),
 }));
 
-vi.mock('@ladamczyk/skillslint', () => ({ lint, format }));
+vi.mock('@ladamczyk/structurelint', () => ({ lint, format }));
 
 vi.mock('fs', async (importOriginal) => ({
   ...(await importOriginal<typeof import('fs')>()),
@@ -28,25 +28,24 @@ const baseOptions: IExecutorOptions = {
 };
 
 const passingResult = {
-  textlint: [],
-  fixed: false,
-  skills: [{ name: 'demo', scores: { overall: 90 }, passed: true }],
+  root: 'src',
+  violations: [],
   passed: true,
 };
 
-const configWithSkillslint = {
+const configWithStructurelint = {
   ...dummyModulesConfig,
-  modules: { skillslint: { path: 'skills' } },
+  modules: { structurelint: { path: 'src' } },
 };
 
-describe('SkillslintExecutor', () => {
+describe('StructurelintExecutor', () => {
   beforeEach(() => {
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     vi.spyOn(console, 'time').mockImplementation(() => undefined);
     vi.spyOn(console, 'timeEnd').mockImplementation(() => undefined);
     lint.mockResolvedValue(passingResult);
-    format.mockResolvedValue('');
+    format.mockReturnValue('');
   });
 
   afterEach(() => {
@@ -58,13 +57,15 @@ describe('SkillslintExecutor', () => {
 
   describe('getName', () => {
     it('should return the capitalized command name', () => {
-      expect(new SkillslintExecutor(dummyModulesConfig, true, true).getName()).toBe('Skillslint');
+      expect(new StructurelintExecutor(dummyModulesConfig, true, true).getName()).toBe(
+        'Structurelint'
+      );
     });
   });
 
   describe('run', () => {
-    it('should terminate gracefully (return OK) when there is no skillslint config', async () => {
-      const executor = new SkillslintExecutor(dummyModulesConfig, true, true);
+    it('should terminate gracefully (return OK) when there is no structurelint config', async () => {
+      const executor = new StructurelintExecutor(dummyModulesConfig, true, true);
 
       const result = await executor.run(baseOptions);
 
@@ -73,24 +74,16 @@ describe('SkillslintExecutor', () => {
     });
 
     it('should lint the configured path via the JS API', async () => {
-      const executor = new SkillslintExecutor(configWithSkillslint, true, true);
+      const executor = new StructurelintExecutor(configWithStructurelint, true, true);
 
       await executor.run(baseOptions);
 
-      expect(lint).toHaveBeenCalledWith({ path: 'skills', fix: false });
-    });
-
-    it('should request a fix when fixing is enabled', async () => {
-      const executor = new SkillslintExecutor(configWithSkillslint, true, true);
-
-      await executor.run({ ...baseOptions, fix: true });
-
-      expect(lint).toHaveBeenCalledWith({ path: 'skills', fix: true });
+      expect(lint).toHaveBeenCalledWith({ path: 'src' });
     });
 
     it('should return ERROR when the result does not pass', async () => {
       lint.mockResolvedValue({ ...passingResult, passed: false });
-      const executor = new SkillslintExecutor(configWithSkillslint, true, true);
+      const executor = new StructurelintExecutor(configWithStructurelint, true, true);
 
       const result = await executor.run(baseOptions);
 
@@ -98,14 +91,15 @@ describe('SkillslintExecutor', () => {
     });
 
     it('should write a JSON report and skip console output when --json is set', async () => {
-      const executor = new SkillslintExecutor(configWithSkillslint, true, true);
+      const executor = new StructurelintExecutor(configWithStructurelint, true, true);
 
       await executor.run({ ...baseOptions, json: 'true' });
 
       expect(writeFileSync).toHaveBeenCalledWith(
-        'report-out/skillslint-report.json',
+        'report-out/structurelint-report.json',
         expect.stringContaining('')
       );
+      expect(format).not.toHaveBeenCalled();
     });
   });
 });

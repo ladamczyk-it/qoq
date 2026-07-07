@@ -3,7 +3,7 @@
 This is the **shared internal engine**, not a user-facing command. The `review`,
 `refactor`, and `bump packages` commands all defer here for one thing: turning
 the project's linters and formatters (Prettier, ESLint, Knip, JSCPD, and
-Stylelint/Skillslint when enabled) into findings they can act on. It is the
+Stylelint/Structurelint/Skillslint when enabled) into findings they can act on. It is the
 single owner of locating the `qoq` invocation, running it in `--json` mode, and
 collapsing the output into a compact digest — so no command re-derives flags or
 parses raw reports.
@@ -69,8 +69,9 @@ npx qoq --check --json --output .qoq/reports
 
 A non-zero exit just means findings exist — the reports are still written. This
 writes `prettier-report.json`, `eslint-report.json`, `knip-report.json`,
-`jscpd-report.json` (and `stylelint-report.json` / `skillslint-report.json` when
-Stylelint / Skillslint are enabled).
+`jscpd-report.json` (and `stylelint-report.json` / `structurelint-report.json` /
+`skillslint-report.json` when Stylelint / Structurelint / Skillslint are
+enabled).
 
 Now collapse them into the digest — **this is the step that keeps tokens low, so
 do it instead of reading the raw reports**:

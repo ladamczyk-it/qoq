@@ -144,6 +144,22 @@ where:
 - `template` is a valid `@ladamczyk/qoq-stylelint-*` package — `qoq-stylelint-css` or `qoq-stylelint-scss`.
 - `strict` is `boolean`; when `true` the check fails on warnings (not only errors). Defaults to `false`.
 
+# Structurelint
+
+**Optional check.** Structurelint validates a project's file/folder structure against rules you define, and runs only when a `structurelint` block is present in `qoq.config.js`; omit the block entirely to disable it. It is backed by the compliant [@ladamczyk/structurelint](https://www.npmjs.com/package/@ladamczyk/structurelint) package, which the wizard installs when you enable it. It executes before Skillslint. It reads rules from its own `structure.config.{ts,js,mjs}` at the project root.
+
+```js
+{
+    structurelint: {
+        path: '.',
+    }
+}
+```
+
+where:
+
+- `path` is `string` overriding the root folder to validate (`structureRoot` in `structure.config.*`). Defaults to `.`.
+
 # Skillslint
 
 **Optional check.** Skillslint lints Claude Code skill documentation (textlint-based) and runs only when a `skillslint` block is present in `qoq.config.js`; omit the block entirely to disable it. It is backed by the compliant [@ladamczyk/skillslint](https://www.npmjs.com/package/@ladamczyk/skillslint) package, which the wizard installs when you enable it.

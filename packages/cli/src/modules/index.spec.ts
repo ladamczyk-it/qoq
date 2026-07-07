@@ -24,6 +24,7 @@ const executors = vi.hoisted(() => {
     jscpd: make('JSCPD'),
     eslint: make('Eslint'),
     stylelint: make('Stylelint'),
+    structurelint: make('Structurelint'),
     skillslint: make('Skillslint'),
   };
 });
@@ -35,6 +36,9 @@ vi.mock('./jscpd/JscpdExecutor.ts', () => ({ JscpdExecutor: executors.jscpd.ctor
 vi.mock('./eslint/EslintExecutor.ts', () => ({ EslintExecutor: executors.eslint.ctor }));
 vi.mock('./stylelint/StylelintExecutor.ts', () => ({
   StylelintExecutor: executors.stylelint.ctor,
+}));
+vi.mock('./structurelint/StructurelintExecutor.ts', () => ({
+  StructurelintExecutor: executors.structurelint.ctor,
 }));
 vi.mock('./skillslint/SkillslintExecutor.ts', () => ({
   SkillslintExecutor: executors.skillslint.ctor,
@@ -51,6 +55,7 @@ const configWithLinters: IModulesConfig = {
   ...dummyModulesConfig,
   modules: {
     stylelint: { strict: false },
+    structurelint: { path: '.' },
     skillslint: { path: './skills' },
   },
 };
@@ -89,6 +94,7 @@ describe('execute', () => {
       skipJscpd: true,
       skipEslint: true,
       skipStylelint: true,
+      skipStructurelint: true,
       skipSkillslint: true,
     });
 
@@ -98,13 +104,15 @@ describe('execute', () => {
     expect(executors.jscpd.run).not.toHaveBeenCalled();
     expect(executors.eslint.run).not.toHaveBeenCalled();
     expect(executors.stylelint.run).not.toHaveBeenCalled();
+    expect(executors.structurelint.run).not.toHaveBeenCalled();
     expect(executors.skillslint.run).not.toHaveBeenCalled();
   });
 
-  it('should not run stylelint or skillslint when they are absent from the config', async () => {
+  it('should not run stylelint, structurelint or skillslint when they are absent from the config', async () => {
     await execute(dummyModulesConfig, baseOptions);
 
     expect(executors.stylelint.run).not.toHaveBeenCalled();
+    expect(executors.structurelint.run).not.toHaveBeenCalled();
     expect(executors.skillslint.run).not.toHaveBeenCalled();
     expect(executors.eslint.run).toHaveBeenCalledOnce();
   });
