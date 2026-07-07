@@ -87,7 +87,7 @@ export class StylelintExecutor extends AbstractApiExecutor {
     }
 
     const { strict } = stylelint;
-    this.strict = strict;
+    this.strict = !!strict;
 
     let rest: StylelintConfig;
     let glob: string;
