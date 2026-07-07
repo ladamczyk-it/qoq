@@ -1,3 +1,10 @@
+## [4.5.1](https://github.com/ladamczyk-it/qoq/compare/v4.5.0...v4.5.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* bump packages ([43d4002](https://github.com/ladamczyk-it/qoq/commit/43d4002a33ee6c4705f08cb05f578385f144794f))
+
 # [4.5.0](https://github.com/ladamczyk-it/qoq/compare/v4.4.0...v4.5.0) (2026-07-01)
 
 
