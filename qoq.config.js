@@ -71,4 +71,7 @@ export default {
   skillslint: {
     path: './skills',
   },
+  structurelint: {
+    path: 'packages',
+  },
 };

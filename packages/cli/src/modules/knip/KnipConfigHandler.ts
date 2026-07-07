@@ -11,11 +11,12 @@ import { IModulesConfig } from '../types.ts';
 export class KnipConfigHandler extends AbstractConfigHandler {
   static readonly DEFAULT_IGNORE = [
     'skills/**',
-    'qoq.config.{js,ts}',
-    'eslint.config.{js,ts}',
-    'release.config.{js,ts}',
-    'stylelint.config.{js,ts}',
-    'vitest.config.{js,ts}',
+    'qoq.config.{js,cjs,mjs,ts}',
+    'eslint.config.{js,cjs,mjs,ts}',
+    'release.config.{js,cjs,mjs,ts}',
+    'stylelint.config.{js,cjs,mjs,ts}',
+    'vitest.config.{js,cjs,mjs,ts}',
+    'structure.config.{js,cjs,mjs,ts}',
   ];
   static readonly DEFAULT_IGNORE_DEPENDENCIES = ['@ladamczyk/*'];
   static readonly DEFAULT_IGNORE_BINARIES = [];

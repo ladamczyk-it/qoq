@@ -11,9 +11,9 @@
     "directory": "packages/jscpd"
   },
   "license": "MIT",
-  "main": "./index.json",
+  "main": "./src/index.json",
   "files": [
-    "index.json",
+    "src",
     "AGENTS.md"
   ],
   "dependencies": {
