@@ -55,7 +55,7 @@ const configWithLinters: IModulesConfig = {
   ...dummyModulesConfig,
   modules: {
     stylelint: { strict: false },
-    structurelint: { path: '.' },
+    structurelint: { structure: [] },
     skillslint: { path: './skills' },
   },
 };

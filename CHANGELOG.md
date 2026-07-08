@@ -1,3 +1,10 @@
+## [4.5.2](https://github.com/ladamczyk-it/qoq/compare/v4.5.1...v4.5.2) (2026-07-08)
+
+
+### Bug Fixes
+
+* read structurelint config directly from qoq config instead of separate file ([81e1efe](https://github.com/ladamczyk-it/qoq/commit/81e1efe62a959fc5eb75252dffeb6f76a4d8c490))
+
 ## [4.5.1](https://github.com/ladamczyk-it/qoq/compare/v4.5.0...v4.5.1) (2026-07-07)
 
 

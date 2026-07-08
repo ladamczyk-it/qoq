@@ -14,6 +14,10 @@ import type { Command } from 'cac';
 
 export const cli = cac('qoq');
 
+// CI runners set CI=true by convention; treat that the same as --silent to
+// keep CI logs short unless the user explicitly opted into verbose output.
+const isCi = (): boolean => process.env.CI === 'true';
+
 // The default and `staged` commands accept the same cache + per-tool skip flags;
 // register them once so a newly added tool's --skip-<tool> can't drift between them.
 const withCommonOptions = (command: Command): Command =>
@@ -68,6 +72,7 @@ withCommonOptions(
         fix: !!fix,
         disableCache: !!disableCache,
         concurrency: concurrency ?? 'off',
+        silent: !!options.silent || isCi(),
       },
       undefined,
       tools.length ? tools : undefined
@@ -88,7 +93,13 @@ withCommonOptions(
 
     return await execute(
       config,
-      { ...options, fix: false, disableCache: !!disableCache, concurrency: concurrency ?? 'off' },
+      {
+        ...options,
+        fix: false,
+        disableCache: !!disableCache,
+        concurrency: concurrency ?? 'off',
+        silent: !!options.silent || isCi(),
+      },
       files
     );
   });

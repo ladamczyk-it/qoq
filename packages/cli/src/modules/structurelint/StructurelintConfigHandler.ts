@@ -30,20 +30,20 @@ export class StructurelintConfigHandler extends AbstractConfigHandler {
     }
 
     const {
-      structurelintPath,
+      structurelintRoot,
     }: {
-      structurelintPath: string;
+      structurelintRoot: string;
     } = await prompts.prompt([
       {
         type: 'text',
-        name: 'structurelintPath',
+        name: 'structurelintRoot',
         message: c.reset(`Which folder should ${c.green('Structurelint')} validate?`),
         initial: StructurelintConfigHandler.DEFAULT_PATH,
       },
     ]);
 
     this.modulesConfig.modules.structurelint = {
-      path: structurelintPath,
+      structureRoot: structurelintRoot,
     };
 
     return super.getPrompts();
@@ -55,7 +55,7 @@ export class StructurelintConfigHandler extends AbstractConfigHandler {
     } = this.modulesConfig;
 
     if (structurelint) {
-      this.config.structurelint = { path: structurelint.path };
+      this.config.structurelint = structurelint;
     }
 
     return super.getConfigFromModules();
@@ -66,11 +66,7 @@ export class StructurelintConfigHandler extends AbstractConfigHandler {
     const { structurelint } = this.config;
 
     if (structurelint) {
-      const { path } = structurelint;
-
-      modules.structurelint = {
-        path,
-      };
+      modules.structurelint = structurelint;
     }
 
     return super.getModulesFromConfig();

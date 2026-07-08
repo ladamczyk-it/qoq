@@ -6,7 +6,7 @@ import { IModuleKnipConfig } from './knip/types.ts';
 import { IModuleNpmConfig } from './npm/types.ts';
 import { IModulePrettierConfig } from './prettier/types.ts';
 import { IModuleSkillslintConfig } from './skillslint/types.ts';
-import { IModuleStructurelintConfig } from './structurelint/types.ts';
+import { TModuleStructurelintConfig } from './structurelint/types.ts';
 import { TModuleStylelintConfig } from './stylelint/types.ts';
 
 export interface IModulesConfig {
@@ -29,7 +29,7 @@ export interface IModulesConfig {
     jscpd?: IModuleJscpdConfig;
     knip?: IModuleKnipConfig;
     stylelint?: TModuleStylelintConfig;
-    structurelint?: IModuleStructurelintConfig;
+    structurelint?: TModuleStructurelintConfig;
     skillslint?: IModuleSkillslintConfig;
   };
 }

@@ -11,6 +11,17 @@ describe('StructurelintConfigHandler', () => {
     it('should return the config for modules', () => {
       expect(configHandler.getConfigFromModules()).toStrictEqual({});
     });
+
+    it('should serialize the structurelint config set on modules', () => {
+      const structurelint = { structureRoot: 'src', structure: [{ name: 'src', children: [] }] };
+      const modulesConfig = structuredClone(dummyModulesConfig);
+
+      modulesConfig.modules.structurelint = structurelint;
+
+      const handler = new StructurelintConfigHandler(modulesConfig, {});
+
+      expect(handler.getConfigFromModules()).toStrictEqual({ structurelint });
+    });
   });
 
   describe('getModulesFromConfig', () => {
@@ -27,14 +38,13 @@ describe('StructurelintConfigHandler', () => {
       });
     });
 
-    it('should read the structurelint path from config when present', () => {
+    it('should read the structurelint config when present', () => {
+      const structurelint = { structureRoot: 'src', structure: [{ name: 'src', children: [] }] };
       const handler = new StructurelintConfigHandler(structuredClone(dummyModulesConfig), {
-        structurelint: { path: 'src' },
+        structurelint,
       });
 
-      expect(handler.getModulesFromConfig().modules.structurelint).toStrictEqual({
-        path: 'src',
-      });
+      expect(handler.getModulesFromConfig().modules.structurelint).toStrictEqual(structurelint);
     });
   });
 
@@ -49,14 +59,14 @@ describe('StructurelintConfigHandler', () => {
       expect(modulesConfig.modules.structurelint).toBeUndefined();
     });
 
-    it('should store the provided path when the user opts in', async () => {
+    it('should store the provided structureRoot when the user opts in', async () => {
       prompts.inject([true, 'src']);
       const modulesConfig = structuredClone(dummyModulesConfig);
       const handler = new StructurelintConfigHandler(modulesConfig, {});
 
       await handler.getPrompts();
 
-      expect(modulesConfig.modules.structurelint).toStrictEqual({ path: 'src' });
+      expect(modulesConfig.modules.structurelint).toStrictEqual({ structureRoot: 'src' });
     });
   });
 
@@ -71,7 +81,7 @@ describe('StructurelintConfigHandler', () => {
       expect(handler.getConfigFromModules()).toStrictEqual({});
     });
 
-    it('serializes the path when the user opts in', async () => {
+    it('serializes the structureRoot when the user opts in', async () => {
       prompts.inject([true, StructurelintConfigHandler.DEFAULT_PATH]);
       const modulesConfig = structuredClone(dummyModulesConfig);
       const handler = new StructurelintConfigHandler(modulesConfig, {});
@@ -79,7 +89,7 @@ describe('StructurelintConfigHandler', () => {
       await handler.getPrompts();
 
       expect(handler.getConfigFromModules()).toStrictEqual({
-        structurelint: { path: StructurelintConfigHandler.DEFAULT_PATH },
+        structurelint: { structureRoot: StructurelintConfigHandler.DEFAULT_PATH },
       });
     });
   });
