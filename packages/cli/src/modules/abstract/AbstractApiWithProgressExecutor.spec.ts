@@ -84,7 +84,12 @@ describe('AbstractApiWithProgressExecutor', () => {
 
       executor.publicPrintProgress('src/a.js');
 
-      expect(stdoutWrite).toHaveBeenCalledWith(expect.stringContaining('src/a.js\n'));
+      // Asserted separately (rather than via a single 'src/a.js\n' substring match) because
+      // picocolors enables ANSI coloring whenever process.env.CI is set — as GitHub Actions
+      // always does — which inserts a reset code between the filename and the newline.
+      const [text] = stdoutWrite.mock.calls[0] as [string];
+      expect(text).toContain('src/a.js');
+      expect(text.endsWith('\n')).toBe(true);
     });
 
     it('should overwrite the current line in place on a TTY', () => {
