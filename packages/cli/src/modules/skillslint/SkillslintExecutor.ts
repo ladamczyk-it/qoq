@@ -1,20 +1,14 @@
-import { writeFileSync } from 'fs';
-
 import { EExitCode } from '@ladamczyk/qoq-utils';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
-import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
+import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import type { ILintResult, TTextlintLintResult } from '@ladamczyk/skillslint';
 
-export class SkillslintExecutor extends AbstractExecutor {
+export class SkillslintExecutor extends AbstractApiExecutor {
   protected getCommandName(): string {
     return 'skillslint';
-  }
-
-  protected getCommandArgs(): string[] {
-    return [];
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -44,10 +38,7 @@ export class SkillslintExecutor extends AbstractExecutor {
     const result = await lint({ path: skillslint.path, fix: options.fix });
 
     if (options.json) {
-      writeFileSync(
-        `${options.output}/skillslint-report.json`,
-        JSON.stringify(this.buildReport(result))
-      );
+      this.writeReport(this.buildReport(result), options.output);
     } else {
       process.stdout.write(await format(result));
     }

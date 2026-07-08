@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { existsSync, rmSync, writeFileSync, readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 
 import c from 'picocolors';
 import prompts from 'prompts';
@@ -15,13 +15,7 @@ export class PrettierConfigHandler extends AbstractConfigHandler {
   static readonly CONFIG_FILE_PATH = '/.prettierrc';
 
   async getPrompts(): Promise<void> {
-    if (this.configFileExists()) {
-      process.stdout.write(
-        c.red(
-          `\n '.prettierrc' already exists in the project root, config will be overwritten by this setup!\n\n`
-        )
-      );
-    }
+    this.warnIfConfigFileExists();
 
     const {
       prettierPackage,
@@ -55,11 +49,7 @@ export class PrettierConfigHandler extends AbstractConfigHandler {
       },
     ]);
 
-    if (this.configFileExists()) {
-      rmSync(PrettierConfigHandler.CONFIG_FILE_PATH);
-    }
-
-    writeFileSync(PrettierConfigHandler.CONFIG_FILE_PATH, `"${prettierPackage}"`);
+    this.writeConfigFile(`"${prettierPackage}"`);
 
     const { srcPath } = this.modulesConfig;
 
@@ -113,9 +103,5 @@ export class PrettierConfigHandler extends AbstractConfigHandler {
     }
 
     return super.getPackages();
-  }
-
-  protected configFileExists(): boolean {
-    return existsSync(PrettierConfigHandler.CONFIG_FILE_PATH);
   }
 }

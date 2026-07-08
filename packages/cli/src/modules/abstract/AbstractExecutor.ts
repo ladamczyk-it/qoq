@@ -1,17 +1,28 @@
 import { CommonSpawnOptions } from 'child_process';
 import { existsSync, rmSync } from 'fs';
 
-import { EExitCode, executeCommand } from '@ladamczyk/qoq-utils';
+import { EExitCode } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
-import { capitalizeFirstLetter } from '../../helpers/common.ts';
+import { capitalizeFirstLetter, formatExecutionTime } from '../../helpers/common.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { IExecutorOptions, IModulesConfig } from '../types.ts';
 
 interface IExecutor {
   getName: () => string;
-  run: (options: IExecutorOptions, files?: string[]) => Promise<EExitCode>;
+  run: (
+    options: IExecutorOptions,
+    files?: string[],
+    stdio?: CommonSpawnOptions['stdio'],
+    captureOutput?: boolean
+  ) => Promise<string | EExitCode>;
 }
+
+// Shared base for every executor: owns construction, the run() orchestration
+// (timing, messaging, prepare → warmup → execute, error handling), the cache
+// args/warmup-clear in prepare(), and the prepare-error handler. The actual
+// execute() — spawning a binary vs. driving a JS API — is left to the two
+// specialisations, AbstractCommandExecutor and AbstractApiExecutor.
 export abstract class AbstractExecutor implements IExecutor {
   protected modulesConfig: IModulesConfig;
   protected silent: boolean;
@@ -45,7 +56,7 @@ export abstract class AbstractExecutor implements IExecutor {
     captureOutput: boolean = false
   ): Promise<string | EExitCode> {
     const consoleTimeName = `${this.getName()} execution time:`;
-    console.time(c.italic(c.gray(consoleTimeName)));
+    const startTime = performance.now();
 
     if (!this.silent) {
       process.stdout.write(c.green(`\nRunning ${this.getName()}:\n`));
@@ -71,18 +82,11 @@ export abstract class AbstractExecutor implements IExecutor {
       return EExitCode.OK;
     } finally {
       if (!this.silent && !this.hideTimer) {
-        console.timeEnd(c.italic(c.gray(consoleTimeName)));
+        process.stdout.write(
+          `${c.italic(c.gray(consoleTimeName))} ${formatExecutionTime(performance.now() - startTime)}\n`
+        );
       }
     }
-  }
-
-  protected async execute(
-    args: string[],
-    options: IExecutorOptions,
-    stdio: CommonSpawnOptions['stdio'] = 'inherit',
-    captureOutput: boolean = false
-  ): Promise<string | EExitCode> {
-    return executeCommand(this.getCommandName(), args, stdio, captureOutput);
   }
 
   protected async prepare(
@@ -117,6 +121,13 @@ export abstract class AbstractExecutor implements IExecutor {
 
     return process.exit(EExitCode.EXCEPTION);
   }
+
+  protected abstract execute(
+    args: string[],
+    options: IExecutorOptions,
+    stdio?: CommonSpawnOptions['stdio'],
+    captureOutput?: boolean
+  ): Promise<string | EExitCode>;
 
   protected abstract getCommandName(): string;
   protected abstract getCommandArgs(): string[];

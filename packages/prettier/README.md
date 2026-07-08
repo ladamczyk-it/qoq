@@ -18,7 +18,7 @@ You can simply put `"@ladamczyk/qoq-prettier"` in Your `.prettierrc` file. or us
 ### For CommonJS
 
 ```js
-const config = require('@ladamczyk/qoq-prettier/config');
+const config = require('@ladamczyk/qoq-prettier/config').default;
 
 module.exports = {
   ...config,

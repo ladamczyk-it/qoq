@@ -7,12 +7,12 @@ import c from 'picocolors';
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath } from '../../helpers/paths.ts';
 import { EConfigType } from '../../helpers/types.ts';
-import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
+import { AbstractCommandExecutor } from '../abstract/AbstractCommandExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { IModuleKnipConfig } from './types.ts';
 
-export class KnipExecutor extends AbstractExecutor {
+export class KnipExecutor extends AbstractCommandExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.knipcache');
 
   protected getCommandName(): string {

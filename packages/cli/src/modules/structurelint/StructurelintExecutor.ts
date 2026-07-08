@@ -1,21 +1,17 @@
-import { statSync, writeFileSync } from 'fs';
+import { statSync } from 'fs';
 
 import { EExitCode, resolveCwdPath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
-import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
+import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import type { ILintResult, IStructureConfig } from '@ladamczyk/structurelint';
 
-export class StructurelintExecutor extends AbstractExecutor {
+export class StructurelintExecutor extends AbstractApiExecutor {
   protected getCommandName(): string {
     return 'structurelint';
-  }
-
-  protected getCommandArgs(): string[] {
-    return [];
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -58,7 +54,7 @@ export class StructurelintExecutor extends AbstractExecutor {
     const result = this.validateWithInlineConfig(validate, { ...structurelint, structure });
 
     if (options.json) {
-      writeFileSync(`${options.output}/structurelint-report.json`, JSON.stringify(result));
+      this.writeReport(result, options.output);
     } else {
       process.stdout.write(format(result));
     }

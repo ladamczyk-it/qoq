@@ -1,4 +1,5 @@
 import { existsSync, writeFileSync } from 'fs';
+import { relative } from 'path';
 import { pathToFileURL } from 'url';
 
 import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
@@ -10,20 +11,100 @@ import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateE
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath } from '../../helpers/paths.ts';
 import { EConfigType } from '../../helpers/types.ts';
-import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
+import {
+  AbstractApiWithProgressExecutor,
+  PROGRESS_PLUGIN_NAMESPACE,
+  PROGRESS_RULE_ID,
+  PROGRESS_RULE_NAME,
+} from '../abstract/AbstractApiWithProgressExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { EModulesEslint, IModuleEslintConfig } from './types.ts';
 
-export class EslintExecutor extends AbstractExecutor {
+import type { ESLint, Linter, Rule } from 'eslint';
+
+interface IEslintReportMessage {
+  ruleId: string | null;
+  severity: number;
+  message: string;
+  line: number;
+  column: number;
+  fix: boolean;
+}
+
+type TEslintReport = { filePath: string; messages: IEslintReportMessage[] }[];
+
+export class EslintExecutor extends AbstractApiWithProgressExecutor {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.eslintcache');
+
+  // Resolved in prepare(), consumed in execute() — eslint runs through its JS API
+  // rather than a spawned binary, so there are no CLI args to carry state.
+  private targets: string[] = ['.'];
+  private configFile = '';
 
   protected getCommandName(): string {
     return 'eslint';
   }
 
-  protected getCommandArgs(): string[] {
-    return ['--max-warnings', '0'];
+  protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
+    // Resolved from the consumer's on-demand install (via the @ladamczyk/qoq-eslint-v9-*
+    // templates that bring in `eslint`); kept external in rollup.bin.js.
+    const { ESLint } = await import('eslint');
+
+    const showProgress = this.showProgress(options);
+    // Cache hits skip rule execution entirely, so the progress rule below never
+    // fires for unchanged files; every filename it does reach is recorded here
+    // so the post-lint backfill (mirroring Prettier's exhaustive per-target
+    // loop) knows which targets still need a progress line printed.
+    const progressedFiles = new Set<string>();
+
+    const eslint = new ESLint({
+      overrideConfigFile: this.configFile,
+      cache: !options.disableCache,
+      cacheLocation: EslintExecutor.CACHE_PATH,
+      cacheStrategy: 'metadata',
+      fix: options.fix,
+      concurrency: options.concurrency,
+      ...(showProgress ? { overrideConfig: this.getProgressOverrideConfig(progressedFiles) } : {}),
+    });
+
+    const results = await eslint.lintFiles(this.targets);
+
+    if (options.fix) {
+      await ESLint.outputFixes(results);
+    }
+
+    if (showProgress) {
+      this.backfillProgress(results, progressedFiles);
+    }
+
+    const { errorCount, warningCount } = this.countResults(results);
+
+    // Mirrors the spawned CLI's `--max-warnings 0`: any warning fails the run.
+    const tooManyWarnings = warningCount > 0;
+
+    if (showProgress) {
+      this.finishProgress(errorCount === 0 && !tooManyWarnings);
+    }
+
+    if (options.json) {
+      this.writeReport(this.buildReport(results), options.output);
+    } else {
+      const formatter = await eslint.loadFormatter('stylish');
+      const output = await formatter.format(results);
+
+      if (output) {
+        process.stdout.write(`${output}\n`);
+      }
+    }
+
+    // The stylish formatter doesn't surface the warning cap; the CLI prints this
+    // line separately, only when warnings (not errors) break the threshold.
+    if (errorCount === 0 && tooManyWarnings) {
+      process.stderr.write('ESLint found too many warnings (maximum: 0).\n');
+    }
+
+    return errorCount > 0 || tooManyWarnings ? EExitCode.ERROR : EExitCode.OK;
   }
 
   protected async prepare(
@@ -79,7 +160,11 @@ export class EslintExecutor extends AbstractExecutor {
 
       writeFileSync(configFilePath, formatCode(configType, imports, content, exports));
 
-      args.push('-c', resolveCwdRelativePath(configPath));
+      this.configFile = resolveCwdRelativePath(configPath);
+
+      // No explicit files: mirror the CLI's no-pattern default of linting the cwd
+      // and letting the flat config's own `files`/`ignores` decide the scope.
+      this.targets = ['.'];
 
       if (files.length > 0) {
         // eslint-disable-next-line sonarjs/no-dead-store
@@ -129,19 +214,7 @@ export class EslintExecutor extends AbstractExecutor {
           throw new TerminateExecutorGracefully();
         }
 
-        args.push('--stdin-filename', ...filteredFiles);
-      }
-
-      if (options.fix) {
-        args.push('--fix');
-      }
-
-      if (options.concurrency === 'auto') {
-        args.push(`--concurrency ${options.concurrency}`);
-      }
-
-      if (options.json) {
-        args.push(`--format json --output-file "${options.output}/eslint-report.json"`);
+        this.targets = filteredFiles;
       }
 
       return super.prepare(args, options, files);
@@ -149,4 +222,78 @@ export class EslintExecutor extends AbstractExecutor {
       return this.handlePrepareError(e);
     }
   }
+
+  // Cache hits skip rule execution (including the progress rule) for unchanged
+  // files, so a warm-cache run would otherwise show no progress at all — unlike
+  // Prettier, which has no cache and reports every target on every run. Prints
+  // a progress line for any result the live rule never reached, so every run
+  // shows the full target list exactly like Prettier's.
+  private backfillProgress(results: ESLint.LintResult[], progressedFiles: Set<string>): void {
+    for (const result of results) {
+      const display = toPosix(relative(process.cwd(), result.filePath));
+
+      if (!progressedFiles.has(display)) {
+        this.printProgress(display);
+      }
+    }
+  }
+
+  private countResults(results: ESLint.LintResult[]): { errorCount: number; warningCount: number } {
+    return results.reduce(
+      (acc, result) => ({
+        errorCount: acc.errorCount + result.errorCount,
+        warningCount: acc.warningCount + result.warningCount,
+      }),
+      { errorCount: 0, warningCount: 0 }
+    );
+  }
+
+  // ESLint's JS API exposes no per-file callback on `lintFiles()`; a rule's
+  // create() (called once per linted file, before AST traversal, regardless of
+  // what its visitor listens for) is the only hook available. Appended via
+  // `overrideConfig`, which ESLint merges in as the highest-precedence entry of
+  // the flat-config cascade, so it applies to every file without touching the
+  // generated config file itself.
+  private getProgressOverrideConfig(progressedFiles: Set<string>): Linter.Config {
+    const printProgress = (file: string): void => this.printProgress(file);
+
+    const progressRule: Rule.RuleModule = {
+      meta: { type: 'suggestion', schema: [] },
+      create(context) {
+        const display = toPosix(relative(context.cwd, context.filename));
+
+        progressedFiles.add(display);
+        printProgress(display);
+
+        return {};
+      },
+    };
+
+    return {
+      plugins: { [PROGRESS_PLUGIN_NAMESPACE]: { rules: { [PROGRESS_RULE_NAME]: progressRule } } },
+      // Severity is irrelevant here: the rule never calls context.report(), so
+      // it never contributes to error/warning counts.
+      rules: { [PROGRESS_RULE_ID]: 1 },
+    };
+  }
+
+  // Lean JSON report for `--json`: drop each result's full `source`/`output`
+  // file blobs (eslint's reports can be tens of thousands of lines) and keep
+  // only what summarize.mjs needs — per-file messages with rule, severity,
+  // location and a `fix` flag derived from eslint's fix object.
+  private buildReport(results: ESLint.LintResult[]): TEslintReport {
+    return results.map((result) => ({
+      filePath: result.filePath,
+      messages: result.messages.map((message) => ({
+        ruleId: message.ruleId,
+        severity: message.severity,
+        message: message.message,
+        line: message.line,
+        column: message.column,
+        fix: Boolean(message.fix),
+      })),
+    }));
+  }
 }
+
+const toPosix = (path: string): string => path.replaceAll('\\', '/');

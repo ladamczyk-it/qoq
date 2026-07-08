@@ -106,6 +106,8 @@ let totalFindings = 0;
 const machine = { reportDir, tools: {} };
 
 // ---------- Prettier ----------
+// Report is written by PrettierExecutor's JS-API path: { issues: string[] } —
+// the list of files that are not Prettier-formatted (relative paths).
 const prettier = read('prettier-report.json');
 if (prettier && !prettier.__parseError) {
   const files = (prettier.issues ?? []).map(rel);
@@ -123,6 +125,10 @@ if (prettier && !prettier.__parseError) {
 }
 
 // ---------- ESLint ----------
+// Report is written by EslintExecutor's JS-API path: a lean array of
+// { filePath, messages:[{ ruleId, severity, message, line, column, fix }] } —
+// eslint's heavy per-file `source`/`output` blobs are dropped at the source and
+// `fix` is flattened to a boolean (truthy when the message is auto-fixable).
 const eslint = read('eslint-report.json');
 if (Array.isArray(eslint)) {
   const byRule = new Map(); // ruleId -> { count, errors, fixable, locs:[] }
@@ -266,10 +272,13 @@ if (knip && !knip.__parseError) {
 }
 
 // ---------- JSCPD ----------
+// Report is written by JscpdExecutor's JS-API path: a lean
+// { percentage, clones:[{ format, lines, firstFile:{name,start,end}, secondFile:{…} }] }
+// (jscpd's heavy `fragment`/token/blame data is dropped at the source).
 const jscpd = read('jscpd-report.json');
 if (jscpd && !jscpd.__parseError) {
-  const dups = jscpd.duplicates ?? [];
-  const pct = jscpd.statistics?.total?.percentage;
+  const dups = jscpd.clones ?? [];
+  const pct = jscpd.percentage;
   machine.tools.jscpd = { clones: dups.length, percentage: pct };
   if (dups.length) {
     totalFindings += dups.length;
@@ -292,20 +301,31 @@ if (jscpd && !jscpd.__parseError) {
 }
 
 // ---------- Stylelint (optional) ----------
+// Report is written by StylelintExecutor's JS-API path: an array of
+// { source, warnings:[{ rule, severity:'error'|'warning', line, fixable }] }.
+// `fixable` comes from stylelint's rule metadata (the json formatter omits it).
 const stylelint = read('stylelint-report.json');
 if (Array.isArray(stylelint)) {
   const byRule = new Map();
   let count = 0;
+  let errors = 0;
   let fixable = 0;
   for (const file of stylelint) {
     const fp = rel(file.source);
     for (const w of file.warnings ?? []) {
       count++;
+      const isErr = w.severity === 'error';
+      if (isErr) {
+        errors++;
+      }
       if (w.fixable) {
         fixable++;
       }
-      const g = byRule.get(w.rule) ?? { count: 0, locs: [], fixable: 0 };
+      const g = byRule.get(w.rule) ?? { count: 0, errors: 0, locs: [], fixable: 0 };
       g.count++;
+      if (isErr) {
+        g.errors++;
+      }
       if (w.fixable) {
         g.fixable++;
       }
@@ -313,18 +333,22 @@ if (Array.isArray(stylelint)) {
       byRule.set(w.rule, g);
     }
   }
-  machine.tools.stylelint = { total: count, fixable, rules: byRule.size };
+  const warnings = count - errors;
+  machine.tools.stylelint = { total: count, errors, warnings, fixable, rules: byRule.size };
   if (count) {
     totalFindings += count;
     const lines = [...byRule.entries()]
       .sort((a, b) => b[1].count - a[1].count)
-      .map(
-        ([rule, g]) => `  ${String(rule).padEnd(38)} x${String(g.count).padEnd(3)} ${cap(g.locs)}`
-      );
+      .map(([rule, g]) => {
+        const tag = severityTag(g);
+        const fix = fixableLabel(g);
+        return `  ${String(rule).padEnd(38)} x${String(g.count).padEnd(3)} ${tag.padEnd(8)} ${fix.padEnd(
+          12
+        )} ${cap(g.locs)}`;
+      });
     sections.push(
-      `STYLELINT  ${count} warning(s) / ${byRule.size} rule(s)  (${fixable} auto-fixable)\n${lines.join(
-        '\n'
-      )}`
+      `STYLELINT  ${count} problem(s) / ${byRule.size} rule(s)  ` +
+        `(${errors} error, ${warnings} warn, ${fixable} auto-fixable)\n${lines.join('\n')}`
     );
   }
 }

@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, sonarjs/cognitive-complexity */
-import { existsSync, rmSync, writeFileSync } from 'fs';
-
 import { getPackageInfo } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 import prompts from 'prompts';
@@ -17,20 +15,14 @@ export class EslintConfigHandler extends AbstractConfigHandler {
   static readonly CONFIG_FILE_PATH = '/eslint.config.js';
 
   async getPrompts(): Promise<void> {
-    if (this.configFileExists()) {
-      process.stdout.write(
-        c.red(
-          `\n 'eslint.config.js' already exists in the project root, config will be overwritten by this setup!\n\n`
-        )
-      );
-    }
+    this.warnIfConfigFileExists();
 
-    let isTypeSriptInstalled: boolean;
+    let isTypeScriptInstalled: boolean;
 
     try {
-      isTypeSriptInstalled = !!getPackageInfo('typescript');
+      isTypeScriptInstalled = !!getPackageInfo('typescript');
     } catch {
-      isTypeSriptInstalled = false;
+      isTypeScriptInstalled = false;
     }
 
     let isReactInstalled: boolean;
@@ -62,7 +54,7 @@ export class EslintConfigHandler extends AbstractConfigHandler {
         type: 'toggle',
         name: 'eslint',
         message: c.reset(`Do You use ${c.green('TypeScript')} in Your project?`),
-        initial: isTypeSriptInstalled,
+        initial: isTypeScriptInstalled,
         active: c.green('yes'),
         inactive: c.red('no'),
       },
@@ -74,22 +66,22 @@ export class EslintConfigHandler extends AbstractConfigHandler {
           {
             title: 'Basic TypeScript only',
             value: EModulesEslint.ESLINT_V9_TS,
-            selected: isTypeSriptInstalled && !isReactInstalled,
+            selected: isTypeScriptInstalled && !isReactInstalled,
           },
           {
             title: 'TypeScript + React',
             value: EModulesEslint.ESLINT_V9_TS_REACT,
-            selected: isTypeSriptInstalled && isReactInstalled,
+            selected: isTypeScriptInstalled && isReactInstalled,
           },
           {
             title: 'TypeScript + Jest',
             value: EModulesEslint.ESLINT_V9_TS_JEST,
-            selected: isTypeSriptInstalled && isJestInstalled,
+            selected: isTypeScriptInstalled && isJestInstalled,
           },
           {
             title: 'TypeScript + Vitest',
             value: EModulesEslint.ESLINT_V9_TS_VITEST,
-            selected: isTypeSriptInstalled && isVitestInstalled,
+            selected: isTypeScriptInstalled && isVitestInstalled,
           },
         ],
         min: 1,
@@ -102,22 +94,22 @@ export class EslintConfigHandler extends AbstractConfigHandler {
           {
             title: 'Basic JavaScript only',
             value: EModulesEslint.ESLINT_V9_JS,
-            selected: !isTypeSriptInstalled && !isReactInstalled,
+            selected: !isTypeScriptInstalled && !isReactInstalled,
           },
           {
             title: 'JavaScript + React',
             value: EModulesEslint.ESLINT_V9_JS_REACT,
-            selected: !isTypeSriptInstalled && isReactInstalled,
+            selected: !isTypeScriptInstalled && isReactInstalled,
           },
           {
             title: 'JavaScript + Jest',
             value: EModulesEslint.ESLINT_V9_JS_JEST,
-            selected: !isTypeSriptInstalled && isJestInstalled,
+            selected: !isTypeScriptInstalled && isJestInstalled,
           },
           {
             title: 'JavaScript + Vitest',
             value: EModulesEslint.ESLINT_V9_JS_VITEST,
-            selected: !isTypeSriptInstalled && isVitestInstalled,
+            selected: !isTypeScriptInstalled && isVitestInstalled,
           },
         ],
         min: 1,
@@ -128,55 +120,51 @@ export class EslintConfigHandler extends AbstractConfigHandler {
 
     if (eslintPackages.length > 0) {
       const eslintSrcPath = omitStartingDotFromPath(srcPath);
+      const initialPatternsByTemplate: Partial<
+        Record<EModulesEslint, { files: string; ignores: string }>
+      > = {
+        [EModulesEslint.ESLINT_V9_JS]: {
+          files: `${eslintSrcPath}/**/*.js`,
+          ignores: '**/*.spec.js',
+        },
+        [EModulesEslint.ESLINT_V9_JS_REACT]: {
+          files: `${eslintSrcPath}/**/*.{js,jsx}`,
+          ignores: '**/*.spec.js',
+        },
+        [EModulesEslint.ESLINT_V9_TS]: {
+          files: `${eslintSrcPath}/**/*.{js,ts}`,
+          ignores: '**/*.spec.{js,ts}',
+        },
+        [EModulesEslint.ESLINT_V9_TS_REACT]: {
+          files: `${eslintSrcPath}/**/*.{js,jsx,ts,tsx}`,
+          ignores: '**/*.spec.{js,ts}',
+        },
+        [EModulesEslint.ESLINT_V9_JS_JEST]: {
+          files: `${eslintSrcPath}/**/*.spec.js`,
+          ignores: '',
+        },
+        [EModulesEslint.ESLINT_V9_JS_VITEST]: {
+          files: `${eslintSrcPath}/**/*.spec.js`,
+          ignores: '',
+        },
+        [EModulesEslint.ESLINT_V9_TS_JEST]: {
+          files: `${eslintSrcPath}/**/*.spec.{js,ts}`,
+          ignores: '',
+        },
+        [EModulesEslint.ESLINT_V9_TS_VITEST]: {
+          files: `${eslintSrcPath}/**/*.spec.{js,ts}`,
+          ignores: '',
+        },
+      };
 
       this.modulesConfig.modules.eslint = [];
 
       for (const eslintPackage of eslintPackages) {
         process.stderr.write(c.green(`\nProvide configuration for ${eslintPackage} checks:\n`));
 
-        let initialFiles: string;
-        let initialIgnores: string;
-
-        switch (true) {
-          case eslintPackage === EModulesEslint.ESLINT_V9_JS:
-            initialFiles = `${eslintSrcPath}/**/*.js`;
-            initialIgnores = '**/*.spec.js';
-            break;
-
-          case eslintPackage === EModulesEslint.ESLINT_V9_JS_REACT:
-            initialFiles = `${eslintSrcPath}/**/*.{js,jsx}`;
-            initialIgnores = '**/*.spec.js';
-            break;
-
-          case eslintPackage === EModulesEslint.ESLINT_V9_TS:
-            initialFiles = `${eslintSrcPath}/**/*.{js,ts}`;
-            initialIgnores = '**/*.spec.{js,ts}';
-            break;
-
-          case eslintPackage === EModulesEslint.ESLINT_V9_TS_REACT:
-            initialFiles = `${eslintSrcPath}/**/*.{js,jsx,ts,tsx}`;
-            initialIgnores = '**/*.spec.{js,ts}';
-            break;
-
-          case [EModulesEslint.ESLINT_V9_JS_JEST, EModulesEslint.ESLINT_V9_JS_VITEST].includes(
-            eslintPackage
-          ):
-            initialFiles = `${eslintSrcPath}/**/*.spec.js`;
-            initialIgnores = '';
-            break;
-
-          case [EModulesEslint.ESLINT_V9_TS_JEST, EModulesEslint.ESLINT_V9_TS_VITEST].includes(
-            eslintPackage
-          ):
-            initialFiles = `${eslintSrcPath}/**/*.spec.{js,ts}`;
-            initialIgnores = '';
-            break;
-
-          default:
-            initialFiles = '';
-            initialIgnores = '';
-            break;
-        }
+        const { files: initialFiles, ignores: initialIgnores } = initialPatternsByTemplate[
+          eslintPackage
+        ] ?? { files: '', ignores: '' };
 
         const { files, ignores }: { files: string[]; ignores: string[] } = await prompts.prompt([
           {
@@ -203,12 +191,7 @@ export class EslintConfigHandler extends AbstractConfigHandler {
       }
     }
 
-    if (this.configFileExists()) {
-      rmSync(EslintConfigHandler.CONFIG_FILE_PATH);
-    }
-
-    writeFileSync(
-      EslintConfigHandler.CONFIG_FILE_PATH,
+    this.writeConfigFile(
       formatCode(
         this.modulesConfig.configType,
         {
@@ -255,9 +238,5 @@ export class EslintConfigHandler extends AbstractConfigHandler {
       templates.length > 0 ? templates : [`@ladamczyk/${EModulesEslint.ESLINT_V9_JS}`];
 
     return super.getPackages();
-  }
-
-  protected configFileExists(): boolean {
-    return existsSync(EslintConfigHandler.CONFIG_FILE_PATH);
   }
 }

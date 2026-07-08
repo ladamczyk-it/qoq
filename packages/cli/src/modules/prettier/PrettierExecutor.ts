@@ -1,104 +1,305 @@
-import { CommonSpawnOptions } from 'child_process';
-import { writeFileSync } from 'fs';
+import { lstatSync, readFileSync, writeFileSync } from 'fs';
+import { relative, resolve } from 'path';
 
-import {
-  EExitCode,
-  executeCommand,
-  resolveCwdPath,
-  resolveCwdRelativePath,
-} from '@ladamczyk/qoq-utils';
-import micromatch from 'micromatch';
+import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
+import c from 'picocolors';
 
-import { readIgnorePatterns } from '../../helpers/common.ts';
-import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
-import { resolveCliRelativePath } from '../../helpers/paths.ts';
-import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
+import { AbstractApiWithProgressExecutor } from '../abstract/AbstractApiWithProgressExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
-export class PrettierExecutor extends AbstractExecutor {
-  static readonly CACHE_PATH = resolveCliRelativePath('/bin/.prettiercache');
+import type { Options } from 'prettier';
 
-  protected async execute(
-    args: string[],
-    options: IExecutorOptions,
-    stdio: CommonSpawnOptions['stdio'] = 'inherit',
-    captureOutput: boolean = false
-  ): Promise<string | EExitCode> {
-    if (options.json) {
-      const checkIndex = args.indexOf('--check');
+// Directories prettier's CLI always prunes during pattern expansion.
+const IGNORED_DIRECTORIES = ['.git', '.sl', '.svn', '.hg', '.jj', 'node_modules'];
 
-      if (checkIndex !== -1) {
-        args.splice(checkIndex, 1, '--list-different');
-      }
+// Ignore files prettier respects by default (the CLI's `--ignore-path` default).
+const IGNORE_FILES = ['.gitignore', '.prettierignore'];
 
-      const output = await executeCommand(this.getCommandName(), args, 'pipe', true);
-      const files = output.split('\n').filter(Boolean);
-
-      writeFileSync(`${options.output}/prettier-report.json`, JSON.stringify({ issues: files }));
-
-      return files.length > 0 ? EExitCode.ERROR : EExitCode.OK;
-    }
-
-    return executeCommand(this.getCommandName(), args, stdio, captureOutput);
-  }
+export class PrettierExecutor extends AbstractApiWithProgressExecutor {
+  // Set in prepare(), consumed in execute(): the explicit patterns to format and
+  // whether they came from a caller-supplied file list (vs. the configured sources).
+  private patterns: string[] = [];
+  private explicitFiles = false;
 
   protected getCommandName(): string {
     return 'prettier';
   }
 
-  protected getCommandArgs(): string[] {
-    return ['--ignore-unknown'];
-  }
-
-  protected async prepare(
-    args: string[],
-    options: IExecutorOptions,
+  protected prepare(
+    _args: string[],
+    _options: IExecutorOptions,
     files: string[] = []
   ): Promise<EExitCode> {
-    const { disableCache, fix } = options;
-    if (!disableCache) {
-      args.push('--cache-strategy', 'metadata');
+    const { srcPath, modules } = this.modulesConfig;
+
+    this.explicitFiles = files.length > 0;
+    this.patterns = this.explicitFiles ? files : (modules?.prettier?.sources ?? [srcPath]);
+
+    return Promise.resolve(EExitCode.OK);
+  }
+
+  protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
+    // Resolved from the consumer's on-demand install (via the @ladamczyk/qoq-prettier*
+    // templates); kept external in rollup.bin.js.
+    const prettier = await import('prettier');
+
+    const configPath = resolveCwdRelativePath(this.modulesConfig.configPaths.prettier);
+    const targets = await this.resolveTargets(prettier);
+
+    if (targets.length === 0) {
+      // Nothing to format (e.g. every caller-supplied file is ignored): match the
+      // old behaviour of returning OK without emitting any prettier output.
+      throw new TerminateExecutorGracefully();
     }
+
+    if (options.json) {
+      return this.report(prettier, targets, configPath, options.output);
+    }
+
+    return this.format(prettier, targets, configPath, options.fix, this.showProgress(options));
+  }
+
+  // `--json`: collect the files that are not Prettier-formatted into a lean
+  // { issues: string[] } report, without writing files or printing to the console.
+  private async report(
+    prettier: typeof import('prettier'),
+    targets: string[],
+    configPath: string,
+    output: string
+  ): Promise<EExitCode> {
+    const issues: string[] = [];
+
+    for (const file of targets) {
+      const options = await this.optionsFor(prettier, file, configPath);
+
+      if (!(await prettier.check(readFileSync(file, 'utf8'), options))) {
+        issues.push(toPosix(file));
+      }
+    }
+
+    this.writeReport({ issues }, output);
+
+    return issues.length > 0 ? EExitCode.ERROR : EExitCode.OK;
+  }
+
+  // Reproduces prettier's `--check` (and `--check --write` when fixing) console
+  // output and exit semantics over the resolved targets.
+  private async format(
+    prettier: typeof import('prettier'),
+    targets: string[],
+    configPath: string,
+    fix: boolean,
+    showProgress: boolean
+  ): Promise<EExitCode> {
+    process.stdout.write('Checking formatting...\n');
+
+    let unformatted = 0;
+    let errors = 0;
+
+    for (const file of targets) {
+      const display = toPosix(file);
+
+      if (showProgress) {
+        this.printProgress(display);
+      }
+
+      const outcome = await this.formatFile(prettier, file, display, configPath, fix, showProgress);
+
+      if (outcome === 'error') {
+        errors += 1;
+      } else if (outcome === 'unformatted') {
+        unformatted += 1;
+      }
+    }
+
+    if (showProgress) {
+      // summarize() below always prints its own final status line, so just
+      // clear the in-place progress line rather than adding a redundant one.
+      this.clearProgress();
+    }
+
+    return this.summarize({ unformatted, errors, fix });
+  }
+
+  // Formats (or checks) a single file and reports the outcome. `--fix` mirrors
+  // ESLint's fix mode and prints no per-file lines, only a final summary;
+  // `--check` still prints as it finds issues, via reportIssue().
+  private async formatFile(
+    prettier: typeof import('prettier'),
+    file: string,
+    display: string,
+    configPath: string,
+    fix: boolean,
+    showProgress: boolean
+  ): Promise<'ok' | 'unformatted' | 'error'> {
+    const options = await this.optionsFor(prettier, file, configPath);
+    const input = readFileSync(file, 'utf8');
+
+    let isDifferent: boolean;
 
     try {
-      const {
-        srcPath,
-        modules,
-        configPaths: { prettier: configPath },
-      } = this.modulesConfig;
-
-      args.push('--config', resolveCwdRelativePath(configPath));
-
-      const prettierignorePath = resolveCwdPath('/.prettierignore');
-      let sources: string[] = modules?.prettier?.sources ?? [srcPath];
-
-      if (files.length > 0) {
-        try {
-          const ignores = [
-            ...(await readIgnorePatterns(GITIGNORE_FILE_PATH)),
-            ...(await readIgnorePatterns(prettierignorePath)),
-          ];
-
-          sources = files.filter((file) => !micromatch.isMatch(file, ignores));
-        } catch {
-          throw new Error();
-        }
-
-        if (sources.length === 0) {
-          throw new TerminateExecutorGracefully();
-        }
-      }
-
-      args.push('--check', ...sources);
-
       if (fix) {
-        args.push('--write');
-      }
+        const output = await prettier.format(input, options);
+        isDifferent = output !== input;
 
-      return super.prepare(args, options, files);
-    } catch (e) {
-      return this.handlePrepareError(e);
+        if (isDifferent) {
+          writeFileSync(file, output);
+        }
+      } else {
+        isDifferent = !(await prettier.check(input, options));
+      }
+    } catch (error) {
+      this.reportIssue(fix, showProgress, () =>
+        process.stderr.write(`${prefix('error')} ${display}: ${String(error)}\n`)
+      );
+
+      return 'error';
     }
+
+    if (isDifferent) {
+      this.reportIssue(fix, showProgress, () =>
+        process.stderr.write(`${prefix('warn')} ${display}\n`)
+      );
+
+      return 'unformatted';
+    }
+
+    return 'ok';
+  }
+
+  // Only `--check` prints per-file lines; clear the in-place progress line
+  // first so the persistent line doesn't get appended to it mid-overwrite.
+  private reportIssue(fix: boolean, showProgress: boolean, write: () => void): void {
+    if (fix) {
+      return;
+    }
+
+    if (showProgress) {
+      this.clearProgress();
+    }
+
+    write();
+  }
+
+  private summarize({
+    unformatted,
+    errors,
+    fix,
+  }: {
+    unformatted: number;
+    errors: number;
+    fix: boolean;
+  }): EExitCode {
+    // `--fix` prints no per-file lines (matching ESLint's fix mode), so it has
+    // nothing "above" to point back to; `--check` still lists each offending
+    // file as it goes, so the summary can refer back to it.
+    const pluralize = (count: number): string => (count === 1 ? '1 file' : `${count} files`);
+    const describe = (count: number): string =>
+      fix || count > 1 ? pluralize(count) : 'the above file';
+
+    if (errors > 0) {
+      process.stdout.write(`Error occurred when checking code style in ${describe(errors)}.\n`);
+
+      return EExitCode.EXCEPTION;
+    }
+
+    if (unformatted === 0) {
+      process.stdout.write('All matched files use Prettier code style!\n');
+
+      return EExitCode.OK;
+    }
+
+    process.stderr.write(
+      `${prefix('warn')} ${
+        fix
+          ? `Code style issues fixed in ${describe(unformatted)}.`
+          : `Code style issues found in ${describe(unformatted)}. Run Prettier with --write to fix.`
+      }\n`
+    );
+
+    // `--write` fixes the issues, so it never fails the run; `--check` does.
+    return fix ? EExitCode.OK : EExitCode.ERROR;
+  }
+
+  // Resolves the per-file prettier options from the configured config file.
+  private async optionsFor(
+    prettier: typeof import('prettier'),
+    file: string,
+    configPath: string
+  ): Promise<Options> {
+    const config = await prettier.resolveConfig(file, { config: configPath, editorconfig: true });
+
+    return { ...config, filepath: file };
+  }
+
+  // Expands the patterns to concrete files and drops the ones prettier would not
+  // format: those matched by .gitignore/.prettierignore and those whose parser
+  // cannot be inferred (the CLI's `--ignore-unknown` behaviour).
+  private async resolveTargets(prettier: typeof import('prettier')): Promise<string[]> {
+    const targets: string[] = [];
+
+    for (const file of await this.expandPatterns()) {
+      const { ignored, inferredParser } = await prettier.getFileInfo(file, {
+        ignorePath: IGNORE_FILES,
+        withNodeModules: false,
+        resolveConfig: true,
+      });
+
+      if (!ignored && inferredParser) {
+        targets.push(file);
+      }
+    }
+
+    return targets;
+  }
+
+  // Mirrors prettier's CLI pattern expansion: explicit files pass through, a
+  // directory expands to `<dir>/**/*`, and anything else is treated as a glob.
+  private async expandPatterns(): Promise<string[]> {
+    const { default: fastGlob } = await import('fast-glob');
+
+    const cwd = process.cwd();
+    const files: string[] = [];
+    const globs: string[] = [];
+
+    for (const pattern of this.patterns) {
+      const stat = statSafe(resolve(cwd, pattern));
+
+      if (stat?.isFile()) {
+        files.push(pattern);
+      } else if (stat?.isDirectory()) {
+        const prefixPath = relative(cwd, resolve(cwd, pattern)) || '.';
+        globs.push(`${prefixPath}/**/*`);
+      } else if (!pattern.startsWith('!')) {
+        globs.push(pattern);
+      }
+    }
+
+    const matched = globs.length
+      ? await fastGlob(globs, {
+          cwd,
+          dot: true,
+          onlyFiles: true,
+          followSymbolicLinks: false,
+          ignore: IGNORED_DIRECTORIES.map((directory) => `**/${directory}`),
+        })
+      : [];
+
+    return [...new Set([...files, ...matched])].sort((a, b) => a.localeCompare(b));
   }
 }
+
+// Prettier's logger prefixes warn/error lines with a coloured `[warn]`/`[error]`.
+const prefix = (level: 'warn' | 'error'): string =>
+  `[${(level === 'warn' ? c.yellow : c.red)(level)}]`;
+
+const toPosix = (path: string): string => path.replaceAll('\\', '/');
+
+const statSafe = (path: string): ReturnType<typeof lstatSync> | undefined => {
+  try {
+    return lstatSync(path);
+  } catch {
+    return undefined;
+  }
+};

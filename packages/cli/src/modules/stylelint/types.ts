@@ -9,11 +9,11 @@ interface IModuleStylelintConfig extends StylelintConfig {
   strict?: boolean;
 }
 
-export interface IModuleStylelintConfigWithTemplate extends IModuleStylelintConfig {
+interface IModuleStylelintConfigWithTemplate extends IModuleStylelintConfig {
   template?: `${EModulesStylelint}`;
 }
 
-export interface IModuleStylelintConfigWithPattern extends IModuleStylelintConfig {
+interface IModuleStylelintConfigWithPattern extends IModuleStylelintConfig {
   pattern: string;
 }
 

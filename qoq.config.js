@@ -27,8 +27,10 @@ export default {
       'esbuild',
       'dotenv',
       // this is subpackage specific
+      'postcss',
       'pkg-types',
       '@eslint/compat',
+      '@jscpd/core',
       'jscpd',
       'prettier-plugin-sort-json',
       'browserslist',

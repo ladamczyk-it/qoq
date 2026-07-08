@@ -4,7 +4,26 @@ import { join } from 'path';
 
 import { afterAll, beforeAll, describe, it, expect } from 'vitest';
 
-import { capitalizeFirstLetter, omitStartingDotFromPath, readIgnorePatterns } from './common.ts';
+import {
+  capitalizeFirstLetter,
+  formatExecutionTime,
+  omitStartingDotFromPath,
+  readIgnorePatterns,
+} from './common.ts';
+
+describe('formatExecutionTime', () => {
+  it.each([
+    [0, '<0.1s'],
+    [42, '<0.1s'],
+    [99, '<0.1s'],
+    [100, '0.1s'],
+    [1000, '1.0s'],
+    [1549, '1.5s'],
+    [65432, '65.4s'],
+  ])('should format %sms as %s', (durationMs, expected) => {
+    expect(formatExecutionTime(durationMs)).toBe(expected);
+  });
+});
 
 describe('capitalizeFirstLetter', () => {
   it.each([

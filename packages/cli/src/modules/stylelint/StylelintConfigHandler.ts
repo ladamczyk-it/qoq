@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { existsSync, rmSync, writeFileSync } from 'fs';
-
 import c from 'picocolors';
 import prompts from 'prompts';
 
@@ -9,11 +7,7 @@ import { EConfigType, QoqConfig } from '../../helpers/types.ts';
 import { AbstractConfigHandler } from '../abstract/AbstractConfigHandler.ts';
 import { IModulesConfig } from '../types.ts';
 
-import {
-  EModulesStylelint,
-  type IModuleStylelintConfigWithPattern,
-  type IModuleStylelintConfigWithTemplate,
-} from './types.ts';
+import { EModulesStylelint } from './types.ts';
 
 export class StylelintConfigHandler extends AbstractConfigHandler {
   static readonly CONFIG_FILE_PATH = '/stylelint.config.js';
@@ -38,13 +32,7 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
       return super.getPrompts();
     }
 
-    if (this.configFileExists()) {
-      process.stdout.write(
-        c.red(
-          `\n 'stylelint.config.js' already exists in the project root, config will be overwritten by this setup!\n\n`
-        )
-      );
-    }
+    this.warnIfConfigFileExists();
 
     const {
       stylelintPackage,
@@ -72,12 +60,7 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
       },
     ]);
 
-    if (this.configFileExists()) {
-      rmSync(StylelintConfigHandler.CONFIG_FILE_PATH);
-    }
-
-    writeFileSync(
-      StylelintConfigHandler.CONFIG_FILE_PATH,
+    this.writeConfigFile(
       formatCode(
         this.modulesConfig.configType,
         {
@@ -103,18 +86,16 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
 
     if (stylelint) {
       const { strict } = stylelint;
-      const { template } = <IModuleStylelintConfigWithTemplate>stylelint;
-      const { pattern } = <IModuleStylelintConfigWithPattern>stylelint;
 
-      if (template) {
+      if ('template' in stylelint && stylelint.template) {
         this.config.stylelint = {
           strict: !!strict,
-          template,
+          template: stylelint.template,
         };
-      } else if (pattern) {
+      } else if ('pattern' in stylelint && stylelint.pattern) {
         this.config.stylelint = {
           strict: !!strict,
-          pattern,
+          pattern: stylelint.pattern,
         };
       } else {
         throw new Error('Bad config!');
@@ -130,24 +111,17 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
 
     if (stylelint) {
       const { strict, ...rest } = stylelint;
-      const { template } = <IModuleStylelintConfigWithTemplate>stylelint;
-      const { pattern } = <IModuleStylelintConfigWithPattern>stylelint;
+      const hasTemplate = 'template' in stylelint && !!stylelint.template;
+      const hasPattern = 'pattern' in stylelint && !!stylelint.pattern;
 
-      if (template) {
-        modules.stylelint = {
-          strict: !!strict,
-          template,
-          ...rest,
-        };
-      } else if (pattern) {
-        modules.stylelint = {
-          strict: !!strict,
-          pattern,
-          ...rest,
-        };
-      } else {
+      if (!hasTemplate && !hasPattern) {
         throw new Error('Bad config!');
       }
+
+      modules.stylelint = {
+        strict: !!strict,
+        ...rest,
+      };
     }
 
     return super.getModulesFromConfig();
@@ -155,16 +129,12 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
 
   getPackages(): string[] {
     const { stylelint } = this.modulesConfig.modules;
-    const template = stylelint && (<IModuleStylelintConfigWithTemplate>stylelint).template;
+    const template = stylelint && 'template' in stylelint ? stylelint.template : undefined;
 
     if (template && (Object.values(EModulesStylelint) as string[]).includes(template)) {
       this.packages = [`@ladamczyk/${template}`];
     }
 
     return super.getPackages();
-  }
-
-  protected configFileExists(): boolean {
-    return existsSync(StylelintConfigHandler.CONFIG_FILE_PATH);
   }
 }

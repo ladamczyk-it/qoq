@@ -5,14 +5,14 @@ import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { IExecutorOptions } from '../types.ts';
 
-import { AbstractExecutor } from './AbstractExecutor.ts';
+import { AbstractCommandExecutor } from './AbstractCommandExecutor.ts';
 
 vi.mock('@ladamczyk/qoq-utils', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@ladamczyk/qoq-utils')>()),
   executeCommand: vi.fn(),
 }));
 
-class TestExecutor extends AbstractExecutor {
+class TestExecutor extends AbstractCommandExecutor {
   static readonly CACHE_PATH = '.qoq-test.cache';
 
   protected getCommandName(): string {
@@ -31,7 +31,7 @@ const baseOptions: IExecutorOptions = {
   concurrency: 'off',
 };
 
-describe('AbstractExecutor', () => {
+describe('AbstractCommandExecutor', () => {
   beforeEach(() => {
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
@@ -112,7 +112,7 @@ describe('AbstractExecutor', () => {
     });
 
     it('should throw when caching is enabled but no cache path is defined', async () => {
-      class NoCacheExecutor extends AbstractExecutor {
+      class NoCacheExecutor extends AbstractCommandExecutor {
         protected getCommandName(): string {
           return 'nocache';
         }

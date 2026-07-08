@@ -6,12 +6,12 @@ import c from 'picocolors';
 import { parse, lt, gt } from 'semver';
 
 import { resolveCliPackagePath } from '../../helpers/paths.ts';
-import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
+import { AbstractCommandExecutor } from '../abstract/AbstractCommandExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { ENpmWarningType, TNpmOutdatedOutput } from './types.ts';
 
-export class NpmExecutor extends AbstractExecutor {
+export class NpmExecutor extends AbstractCommandExecutor {
   static readonly LOCK_PATH = resolveCliPackagePath('/bin/.npm-outdated-lock');
 
   getName(): string {
