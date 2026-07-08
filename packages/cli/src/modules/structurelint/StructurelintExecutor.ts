@@ -1,10 +1,13 @@
-import { writeFileSync } from 'fs';
+import { statSync, writeFileSync } from 'fs';
 
-import { EExitCode } from '@ladamczyk/qoq-utils';
+import { EExitCode, resolveCwdPath } from '@ladamczyk/qoq-utils';
+import c from 'picocolors';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { AbstractExecutor } from '../abstract/AbstractExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
+
+import type { ILintResult, IStructureConfig } from '@ladamczyk/structurelint';
 
 export class StructurelintExecutor extends AbstractExecutor {
   protected getCommandName(): string {
@@ -33,13 +36,26 @@ export class StructurelintExecutor extends AbstractExecutor {
       modules: { structurelint },
     } = this.modulesConfig;
 
-    // prepare() already guards this; re-narrow here so `path` is a defined string.
+    // prepare() already guards this; re-narrow here so `structurelint` is defined.
     if (!structurelint) {
       throw new TerminateExecutorGracefully();
     }
 
-    const { lint, format } = await import('@ladamczyk/structurelint');
-    const result = await lint({ path: structurelint.path });
+    const { structure } = structurelint;
+
+    if (!structure) {
+      process.stderr.write(
+        c.red(
+          'Structurelint is enabled but no `structure` was provided. Add a `structure` array directly under the `structurelint` block in qoq.config.*.\n'
+        )
+      );
+
+      return process.exit(EExitCode.EXCEPTION);
+    }
+
+    const { validate, format } = await import('@ladamczyk/structurelint');
+
+    const result = this.validateWithInlineConfig(validate, { ...structurelint, structure });
 
     if (options.json) {
       writeFileSync(`${options.output}/structurelint-report.json`, JSON.stringify(result));
@@ -48,5 +64,31 @@ export class StructurelintExecutor extends AbstractExecutor {
     }
 
     return result.passed ? EExitCode.OK : EExitCode.ERROR;
+  }
+
+  private validateWithInlineConfig(
+    validate: (typeof import('@ladamczyk/structurelint'))['validate'],
+    config: IStructureConfig
+  ): ILintResult {
+    const path = config.structureRoot ?? '.';
+    const absoluteRoot = resolveCwdPath(`/${path}`);
+
+    let isDirectory: boolean;
+
+    try {
+      isDirectory = statSync(absoluteRoot).isDirectory();
+    } catch {
+      isDirectory = false;
+    }
+
+    if (!isDirectory) {
+      process.stderr.write(c.red(`Structure root "${path}" does not exist or is not a folder.\n`));
+
+      return process.exit(EExitCode.EXCEPTION);
+    }
+
+    const violations = validate(absoluteRoot, config);
+
+    return { root: path, passed: violations.length === 0, violations };
   }
 }

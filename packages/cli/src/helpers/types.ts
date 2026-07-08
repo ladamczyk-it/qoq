@@ -3,7 +3,7 @@ import { TJscpdFormat } from '../modules/jscpd/types.ts';
 import { IModuleNpmConfig } from '../modules/npm/types.ts';
 import { IModulePrettierConfig } from '../modules/prettier/types.ts';
 import { IModuleSkillslintConfig } from '../modules/skillslint/types.ts';
-import { IModuleStructurelintConfig } from '../modules/structurelint/types.ts';
+import { TModuleStructurelintConfig } from '../modules/structurelint/types.ts';
 import { TModuleStylelintConfig } from '../modules/stylelint/types.ts';
 
 export type TPartialBy<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
@@ -25,7 +25,7 @@ export interface QoqConfig {
     ignore?: string[];
   };
   stylelint?: TModuleStylelintConfig;
-  structurelint?: IModuleStructurelintConfig;
+  structurelint?: TModuleStructurelintConfig;
   skillslint?: IModuleSkillslintConfig;
   knip?: {
     entry?: string[];

@@ -110,8 +110,12 @@ export default {
   },
 
   structurelint: {
-    // omit entirely to disable; validates project file/folder structure
-    path: '.',
+    // omit entirely to disable; validates project file/folder structure.
+    // Mirrors structurelint's own config shape directly (no separate
+    // `structure.config.*` file is read): `structure` is required to get
+    // any validation; `structureRoot`, `rules`, `ignorePatterns` are optional.
+    structureRoot: '.',
+    structure: [{ name: 'src', children: [] }],
   },
 
   skillslint: {
