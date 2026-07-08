@@ -190,6 +190,19 @@ describe('EslintExecutor', () => {
       expect(stdoutWrite).toHaveBeenCalledWith(expect.stringContaining('Eslint done.\n'));
     });
 
+    it('should still print progress for cache-hit files the live rule never visited', async () => {
+      // The mocked ESLint never actually invokes the injected rule's create()
+      // (unlike the real linter, which skips it for cached files too), so this
+      // exercises the same fallback path: every result should still get a
+      // progress line even though the rule reported none.
+      const stdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      const executor = new EslintExecutor(configWithEslint, false, true);
+
+      await executor.run(baseOptions);
+
+      expect(stdoutWrite).toHaveBeenCalledWith(expect.stringContaining('src/index.ts'));
+    });
+
     it('should not inject a progress override config when silent', async () => {
       const executor = new EslintExecutor(configWithEslint, true, true);
 

@@ -52,6 +52,11 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
     const { ESLint } = await import('eslint');
 
     const showProgress = this.showProgress(options);
+    // Cache hits skip rule execution entirely, so the progress rule below never
+    // fires for unchanged files; every filename it does reach is recorded here
+    // so the post-lint backfill (mirroring Prettier's exhaustive per-target
+    // loop) knows which targets still need a progress line printed.
+    const progressedFiles = new Set<string>();
 
     const eslint = new ESLint({
       overrideConfigFile: this.configFile,
@@ -60,7 +65,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       cacheStrategy: 'metadata',
       fix: options.fix,
       concurrency: options.concurrency,
-      ...(showProgress ? { overrideConfig: this.getProgressOverrideConfig() } : {}),
+      ...(showProgress ? { overrideConfig: this.getProgressOverrideConfig(progressedFiles) } : {}),
     });
 
     const results = await eslint.lintFiles(this.targets);
@@ -69,13 +74,11 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       await ESLint.outputFixes(results);
     }
 
-    const { errorCount, warningCount } = results.reduce(
-      (acc, result) => ({
-        errorCount: acc.errorCount + result.errorCount,
-        warningCount: acc.warningCount + result.warningCount,
-      }),
-      { errorCount: 0, warningCount: 0 }
-    );
+    if (showProgress) {
+      this.backfillProgress(results, progressedFiles);
+    }
+
+    const { errorCount, warningCount } = this.countResults(results);
 
     // Mirrors the spawned CLI's `--max-warnings 0`: any warning fails the run.
     const tooManyWarnings = warningCount > 0;
@@ -220,19 +223,47 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
     }
   }
 
+  // Cache hits skip rule execution (including the progress rule) for unchanged
+  // files, so a warm-cache run would otherwise show no progress at all — unlike
+  // Prettier, which has no cache and reports every target on every run. Prints
+  // a progress line for any result the live rule never reached, so every run
+  // shows the full target list exactly like Prettier's.
+  private backfillProgress(results: ESLint.LintResult[], progressedFiles: Set<string>): void {
+    for (const result of results) {
+      const display = toPosix(relative(process.cwd(), result.filePath));
+
+      if (!progressedFiles.has(display)) {
+        this.printProgress(display);
+      }
+    }
+  }
+
+  private countResults(results: ESLint.LintResult[]): { errorCount: number; warningCount: number } {
+    return results.reduce(
+      (acc, result) => ({
+        errorCount: acc.errorCount + result.errorCount,
+        warningCount: acc.warningCount + result.warningCount,
+      }),
+      { errorCount: 0, warningCount: 0 }
+    );
+  }
+
   // ESLint's JS API exposes no per-file callback on `lintFiles()`; a rule's
   // create() (called once per linted file, before AST traversal, regardless of
   // what its visitor listens for) is the only hook available. Appended via
   // `overrideConfig`, which ESLint merges in as the highest-precedence entry of
   // the flat-config cascade, so it applies to every file without touching the
   // generated config file itself.
-  private getProgressOverrideConfig(): Linter.Config {
+  private getProgressOverrideConfig(progressedFiles: Set<string>): Linter.Config {
     const printProgress = (file: string): void => this.printProgress(file);
 
     const progressRule: Rule.RuleModule = {
       meta: { type: 'suggestion', schema: [] },
       create(context) {
-        printProgress(relative(context.cwd, context.filename));
+        const display = toPosix(relative(context.cwd, context.filename));
+
+        progressedFiles.add(display);
+        printProgress(display);
 
         return {};
       },
@@ -264,3 +295,5 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
     }));
   }
 }
+
+const toPosix = (path: string): string => path.replaceAll('\\', '/');

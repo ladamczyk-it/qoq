@@ -18,7 +18,7 @@ You can simply put `"@ladamczyk/qoq-prettier-with-json-sort"` in Your `.prettier
 ### For CommonJS
 
 ```js
-const config = require('@ladamczyk/qoq-prettier-with-json-sort/config');
+const config = require('@ladamczyk/qoq-prettier-with-json-sort/config').default;
 
 module.exports = {
   ...config,
