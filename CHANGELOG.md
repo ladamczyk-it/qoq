@@ -1,3 +1,28 @@
+# [5.0.0](https://github.com/ladamczyk-it/qoq/compare/v4.5.2...v5.0.0) (2026-07-08)
+
+
+### Bug Fixes
+
+* break separate abstraction for CLI / API execution ([819a026](https://github.com/ladamczyk-it/qoq/commit/819a026073cdcbed493df6c4759405542ddca921))
+* refactor ([d914ff6](https://github.com/ladamczyk-it/qoq/commit/d914ff6933b1a9e6ab060bfb6fa6c34050b054f1))
+* remove qoq-eslint-v9-ts-react-structure ([a80364d](https://github.com/ladamczyk-it/qoq/commit/a80364d54869e8247acdd37ddcd952f2c52bf602))
+* switch eslint to javascript API execution ([d460746](https://github.com/ladamczyk-it/qoq/commit/d460746788b239b9ee6cc74e66278418455ac262))
+* switch jscpd to javascript API execution ([f957377](https://github.com/ladamczyk-it/qoq/commit/f9573774628cf54cde5bda634133e1895d62b161))
+* switch prettier to javascript API execution ([4cadc4b](https://github.com/ladamczyk-it/qoq/commit/4cadc4b16ece2cd384c61415f15a9eacb9e04eb8))
+* switch stylelint to javascript API execution ([bb2bb4e](https://github.com/ladamczyk-it/qoq/commit/bb2bb4e7bea75658e368047c8ce75bfa2a7fa248))
+
+
+### Features
+
+* add progress to Eslint, Prettier and Stylelint ([4b4112a](https://github.com/ladamczyk-it/qoq/commit/4b4112af9c47ac4f37e7cb37da83f2835fe275db))
+* support CI=true ([3eeb250](https://github.com/ladamczyk-it/qoq/commit/3eeb2503b822d2f601326660b29687a4f790d5c3))
+* unify execution time measurement ([ff4e2ad](https://github.com/ladamczyk-it/qoq/commit/ff4e2adcec94f3a42be699ac2dfb2f0195033af5))
+
+
+### BREAKING CHANGES
+
+* move to javascript API execution
+
 ## [4.5.2](https://github.com/ladamczyk-it/qoq/compare/v4.5.1...v4.5.2) (2026-07-08)
 
 
