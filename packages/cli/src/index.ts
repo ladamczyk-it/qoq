@@ -12,6 +12,10 @@ import { IExecuteOptions, IExecuteStagedOptions } from './modules/types.ts';
 
 export const cli = cac('qoq');
 
+// CI runners set CI=true by convention; treat that the same as --silent to
+// keep CI logs short unless the user explicitly opted into verbose output.
+const isCi = (): boolean => process.env.CI === 'true';
+
 cli
   .command('[...tools]', 'Run quality checks (optionally filtered to named tools)')
   .option('--init', 'Scaffold a qoq.config.js in the current project')
@@ -27,7 +31,7 @@ cli
   .option('--skip-structurelint', 'Skip Structurelint file/folder structure linting')
   .option('--skip-skillslint', 'Skip Skillslint skill-doc linting')
   .option('--warmup', 'Pre-generate tool configs in bin/ without running any checks')
-  .option('--silent', 'Suppress all QoQ console output')
+  .option('--silent', 'Suppress all QoQ console output (implied by CI=true)')
   .option('--config-hints', 'Print config suggestions alongside check results')
   .option('--production', 'Run tools in production mode (excludes dev-only rules)')
   .option('--json', "Write each tool's output to a JSON file in --output")
@@ -58,6 +62,7 @@ cli
         fix: !!fix,
         disableCache: !!disableCache,
         concurrency: concurrency ?? 'off',
+        silent: !!options.silent || isCi(),
       },
       undefined,
       tools.length ? tools : undefined
@@ -90,7 +95,13 @@ cli
 
     return await execute(
       config,
-      { ...options, fix: false, disableCache: !!disableCache, concurrency: concurrency ?? 'off' },
+      {
+        ...options,
+        fix: false,
+        disableCache: !!disableCache,
+        concurrency: concurrency ?? 'off',
+        silent: !!options.silent || isCi(),
+      },
       files
     );
   });

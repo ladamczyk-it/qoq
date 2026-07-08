@@ -117,6 +117,42 @@ describe('cli', () => {
         undefined
       );
     });
+
+    it('should not force silent when CI is unset', async () => {
+      const original = process.env.CI;
+
+      delete process.env.CI;
+
+      await run();
+
+      expect(execute).toHaveBeenCalledWith(
+        dummyConfig,
+        expect.objectContaining({ silent: false }),
+        undefined,
+        undefined
+      );
+
+      if (original !== undefined) {
+        process.env.CI = original;
+      }
+    });
+
+    it('should treat CI=true as --silent', async () => {
+      const original = process.env.CI;
+
+      process.env.CI = 'true';
+
+      await run();
+
+      expect(execute).toHaveBeenCalledWith(
+        dummyConfig,
+        expect.objectContaining({ silent: true }),
+        undefined,
+        undefined
+      );
+
+      process.env.CI = original;
+    });
   });
 
   describe('staged command', () => {
@@ -135,6 +171,22 @@ describe('cli', () => {
       await run('staged');
 
       expect(execute).toHaveBeenCalledWith(dummyConfig, expect.anything(), []);
+    });
+
+    it('should treat CI=true as --silent', async () => {
+      const original = process.env.CI;
+
+      process.env.CI = 'true';
+
+      await run('staged');
+
+      expect(execute).toHaveBeenCalledWith(
+        dummyConfig,
+        expect.objectContaining({ silent: true }),
+        []
+      );
+
+      process.env.CI = original;
     });
   });
 });
