@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-ts-react",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "Eslint flat config template for TS + React",
   "keywords": [
     "eslint TypeScript + React template",
@@ -44,9 +44,9 @@
   },
   "dependencies": {
     "@eslint-react/eslint-plugin": "5.13.1",
-    "@ladamczyk/qoq-eslint-v9-js-react": "^5.0.1",
-    "@ladamczyk/qoq-eslint-v9-ts": "^5.0.1",
-    "@ladamczyk/qoq-utils": "^5.0.1"
+    "@ladamczyk/qoq-eslint-v9-js-react": "^5.0.2",
+    "@ladamczyk/qoq-eslint-v9-ts": "^5.0.2",
+    "@ladamczyk/qoq-utils": "^5.0.2"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "12.3.0",

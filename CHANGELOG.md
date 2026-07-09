@@ -1,3 +1,10 @@
+## [5.0.2](https://github.com/ladamczyk-it/qoq/compare/v5.0.1...v5.0.2) (2026-07-09)
+
+
+### Bug Fixes
+
+* types fix ([76391f7](https://github.com/ladamczyk-it/qoq/commit/76391f77f30f95231f2e49b6a9632eb95f10308b))
+
 ## [5.0.1](https://github.com/ladamczyk-it/qoq/compare/v5.0.0...v5.0.1) (2026-07-09)
 
 
