@@ -1,3 +1,12 @@
+## [5.0.1](https://github.com/ladamczyk-it/qoq/compare/v5.0.0...v5.0.1) (2026-07-09)
+
+
+### Bug Fixes
+
+* add "configType" override ([42fbbf7](https://github.com/ladamczyk-it/qoq/commit/42fbbf7b8326b2c6c3e2e186b2c7b83805537351))
+* bump packages ([ef2651e](https://github.com/ladamczyk-it/qoq/commit/ef2651ee74c0878bbe17e397560783a49d8c8ed0))
+* bump packages ([d816065](https://github.com/ladamczyk-it/qoq/commit/d816065086bf96308585d374f8715d78955d3c29))
+
 # [5.0.0](https://github.com/ladamczyk-it/qoq/compare/v4.5.2...v5.0.0) (2026-07-08)
 
 
