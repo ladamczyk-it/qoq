@@ -38,14 +38,18 @@ As mentioned above, every `ConfigHandler` must extend `AbstractConfigHandler`. I
 
 ## Executors
 
-Every `Executor` must extend `AbstractExecutor` and implement the following methods:
+Every `Executor` extends `AbstractExecutor` through one of two mid-level bases, chosen by how the tool is driven:
 
-- **`getCommandName`** – Returns the command name executed in the shell.
-- **`getCommandArgs`** – Returns a static array of command arguments that do not depend on configuration.
-- **`getName`** – Provides a human-readable command name.
-- **`prepare`** – Handles all logic operations before command execution, such as:
-  - Adding or removing dynamic command arguments.
-  - Creating a configuration file to be consumed by the command.
+- **`AbstractCommandExecutor`** – for tools with no usable JS API (Knip, npm); implements `execute()` by spawning the tool's binary via `executeCommand()`.
+- **`AbstractApiExecutor`** – for tools driven via their JS API instead of a spawned process (Skillslint, Structurelint); implements `getCommandArgs()` as `[]` and adds a `writeReport()` helper for `--json` output. Its subclass `AbstractApiWithProgressExecutor` adds live per-file progress output for API-driven tools that stream over many files (ESLint, Prettier, Stylelint).
+
+Leaf classes typically implement:
+
+- **`getCommandName`** – Returns the command/tool name.
+- **`execute`** – Abstract on `AbstractExecutor`; usually satisfied by the mid-level base, but overridden directly when a tool needs custom `--json`/progress handling (e.g. `PrettierExecutor`, `StructurelintExecutor`).
+- **`prepare`** – Handles logic before execution, such as adding/removing dynamic command arguments or writing a configuration file for the command to consume. Has a default implementation (adds cache args); override to extend it.
+
+`getName` (human-readable command name) and `getCommandArgs` (static args) both have base-class defaults and only need overriding when a tool's behavior differs from them.
 
 ### Last but not least
 

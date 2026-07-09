@@ -20,11 +20,11 @@ Package exports both CommonJS and ESM code just import it in Your eslint config 
 ### For CommonJS
 
 ```js
-const jsBaseConfig = require("@ladamczyk/qoq-eslint-v9-ts-jest-rtl");
+const { baseConfig } = require("@ladamczyk/qoq-eslint-v9-ts-jest-rtl");
 
 module.exports = [
   {
-    ...jsBaseConfig,
+    ...baseConfig,
     files: [...]
   }
 ]
@@ -33,11 +33,11 @@ module.exports = [
 ### For ESM
 
 ```js
-import jsBaseConfig from '@ladamczyk/qoq-eslint-v9-ts-jest-rtl';
+import { baseConfig } from '@ladamczyk/qoq-eslint-v9-ts-jest-rtl';
 
 export default [
   {
-    ...jsBaseConfig,
+    ...baseConfig,
     files: [...]
   }
 ];
@@ -53,4 +53,4 @@ To preview all rules defined by this config simply run:
 
 _Feel free to join us, please read [General Contributing Guidelines](https://github.com/ladamczyk-it/qoq/blob/master/.github/CONTRIBUTING.md)_
 
-CLI technical documentation can be found [here](../eslint-v9/PROJECT.md)
+CLI technical documentation can be found [here](../cli/docs/PROJECT.md)

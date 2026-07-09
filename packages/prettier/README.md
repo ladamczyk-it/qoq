@@ -1,7 +1,7 @@
 # @ladamczyk/qoq-prettier
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ladamczyk-it/qoq/main.yml) [![codecov](https://codecov.io/gh/ladamczyk-it/qoq/graph/badge.svg?flag=prettier&token=PQ1XAQQ257)](https://codecov.io/gh/ladamczyk-it/qoq/flags/prettier) ![NPM Version](https://img.shields.io/npm/v/%40ladamczyk%2Fqoq-eslint-v9-ts-vitest)
-![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/%40ladamczyk%2Fqoq-eslint-v9-ts-vitest) ![NPM License](https://img.shields.io/npm/l/%40ladamczyk%2Fqoq-eslint-v9-ts-vitest)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ladamczyk-it/qoq/main.yml) [![codecov](https://codecov.io/gh/ladamczyk-it/qoq/graph/badge.svg?flag=prettier&token=PQ1XAQQ257)](https://codecov.io/gh/ladamczyk-it/qoq/flags/prettier) ![NPM Version](https://img.shields.io/npm/v/%40ladamczyk%2Fqoq-prettier)
+![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/%40ladamczyk%2Fqoq-prettier) ![NPM License](https://img.shields.io/npm/l/%40ladamczyk%2Fqoq-prettier)
 
 ## Rationale
 

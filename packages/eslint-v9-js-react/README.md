@@ -38,4 +38,4 @@ To preview all rules defined by this config simply run:
 
 _Feel free to join us, please read [General Contributing Guidelines](https://github.com/ladamczyk-it/qoq/blob/master/.github/CONTRIBUTING.md)_
 
-CLI technical documentation can be found [here](../eslint-v9/PROJECT.md)
+CLI technical documentation can be found [here](../cli/docs/PROJECT.md)

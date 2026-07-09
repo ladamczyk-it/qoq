@@ -16,6 +16,9 @@ export enum EConfigType {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface QoqConfig {
   srcPath?: string;
+  // Overrides the CJS/ESM format auto-detected from the consumer's package.json
+  // "type" field. Not offered by the wizard — explicit config authoring only.
+  configType?: EConfigType;
   npm?: IModuleNpmConfig;
   prettier?: IModulePrettierConfig;
   eslint?: IModuleEslintConfig[];

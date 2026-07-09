@@ -61,6 +61,10 @@ All fields are optional. Defaults apply when omitted.
 export default {
   srcPath: './src', // fallback path used by all tools
 
+  // Overrides the CJS/ESM format otherwise auto-detected from package.json's
+  // "type" field. Not offered by `qoq --init`; add it by hand if needed.
+  configType: 'ESM', // or 'CJS'
+
   configPaths: {
     // override locations of generated IDE config files
     eslint: '/eslint.config.js',
@@ -130,7 +134,7 @@ Available ESLint `template` values:
 
 ## Generated files
 
-QoQ writes tool configs into its own `bin/` at runtime — the consumer project only needs the three root files below. Format (CJS vs ESM) is auto-detected from `qoq.config.js`.
+QoQ writes tool configs into its own `bin/` at runtime — the consumer project only needs the three root files below. Format (CJS vs ESM) is auto-detected from package.json's `type` field, unless overridden by `configType` in `qoq.config.js`.
 
 **Consumer project root files** (created by `qoq --init`, thin re-exports for IDE support):
 

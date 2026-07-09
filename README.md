@@ -20,8 +20,12 @@ QoQ provides essential tooling to ensure code quality across all your projects:
 - **Prettier** – Automatically format code for consistency.
 - **Knip** – Detect and remove unused code effortlessly.
 - **JSCPD** – Identify and eliminate duplicate code.
+- **Stylelint** – Lint CSS/SCSS with opinionated presets.
+- **Structurelint** – Validate project file/folder structure (via `@ladamczyk/structurelint`).
+- **Skillslint** – Lint Claude Code skill documentation (via `@ladamczyk/skillslint`).
+- **npm outdated checks** – Flag stale dependencies on a configurable cadence.
 
-Each tool is available as an independent package under the `@ladamczyk/qoq-*` namespace, making it easy to integrate and customize.
+Most tools are available as an independent package under the `@ladamczyk/qoq-*` namespace, making it easy to integrate and customize. Structurelint and Skillslint are optional integrations backed by separate `@ladamczyk/structurelint` and `@ladamczyk/skillslint` packages.
 
 ## 🚀 Getting Started
 

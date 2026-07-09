@@ -98,6 +98,18 @@ describe('BasicConfigHandler', () => {
     });
   });
 
+  describe('getModulesFromConfig with an explicit configType override', () => {
+    it('should prefer the config value over package.json auto-detection', () => {
+      // This package's own package.json has "type": "module", so auto-detection
+      // would otherwise resolve to ESM — CJS here only holds if the override wins.
+      const handler = new BasicConfigHandler(structuredClone(dummyModulesConfig), {
+        configType: EConfigType.CJS,
+      });
+
+      expect(handler.getModulesFromConfig().configType).toBe(EConfigType.CJS);
+    });
+  });
+
   describe('getPackages', () => {
     it('should expose the cli package', () => {
       expect(configHandler.getPackages()).toStrictEqual(['@ladamczyk/qoq-cli']);

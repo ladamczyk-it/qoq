@@ -27,17 +27,25 @@ npm test
 Each tool is a pair of classes in `src/modules/<tool>/`:
 
 - `*ConfigHandler extends AbstractConfigHandler` — handles wizard prompts and config serialization/deserialization. Chained via `setNext()` in `getHandlerBySequence()` in `src/modules/index.ts`.
-- `*Executor extends AbstractExecutor` — implements `getCommandName()`, `getCommandArgs()`, and `prepare()` (writes the tool's generated config file into `bin/` and adjusts CLI args). The base `run()` handles caching, timing, and the warmup shortcut.
+- `*Executor extends AbstractExecutor` (via one of the mid-level bases below) — implements `getCommandName()` and `prepare()` (writes the tool's generated config file into `bin/` and adjusts CLI args). The base `AbstractExecutor.run()` handles caching, timing, and the warmup shortcut; `execute()` is abstract and left to the mid-level base or the leaf class.
 
-`PrettierExecutor` overrides `run()` entirely to handle `--json` mode: it swaps `--check` for `--list-different`, captures stdout via `executeCommand(..., captureOutput=true)`, and writes `prettier-report.json` itself rather than relying on a Prettier CLI flag.
+Executors split by how they drive the underlying tool:
 
-`SkillslintExecutor` does not spawn a binary at all — it overrides `execute()` to call `@ladamczyk/skillslint`'s `lint()` + `format()` JS API directly (dynamically imported at runtime, so it resolves from the consumer's on-demand install; kept external in `rollup.bin.js`). `format()` returns the skillslint CLI's console output verbatim; under `--json` it skips `format()` and writes `skillslint-report.json` itself.
+- `AbstractCommandExecutor` — spawns the tool's binary via `executeCommand()`, using `getCommandArgs()` + whatever `prepare()` pushed onto `args`. Used by tools with no usable JS API (Knip, npm).
+- `AbstractApiExecutor` — drives the tool's JS API directly instead of spawning a process (`getCommandArgs()` returns `[]`); provides a `writeReport()` helper for `--json` output. Used by Skillslint and Structurelint.
+- `AbstractApiWithProgressExecutor extends AbstractApiExecutor` — adds live per-file progress output (`showProgress()`/`printProgress()`/`clearProgress()`/`finishProgress()`) for API-driven tools that stream over many files: ESLint, Prettier, Stylelint. None of these tools' JS APIs expose a public per-file callback, so each subclass feeds progress from whatever hook it can get — Prettier loops over files itself; ESLint/Stylelint inject an internal `qoq-internal/file-progress` rule/plugin purely to observe the filename as it's processed.
+
+`PrettierExecutor` (extends `AbstractApiWithProgressExecutor`) drives `prettier`'s JS API directly rather than spawning its CLI — `execute()` calls `prettier.check()`/`prettier.format()` per resolved target (dynamically imported at runtime, so it resolves from the consumer's on-demand install; kept external in `rollup.bin.js`). Under `--json` it collects unformatted files into a lean report via `writeReport()` instead of printing.
+
+`SkillslintExecutor` (extends `AbstractApiExecutor`) does not spawn a binary at all — it overrides `execute()` to call `@ladamczyk/skillslint`'s `lint()` + `format()` JS API directly (dynamically imported at runtime for the same reason as Prettier above). `format()` returns the skillslint CLI's console output verbatim; under `--json` it skips `format()` and writes `skillslint-report.json` itself.
+
+`StructurelintExecutor` (extends `AbstractApiExecutor`) works the same way, driving `@ladamczyk/structurelint`'s `validate()` + `format()` JS API. The `structurelint` block in `qoq.config.js` mirrors structurelint's own config shape directly — no separate `structure.config.*` file is read.
 
 `execute()` in `src/modules/index.ts` accepts an optional `tools?: string[]` fourth argument — when present, only executors whose name appears in the list are run. This powers the `qoq [tools...]` positional-arg feature.
 
 To add a new tool: create `src/modules/<tool>/{*ConfigHandler.ts,*Executor.ts,types.ts}`, register the handler in the `setNext()` chain and the executor in `execute()` in `src/modules/index.ts`. Add `shouldRun('<name>')` guard to the executor call in `execute()` and, if `--json` output is needed, push the appropriate flag inside `prepare()`.
 
-`formatCode()` in `src/helpers/formatCode.ts` generates CJS or ESM file bodies; format is detected from the consumer's `qoq.config.js` content.
+`formatCode()` in `src/helpers/formatCode.ts` just renders CJS or ESM file bodies for a given `EConfigType` — it does no detection itself. The format is resolved once in `BasicConfigHandler.getModulesFromConfig()`: the consumer's `qoq.config.js` `configType` field wins if set, otherwise it falls back to the consumer's `package.json` `"type"` field (`module` → ESM, else CJS).
 
 ## Cache behavior
 

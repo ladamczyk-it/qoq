@@ -5,6 +5,8 @@
 
 ## Rationale
 
+To catch Node version mismatches before they cause runtime failures, **check-engine** validates that a package's own `engines.node` field is actually compatible with the `engines.node` requirements declared by its dependencies — and does so across every workspace in a monorepo, not just the root. It also reports the current and maintained Node LTS versions on each run for reference.
+
 ## Available options
 
 CLI has its own documentation just run `check-engine -help` or `check-engine -h`.

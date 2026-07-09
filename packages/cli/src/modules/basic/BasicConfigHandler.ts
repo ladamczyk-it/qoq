@@ -79,7 +79,8 @@ export class BasicConfigHandler extends AbstractConfigHandler {
     };
 
     this.modulesConfig.configType =
-      getPackageJson()?.type === 'module' ? EConfigType.ESM : EConfigType.CJS;
+      this.config.configType ??
+      (getPackageJson()?.type === 'module' ? EConfigType.ESM : EConfigType.CJS);
 
     return super.getModulesFromConfig();
   }

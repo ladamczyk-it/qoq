@@ -146,19 +146,22 @@ where:
 
 # Structurelint
 
-**Optional check.** Structurelint validates a project's file/folder structure against rules you define, and runs only when a `structurelint` block is present in `qoq.config.js`; omit the block entirely to disable it. It is backed by the compliant [@ladamczyk/structurelint](https://www.npmjs.com/package/@ladamczyk/structurelint) package, which the wizard installs when you enable it. It executes before Skillslint. It reads rules from its own `structure.config.{ts,js,mjs}` at the project root.
+**Optional check.** Structurelint validates a project's file/folder structure against rules you define, and runs only when a `structurelint` block is present in `qoq.config.js`; omit the block entirely to disable it. It is backed by the compliant [@ladamczyk/structurelint](https://www.npmjs.com/package/@ladamczyk/structurelint) package, which the wizard installs when you enable it. It executes before Skillslint. The `structurelint` block mirrors structurelint's own config shape directly — no separate `structure.config.*` file is read.
 
 ```js
 {
     structurelint: {
-        path: '.',
+        structureRoot: '.',
+        structure: [{ name: 'src', children: [] }],
     }
 }
 ```
 
 where:
 
-- `path` is `string` overriding the root folder to validate (`structureRoot` in `structure.config.*`). Defaults to `.`.
+- `structure` is required to get any validation — an array describing the expected file/folder structure.
+- `structureRoot` is `string` overriding the root folder to validate. Defaults to `.`.
+- `rules` and `ignorePatterns` are also supported, mirroring `@ladamczyk/structurelint`'s own config shape.
 
 # Skillslint
 
