@@ -18,7 +18,7 @@ export interface QoqConfig {
   srcPath?: string;
   // Overrides the CJS/ESM format auto-detected from the consumer's package.json
   // "type" field. Not offered by the wizard — explicit config authoring only.
-  configType?: EConfigType;
+  configType?: `${EConfigType}`;
   npm?: IModuleNpmConfig;
   prettier?: IModulePrettierConfig;
   eslint?: IModuleEslintConfig[];

@@ -108,6 +108,14 @@ describe('BasicConfigHandler', () => {
 
       expect(handler.getModulesFromConfig().configType).toBe(EConfigType.CJS);
     });
+
+    it('should accept a plain string and map it back to EConfigType', () => {
+      const handler = new BasicConfigHandler(structuredClone(dummyModulesConfig), {
+        configType: 'CJS',
+      });
+
+      expect(handler.getModulesFromConfig().configType).toBe(EConfigType.CJS);
+    });
   });
 
   describe('getPackages', () => {
