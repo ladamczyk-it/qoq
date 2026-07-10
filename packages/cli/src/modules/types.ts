@@ -35,6 +35,7 @@ export interface IModulesConfig {
 }
 
 export interface IExecuteStagedOptions {
+  ci?: boolean;
   disableCache?: boolean;
   skipNpm?: boolean;
   skipPrettier?: boolean;

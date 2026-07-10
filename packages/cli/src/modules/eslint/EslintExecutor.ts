@@ -127,6 +127,13 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
         '{ includeIgnoreFile }': '@eslint/compat',
       };
 
+      // Every @ladamczyk/qoq-eslint-v9-* template bundles eslint-plugin-prettier so
+      // formatting issues surface as lint errors during local dev. Running Prettier
+      // through ESLint's AST-based rule pipeline is much slower than running it
+      // directly though, and CI already runs the standalone Prettier check, so CI
+      // runs strip the plugin here instead of paying for it twice.
+      let usesStripPrettierPlugin = false;
+
       const content = (modules?.eslint ?? []).reduce(
         (acc: string[], current: IModuleEslintConfig, index) => {
           const { template, ...rest } = current;
@@ -138,9 +145,14 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
               imports[`{ baseConfig: baseConfig${index} }`] = `@ladamczyk/${template}`;
             }
 
-            acc.push(
-              `const config${index} = [objectMergeRight(baseConfig${index}, ${JSON.stringify(rest)})]`
-            );
+            const merged = `objectMergeRight(baseConfig${index}, ${JSON.stringify(rest)})`;
+
+            if (options.ci) {
+              usesStripPrettierPlugin = true;
+              acc.push(`const config${index} = [stripPrettierPlugin(${merged})]`);
+            } else {
+              acc.push(`const config${index} = [${merged}]`);
+            }
           } else {
             acc.push(`const config${index} = [${JSON.stringify(rest)}]`);
           }
@@ -149,6 +161,10 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
         },
         []
       );
+
+      if (usesStripPrettierPlugin) {
+        imports['{ stripPrettierPlugin }'] = '@ladamczyk/qoq-utils';
+      }
 
       const mergeConfigsInitialArray = existsSync(GITIGNORE_FILE_PATH)
         ? `[includeIgnoreFile('${GITIGNORE_FILE_PATH.replaceAll('\\', '\\\\')}')]`

@@ -73,6 +73,7 @@ withCommonOptions(
         disableCache: !!disableCache,
         concurrency: concurrency ?? 'off',
         silent: !!options.silent || isCi(),
+        ci: isCi(),
       },
       undefined,
       tools.length ? tools : undefined
@@ -99,6 +100,7 @@ withCommonOptions(
         disableCache: !!disableCache,
         concurrency: concurrency ?? 'off',
         silent: !!options.silent || isCi(),
+        ci: isCi(),
       },
       files
     );
