@@ -46,7 +46,7 @@
   "dependencies": {
     "@ladamczyk/qoq-eslint-v9-js": "^5.0.2",
     "@ladamczyk/qoq-utils": "^5.0.2",
-    "@vitest/eslint-plugin": "1.6.22"
+    "@vitest/eslint-plugin": "1.6.23"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "12.3.0",
