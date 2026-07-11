@@ -1,8 +1,9 @@
 import { writeFileSync } from 'fs';
 
 import { EExitCode } from '@ladamczyk/qoq-utils';
-import { dummyModulesConfig } from '__tests__/common.ts';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
+
+import { dummyModulesConfig } from '__tests__/common.ts';
 
 import { IExecutorOptions } from '../types.ts';
 

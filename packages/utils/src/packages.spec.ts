@@ -64,7 +64,7 @@ describe('getPackageInfo', () => {
     vi.mocked(getPackageInfoSync).mockReturnValue(undefined);
 
     // Test if the function throws an error
-    expect(() => getPackageInfo('non-existent-package')).toThrowError(
+    expect(() => getPackageInfo('non-existent-package')).toThrow(
       'Package non-existent-package not installed!'
     );
 

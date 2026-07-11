@@ -1,6 +1,7 @@
 import { EExitCode } from '@ladamczyk/qoq-utils';
-import { dummyModulesConfig } from '__tests__/common.ts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { dummyModulesConfig } from '__tests__/common.ts';
 
 import { execute } from './index.ts';
 import { IExecutorOptions, IModulesConfig } from './types.ts';

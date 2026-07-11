@@ -88,18 +88,12 @@ export class NpmExecutor extends AbstractCommandExecutor {
         const current = parse(info.current);
         const latest = parse(info.latest);
 
-        switch (true) {
-          case Number(latest?.major) > Number(current?.major):
-            acc[ENpmWarningType.MAJOR].push(`${packageName} ${info.current} -> ${info.latest}`);
-            break;
-
-          case Number(latest?.minor) > Number(current?.minor):
-            acc[ENpmWarningType.MINOR].push(`${packageName} ${info.current} -> ${info.latest}`);
-            break;
-
-          default:
-            acc[ENpmWarningType.PATCH].push(`${packageName} ${info.current} -> ${info.latest}`);
-            break;
+        if (Number(latest?.major) > Number(current?.major)) {
+          acc[ENpmWarningType.MAJOR].push(`${packageName} ${info.current} -> ${info.latest}`);
+        } else if (Number(latest?.minor) > Number(current?.minor)) {
+          acc[ENpmWarningType.MINOR].push(`${packageName} ${info.current} -> ${info.latest}`);
+        } else {
+          acc[ENpmWarningType.PATCH].push(`${packageName} ${info.current} -> ${info.latest}`);
         }
 
         return acc;

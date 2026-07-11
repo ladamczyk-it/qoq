@@ -1,6 +1,7 @@
-import { dummyModulesConfig } from '__tests__/common.ts';
 import prompts from 'prompts';
 import { describe, it, expect } from 'vitest';
+
+import { dummyModulesConfig } from '__tests__/common.ts';
 
 import { KnipConfigHandler } from './KnipConfigHandler.ts';
 

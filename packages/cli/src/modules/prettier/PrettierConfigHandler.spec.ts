@@ -1,8 +1,9 @@
 import { existsSync, writeFileSync } from 'fs';
 
-import { dummyModulesConfig } from '__tests__/common.ts';
 import prompts from 'prompts';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
+
+import { dummyModulesConfig } from '__tests__/common.ts';
 
 import { PrettierConfigHandler } from './PrettierConfigHandler.ts';
 import { EModulesPrettier } from './types.ts';

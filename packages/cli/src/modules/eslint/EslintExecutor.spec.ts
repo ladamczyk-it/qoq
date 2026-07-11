@@ -1,8 +1,9 @@
 import { writeFileSync } from 'fs';
 
 import { EExitCode } from '@ladamczyk/qoq-utils';
-import { dummyModulesConfig } from '__tests__/common.ts';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
+
+import { dummyModulesConfig } from '__tests__/common.ts';
 
 import { IExecutorOptions } from '../types.ts';
 
@@ -10,15 +11,15 @@ import { EslintExecutor } from './EslintExecutor.ts';
 import { EModulesEslint } from './types.ts';
 
 const { lintFiles, loadFormatter, outputFixes, format, getOptions, ESLint } = vi.hoisted(() => {
-  const lintFiles = vi.fn();
-  const format = vi.fn();
-  const loadFormatter = vi.fn(() => Promise.resolve({ format }));
-  const outputFixes = vi.fn();
+  const lintFilesMock = vi.fn();
+  const formatMock = vi.fn();
+  const loadFormatterMock = vi.fn(() => Promise.resolve({ format: formatMock }));
+  const outputFixesMock = vi.fn();
   let lastOptions: Record<string, unknown> = {};
 
-  class ESLint {
-    lintFiles = lintFiles;
-    loadFormatter = loadFormatter;
+  class MockESLint {
+    lintFiles = lintFilesMock;
+    loadFormatter = loadFormatterMock;
 
     constructor(options: Record<string, unknown>) {
       lastOptions = options;
@@ -27,9 +28,16 @@ const { lintFiles, loadFormatter, outputFixes, format, getOptions, ESLint } = vi
 
   // `outputFixes` is a static method on the real ESLint class; attach it here as a
   // property (rather than a static field) to keep the camelCase name lint-clean.
-  (ESLint as unknown as { outputFixes: typeof outputFixes }).outputFixes = outputFixes;
+  (MockESLint as unknown as { outputFixes: typeof outputFixesMock }).outputFixes = outputFixesMock;
 
-  return { lintFiles, loadFormatter, outputFixes, format, getOptions: () => lastOptions, ESLint };
+  return {
+    lintFiles: lintFilesMock,
+    loadFormatter: loadFormatterMock,
+    outputFixes: outputFixesMock,
+    format: formatMock,
+    getOptions: () => lastOptions,
+    ESLint: MockESLint,
+  };
 });
 
 vi.mock('eslint', () => ({ ESLint }));
@@ -58,24 +66,29 @@ const okResult = {
   warningCount: 0,
 };
 
-describe('EslintExecutor', () => {
-  beforeEach(() => {
-    vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-    vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-    vi.spyOn(console, 'time').mockImplementation(() => undefined);
-    vi.spyOn(console, 'timeEnd').mockImplementation(() => undefined);
-    lintFiles.mockResolvedValue([okResult]);
-    format.mockResolvedValue('');
-  });
+// Shared by both top-level describes below (split apart to keep each function under
+// this repo's max-lines-per-function) so the mock lifecycle isn't duplicated.
+const setupMocks = (): void => {
+  vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+  vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  vi.spyOn(console, 'time').mockImplementation(() => undefined);
+  vi.spyOn(console, 'timeEnd').mockImplementation(() => undefined);
+  lintFiles.mockResolvedValue([okResult]);
+  format.mockResolvedValue('');
+};
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-    lintFiles.mockReset();
-    loadFormatter.mockClear();
-    outputFixes.mockReset();
-    format.mockReset();
-    vi.mocked(writeFileSync).mockClear();
-  });
+const teardownMocks = (): void => {
+  vi.restoreAllMocks();
+  lintFiles.mockReset();
+  loadFormatter.mockClear();
+  outputFixes.mockReset();
+  format.mockReset();
+  vi.mocked(writeFileSync).mockClear();
+};
+
+describe('EslintExecutor', () => {
+  beforeEach(setupMocks);
+  afterEach(teardownMocks);
 
   describe('getName', () => {
     it('should return the capitalized command name', () => {
@@ -220,6 +233,11 @@ describe('EslintExecutor', () => {
       expect(getOptions().overrideConfig).toBeUndefined();
     });
   });
+});
+
+describe('EslintExecutor generated config', () => {
+  beforeEach(setupMocks);
+  afterEach(teardownMocks);
 
   describe('ci', () => {
     const configWithTemplate = {
@@ -289,6 +307,50 @@ describe('EslintExecutor', () => {
       await executor.run(baseOptions);
 
       expect(writtenConfig()).not.toContain('import-x/no-cycle');
+    });
+
+    it('points the TypeScript resolver at every workspace tsconfig when workspaces are detected on a ts template', async () => {
+      const executor = new EslintExecutor(
+        { ...configWithTemplate, workspaces: ['packages/*'] },
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(writtenConfig()).toContain(
+        'createTypeScriptImportResolver({ project: ["packages/*/tsconfig.json","tsconfig.json"] })'
+      );
+      expect(writtenConfig()).toContain(
+        "import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript'"
+      );
+      expect(writtenConfig()).toContain(
+        "import { createNodeResolver } from 'eslint-plugin-import-x'"
+      );
+    });
+
+    it('leaves the resolver untouched when workspaces are not detected', async () => {
+      const executor = new EslintExecutor(configWithTemplate, true, true);
+
+      await executor.run(baseOptions);
+
+      expect(writtenConfig()).not.toContain('createTypeScriptImportResolver');
+    });
+
+    it('does not override the resolver for non-ts templates even when workspaces are detected', async () => {
+      const configWithJsTemplate = {
+        ...dummyModulesConfig,
+        modules: {
+          eslint: [{ template: EModulesEslint.ESLINT_V9_JS, files: ['src/**/*.js'], ignores: [] }],
+        },
+        workspaces: ['packages/*'],
+      };
+      const executor = new EslintExecutor(configWithJsTemplate, true, true);
+
+      await executor.run(baseOptions);
+
+      expect(writtenConfig()).not.toContain('createTypeScriptImportResolver');
+      expect(writtenConfig()).toContain('import-x/no-cycle');
     });
   });
 });

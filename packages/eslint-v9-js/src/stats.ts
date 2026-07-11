@@ -70,12 +70,12 @@ const deserialize = (records: readonly TCloneRecord[]): unknown => {
         return list;
       }
       case CLONE_TYPE.object: {
-        const record: Record<string, unknown> = {};
-        cache.set(index, record);
+        const obj: Record<string, unknown> = {};
+        cache.set(index, obj);
         for (const [keyRef, valueRef] of value as [number, number][]) {
-          record[resolveRef(keyRef) as string] = resolveRef(valueRef);
+          obj[resolveRef(keyRef) as string] = resolveRef(valueRef);
         }
-        return record;
+        return obj;
       }
       case CLONE_TYPE.primitive:
         cache.set(index, value);

@@ -146,30 +146,56 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
         rules: { 'import-x/no-cycle': [1, { ignoreExternal: false }] },
       });
 
+      // Every qoq-eslint-v9-ts* template calls createTypeScriptImportResolver() with no
+      // `project` option, so it falls back to `<root>/tsconfig.json` — and unlike tsc, it
+      // never walks up from the linted file to find a nearer one. In a monorepo, per-package
+      // path aliases (declared in each package's own tsconfig.json `paths`) are therefore
+      // invisible to it, and imports using them misreport as import-x/no-unresolved even
+      // though tsc resolves them fine. Point the resolver at every workspace's tsconfig (plus
+      // the root, for any TS file living outside a workspace package) whenever the consumer's
+      // package.json declares workspaces; an explicit user override in qoq.config.js's
+      // `rules`/`settings` still wins, since it's merged in last.
+      const monorepoResolverOverride = (consumerWorkspaces: string[]): string =>
+        `{ settings: { 'import-x/resolver-next': [createTypeScriptImportResolver({ project: ${JSON.stringify(
+          [...consumerWorkspaces.map((workspace) => `${workspace}/tsconfig.json`), 'tsconfig.json']
+        )} }), createNodeResolver()] } }`;
+
       const content = (modules?.eslint ?? []).reduce(
         (acc: string[], current: IModuleEslintConfig, index) => {
           const { template, ...rest } = current;
 
-          if (Object.values(EModulesEslint).includes(template as EModulesEslint)) {
-            if (configType === EConfigType.ESM) {
-              imports[`{ baseConfig as baseConfig${index} }`] = `@ladamczyk/${template}`;
-            } else {
-              imports[`{ baseConfig: baseConfig${index} }`] = `@ladamczyk/${template}`;
-            }
-
-            const mergeArgs = workspaces?.length
-              ? [monorepoNoCycleOverride, JSON.stringify(rest)]
-              : [JSON.stringify(rest)];
-            const merged = `objectMergeRight(baseConfig${index}, ${mergeArgs.join(', ')})`;
-
-            if (options.ci) {
-              usesStripPrettierPlugin = true;
-              acc.push(`const config${index} = [stripPrettierPlugin(${merged})]`);
-            } else {
-              acc.push(`const config${index} = [${merged}]`);
-            }
-          } else {
+          if (!Object.values(EModulesEslint).includes(template as EModulesEslint)) {
             acc.push(`const config${index} = [${JSON.stringify(rest)}]`);
+
+            return acc;
+          }
+
+          if (configType === EConfigType.ESM) {
+            imports[`{ baseConfig as baseConfig${index} }`] = `@ladamczyk/${template}`;
+          } else {
+            imports[`{ baseConfig: baseConfig${index} }`] = `@ladamczyk/${template}`;
+          }
+
+          const usesResolverOverride =
+            Boolean(workspaces?.length) && (template?.startsWith('qoq-eslint-v9-ts') ?? false);
+
+          if (usesResolverOverride) {
+            imports['{ createTypeScriptImportResolver }'] = 'eslint-import-resolver-typescript';
+            imports['{ createNodeResolver }'] = 'eslint-plugin-import-x';
+          }
+
+          const mergeArgs = [
+            ...(workspaces?.length ? [monorepoNoCycleOverride] : []),
+            ...(usesResolverOverride ? [monorepoResolverOverride(workspaces as string[])] : []),
+            JSON.stringify(rest),
+          ];
+          const merged = `objectMergeRight(baseConfig${index}, ${mergeArgs.join(', ')})`;
+
+          if (options.ci) {
+            usesStripPrettierPlugin = true;
+            acc.push(`const config${index} = [stripPrettierPlugin(${merged})]`);
+          } else {
+            acc.push(`const config${index} = [${merged}]`);
           }
 
           return acc;

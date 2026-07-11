@@ -18,17 +18,17 @@ export const configUsesReact = (modules: IModulesConfig['modules']): boolean =>
   );
 
 export const getFilesExtensions = (modules: IModulesConfig['modules']): string[] => {
-  switch (true) {
-    case configUsesTs(modules) && configUsesReact(modules):
-      return ['js', 'jsx', 'ts', 'tsx'];
-
-    case configUsesTs(modules):
-      return ['ts'];
-
-    case configUsesReact(modules):
-      return ['js', 'jsx'];
-
-    default:
-      return ['js'];
+  if (configUsesTs(modules) && configUsesReact(modules)) {
+    return ['js', 'jsx', 'ts', 'tsx'];
   }
+
+  if (configUsesTs(modules)) {
+    return ['ts'];
+  }
+
+  if (configUsesReact(modules)) {
+    return ['js', 'jsx'];
+  }
+
+  return ['js'];
 };

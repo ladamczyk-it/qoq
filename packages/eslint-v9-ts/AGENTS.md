@@ -22,7 +22,14 @@ export default [baseConfig];
 - **Parser**: `typescript-eslint` with `projectService: true`
 - **Resolver**: `eslint-import-resolver-typescript` (replaces the Node resolver)
 - **Plugins**: `@typescript-eslint`
-- **Rule sets**: `typescript-eslint/recommended` + `recommended-requiring-type-checking`
+- **Rule sets**: `typescript-eslint/recommended` + `recommended-requiring-type-checking` (normalized to
+  warn, except `no-unsafe-*`/`no-misused-promises` which are tuned by hand)
+- **import-x**: inherits the JS base's import-x rules as-is (`recommended` + `no-cycle`
+  `ignoreExternal: true` + `order`/`no-empty-named-blocks`/`no-mutable-exports`/`no-named-default`)
+  and layers `eslint-plugin-import-x`'s own `typescript` config on top, which currently only turns
+  `import-x/named` off (TS's own resolution supersedes it).
+- **Extra hand-picked rules not in either recommended set**: `switch-exhaustiveness-check`,
+  `no-import-type-side-effects`, `no-deprecated`, `no-shadow`
 
 ## Naming conventions enforced
 

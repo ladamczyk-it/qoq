@@ -1,6 +1,7 @@
-import { dummyModulesConfig } from '__tests__/common.ts';
 import prompts from 'prompts';
 import { describe, it, expect } from 'vitest';
+
+import { dummyModulesConfig } from '__tests__/common.ts';
 
 import { EConfigType } from '../../helpers/types.ts';
 import { EslintConfigHandler } from '../eslint/EslintConfigHandler.ts';

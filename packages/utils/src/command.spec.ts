@@ -68,7 +68,7 @@ describe('executeCommand', () => {
       })
     );
 
-    await expect(executeCommand('some-command')).rejects.toThrowError('Mock error');
+    await expect(executeCommand('some-command')).rejects.toThrow('Mock error');
   });
 
   it('should resolve with non-zero exit code on command execution with error', async () => {

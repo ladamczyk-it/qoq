@@ -1,8 +1,9 @@
 import { existsSync, writeFileSync } from 'fs';
 
-import { dummyModulesConfig } from '__tests__/common.ts';
 import prompts from 'prompts';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
+
+import { dummyModulesConfig } from '__tests__/common.ts';
 
 import { EslintConfigHandler } from './EslintConfigHandler.ts';
 import { EModulesEslint } from './types.ts';

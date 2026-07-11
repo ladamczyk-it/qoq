@@ -20,7 +20,7 @@ export class NpmConfigHandler extends AbstractConfigHandler {
         name: 'npmSchedule',
         initial: NpmConfigHandler.DEFAULT_CHECK_OUTDATED_EVERY,
         message: c.reset(`How often should we check dependencies? (in days, 0 means in every run)`),
-        validate: (npmSchedule: number) => (npmSchedule < 0 ? `Schedule must be >= 0` : true),
+        validate: (value: number) => (value < 0 ? `Schedule must be >= 0` : true),
       },
     ]);
 

@@ -1,5 +1,6 @@
-import { dummyModulesConfig } from '__tests__/common.ts';
 import { describe, it, expect } from 'vitest';
+
+import { dummyModulesConfig } from '__tests__/common.ts';
 
 import { QoqConfig } from '../../helpers/types.ts';
 import { IModulesConfig } from '../types.ts';

@@ -13,6 +13,6 @@ describe('baseConfig', () => {
           config: baseConfig,
           formatter: 'verbose',
         })
-    ).not.toThrowError();
+    ).not.toThrow();
   });
 });
