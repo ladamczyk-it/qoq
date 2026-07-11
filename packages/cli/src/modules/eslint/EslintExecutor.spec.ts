@@ -258,4 +258,37 @@ describe('EslintExecutor', () => {
       expect(writtenConfig()).not.toContain('stripPrettierPlugin');
     });
   });
+
+  describe('workspaces', () => {
+    const configWithTemplate = {
+      ...dummyModulesConfig,
+      modules: {
+        eslint: [{ template: EModulesEslint.ESLINT_V9_TS, files: ['src/**/*.ts'], ignores: [] }],
+      },
+    };
+
+    const writtenConfig = () => (vi.mocked(writeFileSync).mock.calls[0]?.[1] as string) ?? '';
+
+    it('restores import-x/no-cycle ignoreExternal:false ahead of user overrides when workspaces are detected', async () => {
+      const executor = new EslintExecutor(
+        { ...configWithTemplate, workspaces: ['packages/*'] },
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(writtenConfig()).toContain(
+        'objectMergeRight(baseConfig0, {"rules":{"import-x/no-cycle":[1,{"ignoreExternal":false}]}}, {'
+      );
+    });
+
+    it('leaves the template default (ignoreExternal:true) untouched when workspaces are not detected', async () => {
+      const executor = new EslintExecutor(configWithTemplate, true, true);
+
+      await executor.run(baseOptions);
+
+      expect(writtenConfig()).not.toContain('import-x/no-cycle');
+    });
+  });
 });

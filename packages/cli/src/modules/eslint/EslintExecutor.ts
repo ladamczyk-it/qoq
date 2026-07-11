@@ -116,6 +116,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       const {
         configType,
         modules,
+        workspaces,
         configPaths: { eslint: configPath },
       } = this.modulesConfig;
       const configFilePath = resolveCliPackagePath(
@@ -134,6 +135,17 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       // runs strip the plugin here instead of paying for it twice.
       let usesStripPrettierPlugin = false;
 
+      // The templates default `import-x/no-cycle` to `ignoreExternal: true` (skips
+      // ~98% of its cost — see benchmark). But "external" is resolved per-package
+      // (nearest package.json), so in a monorepo a sibling workspace package looks
+      // just as external as a real node_modules dependency, and cross-package
+      // cycles would go undetected. Restore full cycle detection whenever the
+      // consumer's package.json declares workspaces; an explicit user override in
+      // qoq.config.js's `rules` still wins, since it's merged in last.
+      const monorepoNoCycleOverride = JSON.stringify({
+        rules: { 'import-x/no-cycle': [1, { ignoreExternal: false }] },
+      });
+
       const content = (modules?.eslint ?? []).reduce(
         (acc: string[], current: IModuleEslintConfig, index) => {
           const { template, ...rest } = current;
@@ -145,7 +157,10 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
               imports[`{ baseConfig: baseConfig${index} }`] = `@ladamczyk/${template}`;
             }
 
-            const merged = `objectMergeRight(baseConfig${index}, ${JSON.stringify(rest)})`;
+            const mergeArgs = workspaces?.length
+              ? [monorepoNoCycleOverride, JSON.stringify(rest)]
+              : [JSON.stringify(rest)];
+            const merged = `objectMergeRight(baseConfig${index}, ${mergeArgs.join(', ')})`;
 
             if (options.ci) {
               usesStripPrettierPlugin = true;

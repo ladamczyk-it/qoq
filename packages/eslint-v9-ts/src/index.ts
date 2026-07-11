@@ -33,7 +33,11 @@ export const baseConfig: EslintConfig = {
       rules: {
         'no-undef': 0, // from plugin page: "It is safe to disable this rule when using TypeScript because TypeScript's compiler enforces this check
         ...importPlugin.configs.typescript.rules,
-        'import-x/no-cycle': 1,
+        // ignoreExternal skips ~98% of the rule's cost (see benchmark) by never
+        // walking into node_modules/workspace-package edges. The CLI overrides
+        // this back to false when it detects a monorepo, since sibling workspace
+        // packages resolve as "external" too and would otherwise go unchecked.
+        'import-x/no-cycle': [1, { ignoreExternal: true }],
         'import-x/no-duplicates': 1,
         'import-x/no-named-default': 1,
         ...(tsPluginConfigs.recommended as EslintConfig).rules,

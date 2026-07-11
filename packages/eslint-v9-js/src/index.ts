@@ -81,7 +81,11 @@ export const baseConfig: EslintConfig = {
   rules: {
     ...jsRules.configs.recommended.rules,
     ...importPlugin.configs.recommended.rules,
-    'import-x/no-cycle': 1,
+    // ignoreExternal skips ~98% of the rule's cost (see benchmark) by never
+    // walking into node_modules/workspace-package edges. The CLI overrides
+    // this back to false when it detects a monorepo, since sibling workspace
+    // packages resolve as "external" too and would otherwise go unchecked.
+    'import-x/no-cycle': [1, { ignoreExternal: true }],
     'import-x/no-duplicates': 1,
     'import-x/no-named-default': 1,
     'import-x/no-empty-named-blocks': 1,
