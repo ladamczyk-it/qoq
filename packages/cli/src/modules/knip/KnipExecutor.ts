@@ -52,7 +52,7 @@ export class KnipExecutor extends AbstractCommandExecutor {
           formatCode(this.modulesConfig.configType, {}, [], JSON.stringify(configForFile))
         );
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars, sonarjs/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { entry: srcEntry, project: srcProject, ...rest } = configForFile;
 
         const newConfigForMonorepo = {

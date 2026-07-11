@@ -75,6 +75,60 @@ export const SONARJS_RECOMMENDED_RULES: EslintConfig['rules'] = (
   sonarJsPlugin.configs?.recommended as ESLint.Plugin
 ).rules as unknown as EslintConfig['rules'];
 
+// sonarjs ships its "security hotspot" rules (S-codes tagged for OWASP-style web/cloud
+// concerns) enabled by default, same as the aws-* group above. They only ever fire on
+// code that manually sets HTTP response headers, parses XML, shells out, handles raw
+// TLS/crypto config, or touches cookies/sessions directly — none of which a generic
+// JS/CLI/library consumer of this base config does. Left enabled: the hardcoded-secret /
+// credential rules, since those fire on plain string literals and are broadly useful
+// regardless of stack.
+const SECURITY_HOTSPOT_SONARJS_RULES = [
+  'content-security-policy',
+  'cookie-no-httponly',
+  'cors',
+  'csrf',
+  'disabled-auto-escaping',
+  'disabled-resource-integrity',
+  'dompurify-unsafe-config',
+  'encryption-secure-mode',
+  'file-permissions',
+  'file-uploads',
+  'hashing',
+  'insecure-cookie',
+  'insecure-jwt-token',
+  'no-angular-bypass-sanitization',
+  'no-clear-text-protocols',
+  'no-mime-sniff',
+  'no-os-command-from-path',
+  'no-referrer-policy',
+  'no-session-cookies-on-static-assets',
+  'post-message',
+  'production-debug',
+  'publicly-writable-directories',
+  'review-blockchain-mnemonic',
+  'session-regeneration',
+  'sql-queries',
+  'strict-transport-security',
+  'unverified-certificate',
+  'unverified-hostname',
+  'weak-ssl',
+  'x-powered-by',
+  'xml-parser-xxe',
+  'code-eval',
+  'no-weak-cipher',
+  'no-weak-keys',
+] as const;
+
+// sonarjs's recommended config leaves ~150 rules at "error" while every hand-picked rule
+// elsewhere in this file is a "warn" — normalize so severity means the same thing
+// regardless of which plugin a rule came from.
+const SONARJS_WARN_RULES: EslintConfig['rules'] = Object.fromEntries(
+  Object.entries(SONARJS_RECOMMENDED_RULES).map(([rule, severity]) => [
+    rule,
+    severity === 0 || severity === 'off' ? 0 : 1,
+  ])
+);
+
 export const getNoRestrictedImportsPaths = (paths: IPath[] = []): IPath[] => {
   const newPaths: IPath[] = [];
 
@@ -137,7 +191,6 @@ export const baseConfig: EslintConfig = {
     // this back to false when it detects a monorepo, since sibling workspace
     // packages resolve as "external" too and would otherwise go unchecked.
     'import-x/no-cycle': [1, { ignoreExternal: true }],
-    'import-x/no-duplicates': 1,
     'import-x/no-named-default': 1,
     'import-x/no-empty-named-blocks': 1,
     'import-x/no-mutable-exports': 1,
@@ -150,15 +203,17 @@ export const baseConfig: EslintConfig = {
         'newlines-between': 'always',
       },
     ],
-    ...SONARJS_RECOMMENDED_RULES,
-    // AWS/cloud rules are the priciest slice of the sonarjs bundle (see benchmark)
-    // and irrelevant to projects with no IaC/AWS SDK code; disable the whole group
-    // rather than hand-picking, so newly added aws-* rules are off by default too.
+    ...SONARJS_WARN_RULES,
+    // AWS/cloud rules and the broader security-hotspot cluster are the priciest slice
+    // of the sonarjs bundle (see benchmark) and irrelevant to projects with no IaC/AWS
+    // SDK/HTTP-server-header/crypto code; disable the whole groups rather than
+    // hand-picking, so newly added aws-*/security rules are off by default too.
     // Test- and React-only rules are disabled the same way and restored by the
     // packages they actually apply to (see TEST_ONLY_SONARJS_RULES/REACT_ONLY_SONARJS_RULES).
     ...Object.fromEntries(
       [
         ...Object.keys(sonarJsPlugin.rules ?? {}).filter((rule) => rule.startsWith('aws-')),
+        ...SECURITY_HOTSPOT_SONARJS_RULES,
         ...TEST_ONLY_SONARJS_RULES,
         ...REACT_ONLY_SONARJS_RULES,
       ].map((rule) => [`sonarjs/${rule}`, 0])
@@ -175,7 +230,26 @@ export const baseConfig: EslintConfig = {
     'sonarjs/no-commented-code': 0,
     'sonarjs/arguments-order': 0,
     'sonarjs/updated-loop-counter': 0,
+    /**
+     * already covered by an identical core rule of the same name (both @eslint/js
+     * recommended); keeping both just double-reports the same violation.
+     */
+    'sonarjs/no-control-regex': 0,
+    'sonarjs/no-delete-var': 0,
+    'sonarjs/no-empty-character-class': 0,
+    'sonarjs/no-fallthrough': 0,
+    'sonarjs/no-invalid-regexp': 0,
+    'sonarjs/no-misleading-character-class': 0,
+    'sonarjs/no-regex-spaces': 0,
+    'sonarjs/no-unused-vars': 0,
+    // duplicate of core no-useless-assignment below (same underlying check, ported into
+    // ESLint core from this exact sonarjs rule)
+    'sonarjs/no-dead-store': 0,
+    // conflicts with no-param-reassign's `props: false` below rather than just
+    // duplicating it — this rule has no equivalent carve-out for prop mutation
+    'sonarjs/no-parameter-reassignment': 0,
     'sonarjs/bool-param-default': 1,
+    'sonarjs/no-built-in-override': 1,
     'sonarjs/prefer-immediate-return': 1,
     ...(prettierPlugin.configs?.recommended as ESLint.Plugin).rules,
     'prettier/prettier': 1,
@@ -209,7 +283,9 @@ export const baseConfig: EslintConfig = {
     'no-new': 1,
     'no-new-func': 1,
     'no-new-wrappers': 1,
+    'no-promise-executor-return': 1,
     'no-return-assign': 1,
+    'no-unreachable-loop': 1,
     'no-unused-expressions': 1,
     'no-useless-call': 1,
     'no-useless-constructor': 1,

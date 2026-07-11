@@ -198,7 +198,6 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       this.targets = ['.'];
 
       if (files.length > 0) {
-        // eslint-disable-next-line sonarjs/no-dead-store
         let filteredFiles = [...files];
 
         try {

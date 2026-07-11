@@ -3,7 +3,6 @@ import { resolve } from 'path';
 
 export const executeInspector = (dir: string): void => {
   const child = spawn(
-    // eslint-disable-next-line sonarjs/no-os-command-from-path
     'npx',
     [
       '-y',
