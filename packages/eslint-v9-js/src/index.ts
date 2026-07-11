@@ -24,6 +24,57 @@ interface IPath {
   message: string;
 }
 
+// Rule names (undecorated, no `sonarjs/` prefix) that only make sense in test files —
+// their `create()` gates on the project depending on jest/vitest/mocha/chai, not on the
+// current file being a spec, so left enabled in the base config they run their full AST
+// visitor on every file (see benchmark). Disabled here, restored by eslint-v9-js-jest /
+// eslint-v9-js-vitest so they're properly scoped to spec files only.
+export const TEST_ONLY_SONARJS_RULES = [
+  'no-skipped-tests',
+  'no-empty-test-file',
+  'assertions-in-tests',
+  'no-incomplete-assertions',
+  'inverted-assertion-arguments',
+  'prefer-specific-assertions',
+  'no-trivial-assertions',
+  'test-check-exception',
+  'stable-tests',
+  'no-code-after-done',
+  'disabled-timeout',
+  'chai-determinate-assertion',
+  'no-same-argument-assert',
+  'no-exclusive-tests',
+  'no-duplicate-test-title',
+  'async-test-assertions',
+  'no-empty-test-title',
+  'hooks-before-test-cases',
+  'no-incompatible-assertion-types',
+  'no-forced-browser-interaction',
+] as const;
+
+// Rule names that only fire on JSX/DOM markup. Disabled here so plain Node/CLI consumers
+// of this base config never register them, restored by eslint-v9-js-react.
+export const REACT_ONLY_SONARJS_RULES = [
+  'jsx-no-leaked-render',
+  'no-hook-setter-in-body',
+  'no-useless-react-setstate',
+  'no-uniq-key',
+  'prefer-read-only-props',
+  'table-header',
+  'table-header-reference',
+  'no-table-as-layout',
+  'object-alt-content',
+  'link-with-target-blank',
+] as const;
+
+// Re-exported so packages restoring TEST_ONLY_SONARJS_RULES / REACT_ONLY_SONARJS_RULES
+// (eslint-v9-js-jest, -vitest, -react and their ts-* siblings) can look up sonarjs's own
+// recommended severity for a given rule without each taking their own dependency on
+// eslint-plugin-sonarjs — this package is the only one that needs it directly.
+export const SONARJS_RECOMMENDED_RULES: EslintConfig['rules'] = (
+  sonarJsPlugin.configs?.recommended as ESLint.Plugin
+).rules as unknown as EslintConfig['rules'];
+
 export const getNoRestrictedImportsPaths = (paths: IPath[] = []): IPath[] => {
   const newPaths: IPath[] = [];
 
@@ -99,7 +150,19 @@ export const baseConfig: EslintConfig = {
         'newlines-between': 'always',
       },
     ],
-    ...(sonarJsPlugin.configs?.recommended as ESLint.Plugin).rules,
+    ...SONARJS_RECOMMENDED_RULES,
+    // AWS/cloud rules are the priciest slice of the sonarjs bundle (see benchmark)
+    // and irrelevant to projects with no IaC/AWS SDK code; disable the whole group
+    // rather than hand-picking, so newly added aws-* rules are off by default too.
+    // Test- and React-only rules are disabled the same way and restored by the
+    // packages they actually apply to (see TEST_ONLY_SONARJS_RULES/REACT_ONLY_SONARJS_RULES).
+    ...Object.fromEntries(
+      [
+        ...Object.keys(sonarJsPlugin.rules ?? {}).filter((rule) => rule.startsWith('aws-')),
+        ...TEST_ONLY_SONARJS_RULES,
+        ...REACT_ONLY_SONARJS_RULES,
+      ].map((rule) => [`sonarjs/${rule}`, 0])
+    ),
     'sonarjs/no-alphabetical-sort': 0,
     'sonarjs/no-nested-functions': 0,
     'sonarjs/no-misleading-array-reverse': 0,

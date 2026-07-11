@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/assertions-in-tests */
 import { describe, it, expectTypeOf } from 'vitest';
 
 import { EModulesEslint } from '../modules/eslint/types.ts';

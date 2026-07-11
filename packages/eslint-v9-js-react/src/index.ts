@@ -1,5 +1,10 @@
 import reactPlugin from '@eslint-react/eslint-plugin';
-import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import {
+  EslintConfig,
+  REACT_ONLY_SONARJS_RULES,
+  SONARJS_RECOMMENDED_RULES,
+  baseConfig as jsBaseConfig,
+} from '@ladamczyk/qoq-eslint-v9-js';
 import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 import compatPlugin from 'eslint-plugin-compat';
@@ -87,6 +92,15 @@ export const disabledRules: EslintConfig['rules'] = {
   '@stylistic/quote-props': 0,
 };
 
+// Restores the JSX/DOM-markup sonarjs rules the base config disables, at sonarjs's
+// own recommended severities, so this package is the only place they're applied.
+const restoredReactRules: EslintConfig['rules'] = Object.fromEntries(
+  REACT_ONLY_SONARJS_RULES.map((rule) => [
+    `sonarjs/${rule}`,
+    SONARJS_RECOMMENDED_RULES[`sonarjs/${rule}`]!,
+  ])
+);
+
 const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
 export const baseConfig: EslintConfig = {
@@ -103,6 +117,7 @@ export const baseConfig: EslintConfig = {
       ...compatPlugin.configs['flat/recommended'].rules,
       ...reactPlugin.configs.recommended.rules,
       ...stylisticPlugin.configs.recommended.rules,
+      ...restoredReactRules,
       'import-x/order': importOrderRule,
       'no-restricted-imports': noRestrictedImportsRule,
       '@eslint-react/no-multi-comp': 2,

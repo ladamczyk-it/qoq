@@ -1,4 +1,8 @@
-import { EslintConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import {
+  EslintConfig,
+  SONARJS_RECOMMENDED_RULES,
+  TEST_ONLY_SONARJS_RULES,
+} from '@ladamczyk/qoq-eslint-v9-js';
 import {
   baseConfig as jsVitestBaseConfig,
   disabledRules,
@@ -9,6 +13,16 @@ import importPlugin from 'eslint-plugin-import-x';
 
 const { plugins: jsVitestBaseConfigPlugins, ...jsVitestBaseConfigRest } = jsVitestBaseConfig;
 const { plugins: tsTestConfigPlugins, ...tsTestConfigRest } = tsTestConfig;
+
+// tsTestConfigRest is merged in after jsVitestBaseConfigRest and still carries the
+// test rules disabled (it's built from eslint-v9-js, not eslint-v9-js-vitest), so its
+// "off" wins the objectMergeRight merge unless re-restored here as the final override.
+const restoredTestRules: EslintConfig['rules'] = Object.fromEntries(
+  TEST_ONLY_SONARJS_RULES.map((rule) => [
+    `sonarjs/${rule}`,
+    SONARJS_RECOMMENDED_RULES[`sonarjs/${rule}`]!,
+  ])
+);
 
 export const baseConfig: EslintConfig = {
   ...objectMergeRight(
@@ -26,7 +40,7 @@ export const baseConfig: EslintConfig = {
     tsTestConfigRest,
     {
       name: 'qoq-eslint-v9-ts-vitest',
-      rules: { ...disabledRules },
+      rules: { ...restoredTestRules, ...disabledRules },
       settings: {
         vitest: {
           typecheck: true,
