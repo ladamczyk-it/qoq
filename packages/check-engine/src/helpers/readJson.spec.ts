@@ -17,7 +17,7 @@ describe('readJsonSync', () => {
   it('parses and returns the file contents as the requested type', () => {
     vi.mocked(readFileSync).mockReturnValue('{ "name": "demo", "version": "1.0.0" }');
 
-    expect(readJsonSync<{ name: string; version: string }>('package.json')).toEqual({
+    expect(readJsonSync<{ name: string; version: string }>('package.json')).toStrictEqual({
       name: 'demo',
       version: '1.0.0',
     });

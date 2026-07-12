@@ -51,6 +51,14 @@ export const baseConfig: EslintConfig = {
       ...importPlugin.configs.typescript.rules,
       ...TS_RECOMMENDED_WARN_RULES,
       '@typescript-eslint/no-unsafe-assignment': 0, // strange rule, turned off for now
+      // TypeScript's own type-checker (noImplicitThis, on by default under `strict`) already
+      // flags invalid `this` usage, with better flow analysis than this rule and none of its
+      // false positives on TS-idiomatic patterns (class fields, arrow-function properties).
+      // typescript-eslint's own docs recommend disabling it for exactly this reason.
+      'no-invalid-this': 0,
+      // duplicate of @typescript-eslint/no-array-delete (both flag `delete arr[i]`); keep
+      // the TS-eslint version since it's type-aware and this package already pays for that.
+      'sonarjs/no-array-delete': 0,
       'no-empty-function': 0,
       '@typescript-eslint/no-empty-function': 1,
       'prefer-destructuring': 0,

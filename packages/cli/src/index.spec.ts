@@ -39,6 +39,7 @@ describe('cli', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
     cli.unsetMatchedCommand();
   });
 
@@ -119,9 +120,7 @@ describe('cli', () => {
     });
 
     it('should not force silent when CI is unset', async () => {
-      const original = process.env.CI;
-
-      delete process.env.CI;
+      vi.stubEnv('CI', undefined);
 
       await run();
 
@@ -131,16 +130,10 @@ describe('cli', () => {
         undefined,
         undefined
       );
-
-      if (original !== undefined) {
-        process.env.CI = original;
-      }
     });
 
     it('should treat CI=true as --silent', async () => {
-      const original = process.env.CI;
-
-      process.env.CI = 'true';
+      vi.stubEnv('CI', 'true');
 
       await run();
 
@@ -150,8 +143,6 @@ describe('cli', () => {
         undefined,
         undefined
       );
-
-      process.env.CI = original;
     });
   });
 

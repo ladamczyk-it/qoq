@@ -14,6 +14,6 @@ describe('eslint config deprecation guard', () => {
   });
 
   it('does not enable any deprecated rules', () => {
-    expect(getEnabledDeprecatedRules(baseConfig, STATS_DIR)).toEqual([]);
+    expect(getEnabledDeprecatedRules(baseConfig, STATS_DIR)).toStrictEqual([]);
   });
 });

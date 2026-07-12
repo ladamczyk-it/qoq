@@ -242,6 +242,7 @@ export const baseConfig: EslintConfig = {
     'sonarjs/no-misleading-character-class': 0,
     'sonarjs/no-regex-spaces': 0,
     'sonarjs/no-unused-vars': 0,
+    'sonarjs/no-useless-catch': 0,
     // duplicate of core no-useless-assignment below (same underlying check, ported into
     // ESLint core from this exact sonarjs rule)
     'sonarjs/no-dead-store': 0,

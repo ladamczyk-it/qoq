@@ -9,7 +9,7 @@ describe('formatCode', () => {
     const content = ['const result = foo() + baz()'];
     const exports = 'result';
 
-    expect(formatCode(EConfigType.CJS, imports, content, exports)).toEqual(
+    expect(formatCode(EConfigType.CJS, imports, content, exports)).toBe(
       `const foo = require('bar');const baz = require('qux');const result = foo() + baz(); module.exports = result;`
     );
   });
@@ -19,7 +19,7 @@ describe('formatCode', () => {
     const content = ['const result = foo() + baz()'];
     const exports = 'result';
 
-    expect(formatCode(EConfigType.ESM, imports, content, exports)).toEqual(
+    expect(formatCode(EConfigType.ESM, imports, content, exports)).toBe(
       `import foo from 'bar';import baz from 'qux';const result = foo() + baz(); export default result;`
     );
   });

@@ -42,28 +42,28 @@ describe('helpers', () => {
       const modules: IModulesConfig['modules'] = {
         eslint: [{ template: EModulesEslint.ESLINT_V9_TS_REACT }],
       };
-      expect(getFilesExtensions(modules)).toEqual(['js', 'jsx', 'ts', 'tsx']);
+      expect(getFilesExtensions(modules)).toStrictEqual(['js', 'jsx', 'ts', 'tsx']);
     });
 
     it('should return ["ts"] if config uses TypeScript but not React', () => {
       const modules: IModulesConfig['modules'] = {
         eslint: [{ template: EModulesEslint.ESLINT_V9_TS }],
       };
-      expect(getFilesExtensions(modules)).toEqual(['ts']);
+      expect(getFilesExtensions(modules)).toStrictEqual(['ts']);
     });
 
     it('should return ["js", "jsx"] if config uses React but not TypeScript', () => {
       const modules: IModulesConfig['modules'] = {
         eslint: [{ template: EModulesEslint.ESLINT_V9_JS_REACT }],
       };
-      expect(getFilesExtensions(modules)).toEqual(['js', 'jsx']);
+      expect(getFilesExtensions(modules)).toStrictEqual(['js', 'jsx']);
     });
 
     it('should return ["js"] if config uses neither TypeScript nor React', () => {
       const modules: IModulesConfig['modules'] = {
         eslint: [{ template: EModulesEslint.ESLINT_V9_JS }],
       };
-      expect(getFilesExtensions(modules)).toEqual(['js']);
+      expect(getFilesExtensions(modules)).toStrictEqual(['js']);
     });
   });
 });

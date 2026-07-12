@@ -90,7 +90,7 @@ describe('StylelintExecutor', () => {
       await executor.run(baseOptions);
 
       const arg = lintArg();
-      expect(arg.files).toEqual(['src/**/*.css']);
+      expect(arg.files).toStrictEqual(['src/**/*.css']);
       expect(arg.configFile).toBeTruthy();
       expect(arg.maxWarnings).toBeUndefined();
     });

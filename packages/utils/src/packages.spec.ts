@@ -53,7 +53,7 @@ describe('getPackageInfo', () => {
 
     // Test if the function returns the correct package info
     const result = getPackageInfo('eslint');
-    expect(result).toEqual(mockPackageInfo);
+    expect(result).toStrictEqual(mockPackageInfo);
 
     // Ensure that getPackageInfoSync was called with the correct package name
     expect(getPackageInfoSync).toHaveBeenCalledWith('eslint');
@@ -78,7 +78,7 @@ describe('getPackageJson', () => {
     const mockPackageJson = { name: 'eslint', version: '7.0.0' };
     vi.mocked(loadPackageJSONSync).mockReturnValue(mockPackageJson);
 
-    expect(getPackageJson()).toEqual(mockPackageJson);
+    expect(getPackageJson()).toStrictEqual(mockPackageJson);
   });
 
   it('forwards the cwd argument and returns null when nothing is found', () => {

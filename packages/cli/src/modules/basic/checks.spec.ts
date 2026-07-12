@@ -6,20 +6,20 @@ import { areRulesEqual, collectRedundancies, normalizeRuleEntry, TRulesRecord } 
 
 describe('normalizeRuleEntry', () => {
   it('should map numeric severities to their string form', () => {
-    expect(normalizeRuleEntry(0)).toEqual(['off']);
-    expect(normalizeRuleEntry(1)).toEqual(['warn']);
-    expect(normalizeRuleEntry(2)).toEqual(['error']);
+    expect(normalizeRuleEntry(0)).toStrictEqual(['off']);
+    expect(normalizeRuleEntry(1)).toStrictEqual(['warn']);
+    expect(normalizeRuleEntry(2)).toStrictEqual(['error']);
   });
 
   it('should lowercase string severities', () => {
-    expect(normalizeRuleEntry('OFF')).toEqual(['off']);
-    expect(normalizeRuleEntry('Error')).toEqual(['error']);
+    expect(normalizeRuleEntry('OFF')).toStrictEqual(['off']);
+    expect(normalizeRuleEntry('Error')).toStrictEqual(['error']);
   });
 
   it('should wrap shorthand and array forms into a uniform shape', () => {
-    expect(normalizeRuleEntry('off')).toEqual(['off']);
-    expect(normalizeRuleEntry(['error'])).toEqual(['error']);
-    expect(normalizeRuleEntry([2, 'single'])).toEqual(['error', 'single']);
+    expect(normalizeRuleEntry('off')).toStrictEqual(['off']);
+    expect(normalizeRuleEntry(['error'])).toStrictEqual(['error']);
+    expect(normalizeRuleEntry([2, 'single'])).toStrictEqual(['error', 'single']);
   });
 });
 
@@ -46,17 +46,17 @@ describe('collectRedundancies', () => {
       skillslint: { path: './docs/skills' },
     };
 
-    expect(collectRedundancies(config)).toEqual([]);
+    expect(collectRedundancies(config)).toStrictEqual([]);
   });
 
   it('should return nothing for an empty config', () => {
-    expect(collectRedundancies({})).toEqual([]);
+    expect(collectRedundancies({})).toStrictEqual([]);
   });
 
   it('should flag npm.checkOutdatedEvery when it matches the default', () => {
     const warnings = collectRedundancies({ npm: { checkOutdatedEvery: 1 } });
 
-    expect(warnings).toEqual([
+    expect(warnings).toStrictEqual([
       { tool: 'npm', path: 'npm.checkOutdatedEvery', value: '1', reason: 'default' },
     ]);
   });
@@ -64,7 +64,7 @@ describe('collectRedundancies', () => {
   it('should flag jscpd.threshold when it matches the default', () => {
     const warnings = collectRedundancies({ jscpd: { threshold: 2 } });
 
-    expect(warnings).toEqual([
+    expect(warnings).toStrictEqual([
       { tool: 'jscpd', path: 'jscpd.threshold', value: '2', reason: 'default' },
     ]);
   });
@@ -74,7 +74,7 @@ describe('collectRedundancies', () => {
       stylelint: { strict: false, template: 'qoq-stylelint-css' },
     });
 
-    expect(warnings).toEqual([
+    expect(warnings).toStrictEqual([
       { tool: 'stylelint', path: 'stylelint.strict', value: 'false', reason: 'default' },
     ]);
   });
@@ -82,7 +82,7 @@ describe('collectRedundancies', () => {
   it('should not flag skillslint.path even when it matches the default', () => {
     // skillslint is an optional tool whose block is its activation switch, and
     // `path` is the required activating key — mandatory, never redundant.
-    expect(collectRedundancies({ skillslint: { path: './skills' } })).toEqual([]);
+    expect(collectRedundancies({ skillslint: { path: './skills' } })).toStrictEqual([]);
   });
 
   it('should flag eslint rules already present in the base config (normalised)', () => {
@@ -109,7 +109,7 @@ describe('collectRedundancies', () => {
 
     const warnings = collectRedundancies(config, { 0: baseRules });
 
-    expect(warnings).toEqual([
+    expect(warnings).toStrictEqual([
       {
         tool: 'eslint',
         path: 'eslint[0].rules.no-console',
@@ -139,7 +139,7 @@ describe('collectRedundancies', () => {
       eslint: [{ template: 'qoq-eslint-v9-ts', rules: { 'no-console': 'error' } }],
     };
 
-    expect(collectRedundancies(config, { 0: { 'no-console': 'off' } })).toEqual([]);
+    expect(collectRedundancies(config, { 0: { 'no-console': 'off' } })).toStrictEqual([]);
   });
 
   it('should skip eslint entries with no resolved base rules', () => {
@@ -147,7 +147,7 @@ describe('collectRedundancies', () => {
       eslint: [{ template: 'qoq-eslint-v9-ts', rules: { 'no-console': 'off' } }],
     };
 
-    expect(collectRedundancies(config, {})).toEqual([]);
+    expect(collectRedundancies(config, {})).toStrictEqual([]);
   });
 
   it('should compare each eslint entry against its own template base rules by index', () => {
@@ -165,7 +165,7 @@ describe('collectRedundancies', () => {
       1: { 'no-console': 'error' },
     });
 
-    expect(warnings).toEqual([
+    expect(warnings).toStrictEqual([
       {
         tool: 'eslint',
         path: 'eslint[0].rules.no-console',
@@ -188,7 +188,7 @@ describe('collectRedundancies', () => {
 
     const warnings = collectRedundancies(config, { 0: { 'no-console': 'off' } });
 
-    expect(warnings.map((warning) => warning.path)).toEqual([
+    expect(warnings.map((warning) => warning.path)).toStrictEqual([
       'npm.checkOutdatedEvery',
       'jscpd.threshold',
       'stylelint.strict',

@@ -27,7 +27,7 @@ describe('fetchNodeInfo', () => {
       vi.fn().mockResolvedValue({ json: () => Promise.resolve(releaseIndex) })
     );
 
-    await expect(fetchNodeInfo('./node.json')).resolves.toEqual({
+    await expect(fetchNodeInfo('./node.json')).resolves.toStrictEqual({
       currentLts: 'v20.1.0',
       maintainedLts: 'v18.1.0',
     });
@@ -38,7 +38,7 @@ describe('fetchNodeInfo', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
     vi.mocked(readJsonSync).mockReturnValue(releaseIndex);
 
-    await expect(fetchNodeInfo('./node.json')).resolves.toEqual({
+    await expect(fetchNodeInfo('./node.json')).resolves.toStrictEqual({
       currentLts: 'v20.1.0',
       maintainedLts: 'v18.1.0',
     });

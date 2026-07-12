@@ -63,7 +63,9 @@ describe('AbstractApiExecutor', () => {
 
   describe('getCommandArgs', () => {
     it('should default to no CLI args (the tool is driven via its JS API)', () => {
-      expect(new TestApiExecutor(dummyModulesConfig, true, true).publicCommandArgs()).toEqual([]);
+      expect(new TestApiExecutor(dummyModulesConfig, true, true).publicCommandArgs()).toStrictEqual(
+        []
+      );
     });
   });
 
