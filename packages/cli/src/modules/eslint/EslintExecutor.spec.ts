@@ -319,7 +319,7 @@ describe('EslintExecutor generated config', () => {
       await executor.run(baseOptions);
 
       expect(writtenConfig()).toContain(
-        'createTypeScriptImportResolver({ project: ["packages/*/tsconfig.json","tsconfig.json"] })'
+        'createTypeScriptImportResolver({ project: ["packages/*/tsconfig.json","tsconfig.json"], noWarnOnMultipleProjects: true })'
       );
       expect(writtenConfig()).toContain(
         "import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript'"

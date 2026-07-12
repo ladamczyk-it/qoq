@@ -154,11 +154,13 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       // though tsc resolves them fine. Point the resolver at every workspace's tsconfig (plus
       // the root, for any TS file living outside a workspace package) whenever the consumer's
       // package.json declares workspaces; an explicit user override in qoq.config.js's
-      // `rules`/`settings` still wins, since it's merged in last.
+      // `rules`/`settings` still wins, since it's merged in last. Passing >1 project path is
+      // deliberate here, so suppress the resolver's own "Multiple projects found" warning —
+      // it only knows the single-project-with-references case is fast, not that this one is fine.
       const monorepoResolverOverride = (consumerWorkspaces: string[]): string =>
         `{ settings: { 'import-x/resolver-next': [createTypeScriptImportResolver({ project: ${JSON.stringify(
           [...consumerWorkspaces.map((workspace) => `${workspace}/tsconfig.json`), 'tsconfig.json']
-        )} }), createNodeResolver()] } }`;
+        )}, noWarnOnMultipleProjects: true }), createNodeResolver()] } }`;
 
       const content = (modules?.eslint ?? []).reduce(
         (acc: string[], current: IModuleEslintConfig, index) => {
