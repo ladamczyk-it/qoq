@@ -10,7 +10,7 @@ const STATS_DIR = resolve(__dirname, '..', 'stats');
 describe('eslint config deprecation guard', () => {
   it('resolves the rules the package config enables', () => {
     // Reads straight from `baseConfig`, so it also exercises `index.ts`.
-    expect(getEnabledRuleNames(baseConfig)).toContain('prettier/prettier');
+    expect(getEnabledRuleNames(baseConfig)).toContain('eqeqeq');
   });
 
   it('does not enable any deprecated rules', () => {

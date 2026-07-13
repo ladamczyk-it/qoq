@@ -7,7 +7,14 @@ export const disabledRules: EslintConfig['rules'] = {
   'testing-library/prefer-screen-queries': 0,
 };
 
-const { plugins: jsVitestBaseConfiglugins, ...jsVitestBaseConfigRest } = jsVitestBaseConfig;
+// Not part of `flat/react` recommended. Pushes toward accessible queries (role/label/text)
+// over implementation-detail selectors, in the spirit of the RTL rules already enabled here.
+const additionalTestingLibraryRules: EslintConfig['rules'] = {
+  'testing-library/no-test-id-queries': 1,
+  'testing-library/prefer-user-event': 1,
+};
+
+const { plugins: jsVitestBaseConfigPlugins, ...jsVitestBaseConfigRest } = jsVitestBaseConfig;
 const { plugins: jsRtlBaseConfigPlugins, ...jsRtlBaseConfigRest } =
   testingLibrary.configs['flat/react'];
 
@@ -16,11 +23,12 @@ export const baseConfig: EslintConfig = {
     ...jsRtlBaseConfigRest,
     name: 'qoq-eslint-v9-js-vitest-rtl',
     rules: {
+      ...additionalTestingLibraryRules,
       ...disabledRules,
     },
   }),
   plugins: {
-    ...jsVitestBaseConfiglugins,
+    ...jsVitestBaseConfigPlugins,
     ...jsRtlBaseConfigPlugins,
   },
 };

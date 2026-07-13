@@ -64,7 +64,7 @@ describe('checkEngine', () => {
     mockPackageJson({ engines: { node: '>=20' }, dependencies: { dep: '1.0.0' } });
     mockDependencyEngine('<10');
 
-    expect(() => checkEngine('./package.json')).toThrow();
+    expect(() => checkEngine('./package.json')).toThrow(ProcessExitError);
 
     expect(stderr).toContain('does not match dependencies criteria');
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -84,7 +84,7 @@ describe('checkEngine', () => {
     mockPackageJson({ engines: { node: '16.0.0' }, dependencies: { dep: '1.0.0' } });
     mockDependencyEngine('>=18');
 
-    expect(() => checkEngine('./package.json')).toThrow();
+    expect(() => checkEngine('./package.json')).toThrow(ProcessExitError);
 
     expect(stderr).toContain('does not match dependencies criteria');
     expect(exitSpy).toHaveBeenCalledWith(1);
@@ -94,7 +94,7 @@ describe('checkEngine', () => {
     mockPackageJson({ engines: { node: 'not-a-version' }, dependencies: { dep: '1.0.0' } });
     mockDependencyEngine('>=18');
 
-    expect(() => checkEngine('./package.json')).toThrow();
+    expect(() => checkEngine('./package.json')).toThrow(ProcessExitError);
 
     expect(stderr).toContain('Bad engines.node version!');
     expect(exitSpy).toHaveBeenCalledWith(1);

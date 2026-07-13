@@ -5,7 +5,8 @@ ESLint flat config template for TypeScript projects. Extends `@ladamczyk/qoq-esl
 ## Exports
 
 - `baseConfig` — full TS config (extends JS base)
-- `testConfig` — relaxed variant of `baseConfig` for test files (disables unsafe-argument, unsafe-assignment, unsafe-member-access, no-duplicate-string)
+- `testConfig` — relaxed variant of `baseConfig` for test files (disables unsafe-argument, unsafe-member-access, no-duplicate-string; unsafe-assignment is already off in `baseConfig`)
+- `strictConfig` — opt-in strictness layer on `baseConfig`: hand-picked type-aware rules from typescript-eslint's `strict` family (`no-non-null-assertion`, `no-unnecessary-condition`, `prefer-reduce-type-parameter`, `use-unknown-in-catch-callback-variable`)
 
 ## Usage
 
@@ -22,12 +23,13 @@ export default [baseConfig];
 - **Parser**: `typescript-eslint` with `projectService: true`
 - **Resolver**: `eslint-import-resolver-typescript` (replaces the Node resolver)
 - **Plugins**: `@typescript-eslint`
-- **Rule sets**: `typescript-eslint/recommended` + `recommended-requiring-type-checking` (normalized to
-  warn, except `no-unsafe-*`/`no-misused-promises` which are tuned by hand)
-- **import-x**: inherits the JS base's import-x rules as-is (`recommended` + `no-cycle`
-  `ignoreExternal: true` + `order`/`no-empty-named-blocks`/`no-mutable-exports`/`no-named-default`)
-  and layers `eslint-plugin-import-x`'s own `typescript` config on top, which currently only turns
-  `import-x/named` off (TS's own resolution supersedes it).
+- **Rule sets**: `typescript-eslint/recommended` + `recommended-requiring-type-checking` at their
+  native severities (`no-unsafe-assignment`/`no-misused-promises` are tuned by hand)
+- **import-x**: inherits the JS base's import-x rules (`recommended` + `no-cycle`
+  `ignoreExternal: true` + `order`/`no-empty-named-blocks`/`no-mutable-exports`/`no-named-default`),
+  layers `eslint-plugin-import-x`'s own `typescript` config on top (turns `import-x/named` off), and
+  additionally disables `namespace`/`default`/`no-named-as-default-member` — TypeScript's compiler
+  already guarantees what they check and they're among the slowest import-x rules.
 - **Extra hand-picked rules not in either recommended set**: `switch-exhaustiveness-check`,
   `no-import-type-side-effects`, `no-deprecated`, `no-shadow`
 

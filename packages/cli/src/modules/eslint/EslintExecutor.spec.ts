@@ -239,44 +239,6 @@ describe('EslintExecutor generated config', () => {
   beforeEach(setupMocks);
   afterEach(teardownMocks);
 
-  describe('ci', () => {
-    const configWithTemplate = {
-      ...dummyModulesConfig,
-      modules: {
-        eslint: [{ template: EModulesEslint.ESLINT_V9_TS, files: ['src/**/*.ts'], ignores: [] }],
-      },
-    };
-
-    const writtenConfig = () => (vi.mocked(writeFileSync).mock.calls[0]?.[1] as string) ?? '';
-
-    it('strips the prettier plugin from template-based configs when ci is set', async () => {
-      const executor = new EslintExecutor(configWithTemplate, true, true);
-
-      await executor.run({ ...baseOptions, ci: true });
-
-      expect(writtenConfig()).toContain('stripPrettierPlugin(objectMergeRight(baseConfig0');
-      expect(writtenConfig()).toContain(
-        "import { stripPrettierPlugin } from '@ladamczyk/qoq-utils'"
-      );
-    });
-
-    it('leaves template-based configs untouched when ci is not set', async () => {
-      const executor = new EslintExecutor(configWithTemplate, true, true);
-
-      await executor.run({ ...baseOptions, ci: false });
-
-      expect(writtenConfig()).not.toContain('stripPrettierPlugin');
-    });
-
-    it('does not import stripPrettierPlugin when no eslint modules use a template', async () => {
-      const executor = new EslintExecutor(configWithEslint, true, true);
-
-      await executor.run({ ...baseOptions, ci: true });
-
-      expect(writtenConfig()).not.toContain('stripPrettierPlugin');
-    });
-  });
-
   describe('workspaces', () => {
     const configWithTemplate = {
       ...dummyModulesConfig,

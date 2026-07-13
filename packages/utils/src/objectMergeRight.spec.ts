@@ -5,7 +5,9 @@ import { objectMergeRight } from './objectMergeRight';
 
 describe('objectMergeRight', () => {
   it('throws an error if only one object passed', () => {
-    expect(() => objectMergeRight({})).toThrow();
+    expect(() => objectMergeRight({})).toThrow(
+      'objectMergeRight needs at least two objects as arguments!'
+    );
   });
 
   const first = {

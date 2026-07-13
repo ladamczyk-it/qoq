@@ -22,6 +22,7 @@ export default [baseConfig];
 
 - **Plugins**: `@eslint-react`, `@stylistic`, `eslint-plugin-compat`, `eslint-plugin-react-refresh`
 - `ecmaFeatures.jsx: true`
+- Browser globals added on top of the JS base's node globals (so `window`/`document` don't trip `no-undef`)
 - Import order rule adjusted: `react*` imports are placed before all other groups
 - `lodash/debounce` restricted — use `use-debounce` in React projects
 - Stylistic formatting rules are disabled (Prettier handles formatting)

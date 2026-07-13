@@ -7,7 +7,9 @@ Base ESLint flat config template for vanilla JavaScript projects. All other `@la
 - `baseConfig` — ESLint flat config object, ready to use or extend
 - `EslintConfig` / `EslintConfigPlugin` — TypeScript types for config objects
 - `getNoRestrictedImportsPaths(extra?)` — returns `no-restricted-imports` paths array; auto-detects lodash and es-toolkit in the consumer project and adds usage guidance
-- `@ladamczyk/qoq-eslint-v9-js/stats` subpath — `getEnabledRuleNames(statsDir)` and `getEnabledDeprecatedRules(statsDir)` read a `@eslint/config-inspector build` payload (a package's `stats/` dir) so a test can fail when the config enables a deprecated rule
+- `getNoRestrictedImportsRule(extraPaths?)` — the full `no-restricted-imports` rule entry (paths above + the one-level-back relative-import pattern), so extending packages can add paths without re-assembling the tuple
+- `restoreSonarjsRules(names, excluded?)` — rule entries re-enabling a disabled sonarjs group (`TEST_ONLY_SONARJS_RULES` / `REACT_ONLY_SONARJS_RULES`) at sonarjs's own recommended severity
+- `@ladamczyk/qoq-eslint-v9-js/stats` subpath — `getEnabledRuleNames(config)` and `getEnabledDeprecatedRules(config, statsDir)` read a `@eslint/config-inspector build` payload (a package's `stats/` dir) so a test can fail when the config enables a deprecated rule
 
 ## Usage
 
@@ -24,8 +26,10 @@ export default [baseConfig];
 | Plugin                   | Purpose                                          |
 | ------------------------ | ------------------------------------------------ |
 | `@eslint/js`             | JS recommended rules                             |
+| `eslint-config-prettier` | Disables rules that conflict with Prettier       |
 | `eslint-plugin-import-x` | Import ordering, cycles, duplicates              |
-| `eslint-plugin-prettier` | Prettier as an ESLint rule                       |
 | `eslint-plugin-sonarjs`  | Code quality (cognitive complexity, duplication) |
+
+Prettier is not run through ESLint — it's a separate, standalone check (`@ladamczyk/qoq-prettier*` + the CLI's Prettier executor). `eslint-config-prettier` only turns off ESLint/plugin rules that would otherwise fight Prettier's formatting.
 
 Key limits: max 600 lines per file, max 200 lines per function. Relative imports deeper than one level (`../../*`) are forbidden — use path aliases instead.

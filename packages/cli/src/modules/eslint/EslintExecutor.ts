@@ -128,13 +128,6 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
         '{ includeIgnoreFile }': '@eslint/compat',
       };
 
-      // Every @ladamczyk/qoq-eslint-v9-* template bundles eslint-plugin-prettier so
-      // formatting issues surface as lint errors during local dev. Running Prettier
-      // through ESLint's AST-based rule pipeline is much slower than running it
-      // directly though, and CI already runs the standalone Prettier check, so CI
-      // runs strip the plugin here instead of paying for it twice.
-      let usesStripPrettierPlugin = false;
-
       // The templates default `import-x/no-cycle` to `ignoreExternal: true` (skips
       // ~98% of its cost — see benchmark). But "external" is resolved per-package
       // (nearest package.json), so in a monorepo a sibling workspace package looks
@@ -193,21 +186,12 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
           ];
           const merged = `objectMergeRight(baseConfig${index}, ${mergeArgs.join(', ')})`;
 
-          if (options.ci) {
-            usesStripPrettierPlugin = true;
-            acc.push(`const config${index} = [stripPrettierPlugin(${merged})]`);
-          } else {
-            acc.push(`const config${index} = [${merged}]`);
-          }
+          acc.push(`const config${index} = [${merged}]`);
 
           return acc;
         },
         []
       );
-
-      if (usesStripPrettierPlugin) {
-        imports['{ stripPrettierPlugin }'] = '@ladamczyk/qoq-utils';
-      }
 
       const mergeConfigsInitialArray = existsSync(GITIGNORE_FILE_PATH)
         ? `[includeIgnoreFile('${GITIGNORE_FILE_PATH.replaceAll('\\', '\\\\')}')]`
