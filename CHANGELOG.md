@@ -1,3 +1,23 @@
+# [5.1.0](https://github.com/ladamczyk-it/qoq/compare/v5.0.2...v5.1.0) (2026-07-14)
+
+
+### Bug Fixes
+
+* bump packages ([ed54d7e](https://github.com/ladamczyk-it/qoq/commit/ed54d7ef4c1e9ef2df23309bad747ee35f1f6cc2))
+* bump packages ([7b2ff02](https://github.com/ladamczyk-it/qoq/commit/7b2ff02fa2ed5cd56cac55a5fa706c1d6dd04a45))
+* optimize import-x for non-monorepo configs ([6a7489a](https://github.com/ladamczyk-it/qoq/commit/6a7489ab1b74071ae091c751fbdcd22ccf227b1b))
+* optimize sonarjs rules config ([e8c8b65](https://github.com/ladamczyk-it/qoq/commit/e8c8b6552f904a4fb2fe712bb4c71b0118f941a5))
+* reconfigure eslint packages ([5861062](https://github.com/ladamczyk-it/qoq/commit/5861062be007ca5249ecd37c9a8efaedd85ab821))
+* reconfigure eslint packages ([a3dc753](https://github.com/ladamczyk-it/qoq/commit/a3dc753fe80e342788dff28f0f46cda982ec0f89))
+* reconfigure eslint-v9-js ([22d7fea](https://github.com/ladamczyk-it/qoq/commit/22d7fea1fa4a80e0d6214acd14213f6c62520742))
+* reconfigure eslint-v9-ts ([3278bba](https://github.com/ladamczyk-it/qoq/commit/3278bbace074a3e5a58567892254a0ffe93082a1))
+* supress eslint warrning ([76e33f5](https://github.com/ladamczyk-it/qoq/commit/76e33f596e4fd559bffe38ad3cf770512af2bf89))
+
+
+### Features
+
+* for CI=true remove eslint prettier rules since we don't need IDE preview ([78380be](https://github.com/ladamczyk-it/qoq/commit/78380bea5bf7b58130de978919cb4eac9b12febc))
+
 ## [5.0.2](https://github.com/ladamczyk-it/qoq/compare/v5.0.1...v5.0.2) (2026-07-09)
 
 
