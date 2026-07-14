@@ -1,3 +1,10 @@
+## [5.1.1](https://github.com/ladamczyk-it/qoq/compare/v5.1.0...v5.1.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* re-add Prettier cache, add npm --json, re-work qoq skill ([61a8543](https://github.com/ladamczyk-it/qoq/commit/61a8543e1007e6d6c2e828cb00920a9034c08718))
+
 # [5.1.0](https://github.com/ladamczyk-it/qoq/compare/v5.0.2...v5.1.0) (2026-07-14)
 
 
