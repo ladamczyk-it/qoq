@@ -6,6 +6,7 @@ import {
 } from '@ladamczyk/qoq-eslint-v9-js';
 import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import vitestPlugin from '@vitest/eslint-plugin';
+import { defineConfig } from 'eslint/config';
 
 export const disabledRules: EslintConfig['rules'] = {
   'sonarjs/no-duplicate-string': 0,
@@ -59,24 +60,48 @@ const restoredTestRules = restoreSonarjsRules(TEST_ONLY_SONARJS_RULES);
 
 const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsBaseConfigRest, {
-    name: 'qoq-eslint-v9-js-vitest',
-    languageOptions: {
-      globals: {
-        ...vitestPlugin.environments.env.globals,
-      },
+/**
+ * Everything this package adds or changes on top of the JS base, as a single
+ * flat-config layer for `defineConfig` composition. Shared by the TS variant
+ * (eslint-v9-ts-vitest appends it to its own chain), so JS-only overrides stay
+ * out of it — `jsOnlyDisabledRules` above is composed in separately below.
+ */
+export const vitestLayer: EslintConfig = {
+  name: 'qoq-eslint-v9-js-vitest',
+  languageOptions: {
+    globals: {
+      ...vitestPlugin.environments.env.globals,
     },
-    rules: {
-      ...vitestPlugin.configs.recommended.rules,
-      ...restoredTestRules,
-      ...additionalVitestRules,
-      ...disabledRules,
-      ...jsOnlyDisabledRules,
-    },
-  }),
+  },
   plugins: {
-    ...jsBaseConfigPlugins,
     vitest: vitestPlugin,
   },
+  rules: {
+    ...vitestPlugin.configs.recommended.rules,
+    ...restoredTestRules,
+    ...additionalVitestRules,
+    ...disabledRules,
+  },
+};
+
+const { plugins: vitestLayerPlugins, ...vitestLayerRest } = vitestLayer;
+
+export const baseConfig: EslintConfig = {
+  ...objectMergeRight(jsBaseConfigRest, vitestLayerRest, { rules: jsOnlyDisabledRules }),
+  plugins: {
+    ...jsBaseConfigPlugins,
+    ...vitestLayerPlugins,
+  },
+};
+
+/**
+ * Flat-config array form: the JS base, the vitest layer, and the JS-only
+ * relaxations, merged per file by ESLint's own cascade instead of being
+ * pre-merged with `objectMergeRight`.
+ */
+export const configs = {
+  base: defineConfig(jsBaseConfig, vitestLayer, {
+    name: 'qoq-eslint-v9-js-vitest-js-only',
+    rules: jsOnlyDisabledRules,
+  }),
 };

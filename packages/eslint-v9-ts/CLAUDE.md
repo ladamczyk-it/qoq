@@ -16,4 +16,4 @@ npm test
 
 ## Internal architecture
 
-`src/index.ts` exports `baseConfig` and `testConfig`. Both are built with `objectMergeRight` over the JS base config. The plugins object is constructed separately (spread pattern) because ESLint flat config requires plugins at the top level, not nested inside merges. `testConfig` is a shallow relaxation of `baseConfig` that disables the four most disruptive TypeScript unsafe rules for test files.
+`src/index.ts` defines the package's deltas as flat-config layers (`tsLayer`, `testLayer`, `strictLayer`) and derives both export shapes from them: the legacy pre-merged objects (`baseConfig`/`testConfig`/`strictConfig`, built with `objectMergeRight` over the JS base config, plugins spread separately because ESLint flat config requires plugins at the top level) and the `configs.*` `defineConfig` arrays, which let ESLint's own cascade do the merging. `src/configs.spec.ts` asserts both shapes resolve to the same effective config via `calculateConfigForFile`. `testConfig` is a shallow relaxation of `baseConfig` that disables the most disruptive TypeScript unsafe rules for test files.

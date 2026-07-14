@@ -7,6 +7,8 @@ ESLint flat config template for TypeScript projects. Extends `@ladamczyk/qoq-esl
 - `baseConfig` — full TS config (extends JS base)
 - `testConfig` — relaxed variant of `baseConfig` for test files (disables unsafe-argument, unsafe-member-access, no-duplicate-string; unsafe-assignment is already off in `baseConfig`)
 - `strictConfig` — opt-in strictness layer on `baseConfig`: hand-picked type-aware rules from typescript-eslint's `strict` family (`no-non-null-assertion`, `no-unnecessary-condition`, `prefer-reduce-type-parameter`, `use-unknown-in-catch-callback-variable`)
+- `tsLayer` / `testLayer` / `strictLayer` — the deltas behind those configs, as flat-config layers for `defineConfig` composition
+- `configs.base` / `configs.test` / `configs.strict` — `defineConfig` array forms (JS base + the matching layers), merged per file by ESLint's cascade
 
 ## Usage
 

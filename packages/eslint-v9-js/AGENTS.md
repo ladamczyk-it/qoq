@@ -5,6 +5,7 @@ Base ESLint flat config template for vanilla JavaScript projects. All other `@la
 ## Exports
 
 - `baseConfig` — ESLint flat config object, ready to use or extend
+- `configs.base` — `baseConfig` as a `defineConfig` array, for ESLint-native composition (`defineConfig({ files: [...], extends: [configs.base] })`)
 - `EslintConfig` / `EslintConfigPlugin` — TypeScript types for config objects
 - `getNoRestrictedImportsPaths(extra?)` — returns `no-restricted-imports` paths array; auto-detects lodash and es-toolkit in the consumer project and adds usage guidance
 - `getNoRestrictedImportsRule(extraPaths?)` — the full `no-restricted-imports` rule entry (paths above + the one-level-back relative-import pattern), so extending packages can add paths without re-assembling the tuple

@@ -4,7 +4,9 @@ ESLint flat config template for TypeScript test files using Vitest. Merges `@lad
 
 ## Exports
 
-- `baseConfig` — TS + Vitest config
+- `baseConfig` — TS + Vitest config (single pre-merged object)
+- `tsVitestLayer` — only this package's own delta (the vitest typecheck setting)
+- `configs.base` — the `defineConfig` array form of the full chain: JS base → `vitestLayer` → `tsLayer` → `testLayer` → `tsVitestLayer`, merged per file by ESLint's cascade (the legacy re-restoration hack isn't needed there — the ts layers are true deltas that never clobber the vitest layer's restorations)
 
 ## Usage
 

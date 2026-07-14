@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import jsRules from '@eslint/js';
 import { getPackageInfo } from '@ladamczyk/qoq-utils';
+import { defineConfig } from 'eslint/config';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import importPlugin, { createNodeResolver } from 'eslint-plugin-import-x';
 import sonarJsPlugin from 'eslint-plugin-sonarjs';
@@ -347,4 +348,16 @@ export const baseConfig: EslintConfig = {
   settings: {
     'import-x/resolver-next': [createNodeResolver()],
   },
+};
+
+/**
+ * `baseConfig` in ESLint's flat-config array form, for `defineConfig`/`extends`
+ * composition (e.g. `defineConfig({ files: ['src/**'], extends: [configs.base] })`).
+ * This package is the root of the qoq config chain, so `base` is just the base
+ * config itself; downstream qoq packages append their own delta layers to it and
+ * let ESLint's cascade merge them per file, instead of pre-merging with
+ * `objectMergeRight`.
+ */
+export const configs = {
+  base: defineConfig(baseConfig),
 };
