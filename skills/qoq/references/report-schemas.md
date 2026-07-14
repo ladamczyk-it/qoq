@@ -3,8 +3,8 @@
 The shape of each `*-report.json` that `qoq --json --output <dir>` writes. You
 normally don't need this — `scripts/summarize.mjs` reads all of these for you and
 prints a compact digest. Reach for a raw report only when one finding needs detail
-the digest doesn't carry (a duplicated fragment's text, a precise export position),
-and then read just that entry, not the whole file.
+the digest doesn't carry (a precise unused-export position, the full message text
+of one ESLint finding), and then read just that entry, not the whole file.
 
 All files land in the `--output` directory (default `bin/report/`; the skill uses
 the shared workspace `.qoq/reports/`). A file is absent when its tool was skipped
@@ -92,27 +92,51 @@ undeclared.
 
 ## jscpd-report.json
 
-JSCPD's JSON reporter. `duplicates` is the list of clone pairs; `statistics.total.percentage`
-is the overall duplication ratio to compare against `jscpd.threshold`.
+Written by the CLI's `JscpdExecutor` — a lean shape, not jscpd's native reporter
+output. `clones` is the list of clone pairs; `percentage` is the overall
+duplication ratio to compare against `jscpd.threshold`. jscpd's heavy `fragment`
+source blobs, token counts, and blame data are dropped at the source.
 
 ```json
 {
-  "duplicates": [
+  "percentage": 1.5,
+  "clones": [
     {
       "format": "typescript",
       "lines": 15,
-      "tokens": 120,
       "firstFile": { "name": "src/a.ts", "start": 10, "end": 25 },
-      "secondFile": { "name": "src/b.ts", "start": 40, "end": 55 },
-      "fragment": "…the duplicated source text…"
+      "secondFile": { "name": "src/b.ts", "start": 40, "end": 55 }
     }
-  ],
-  "statistics": { "total": { "lines": 2000, "duplicatedLines": 30, "percentage": 1.5 } }
+  ]
 }
 ```
 
-`fragment` is the only place the actual duplicated code lives — read it from here
-when planning an extraction.
+The report carries **locations only** — when planning an extraction, read the
+duplicated code from the source files at the reported line ranges (both sites,
+keeping the extraction faithful to both copies).
+
+---
+
+## npm-report.json
+
+Written by the CLI's `npm` module (`NpmExecutor`) — already the semver-compared,
+deduped result, not a passthrough of raw `npm outdated` output. Packages are
+pre-bucketed by the jump from installed to latest version:
+
+```json
+{
+  "major": [{ "name": "eslint", "current": "8.57.0", "latest": "9.9.0" }],
+  "minor": [{ "name": "prettier", "current": "3.2.0", "latest": "3.3.1" }],
+  "patch": [{ "name": "picocolors", "current": "1.0.0", "latest": "1.0.1" }]
+}
+```
+
+Each bucket is an array of `{ name, current, latest }`; a package that appears
+across multiple workspaces is collapsed to one entry (lowest `current`, highest
+`latest`). Doesn't say whether a package is a `dependencies` or `devDependencies`
+entry — cross-reference `package.json` for that. Subject to a throttle (see
+[engine.md](engine.md)) — absent doesn't always mean "nothing outdated", it can
+mean "skipped this run".
 
 ---
 
@@ -139,7 +163,7 @@ it when present.
 
 ## structurelint-report.json
 
-Emitted by the Structurelint JS API (`lint()`/`format(result, true)`), not a
+Emitted by the Structurelint JS API (`validate()`/`format(result)`), not a
 native CLI formatter. `violations` is flat — no per-file grouping — since a
 structure violation names a path directly.
 

@@ -16,10 +16,11 @@ the errors" burns tokens for no benefit — the structure is repetitive and most
 it is noise. So a bundled script, `scripts/summarize.mjs`, collapses every report
 into one compact digest: counts per tool, grouped by rule, with capped file lists
 and an auto-fixable flag. Commands read the digest. They open a specific raw
-report only when one finding genuinely needs more detail (the exact clone
-fragment, a precise export location) — and then just that slice, not the whole
-file. This is the difference between a few hundred tokens and a few hundred
-thousand.
+report only when one finding genuinely needs more detail (a precise
+unused-export location) — and then just that slice, not the whole file. This is
+the difference between a few hundred tokens and a few hundred thousand. (Clone
+_code_ isn't in any report — read it from the source files at the line ranges
+the digest gives you.)
 
 **2. The lint gate is `qoq --check` itself.** One command covers every tool, and
 it is exactly what the project runs in CI — so it is the trustworthy validation
@@ -69,9 +70,15 @@ npx qoq --check --json --output .qoq/reports
 
 A non-zero exit just means findings exist — the reports are still written. This
 writes `prettier-report.json`, `eslint-report.json`, `knip-report.json`,
-`jscpd-report.json` (and `stylelint-report.json` / `structurelint-report.json` /
-`skillslint-report.json` when Stylelint / Structurelint / Skillslint are
-enabled).
+`jscpd-report.json`, `npm-report.json` (and `stylelint-report.json` /
+`structurelint-report.json` / `skillslint-report.json` when Stylelint /
+Structurelint / Skillslint are enabled).
+
+`npm-report.json` has one quirk the rest don't: the npm module throttles itself
+(`npm.checkOutdatedEvery`, 1 day by default) and silently skips writing it inside
+that window. Fine for `review`/`refactor`/`fix`/`gate` — none of them read npm
+findings — but a command that specifically wants live outdated-package data (see
+[bump.md](bump.md)'s Phase 1) needs to clear the throttle lock first.
 
 Now collapse them into the digest — **this is the step that keeps tokens low, so
 do it instead of reading the raw reports**:
@@ -84,12 +91,34 @@ node <skill>/scripts/summarize.mjs .qoq/reports
 rule, caps the file lists, flags which ESLint/Stylelint rules are auto-fixable,
 and prints a total. It exits `1` when there are findings, `0` when clean. Pass
 `--json` for a machine-readable summary object, or `--max <n>` to show more
-instances per group.
+instances per group. What it prints looks like this:
 
-If a finding needs more than the digest gives — the exact duplicated fragment, a
-precise unused-export location — open just that tool's raw report and read the
-relevant entry, guided by [report-schemas.md](report-schemas.md). Never load a
-whole raw report "to be safe".
+```
+=== QoQ DIGEST (.qoq/reports) ===
+
+PRETTIER  2 file(s) need formatting  [auto-fixable: run qoq --fix]
+  src/helpers/loadConfig.ts
+  src/modules/npm/types.ts
+
+ESLINT  5 problem(s) across 3 file(s) / 2 rule(s)  (3 error, 2 warn, 1 auto-fixable)
+  sonarjs/cognitive-complexity              x3   err               src/run.ts:41, src/run.ts:118, src/plan.ts:9
+  @typescript-eslint/naming-convention      x2   warn   1 fixable  src/plan.ts:22, src/utils.ts:7
+
+KNIP  2 finding(s)  [judgment needed — verify before deleting]
+  unused exports:          x1  formatEntry (src/utils.ts)
+  unused devDependencies:  x1  lodash (package.json)
+
+JSCPD  1 clone(s), 1.52% duplication  [extract shared code — verify both sites]
+  src/a.ts:10-25  <=>  src/b.ts:40-55  (15 lines, typescript)
+
+TOTAL: 10 finding(s)
+```
+
+If a finding needs more than the digest gives — a precise unused-export
+location, one finding's full message — open just that tool's raw report and read
+the relevant entry, guided by [report-schemas.md](report-schemas.md). Never load
+a whole raw report "to be safe". For JSCPD clones, the code itself lives only in
+the source files — read both sites at the reported line ranges.
 
 ## Auto-fix first
 

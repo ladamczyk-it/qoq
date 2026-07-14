@@ -1,0 +1,26 @@
+{
+  "skill_name": "qoq",
+  "evals": [
+    {
+      "id": 1,
+      "name": "review-branch-before-pr",
+      "prompt": "I think my feature branch is ready — can you review it against master before I open the PR? Focus on anything that would embarrass us in code review.",
+      "expected_output": "Runs the `review` command: infers/confirms the base branch, diffs against the merge-base, runs the engine once and reads the summarize.mjs digest (never raw report JSON), stages per-dimension patches in .qoq/ WITHOUT modifying the working tree, presents a plan split by dimension (including deliberately dropped low-value findings with reasons), and waits for approval before applying anything. Working tree is clean at the pause point.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "gate-freshly-generated-code",
+      "prompt": "I just had a codegen step write src/api/client.ts and src/api/client.spec.ts (they're uncommitted). Check that this generated code meets our quality standards — don't ask me questions, just make it compliant and tell me pass or fail.",
+      "expected_output": "Runs the `gate` command non-interactively: snapshots the dirty tree (tracked via stash-create ref AND untracked files copied to .qoq/snapshot/), auto-applies only safe-tier fixes behind the validation gate, reports Knip/JSCPD/pattern findings as advisories without applying them, cleans up .qoq/, and ends with the structured 'QoQ GATE — PASS/FAIL' verdict block including scope, applied, advisories, and validation lines. The producer's original code must be restorable at every step.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "bump-stale-dependencies",
+      "prompt": "our deps are getting pretty stale, can you update them? nothing should break though, we deploy from this repo daily",
+      "expected_output": "Runs `bump packages`: verifies a clean tree and a green baseline first, gets outdated data via the engine's npm module (clearing the throttle lock) or npm outdated fallback, presents the minor/patch vs major grouping and asks about exclusions, stages safe_dev/safe patches plus one patch per major step per package (with changelog research for majors), and only after approval applies patches one at a time with reinstall + validation between each. Majors are never collapsed into one jump; coupled packages move in the same patch.",
+      "files": []
+    }
+  ]
+}

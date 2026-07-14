@@ -16,15 +16,31 @@ but changes behavior; the antidote is running the project's real lint/test/build
 every step. Second, **unattributable breakage** — applying many changes together so you
 can't tell what broke; the antidote is one-patch-at-a-time application.
 
-**Tooling.** The linters and formatters are the **engine**'s job, not this command's.
-This command owns the bump workflow (discovery, staging, sequential application); it
-does **not** detect a `qoq` CLI, invent its flags, or parse raw reports. For the
-lint/format half of validation, defer to [engine.md](engine.md), already located during
-Setup — the single owner of the `qoq` invocation, its `--json` output, per-tool
-selective execution, and the digest. If a project has no `qoq` set up at all, the
-engine's fallback applies: use the project's own ESLint/Knip/JSCPD/Prettier scripts (or
-`npx`), say so, and continue; test and build discovery is this command's own job
-regardless.
+## Table of contents
+
+- [Phase 0 — Establish a safety net](#phase-0--establish-a-safety-net)
+- [Phase 1 — Discovery](#phase-1--discovery)
+- [Phase 2 — Plan the safe (minor / patch) bumps](#phase-2--plan-the-safe-minor--patch-bumps)
+- [Phase 3 — Plan the major bumps (one package at a time)](#phase-3--plan-the-major-bumps-one-package-at-a-time)
+- [Phase 4 — Present the plan](#phase-4--present-the-plan)
+- [Phase 5 — Execution](#phase-5--execution)
+- [Phase 6 — Clean up](#phase-6--clean-up)
+- [Considerations — coupled & namespaced packages](#considerations--coupled--namespaced-packages)
+- [Patch file quick reference](#patch-file-quick-reference)
+
+**Tooling.** The linters and formatters — and, via the CLI's `npm` module, the
+outdated-package scan itself — are the **engine**'s job, not this command's. This
+command owns the bump workflow (staging, sequential application, and deciding what to
+_do_ about what's outdated); it does **not** detect a `qoq` CLI, invent its flags, run
+`npm outdated` itself, or re-derive the major/minor/patch split from raw output — that
+categorization already lives in the CLI's `NpmExecutor`, and duplicating it here is how
+the two drift out of sync. Defer to [engine.md](engine.md), already located during
+Setup — the single owner of the `qoq` invocation, its `--json` output (including
+`npm-report.json`), per-tool selective execution, and the digest. If a project has no
+`qoq` set up at all, the engine's fallback applies: use the project's own
+ESLint/Knip/JSCPD/Prettier scripts (or `npx`) for lint/format, and fall back to a
+direct `npm outdated --json` for discovery (Phase 1 covers exactly how); say so, and
+continue. Test and build discovery is this command's own job regardless.
 
 ---
 
@@ -79,41 +95,75 @@ Setup already confirmed a clean working tree. The rest is bump-specific.
    pre-existing failure to a bump. (If the user explicitly says validation is
    known-broken and to proceed, record which commands to skip.)
 
-Set up the shared workspace for patch files: `.qoq/` at the repo root
-(`mkdir -p .qoq`). It's a scratch directory — the patches exist only to stage and
-isolate each bump during the run, so once every bump has landed and validated they get
-removed automatically (Phase 6). Keep it out of `git status` and the engine's Prettier
-gate the same way the other commands do: append a labeled block to `.gitignore` (create
-it if absent), noting whether you **created** the file or **appended** so the Phase 6
-revert is unambiguous:
+Set up the shared workspace for patch files
+([workflow.md](workflow.md#the-workspace--qoq)):
 
-```gitignore
-# QoQ workspace — temporary, removed when the run finishes
-.qoq/
+```bash
+node <skill>/scripts/workspace.mjs init
 ```
+
+It's a scratch directory — the patches exist only to stage and isolate each bump
+during the run, so once every bump has landed and validated they get removed
+automatically (Phase 6).
 
 ---
 
 ## Phase 1 — Discovery
 
-Run discovery and categorize what's available:
+Discovery means finding out what's outdated — and in **QoQ mode**
+([engine.md](engine.md)'s term for "`@ladamczyk/qoq-cli` installed and a
+`qoq.config.js` at the root"), that's the engine's `npm` module, not a raw
+`npm outdated` call this command parses itself. The module already does the semver
+comparison and buckets each package into `major` / `minor` / `patch` — read that
+instead of re-deriving it, so bump's categorization can never disagree with what
+`qoq --check` reports elsewhere in the project.
 
-```bash
-npm outdated --json
-```
+1. **QoQ mode — run the engine, scoped to just the npm tool.** The npm module
+   throttles itself (`npm.checkOutdatedEvery`, 1 day by default) via a lock file at
+   `node_modules/@ladamczyk/qoq-cli/bin/.npm-outdated-lock` (or
+   `packages/cli/bin/.npm-outdated-lock` in the QoQ monorepo itself) — inside that
+   window it silently skips the check and writes no report at all. Every other
+   command is indifferent to this (none of them read npm findings), but `bump`'s
+   entire job depends on live data, so clear the lock first:
 
-`npm outdated` exits non-zero when packages are outdated — that's expected, not an
-error; capture the JSON regardless. Each entry has `current`, `wanted`, `latest`, and
-`dependent`/location info. Read `package.json` to learn whether each package is a
-`dependencies` or `devDependencies` entry (don't infer it from `npm outdated` alone).
+   ```bash
+   rm -f node_modules/@ladamczyk/qoq-cli/bin/.npm-outdated-lock
+   npx qoq npm --json --output .qoq/reports
+   ```
 
-Split findings into two groups by the semver jump from the **current installed
-version** to **latest**:
+   (the `npm` positional arg scopes the run to that one tool — no reason to pay for
+   Prettier/ESLint/Knip/JSCPD when all you need is the outdated list.) A non-zero
+   exit just means outdated packages exist, same as every other `qoq` tool — the
+   report is still written. Read `.qoq/reports/npm-report.json` directly (schema in
+   [report-schemas.md](report-schemas.md)): `{ major, minor, patch }`, each an array
+   of `{ name, current, latest }`, already deduped across workspaces and classified
+   by semver jump. It's small enough to read straight — no need to route it through
+   `scripts/summarize.mjs` unless you're already pulling the digest for something
+   else in the same run.
 
-- **Minor / Patch** — same major version (safe and quick)
+2. **No `qoq` set up — fall back to a direct check.** Per the engine's fallback:
+
+   ```bash
+   npm outdated --json
+   ```
+
+   `npm outdated` exits non-zero when packages are outdated — expected, not an
+   error; capture the JSON regardless. Each entry has `current`, `wanted`, `latest`.
+   Bucket by the semver jump from **current** to **latest** the same way the engine
+   does: same major → `minor`/`patch`, major increase → `major`.
+
+3. **Classify by dependency type.** Neither `npm-report.json` nor raw
+   `npm outdated` says whether a package is a `dependencies` or `devDependencies`
+   entry — cross-reference each name against `package.json` (and workspace
+   `package.json` files, if applicable).
+
+Group the results the way the rest of this command uses them:
+
+- **Minor / Patch** (the `minor` + `patch` buckets) — same major version, safe and
+  quick
   - devDependencies
   - dependencies
-- **Major** — major version increases (may need refactoring)
+- **Major** (the `major` bucket) — may need refactoring
   - devDependencies
   - dependencies
 
@@ -141,12 +191,13 @@ pinned).
 - `.qoq/safe_dev.patch` — the `devDependencies` bumps
 - `.qoq/safe.patch` — the `dependencies` bumps
 
-Generate patches without dirtying the tree: edit, `git diff > patch`, then restore:
+Generate patches without dirtying the tree — edit the `package.json`(s), then
+stage with the shared script ([workflow.md](workflow.md#staging-a-patch)),
+which captures the diff, restores the tree, and verifies the patch applies:
 
 ```bash
 # after editing package.json for the dev bumps:
-git diff -- package.json > .qoq/safe_dev.patch
-git checkout -- package.json   # restore so the tree stays clean until execution
+node <skill>/scripts/stage-patch.mjs safe_dev -- package.json 'packages/*/package.json'
 ```
 
 If there's nothing to bump in a group, skip that patch and note it.
@@ -193,7 +244,8 @@ the patch is self-consistent):
 
 where `<PACKAGE>` is the name, `<FROM>` is the version bumping from, `<TO>` is the
 target. Sanitize scoped names for filenames — `@scope/pkg` → `scope__pkg`. Generate the
-same clean way as the safe patches (edit → `git diff > patch` → `git checkout --`).
+same clean way as the safe patches (edit, then `stage-patch.mjs` — a major-step patch
+often carries source/config edits alongside `package.json`; pass every touched path).
 
 ---
 
@@ -257,18 +309,12 @@ proceed to Phase 6.
 ## Phase 6 — Clean up
 
 A bump only reaches here if **every** patch applied and validated cleanly. At that point
-the patches in `.qoq/` are spent. So remove the whole scratch directory
-automatically, no need to ask:
+the patches in `.qoq/` are spent — remove the workspace and revert the ignore rule in one
+step, no need to ask ([workflow.md](workflow.md#cleanup)):
 
 ```bash
-rm -rf .qoq/
+node <skill>/scripts/workspace.mjs cleanup
 ```
-
-Then revert the `.gitignore` block you added in Phase 0 — strip the labeled
-`.qoq/` block, or delete `.gitignore` entirely if you created it solely for this run
-(`git restore .gitignore` is the quickest exact revert when it was already tracked and
-started clean). Remove the workspace _before_ reverting the ignore rule so the directory
-is gone by the time it stops being ignored and never flashes back into `git status`.
 
 The one thing that keeps this safe is the precondition: clean up only on a fully
 successful run. If execution stopped early — a patch failed to apply, an install errored,
@@ -276,8 +322,8 @@ or validation went red and the user chose to abort — **leave `.qoq/` and its `
 block in place**. The remaining patches are exactly the record of what's left to do.
 Cleanup is the reward for a green run, not a step you do regardless.
 
-After removing the directory, summarize what changed (which packages moved and to what
-versions) and offer to commit.
+After cleanup, summarize what changed (which packages moved and to what versions) and
+offer to commit.
 
 ---
 

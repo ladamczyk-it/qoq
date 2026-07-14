@@ -17,7 +17,7 @@ raw `*-report.json` only for the specific extra detail a section calls out.
 project's Prettier config (`{ "issues": ["src/a.ts", ...] }`).
 
 **Fix:** there is nothing to analyze — every Prettier finding is auto-fixable by
-definition. `qoq --fix` (Phase 2) resolves all of them. If any survive `--fix`,
+definition. `qoq --fix` (the engine's auto-fix pass) resolves all of them. If any survive `--fix`,
 that's a real signal: usually a syntax error that stops Prettier from parsing the
 file, or a file matched by a config the project didn't expect. Open that file and
 fix the parse error by hand; don't hand-format to dodge it.
@@ -36,12 +36,12 @@ count, error/warn split, and how many are auto-fixable.
 
 **Fix order:**
 
-1. **Auto-fixables** are already handled by `qoq --fix` in Phase 2. Anything left
+1. **Auto-fixables** are already handled by the engine's `qoq --fix` pass. Anything left
    needs judgment.
 2. **Naming-convention** findings (the QoQ templates enforce intention-revealing,
    camelCase/PascalCase names): rename to something that reveals intent and
    matches the convention. Rename the symbol _and all its references_ — a rename
-   patch that misses a usage breaks the build, which the Phase 4 gate will catch,
+   patch that misses a usage breaks the build, which the apply-time validation gate will catch,
    but it's cheaper to get right the first time.
 3. **`@typescript-eslint/no-explicit-any`**: replace `any` with the real type.
    Infer it from usage; reach for `unknown` + a narrowing guard when the value is
@@ -52,8 +52,9 @@ count, error/warn split, and how many are auto-fixable.
    with early returns or guard clauses, split mixed responsibilities. The smallest
    change that gets under the threshold is the right one — don't over-engineer a
    pattern the function doesn't need.
-5. Project-specific rules from `eslint.rules` in `qoq.config.js`: read the rule,
-   fix to its intent.
+5. Project-specific rules from the `rules` block of the matching entry in
+   `qoq.config.js`'s `eslint` array (it's a list, one entry per file-group
+   template): read the rule, fix to its intent.
 
 **Match the project's conventions** while fixing: QoQ projects prefer arrow
 functions over the `function` keyword and named exports over default — if a fix
@@ -96,7 +97,7 @@ position if you need it.
 
 **Trap (the big one):** Knip is the most false-positive-prone tool here. Deleting
 "dead" code that a test imports, a build step needs, or a dynamic import reaches
-breaks the project in ways the lint gate won't catch — that's why Phase 0 says to
+breaks the project in ways the lint gate won't catch — that's why the workflow says to
 run `test`/`build` after Knip patches. Treat every deletion as a hypothesis the
 test/build run must confirm.
 
@@ -107,7 +108,9 @@ test/build run must confirm.
 **What it reports:** copy-paste clones — pairs of code fragments that duplicate
 each other — plus the overall duplication percentage against
 `jscpd.threshold`. The digest shows each clone as `fileA:start-end <=> fileB:start-end`
-with the line count; the raw report has the actual duplicated `fragment` text.
+with the line count. Neither the digest nor the raw report carries the duplicated
+code itself (the lean report drops jscpd's `fragment` blobs) — read it from the
+source files at those line ranges.
 
 **Fix:**
 
@@ -115,8 +118,8 @@ with the line count; the raw report has the actual duplicated `fragment` text.
   the project accepts it — there's nothing to fix. Only act when the percentage is
   over, and then only on the clones that push it over.
 - **Extract the shared code** into one well-named function/module and have both
-  sites call it. Read the actual fragment from the raw report so the extraction is
-  faithful to both copies, not just one.
+  sites call it. Read both sites from the source files at the reported line
+  ranges so the extraction is faithful to both copies, not just one.
 - **Judgment matters more here than anywhere.** Not every duplicate is worth
   removing — two short blocks that are similar today but model genuinely different
   concepts (incidental duplication) are often clearer left apart than fused behind
@@ -148,11 +151,12 @@ reported warnings.
 
 ## Structurelint (only when enabled)
 
-**What it reports:** file/folder structure violations against the project's own
-`structure.config.{ts,js,mjs}` — `unexpected` (an entry no rule allows) or
-`missing` (a `required` rule with no match), each with a `path` and the
-`expected` rule patterns. See [report-schemas.md](report-schemas.md) for the
-exact shape.
+**What it reports:** file/folder structure violations against the `structurelint`
+block in `qoq.config.js` (`structureRoot`, `structure`, and optional `rules` /
+`ignorePatterns` — no separate `structure.config.*` file is read) — `unexpected`
+(an entry no rule allows) or `missing` (a `required` rule with no match), each
+with a `path` and the `expected` rule patterns. See
+[report-schemas.md](report-schemas.md) for the exact shape.
 
 **Fix:** there is no auto-fix — `qoq --fix` never touches Structurelint findings,
 so every violation needs a manual action:
@@ -164,13 +168,13 @@ so every violation needs a manual action:
   gate will catch, but it's cheaper to get right the first time.
 - **`missing`** — a `required` rule expected an entry that isn't there (e.g. every
   component folder must have an `index.ts`). Create the missing entry, or drop
-  `required` from the rule in `structure.config.*` if the project no longer wants
-  to enforce it — that's a config change, not a code fix, so call it out
-  separately rather than folding it into the same patch.
+  `required` from the rule in `qoq.config.js`'s `structurelint.structure` block if
+  the project no longer wants to enforce it — that's a config change, not a code
+  fix, so call it out separately rather than folding it into the same patch.
 
 **Trap:** a rename ripples to every file that imports the moved path — keep the
 whole ripple (the move plus every updated import) in the single Structurelint
 patch so it applies atomically. Don't touch entries Structurelint didn't flag,
-and don't edit `structure.config.*` to make a violation disappear unless the
-rule itself is what's wrong — that silences the check instead of fixing the
-structure.
+and don't edit the `structurelint` block in `qoq.config.js` to make a violation
+disappear unless the rule itself is what's wrong — that silences the check
+instead of fixing the structure.

@@ -9,7 +9,7 @@ import { resolveCliPackagePath } from '../../helpers/paths.ts';
 import { AbstractCommandExecutor } from '../abstract/AbstractCommandExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
-import { ENpmWarningType, TNpmOutdatedOutput } from './types.ts';
+import { ENpmWarningType, TNpmOutdatedEntry, TNpmOutdatedOutput } from './types.ts';
 
 export class NpmExecutor extends AbstractCommandExecutor {
   static readonly LOCK_PATH = resolveCliPackagePath('/bin/.npm-outdated-lock');
@@ -87,13 +87,14 @@ export class NpmExecutor extends AbstractCommandExecutor {
 
         const current = parse(info.current);
         const latest = parse(info.latest);
+        const entry = { name: packageName, current: info.current, latest: info.latest };
 
         if (Number(latest?.major) > Number(current?.major)) {
-          acc[ENpmWarningType.MAJOR].push(`${packageName} ${info.current} -> ${info.latest}`);
+          acc[ENpmWarningType.MAJOR].push(entry);
         } else if (Number(latest?.minor) > Number(current?.minor)) {
-          acc[ENpmWarningType.MINOR].push(`${packageName} ${info.current} -> ${info.latest}`);
+          acc[ENpmWarningType.MINOR].push(entry);
         } else {
-          acc[ENpmWarningType.PATCH].push(`${packageName} ${info.current} -> ${info.latest}`);
+          acc[ENpmWarningType.PATCH].push(entry);
         }
 
         return acc;
@@ -102,7 +103,7 @@ export class NpmExecutor extends AbstractCommandExecutor {
         [ENpmWarningType.MAJOR]: [],
         [ENpmWarningType.MINOR]: [],
         [ENpmWarningType.PATCH]: [],
-      } as Record<ENpmWarningType, string[]>
+      } as Record<ENpmWarningType, TNpmOutdatedEntry[]>
     );
 
     if (!Object.values(npmDictionary).some((warning) => warning.length > 0)) {
@@ -114,8 +115,8 @@ export class NpmExecutor extends AbstractCommandExecutor {
         c.red(`\nConsider update following ${ENpmWarningType.MAJOR} versions:\n`)
       );
 
-      npmDictionary[ENpmWarningType.MAJOR].forEach((packageName) => {
-        process.stdout.write(`${packageName}\n`);
+      npmDictionary[ENpmWarningType.MAJOR].forEach(({ name, current, latest }) => {
+        process.stdout.write(`${name} ${current} -> ${latest}\n`);
       });
     }
 
@@ -124,8 +125,8 @@ export class NpmExecutor extends AbstractCommandExecutor {
         c.yellow(`\nConsider update following ${ENpmWarningType.MINOR} versions:\n`)
       );
 
-      npmDictionary[ENpmWarningType.MINOR].forEach((packageName) => {
-        process.stdout.write(`${packageName}\n`);
+      npmDictionary[ENpmWarningType.MINOR].forEach(({ name, current, latest }) => {
+        process.stdout.write(`${name} ${current} -> ${latest}\n`);
       });
     }
 
@@ -134,9 +135,20 @@ export class NpmExecutor extends AbstractCommandExecutor {
         c.cyan(`\nConsider update following ${ENpmWarningType.PATCH} versions:\n`)
       );
 
-      npmDictionary[ENpmWarningType.PATCH].forEach((packageName) => {
-        process.stdout.write(`${packageName}\n`);
+      npmDictionary[ENpmWarningType.PATCH].forEach(({ name, current, latest }) => {
+        process.stdout.write(`${name} ${current} -> ${latest}\n`);
       });
+    }
+
+    if (options.json) {
+      writeFileSync(
+        `${options.output}/npm-report.json`,
+        JSON.stringify({
+          major: npmDictionary[ENpmWarningType.MAJOR],
+          minor: npmDictionary[ENpmWarningType.MINOR],
+          patch: npmDictionary[ENpmWarningType.PATCH],
+        })
+      );
     }
 
     writeFileSync(NpmExecutor.LOCK_PATH, '');
