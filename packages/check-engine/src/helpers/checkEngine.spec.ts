@@ -60,16 +60,6 @@ describe('checkEngine', () => {
     expect(exitSpy).not.toHaveBeenCalled();
   });
 
-  it('exits with code 1 when the configured range cannot satisfy a dependency', () => {
-    mockPackageJson({ engines: { node: '>=20' }, dependencies: { dep: '1.0.0' } });
-    mockDependencyEngine('<10');
-
-    expect(() => checkEngine('./package.json')).toThrow(ProcessExitError);
-
-    expect(stderr).toContain('does not match dependencies criteria');
-    expect(exitSpy).toHaveBeenCalledWith(1);
-  });
-
   it('accepts an exact version that satisfies the dependency range', () => {
     mockPackageJson({ engines: { node: '20.1.0' }, dependencies: { dep: '1.0.0' } });
     mockDependencyEngine('>=18');
@@ -80,23 +70,32 @@ describe('checkEngine', () => {
     expect(exitSpy).not.toHaveBeenCalled();
   });
 
-  it('exits with code 1 when an exact version does not satisfy the dependency range', () => {
-    mockPackageJson({ engines: { node: '16.0.0' }, dependencies: { dep: '1.0.0' } });
-    mockDependencyEngine('>=18');
+  it.each([
+    {
+      scenario: 'the configured range cannot satisfy a dependency',
+      engineNode: '>=20',
+      dependencyEngine: '<10',
+      expectedStderr: 'does not match dependencies criteria',
+    },
+    {
+      scenario: 'an exact version does not satisfy the dependency range',
+      engineNode: '16.0.0',
+      dependencyEngine: '>=18',
+      expectedStderr: 'does not match dependencies criteria',
+    },
+    {
+      scenario: 'engines.node is neither a valid version nor range',
+      engineNode: 'not-a-version',
+      dependencyEngine: '>=18',
+      expectedStderr: 'Bad engines.node version!',
+    },
+  ])('exits with code 1 when $scenario', ({ engineNode, dependencyEngine, expectedStderr }) => {
+    mockPackageJson({ engines: { node: engineNode }, dependencies: { dep: '1.0.0' } });
+    mockDependencyEngine(dependencyEngine);
 
     expect(() => checkEngine('./package.json')).toThrow(ProcessExitError);
 
-    expect(stderr).toContain('does not match dependencies criteria');
-    expect(exitSpy).toHaveBeenCalledWith(1);
-  });
-
-  it('exits with code 1 when engines.node is neither a valid version nor range', () => {
-    mockPackageJson({ engines: { node: 'not-a-version' }, dependencies: { dep: '1.0.0' } });
-    mockDependencyEngine('>=18');
-
-    expect(() => checkEngine('./package.json')).toThrow(ProcessExitError);
-
-    expect(stderr).toContain('Bad engines.node version!');
+    expect(stderr).toContain(expectedStderr);
     expect(exitSpy).toHaveBeenCalledWith(1);
   });
 

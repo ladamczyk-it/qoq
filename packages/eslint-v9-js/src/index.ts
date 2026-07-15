@@ -50,6 +50,7 @@ export const TEST_ONLY_SONARJS_RULES = [
   'hooks-before-test-cases',
   'no-incompatible-assertion-types',
   'no-forced-browser-interaction',
+  'parameterized-tests',
 ] as const;
 
 // Rule names that only fire on JSX/DOM markup. Disabled here so plain Node/CLI consumers
