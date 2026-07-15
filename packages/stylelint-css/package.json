@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-stylelint-css",
-  "version": "5.1.1",
+  "version": "5.2.0",
   "description": "Stylelint config template for CSS",
   "keywords": [
     "stylelint CSS template",

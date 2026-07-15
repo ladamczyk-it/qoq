@@ -1,3 +1,15 @@
+# [5.2.0](https://github.com/ladamczyk-it/qoq/compare/v5.1.1...v5.2.0) (2026-07-15)
+
+
+### Bug Fixes
+
+* bump packages ([63ecf89](https://github.com/ladamczyk-it/qoq/commit/63ecf892c114050ca23bb20739267ee74cf3f5c4))
+
+
+### Features
+
+* allow more Knip ignore options ([2231373](https://github.com/ladamczyk-it/qoq/commit/2231373423a8a6e64260d59f16e2ead5a4073404))
+
 ## [5.1.1](https://github.com/ladamczyk-it/qoq/compare/v5.1.0...v5.1.1) (2026-07-14)
 
 
