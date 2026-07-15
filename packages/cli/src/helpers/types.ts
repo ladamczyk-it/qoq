@@ -36,6 +36,9 @@ export interface QoqConfig {
     ignore?: string[];
     ignoreDependencies?: string[];
     ignoreBinaries?: string[];
+    ignoreFiles?: string[];
+    ignoreMembers?: string[];
+    ignoreUnresolved?: string[];
   };
   configPaths?: {
     prettier?: string;

@@ -4,4 +4,7 @@ export interface IModuleKnipConfig {
   ignore: string[];
   ignoreDependencies: string[];
   ignoreBinaries: string[];
+  ignoreFiles: string[];
+  ignoreMembers: string[];
+  ignoreUnresolved: string[];
 }
