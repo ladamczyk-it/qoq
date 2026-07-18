@@ -38,13 +38,13 @@ reasons unrelated to the code under review.
 
 What lands where:
 
-| Path                   | Contents                                             |
-| ---------------------- | ---------------------------------------------------- |
-| `.qoq/reports/`        | the `qoq --check --json` reports                     |
-| `.qoq/digest.txt`      | the `summarize.mjs` digest, when saved for subagents |
-| `.qoq/*.patch`         | staged patches (per-area subdirs when fanning out)   |
-| `.qoq/snapshot/`       | copies of untracked files, saved by `snapshot`       |
-| `.qoq/.workspace.json` | script state (gitignore disposition, snapshot ref)   |
+| Path                   | Contents                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------ |
+| `.qoq/reports/`        | the `qoq --check --json` reports                                               |
+| `.qoq/digest.txt`      | the `summarize.mjs` digest, when saved for subagents                           |
+| `.qoq/*.patch`         | staged patches (per-area subdirs when fanning out)                             |
+| `.qoq/snapshot/`       | copies of untracked files, saved by `snapshot`                                 |
+| `.qoq/.workspace.json` | script state (gitignore disposition, snapshot ref, cached validation commands) |
 
 ## The safety snapshot
 
@@ -80,15 +80,39 @@ everywhere.
 ## Validation commands & the green baseline
 
 Three commands are needed: how to **lint/format**, how to **test**, and how to
-**build**.
+**build**. Discovery — especially the "ask if ambiguous" part — is not
+something to repeat: check the cache before doing it, and write to the cache
+once you have.
 
-- **Lint/format** is the engine's territory ([engine.md](engine.md)): in QoQ
-  mode it is `qoq --check` (or the project's `qoq:check` script) — one command
-  covering every configured tool, exactly what CI runs. Without `qoq`, the
-  engine's fallback applies.
-- **Test and build** — read `package.json` `scripts` and project docs
-  (`README`, `CLAUDE.md`, `AGENTS.md`); prefer scripts the project already
-  defines over commands you invent. Ask if ambiguous.
+1. **Check the cache first.**
+
+   ```bash
+   node <skill>/scripts/workspace.mjs commands
+   ```
+
+   `null` means nothing is cached yet — discover as below. Anything else is
+   the commands a previous phase (or a previous, aborted run reusing this same
+   leftover `.qoq/`) already worked out — reuse them as-is and skip straight
+   to running the baseline. This is what makes discovery a **once-per-workspace**
+   fact rather than a once-per-phase one: `gate`/`fix`/`refactor`/`review` each
+   read this cache in their own Phase 1, so re-invoking a command against a
+   workspace that never got cleaned up (an aborted run) doesn't re-ask an
+   ambiguity question the user already answered.
+
+2. **On a cache miss, discover:**
+   - **Lint/format** is the engine's territory ([engine.md](engine.md)): in
+     QoQ mode it is `qoq --check` (or the project's `qoq:check` script) — one
+     command covering every configured tool, exactly what CI runs. Without
+     `qoq`, the engine's fallback applies.
+   - **Test and build** — read `package.json` `scripts` and project docs
+     (`README`, `CLAUDE.md`, `AGENTS.md`); prefer scripts the project already
+     defines over commands you invent. Ask if ambiguous.
+
+3. **Cache what you found** so nothing downstream re-derives it:
+
+   ```bash
+   node <skill>/scripts/workspace.mjs commands --set '{"lint":"…","test":"…","build":"…"}'
+   ```
 
 Run all three **before changing anything** and confirm they pass. This green
 baseline locks in the exact commands to re-run after each patch — the

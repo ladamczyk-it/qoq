@@ -48,9 +48,14 @@ continue. Test and build discovery is this command's own job regardless.
 
 Setup already confirmed a clean working tree. The rest is bump-specific.
 
-1. **Discover the validation commands.** You need three things: how to **lint/format**,
-   how to **test**, and how to **build**. Together they are the project's **full
-   validation** — the gold-standard signal you trust after every bump:
+1. **Discover the validation commands — but check the cache first.** You need three
+   things: how to **lint/format**, how to **test**, and how to **build**. Together they
+   are the project's **full validation** — the gold-standard signal you trust after
+   every bump. As in [workflow.md](workflow.md#validation-commands--the-green-baseline),
+   run `node <skill>/scripts/workspace.mjs commands` before doing any discovery — a
+   non-`null` result means a previous phase (or a previous, aborted `bump` run reusing
+   this same leftover `.qoq/`) already worked this out, including any ambiguity the user
+   resolved by hand; reuse it and skip straight to step 3. Only on a cache miss:
    - **Lint/format — hand discovery to the engine.** Don't detect a CLI, invent flags,
      or parse raw reports here; follow [engine.md](engine.md) to find how `qoq` runs
      here — the `qoq:check` / `qoq:fix` script, `npx qoq`, or build-first in the QoQ
@@ -61,6 +66,10 @@ Setup already confirmed a clean working tree. The rest is bump-specific.
      `package.json` `scripts` and any project docs (`README`, `CLAUDE.md`, `AGENTS.md`);
      prefer scripts the project already defines over commands you invent. If anything is
      ambiguous, ask rather than guessing.
+
+   Once resolved — whether freshly discovered or cache-confirmed — write it back with
+   `workspace.mjs commands --set '{"lint":"…","test":"…","build":"…"}'` so step 2's
+   profiling and Phase 5's per-patch loop never have to re-derive it.
 
 2. **Profile the tooling for a faster validation loop.** The full suite is the safety
    net, but running all of it after every single patch is often wasteful — a patch that

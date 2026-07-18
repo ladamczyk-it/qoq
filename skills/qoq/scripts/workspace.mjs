@@ -17,11 +17,21 @@
 //                                            untracked files — without the copy,
 //                                            a fix regressing a freshly created
 //                                            file cannot be rolled back)
+//   node workspace.mjs commands              print the cached validation
+//                                            commands (lint/test/build), or
+//                                            `null` if discovery hasn't run yet
+//   node workspace.mjs commands --set <json> cache the discovered validation
+//                                            commands so later phases — or a
+//                                            resumed run against a leftover
+//                                            workspace — read them instead of
+//                                            re-discovering (and possibly
+//                                            re-asking an ambiguity question)
 //   node workspace.mjs cleanup               remove .qoq/ and revert .gitignore
 //
-// State lives in .qoq/.workspace.json (gitignore disposition, snapshot ref).
-// `stage-patch.mjs` reads the snapshot ref from there as its default restore
-// point. Exit codes: 0 ok, 1 git failure, 2 usage error.
+// State lives in .qoq/.workspace.json (gitignore disposition, snapshot ref,
+// cached validation commands). `stage-patch.mjs` reads the snapshot ref from
+// there as its default restore point. Exit codes: 0 ok, 1 git failure, 2 usage
+// error.
 
 import { execFileSync } from 'node:child_process';
 import {
@@ -155,13 +165,37 @@ const cleanup = () => {
   process.stdout.write('.qoq/ removed, .gitignore reverted\n');
 };
 
-const commands = { init, snapshot, cleanup };
-if (!commands[command]) {
-  process.stderr.write('usage: workspace.mjs <init | snapshot [-- <paths…>] | cleanup>\n');
+const commandsCmd = () => {
+  if (rest[0] !== '--set') {
+    const { commands: cached } = readState();
+    process.stdout.write(`${JSON.stringify(cached ?? null)}\n`);
+    return;
+  }
+  const [, json] = rest;
+  if (!json) {
+    process.stderr.write('usage: workspace.mjs commands --set <json>\n');
+    process.exit(2);
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(json);
+  } catch (err) {
+    process.stderr.write(`workspace.mjs commands: invalid JSON — ${err.message}\n`);
+    process.exit(2);
+  }
+  writeState({ commands: parsed });
+  process.stdout.write(`${JSON.stringify(parsed)}\n`);
+};
+
+const handlers = { init, snapshot, commands: commandsCmd, cleanup };
+if (!handlers[command]) {
+  process.stderr.write(
+    'usage: workspace.mjs <init | snapshot [-- <paths…>] | commands [--set <json>] | cleanup>\n'
+  );
   process.exit(2);
 }
 try {
-  commands[command]();
+  handlers[command]();
 } catch (err) {
   process.stderr.write(`workspace.mjs ${command}: ${err?.message ?? err}\n`);
   process.exit(1);

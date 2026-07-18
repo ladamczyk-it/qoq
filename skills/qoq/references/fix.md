@@ -44,11 +44,24 @@ the safety net, not a clean-tree requirement.
    snapshot ref is the restore point for every staged patch — it captures any
    uncommitted work the tree had, so restoring to it never throws that away.
 
-3. **Establish the baseline** — discover the validation commands and run them
-   once, per [workflow.md](workflow.md#validation-commands--the-green-baseline).
-   Like `gate`, record a red baseline rather than stopping (the findings being
-   red is often why `fix` was called) — but know exactly what was red before
-   the first patch lands.
+3. **Discover and cache the validation commands, then run what the request
+   calls for.** Per
+   [workflow.md](workflow.md#validation-commands--the-green-baseline), work
+   out (or read from cache) how to lint/test/build and cache all three so
+   Phase 4's per-patch validation step has them ready. Let _what the user
+   said_ decide what to actually run before staging anything:
+   - **Named a tool or area** ("fix the linter problems", "fix the failing
+     tests", "the build is broken") — run only that command to see the actual
+     problem. Don't also run the other two — they weren't asked for, and
+     running them anyway is exactly the wasted upfront work this step avoids.
+   - **No area named** (a plain "fix it" / "fix my project") — with nothing to
+     narrow the request, run the full lint/test/build baseline upfront, same
+     as `review`/`refactor` — you need the full picture to know what "fix it"
+     even covers. Record a red baseline rather than stopping (like `gate`).
+
+   Either way, the goal is to run only as much as the request actually needs —
+   a named area gets a targeted check, an unscoped request gets the full one.
+   Whatever wasn't checked here is simply unknown until Phase 4 surfaces it.
 
 ---
 
@@ -64,18 +77,16 @@ Stage each dimension's fix with `stage-patch.mjs`
 snapshot ref automatically, so the working tree stays untouched until Phase 4.
 Use the standard patch names so Phase 4 can order them.
 
-Tag each staged patch with its tier, since that drives approval in Phase 3:
+Tag each staged patch with its tier, since that drives approval in Phase 3 —
+[analysis.md](analysis.md#risk-tiers--safe-vs-advisory) is the single
+definition of the split (shared with `gate`); what's fix-specific is only how
+each tier is _treated_ here:
 
-- **Safe tier** — formatting and auto-fixable lint, naming/spelling, local
-  conventions (arrow-over-`function`, named-over-default with in-scope import
-  sites), clear complexity wins, honest-type fixes replacing an introduced
-  `any`. Approved by default.
-- **Advisory tier** — the judgment calls `gate` refuses to auto-make:
-  dead-code / unused-dependency deletion (Knip), de-duplication / clone
-  extraction (JSCPD), and design-pattern changes. Staged as patches so they
-  _can_ land, but they default to **needs-approval** — a Knip "unused" export
-  may be reached by a test or a dynamic import, a clone may answer to two
-  different reasons to change.
+- **Safe tier** — approved by default.
+- **Advisory tier** — staged as patches so they _can_ land (unlike `gate`,
+  which only reports these), but default to **needs-approval** — a Knip
+  "unused" export may be reached by a test or a dynamic import, a clone may
+  answer to two different reasons to change.
 
 Respect the project's config throughout (`qoq.config.js` ignores and
 thresholds). For broad scopes, fan out to the `qoq-analyzer` worker over
@@ -110,11 +121,16 @@ the advisories are ready-to-apply patch files rather than prose.
 
 Apply the approved patches per [workflow.md](workflow.md#applying-patches):
 canonical dimension order, `git apply --check` → `git apply` → validation step
-after each. On a patch that no longer applies, regenerate just that one; if
-validation goes red, restore the affected files from the snapshot, set that
-patch aside as a left-behind advisory, and continue with the others — one bad
-fix never blocks the rest (the `gate` posture, since `fix` may run
-non-interactively).
+after each. Phase 1 only ran what the request called for, so for any command
+that wasn't part of that (e.g. `test`/`build` when the request only named
+"linter problems"), the validation run after the _first_ patch touching that
+area is also the first look at whether it was already red — treat a failure
+there outside the files that patch touched as pre-existing, not caused by it.
+On a patch that no longer applies, regenerate just that one; if validation
+goes red _in files the patch touched_, restore the affected files from the
+snapshot, set that patch aside as a left-behind advisory, and continue with
+the others — one bad fix never blocks the rest (the `gate` posture, since
+`fix` may run non-interactively).
 
 ---
 

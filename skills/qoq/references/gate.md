@@ -26,8 +26,10 @@ Setup already located the engine. **Do not demand a clean working tree** — the
 producer's uncommitted work _is_ the scope.
 
 1. **Determine the scope.**
-   - **Explicit paths passed by the caller** (preferred) — gate exactly those
-     files, ignoring unrelated dirty files in the tree.
+   - **Explicit paths passed by the caller — strongly preferred, and what
+     [the producer contract](../SKILL.md#consuming-qoq-from-another-skill)
+     assumes.** Gate exactly those files, ignoring unrelated dirty files in
+     the tree.
    - **No paths** — infer from the working tree (staged, unstaged, and
      untracked source files):
 
@@ -35,6 +37,14 @@ producer's uncommitted work _is_ the scope.
      git status --porcelain -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs'
      git diff -- '*.ts' '*.tsx' '*.js' '*.jsx' '*.mjs' '*.cjs'
      ```
+
+     **Know what this catches:** every dirty source file, not just the
+     producer's. If the user has unrelated uncommitted work sitting in the
+     tree when a caller invokes `gate` with no paths, that work is in scope
+     too — and Phase 2's safe tier auto-applies to it with no approval step,
+     since gate never pauses to ask. Reach for this fallback only when the
+     caller genuinely doesn't know its own file list; a producer that just
+     finished writing files almost always does, so it should pass them.
 
    If the resolved scope is empty, return `PASS` immediately with "nothing to
    gate".
@@ -67,32 +77,18 @@ Prime the reports once and read the digest via the engine
 ([engine.md](engine.md)), filter the findings to the scope, and run the seven
 dimensions from [analysis.md](analysis.md) (skip TypeScript idioms for plain
 JS). The difference from the interactive commands: **apply as you go** instead
-of staging for approval — split by risk:
+of staging for approval — split by the tiers
+[analysis.md](analysis.md#risk-tiers--safe-vs-advisory) defines (shared with
+`fix`). What's gate-specific is what each tier _does_ here:
 
-**Safe tier — auto-apply.** Mechanical or high-confidence, rarely changes
-behavior. Apply directly (Edit / `qoq --fix`), one dimension at a time, running
-the scoped validation gate after each so any regression is attributable:
+**Safe tier — auto-apply.** Apply directly (Edit / `qoq --fix`), one dimension
+at a time, running the scoped validation gate after each so any regression is
+attributable. If a dimension's fixes regress validation, **restore just those
+files from the snapshot**, record the dimension as a failed-to-apply advisory,
+and continue with the rest. One bad fix never blocks the others.
 
-- Formatting (`qoq --fix` / Prettier) and the auto-fixable ESLint/Stylelint
-  rules.
-- Naming-convention and spelling fixes.
-- Code conventions (arrow-over-`function`, named-over-default exports) where
-  the rewrite is local and the import sites are in scope.
-- Clear complexity wins — an early return, a small well-named extraction —
-  when it unambiguously reads better.
-- Honest-type fixes that replace an introduced `any` with the real type.
-
-If a dimension's fixes regress validation, **restore just those files from the
-snapshot**, record the dimension as a failed-to-apply advisory, and continue
-with the rest. One bad fix never blocks the others.
-
-**Advisory tier — report, don't apply.** These need human judgment:
-
-- **Dead-code / unused-dependency deletion (Knip)** — deleting something a
-  test or a dynamic import actually uses is the classic false positive.
-- **De-duplication / clone extraction (JSCPD)** — only worth it when the
-  abstraction is honest.
-- **Design-pattern changes** — never refactor to a pattern autonomously.
+**Advisory tier — report, don't apply.** Never auto-applied here — each one
+surfaces as an advisory in the Phase 4 verdict instead.
 
 (If the caller explicitly passed an "aggressive" / "apply everything"
 preference, the advisory tier may be applied too — still one dimension at a
@@ -118,9 +114,14 @@ one last time — the engine's `qoq --check` (or `qoq:check`) plus the project's
 
 ## Phase 4 — Clean up and return the verdict
 
-1. **Clean up:** `node <skill>/scripts/workspace.mjs cleanup`. The only thing
-   left in the working tree is the producer's code plus the safe fixes the
-   gate applied.
+1. **Clean up unconditionally — on `PASS` and `FAIL` alike:**
+   `node <skill>/scripts/workspace.mjs cleanup`. This is the one command that
+   deviates from [workflow.md](workflow.md#cleanup)'s "only on a fully
+   successful run" rule, deliberately: gate never leaves patches staged for a
+   later run to resume (Phase 2 applies safe fixes directly and only ever
+   _reports_ advisories), so there's nothing in `.qoq/` worth preserving after
+   a `FAIL` — the returned verdict text is the record. The working tree ends
+   with the producer's code plus whatever safe fixes applied cleanly.
 
 2. **Return a structured verdict** — this is what the calling skill consumes,
    so keep the shape stable:

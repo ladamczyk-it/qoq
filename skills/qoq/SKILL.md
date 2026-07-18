@@ -45,7 +45,7 @@ allowed-tools:
   - Bash(rm -f node_modules/@ladamczyk/qoq-cli/bin/.npm-outdated-lock)
   - Bash(rm -f packages/cli/bin/.npm-outdated-lock)
 metadata:
-  version: 1.3.0
+  version: 1.3.1
 ---
 
 Applies the QoQ — _quality over quantity_ — standard to a JS/TS codebase: a few
@@ -135,6 +135,18 @@ is the single owner of the comparison; the command references don't repeat it):
 | Approval     | plan → sign-off      | plan → sign-off    | plan → sign-off (or non-interactive)         | none — runs to completion                  |
 | Output       | applied patches      | applied patches    | patch series (+ optional verdict)            | structured `PASS`/`FAIL` verdict           |
 
+**`fix`'s non-interactive shortcut vs. `gate`.** Told to run unattended, `fix`
+starts to look like `gate` — safe tier applied, advisory tier left behind —
+but the two still differ on what's in scope by default: `fix` with no named
+scope means the **whole project**; `gate` with no explicit paths means
+**whatever's currently dirty**. Reaching for `fix` on "check what I just
+wrote" risks re-analyzing far more than intended; reaching for `gate` on "land
+the findings across the repo" risks silently limiting to only the dirty tree.
+When the request wants an unattended run, pass an explicit scope either way,
+and pick by what should happen to the advisory tier: `gate` when the caller
+just wants a verdict and a report of what needs a human; `fix` when the
+advisory tier should land as inspectable patch files, not just prose.
+
 ### Routing rules
 
 1. **No argument**: render the commands table above as a menu and ask what the
@@ -170,8 +182,13 @@ treats the verdict as a release gate:
 
 - **Invocation** — run the `gate` command (`/qoq gate <paths…>`, or read
   [references/gate.md](references/gate.md) and follow it) passing the explicit
-  list of files the producer created or edited. With no paths, `gate` infers
-  its scope from the working tree. For example:
+  list of files the producer created or edited — always do this when the list
+  is known, since a producer almost always knows exactly which files it just
+  touched. Without paths, `gate` infers its scope from the whole dirty tree,
+  which also catches any unrelated uncommitted work sitting there and applies
+  safe-tier fixes to it with no approval step; that fallback is for callers
+  that genuinely don't know their own file list, not a convenience default.
+  For example:
 
   ```
   /qoq gate src/generated/UserApi.ts src/generated/UserApi.spec.ts

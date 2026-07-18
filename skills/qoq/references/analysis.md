@@ -15,6 +15,7 @@ code_, not to relitigate the whole codebase.
 
 - [Tool-backed findings via the engine](#tool-backed-findings-via-the-engine)
 - [Quality over quantity — keeping vs. dropping a finding](#quality-over-quantity--keeping-vs-dropping-a-finding)
+- [Risk tiers — safe vs. advisory](#risk-tiers--safe-vs-advisory)
 - [Spelling & naming](#spelling--naming--spellingspatch)
 - [Dependencies](#dependencies--dependenciespatch)
 - [Complexity / SOLID](#complexity--solid--complexitypatch)
@@ -73,6 +74,36 @@ valid-but-low-value findings rather than padding the plan. Concretely:
 
 The second half matters as much as the first: stating _why_ a finding was
 dropped is what keeps the standard predictable instead of arbitrary.
+
+## Risk tiers — safe vs. advisory
+
+Two commands need to know, per finding, whether it's mechanical enough to act
+on without asking or whether it needs a human's judgment: `gate` (auto-applies
+one tier, only reports the other) and `fix` (stages both as patches, but
+treats them differently in Phase 3's approval). This is the **single
+definition** of that split — [gate.md](gate.md) and [fix.md](fix.md) each add
+only what's specific to how they _use_ it, not a second copy of the list.
+
+- **Safe tier** — mechanical or high-confidence, rarely changes behavior:
+  - Formatting (`qoq --fix` / Prettier) and the auto-fixable ESLint/Stylelint
+    rules.
+  - Spelling and naming-convention fixes.
+  - Code conventions (arrow-over-`function`, named-over-default exports) —
+    only when the rewrite is local and every import site is in scope.
+  - Clear complexity wins — an early return, a small well-named extraction —
+    when it unambiguously reads better.
+  - Honest-type fixes that replace an introduced `any` with the real type.
+- **Advisory tier** — the judgment calls, never applied autonomously:
+  - **Dead-code / unused-dependency deletion (Knip)** — deleting something a
+    test or a dynamic import actually uses is the classic false positive.
+  - **De-duplication / clone extraction (JSCPD)** — only worth it when the
+    abstraction is honest.
+  - **Design-pattern changes** — never refactored to a pattern autonomously.
+
+The tiers map onto the seven dimensions above, not alongside them: safe-tier
+items are drawn from spelling/naming, conventions, complexity, and TypeScript
+idioms; advisory-tier items are drawn from dependencies, copy-paste, and
+design patterns.
 
 ## Spelling & naming → `spellings.patch`
 
