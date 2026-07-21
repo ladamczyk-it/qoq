@@ -19,5 +19,5 @@ export default [baseConfig];
 ## Added on top of JS-Vitest
 
 - **Plugin**: `eslint-plugin-testing-library` (`flat/react` config), plus
-  `no-test-id-queries` and `prefer-user-event` (not part of `flat/react`)
+  `prefer-user-event` (not part of `flat/react`)
 - `testing-library/prefer-screen-queries` disabled

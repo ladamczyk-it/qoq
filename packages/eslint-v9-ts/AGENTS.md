@@ -30,8 +30,8 @@ export default [baseConfig];
   layers `eslint-plugin-import-x`'s own `typescript` config on top (turns `import-x/named` off), and
   additionally disables `namespace`/`default`/`no-named-as-default-member` — TypeScript's compiler
   already guarantees what they check and they're among the slowest import-x rules.
-- **Extra hand-picked rules not in either recommended set**: `switch-exhaustiveness-check`,
-  `no-import-type-side-effects`, `no-deprecated`, `no-shadow`
+- **Extra hand-picked rules not in either recommended set**: `no-import-type-side-effects`,
+  `no-deprecated`, `no-shadow`
 
 ## Naming conventions enforced
 
