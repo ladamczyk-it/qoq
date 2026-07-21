@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/check-engine",
-  "version": "5.2.1",
+  "version": "5.2.2",
   "description": "CLI that checks dependencies engines.node settings and gives You suggestion or errors if needed",
   "keywords": [
     "cli",
@@ -32,7 +32,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ladamczyk/qoq-utils": "^5.2.1",
+    "@ladamczyk/qoq-utils": "^5.2.2",
     "cac": "7.0.0",
     "picocolors": "1.1.1",
     "semver": "7.8.5"

@@ -1,3 +1,10 @@
+## [5.2.2](https://github.com/ladamczyk-it/qoq/compare/v5.2.1...v5.2.2) (2026-07-21)
+
+
+### Bug Fixes
+
+* bump packages + reconfigure ([d86902b](https://github.com/ladamczyk-it/qoq/commit/d86902b5629860c069f7326b61ea5916b747bd4a))
+
 ## [5.2.1](https://github.com/ladamczyk-it/qoq/compare/v5.2.0...v5.2.1) (2026-07-21)
 
 

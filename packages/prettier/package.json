@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-prettier",
-  "version": "5.2.1",
+  "version": "5.2.2",
   "homepage": "https://github.com/ladamczyk-it/qoq/tree/master/packages/prettier",
   "bugs": {
     "url": "https://github.com/ladamczyk-it/qoq/issues"
