@@ -47,7 +47,7 @@
     "@ladamczyk/qoq-eslint-v9-js": "^5.2.0",
     "@ladamczyk/qoq-utils": "^5.2.0",
     "eslint-import-resolver-typescript": "4.4.5",
-    "typescript-eslint": "8.64.0"
+    "typescript-eslint": "8.65.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "12.3.0",

@@ -13,6 +13,11 @@ description: >-
 argument-hint: '[review|refactor|fix|bump packages|gate] [target]'
 user-invocable: true
 allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
   - Task
   - WebFetch
   - WebSearch
@@ -22,10 +27,6 @@ allowed-tools:
   - Bash(npm install:*)
   - Bash(qoq:*)
   - Bash(npx qoq:*)
-  - Bash(npx knip:*)
-  - Bash(npx jscpd:*)
-  - Bash(npx eslint:*)
-  - Bash(npx prettier:*)
   - Bash(node:*)
   - Bash(git diff:*)
   - Bash(git merge-base:*)
@@ -42,8 +43,6 @@ allowed-tools:
   - Bash(gh api:*)
   - Bash(ls:*)
   - Bash(rm -rf .qoq)
-  - Bash(rm -f node_modules/@ladamczyk/qoq-cli/bin/.npm-outdated-lock)
-  - Bash(rm -f packages/cli/bin/.npm-outdated-lock)
 metadata:
   version: 1.3.1
 ---

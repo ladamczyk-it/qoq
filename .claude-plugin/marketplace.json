@@ -11,10 +11,10 @@
   "plugins": [
     {
       "name": "qoq",
-      "description": "QoQ \"quality over quantity\" toolkit: one skill, three user-facing commands plus a gate. `/qoq review` reviews a branch against a base, `/qoq refactor` applies the same analysis to a scope you choose, `/qoq bump packages` safely upgrades npm dependencies in stages, and `/qoq gate` is a non-interactive quality gate other skills call before declaring work done (auto-fixes a producer's changes against the standards, returns PASS/FAIL). All share an internal qoq-CLI engine (linter/formatter discovery, the `qoq --json` digest) and the bundled qoq-analyzer worker.",
+      "description": "QoQ \"quality over quantity\" toolkit: the `qoq` skill, with three user-facing commands plus a gate. `/qoq review` reviews a branch against a base, `/qoq refactor` applies the same analysis to a scope you choose, `/qoq bump packages` safely upgrades npm dependencies in stages, and `/qoq gate` is a non-interactive quality gate other skills call before declaring work done (auto-fixes a producer's changes against the standards, returns PASS/FAIL). All share an internal qoq-CLI engine (linter/formatter discovery, the `qoq --json` digest) and the bundled qoq-analyzer worker. Also bundles `testing-gate`, a producer skill that writes Vitest/Jest unit and integration tests for TypeScript (NestJS/React) projects and gates its own output through `qoq gate` before declaring done.",
       "source": "./",
       "strict": false,
-      "skills": ["./skills/qoq"]
+      "skills": ["./skills/qoq", "./skills/testing-gate"]
     }
   ]
 }
