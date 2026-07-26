@@ -77,6 +77,18 @@ Commands that require a clean tree (`review`, `refactor`) still take the
 snapshot — it costs one command and makes the restore procedure identical
 everywhere.
 
+**A broad `git checkout <ref> -- .`** (e.g. to peek at another ref's content
+while diagnosing something mid-run) restores every tracked file in one shot —
+including the root `.gitignore`, which `workspace.mjs init` had just appended
+its `.qoq/` block to. That checkout silently reverts the append while
+`.qoq/.workspace.json` still records it as done, so the tree and the cached
+state disagree about whether `.qoq/` is ignored — exactly the failure mode
+this file's workspace section warns about (an un-ignored workspace turning
+the Prettier gate red for reasons unrelated to the code under review). Scope
+any mid-run checkout to the specific path you're inspecting instead of `.`;
+if a broad one already happened, re-run `workspace.mjs init` (it's idempotent)
+before continuing.
+
 ## Validation commands & the green baseline
 
 Three commands are needed: how to **lint/format**, how to **test**, and how to
@@ -114,13 +126,27 @@ once you have.
    node <skill>/scripts/workspace.mjs commands --set '{"lint":"…","test":"…","build":"…"}'
    ```
 
-Run all three **before changing anything** and confirm they pass. This green
-baseline locks in the exact commands to re-run after each patch — the
-**validation step** — and is what makes a later failure attributable to a
-patch. If something is already red on the untouched tree, surface it and ask
-how to proceed: a red baseline can't validate anything. (`gate` and `fix`
-record a red baseline instead of asking — their scope may legitimately start
-red — but they still need to know it.)
+Run all three **before changing anything**. **Test and build must come back
+green** — they're binary, attribution-sensitive signals: a red test/build run
+on the untouched tree leaves no clean state to attribute a later failure to,
+so surface it and ask how to proceed (`gate` and `fix` record a red baseline
+instead of asking — their scope may legitimately start red — but they still
+need to know it).
+
+**Lint is different, and this is the one that matters most for `review` and
+`refactor`.** The engine's `qoq --check` scans the whole configured `srcPath`
+([engine.md](engine.md)), not the command's scope, so it reporting findings on
+the untouched tree is the ordinary case, not a broken baseline — a real
+codebase almost always has _some_ lint finding somewhere, very often inside
+the very diff/scope the command was asked to look at. Don't stop-and-ask over
+a red lint run the way you would over red test/build: the digest already
+enumerates every finding by file, so a project-wide lint "failure" doesn't
+stop you from attributing a later regression to whichever patch caused it.
+What matters is **scope, not redness**: findings inside the command's scope
+are exactly what Phase 2 turns into patches — that's the whole point of
+running `review`/`refactor` — while findings outside it are pre-existing debt
+the run isn't touching, worth a one-line mention in the Phase 3 plan for
+honesty, never a reason to stop the command before Phase 2 even starts.
 
 ## Staging a patch
 

@@ -21,6 +21,93 @@
       "prompt": "our deps are getting pretty stale, can you update them? nothing should break though, we deploy from this repo daily",
       "expected_output": "Runs `bump packages`: verifies a clean tree and a green baseline first, gets outdated data via the engine's npm module (clearing the throttle lock) or npm outdated fallback, presents the minor/patch vs major grouping and asks about exclusions, stages safe_dev/safe patches plus one patch per major step per package (with changelog research for majors), and only after approval applies patches one at a time with reinstall + validation between each. Majors are never collapsed into one jump; coupled packages move in the same patch.",
       "files": []
+    },
+    {
+      "id": 4,
+      "name": "refactor-chosen-scope",
+      "prompt": "Can you refactor the auth module in src/auth to reduce complexity and clean up naming? We haven't touched it in a while and it's grown a lot of cruft.",
+      "expected_output": "Runs the `refactor` command (never `review` — there's no base branch or diff here, just a named scope): resolves 'the auth module' to a concrete file list via git ls-files and confirms it, decides on fan-out based on scope size (asking before a broad subagent split), initializes the workspace/snapshot and confirms a green baseline, runs the six in-house dimensions from analysis.md over the resolved scope (design patterns excluded — that's delegated), dispatches the two external lenses once over the whole scope per delegation.md, stages one patch per dimension/lens with a real finding, presents a plan grouped by dimension (including dropped low-value findings and any skipped lens) and waits for approval, then applies approved patches in the canonical order with minimalism.patch last, formats, re-validates, and cleans up only on a fully successful run.",
+      "assertions": [
+        {
+          "text": "Routes to `refactor`, not `review` or `fix` — the request names a scope, not a branch/diff",
+          "category": "routing"
+        },
+        {
+          "text": "Resolves 'the auth module' to an explicit file list before analyzing anything, and shows that list",
+          "category": "scoping"
+        },
+        {
+          "text": "Confirms a clean working tree and a green lint/test/build baseline before any edit",
+          "category": "safety"
+        },
+        {
+          "text": "Design patterns are not analyzed in-house for this scope — the plan attributes pattern findings (if any) to the design-pattern-review lens, not to a from-scratch read of design-patterns.md",
+          "category": "delegation"
+        },
+        {
+          "text": "Every finding is staged as a patch and the tree is left untouched until an explicit approval step",
+          "category": "workflow"
+        },
+        {
+          "text": "The plan calls out at least one dropped, valid-but-low-value finding with a reason, or states there were none",
+          "category": "quality-over-quantity"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "review-delegation-lenses-missing",
+      "prompt": "Review my current branch against master before I merge it — and don't just check the usual lint stuff, make sure it's not over-engineered and that we're using sensible design patterns too.",
+      "expected_output": "Runs `review`. In Phase 2, before dispatching Lens A (`ponytail-review`) and Lens B (`design-pattern-review`), checks whether each is installed. Since neither is installed in a stock environment, it must plainly tell the user both are missing and that they're needed for the minimalism/design-pattern checks the user explicitly asked for, ask whether to install them now or proceed without, and — if the user proceeds without — gracefully continue with only the six in-house dimensions rather than failing the whole review or silently pretending it covered both lenses. The Phase 3 plan and final summary must explicitly say both lenses were skipped and why; a reader should not come away thinking design patterns/over-engineering were checked when they weren't.",
+      "assertions": [
+        {
+          "text": "Names both missing skills explicitly (`ponytail-review`, `design-pattern-review`) rather than a generic 'some dependency is missing'",
+          "category": "delegation"
+        },
+        {
+          "text": "Asks the user whether to install or proceed without, rather than silently skipping or silently failing the whole command",
+          "category": "delegation"
+        },
+        {
+          "text": "On proceeding without, the six in-house dimensions still run to completion and stage patches normally",
+          "category": "graceful-degradation"
+        },
+        {
+          "text": "The final plan/summary explicitly flags that the review ran with the design-pattern and minimalism lenses skipped, not just a clean-looking report",
+          "category": "clarity"
+        },
+        {
+          "text": "Does not fabricate design-pattern or minimalism findings to satisfy the user's request when the lenses that produce them aren't available",
+          "category": "correctness"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "refactor-delegation-model-tiering",
+      "prompt": "Refactor packages/knip for over-engineering and any design-pattern issues — use whatever specialized review skills you have available for that.",
+      "expected_output": "NOTE: only fully exercisable once `ponytail-review` and `design-pattern-review` are installed in the test environment — until then, this should collapse into the same missing-lens degrade path as eval 5, which is an acceptable interim result, not a failure. Once both are installed: runs `refactor` over packages/knip, dispatches Lens A (`ponytail-review`) on the Haiku tier and Lens B (`design-pattern-review`) on the Sonnet tier per delegation.md's Model tiering table, each exactly once over the whole resolved scope (not once per fan-out slice), converts Lens A's findings into `minimalism.patch` and Lens B's into `patterns.patch`, and applies `minimalism.patch` last in Phase 4, after `typescript.patch`.",
+      "assertions": [
+        {
+          "text": "If both lenses are available: Lens A (ponytail-review) is dispatched on the haiku tier and Lens B (design-pattern-review) on the sonnet tier, matching delegation.md's table — not both on the same tier",
+          "category": "model-tiering"
+        },
+        {
+          "text": "Each lens is dispatched once over the whole resolved scope, not once per fan-out slice",
+          "category": "model-tiering"
+        },
+        {
+          "text": "minimalism.patch, if staged, is applied last — after typescript.patch, not interleaved with the canonical six-dimension order",
+          "category": "workflow"
+        },
+        {
+          "text": "If neither lens is available, the run degrades the same way as eval 5 rather than erroring out or fabricating findings",
+          "category": "graceful-degradation"
+        }
+      ],
+      "files": []
     }
   ]
 }

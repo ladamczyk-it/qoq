@@ -44,7 +44,7 @@ allowed-tools:
   - Bash(ls:*)
   - Bash(rm -rf .qoq)
 metadata:
-  version: 1.3.1
+  version: 1.4.0
 ---
 
 Applies the QoQ — _quality over quantity_ — standard to a JS/TS codebase: a few
@@ -88,7 +88,8 @@ link to them instead of restating them:
   `scripts/stage-patch.mjs`) — use them rather than re-implementing the
   procedures by hand.
 - **[references/analysis.md](references/analysis.md)** — the seven quality
-  dimensions every analyzing command runs, and the keep-vs-drop bar. The
+  dimensions (`review`/`refactor` source one of the seven, design patterns,
+  from an external lens instead — see below) and the keep-vs-drop bar. The
   per-tool fix strategy and false-positive pitfalls live in
   [references/tool-playbook.md](references/tool-playbook.md).
 - **[references/engine.md](references/engine.md)** — qoq CLI discovery, the
@@ -100,6 +101,26 @@ The shared analysis worker the commands fan out to is
 `.claude/agents/` to dispatch it as `subagent_type: qoq-analyzer`; without
 registration, spawn a `general-purpose` subagent pointed at that file).
 
+## External skill dependencies (`review`, `refactor` only)
+
+`review` and `refactor` delegate the design-patterns dimension to a
+third-party skill instead of reasoning about it in-house, and add a new
+minimalism/over-engineering lens on top (never part of the seven dimensions)
+— `fix` and `gate` use neither and are unaffected. Full mechanism, tiering,
+and missing-skill handling: [references/delegation.md](references/delegation.md).
+
+- **`ponytail-review`** (ponytail family) — the minimalism/over-engineering
+  lens.
+- **`design-pattern-review`** (`sirius-zuo/design-pattern-skill`, code-review
+  mode) — the design-pattern/architecture lens.
+
+Neither is a hard requirement: if one isn't installed, `review`/`refactor`
+tell the user, offer to install it, and otherwise degrade gracefully to
+whichever lens(es) remain plus the unaffected internal dimensions. Each lens
+also runs on its own model tier, not the orchestrator's — see
+[Model tiering](references/delegation.md#model-tiering) for which tier and
+why.
+
 Two principles hold everywhere:
 
 - **Plan, then execute.** Stage every change as a patch without touching the
@@ -108,8 +129,14 @@ Two principles hold everywhere:
   valid-but-low-value patches.
 - **Stop at decision points** — these commands mutate a real repo — but if the
   user already stated preferences (base branch, scope, excluded packages,
-  whether subagents are allowed, whether to auto-apply), honor them and don't
-  re-ask. **`gate` is the deliberate exception:** it runs to completion without
+  whether subagents are allowed, whether to auto-apply, whether to proceed
+  without a missing lens — [delegation.md](references/delegation.md#checking-availability-first)),
+  honor them and don't re-ask. That last one matters in practice: on a project
+  without `ponytail-review` / `design-pattern-review` installed, every
+  `review`/`refactor` call hits the same missing-lens prompt — once the user
+  has answered it for this conversation, treat later calls in the same
+  conversation as already answered instead of asking again per-command.
+  **`gate` is the deliberate exception:** it runs to completion without
   interactive approval, auto-applying only safe fixes and reporting judgment
   calls as advisories.
 
@@ -136,15 +163,20 @@ is the single owner of the comparison; the command references don't repeat it):
 
 **`fix`'s non-interactive shortcut vs. `gate`.** Told to run unattended, `fix`
 starts to look like `gate` — safe tier applied, advisory tier left behind —
-but the two still differ on what's in scope by default: `fix` with no named
-scope means the **whole project**; `gate` with no explicit paths means
-**whatever's currently dirty**. Reaching for `fix` on "check what I just
-wrote" risks re-analyzing far more than intended; reaching for `gate` on "land
-the findings across the repo" risks silently limiting to only the dirty tree.
-When the request wants an unattended run, pass an explicit scope either way,
-and pick by what should happen to the advisory tier: `gate` when the caller
-just wants a verdict and a report of what needs a human; `fix` when the
-advisory tier should land as inspectable patch files, not just prose.
+but their default scopes still differ: `fix` with nothing named defaults to
+the **whole project**; `gate` with no explicit paths defaults to **whatever's
+currently dirty**. That default is the trap in each direction:
+
+- "check what I just wrote" → reach for `gate`; reaching for `fix` here
+  re-analyzes the whole project, far more than intended.
+- "land the findings across the repo" → reach for `fix`; reaching for `gate`
+  here silently limits the run to only the dirty tree.
+
+When the request wants an unattended run, pass an explicit scope either way —
+that neutralizes the default-scope trap — then pick by what should happen to
+the advisory tier: `gate` when the caller just wants a verdict and a report of
+what needs a human; `fix` when the advisory tier should land as inspectable
+patch files, not just prose.
 
 ### Routing rules
 

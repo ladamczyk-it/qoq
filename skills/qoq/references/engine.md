@@ -28,7 +28,9 @@ gate each command re-runs after every applied patch.
 
 ## Discovery — how `qoq` is invoked here
 
-Work out how `qoq` runs in this project, preferring the most specific that works:
+Work out how `qoq` runs in this project. These three situations aren't
+mutually exclusive — a checkout of the QoQ monorepo itself typically also
+defines `qoq:check`/`qoq:fix` scripts, so more than one row can apply at once:
 
 | Situation                                                   | Command                                       |
 | ----------------------------------------------------------- | --------------------------------------------- |
@@ -36,9 +38,14 @@ Work out how `qoq` runs in this project, preferring the most specific that works
 | `@ladamczyk/qoq-cli` installed, no wrapper script           | `npx qoq` (resolves `node_modules/.bin/qoq`)  |
 | The QoQ monorepo itself (this repo, `packages/cli` present) | build first (`npm run build`), then `npx qoq` |
 
-Most wrapper scripts already bake in flags, so for the `--json` run prefer calling
-the binary directly (`npx qoq …`) and keep the npm script for the `--fix` and
-validation gate, where its flags are exactly what CI uses.
+When more than one row applies, the third row's precondition always wins
+first: if `packages/cli` is present and unbuilt, build it before running
+`qoq` by any name — a wrapper script that shells out to an unbuilt binary just
+fails. Once that's settled (or row 3 doesn't apply), the choice between the
+first two rows is what the next paragraph resolves: most wrapper scripts
+already bake in flags, so for the `--json` run prefer calling the binary
+directly (`npx qoq …`) and keep the npm script for the `--fix` and validation
+gate, where its flags are exactly what CI uses.
 
 **QoQ mode** = `@ladamczyk/qoq-cli` installed _and_ a `qoq.config.js` at the root.
 When that holds, the tool-backed findings come from the digest below. When it

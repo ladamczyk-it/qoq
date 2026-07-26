@@ -8,6 +8,14 @@ Each dimension yields at most one patch (staged per
 written to the project's own standards. The TypeScript-idioms dimension applies
 only to TS code — skip it for plain JavaScript.
 
+**One exception, for `review`/`refactor` only:** design patterns — the sixth
+dimension below — is delegated to a third-party skill instead of being run
+from this file, and a new minimalism/over-engineering lens (not one of the
+seven) runs alongside it. So for those two commands specifically, "the seven
+dimensions" splits into six run from here plus two external lenses; `fix` and
+`gate` are unaffected and still run all seven, design patterns included,
+exactly as documented here. Full mechanism: [delegation.md](delegation.md).
+
 Only analyze the scope the command resolved. The point is to evaluate _that
 code_, not to relitigate the whole codebase.
 
@@ -201,6 +209,10 @@ no rule covers the case.
   to expose the component as its default — leave that in place and say why.
 
 ## Design patterns → `patterns.patch`
+
+**`fix` and `gate` only** — `review` and `refactor` get this dimension from
+the `design-pattern-review` lens instead ([delegation.md](delegation.md)); the
+rest of this section is what `fix`/`gate` still do in-house.
 
 Look for code smells that a standard, well-understood pattern would resolve
 more cleanly. **Read [design-patterns.md](design-patterns.md)** for the catalog

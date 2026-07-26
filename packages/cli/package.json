@@ -35,13 +35,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@antfu/install-pkg": "1.1.0",
+    "@antfu/install-pkg": "2.0.1",
     "@eslint/compat": "2.1.0",
     "@ladamczyk/qoq-utils": "^5.2.2",
     "@npmcli/package-json": "7.0.5",
     "cac": "7.0.0",
     "cosmiconfig": "9.0.2",
-    "es-toolkit": "1.49.0",
+    "es-toolkit": "1.50.0",
     "fast-glob": "3.3.3",
     "micromatch": "4.0.8",
     "picocolors": "1.1.1",
