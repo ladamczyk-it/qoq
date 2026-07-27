@@ -51,12 +51,12 @@
     "browserslist": "latest",
     "eslint-plugin-compat": "7.0.2",
     "eslint-plugin-react-refresh": "0.5.3",
-    "globals": "17.7.0"
+    "globals": "17.8.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "12.3.0",
     "rimraf": "6.1.3",
-    "rollup": "4.62.2",
+    "rollup": "4.62.3",
     "typescript": "6.0.3"
   },
   "peerDependencies": {

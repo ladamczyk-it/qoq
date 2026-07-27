@@ -338,7 +338,6 @@ export const baseConfig: EslintConfig = {
     'no-useless-call': 1,
     'no-useless-constructor': 1,
     'no-var': 1,
-    'object-shorthand': 1,
     'prefer-const': 1,
     'prefer-destructuring': 1,
     'prefer-rest-params': 1,
