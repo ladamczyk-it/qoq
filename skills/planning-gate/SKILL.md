@@ -26,9 +26,13 @@ allowed-tools:
   - Agent
   - Bash(ls:*)
   - Bash(git status:*)
+  - Bash(git add:*)
+  - Bash(git commit:*)
+  - Bash(git rev-parse:*)
+  - Bash(git remote:*)
   - Bash(npm run:*)
 metadata:
-  version: 0.1.0
+  version: 0.1.1
 ---
 
 Turns requirements into a plan file an orchestrator can actually execute:
@@ -206,7 +210,8 @@ For each ticket:
 3. The implementer (subagent or you) writes the code, then runs the
    ticket's own delivery gate below.
 4. **On PASS** — flip **Status** to `done`, copy any advisories into the
-   ticket's **Advisories** field.
+   ticket's **Advisories** field, and record the commit made below in the
+   ticket's **Commit** field.
 5. **On FAIL after reasonable effort to fix** — leave **Status** as
    `blocked`, do not mark the ticket done, and escalate to the user rather
    than retrying indefinitely or loosening the gate.
@@ -232,6 +237,19 @@ files it just touched:
    `FAIL` → fix the reported blockers and re-gate; if it still won't pass
    after reasonable effort, stop and report back up rather than marking the
    ticket done or weakening the gate to force a pass.
+4. On `PASS`, commit exactly the files in the ticket's **Files** field —
+   `git add <those paths>` then `git commit -m "<ticket id>: <ticket
+title>"` — and capture the resulting hash (`git rev-parse HEAD`). A
+   ticket isn't delivered until its change is committed; a `PASS` left
+   uncommitted is just an untracked promise that the next ticket's
+   dependency graph, or a future resume, can't build on.
+
+**Commit link.** If `git remote get-url origin` resolves to a github.com,
+gitlab.com, or bitbucket.org remote, format the **Commit** field as
+`[<short-hash>](<https-url>/commit/<hash>)` — strip a trailing `.git` and
+convert an `ssh://`/`git@` remote to its `https://` form first. No remote, or
+a host you don't recognize, record the bare hash instead of guessing at a
+URL.
 
 ## Phase 6 — Milestone gate
 

@@ -50,9 +50,13 @@ why this ticket exists. No "similar to Ticket 1.3" — restate what's needed.
 - [ ] Acceptance criteria met
 - [ ] `testing-gate` run over the files above
 - [ ] `qoq gate <files above>` → PASS
+- [ ] Change committed; hash recorded in **Commit** below
 - [ ] Status set to `done`; advisories (if any) noted below
 
 **Advisories:** <filled in after gate runs, or "none">
+
+**Commit:** <filled in after commit — short hash, or a link if the remote is
+a known host; "none" until then>
 
 ### Ticket 1.2: ...
 
@@ -82,3 +86,5 @@ why this ticket exists. No "similar to Ticket 1.3" — restate what's needed.
 - **Context** is the field most often shortchanged. If you catch yourself
   writing "similar to Ticket 1.3" or "handle edge cases", that's a
   no-placeholder-scan failure — go back and write the actual content.
+- **Commit** is only ever filled in after a `PASS` produces a real commit —
+  never guess a hash or fill this in before the commit exists.
