@@ -13,6 +13,7 @@
   "scripts": {
     "build": "lerna run build",
     "check:engine": "check-engine",
+    "clean:modules": "rimraf -g '**/node_modules' '**/package-lock.json'",
     "config-inspector": "node ./scripts/config-inspector.js",
     "config-inspector:clean": "rimraf -g ./packages/eslint-v9-*/stats/",
     "husky:pre-push": "run-s build check:engine typecheck test qoq:check",
@@ -38,7 +39,7 @@
     "@ladamczyk/qoq-jscpd": "latest",
     "@ladamczyk/qoq-knip": "latest",
     "@ladamczyk/qoq-prettier-with-json-sort": "latest",
-    "@ladamczyk/skillslint": "4.1.1",
+    "@ladamczyk/skillslint": "4.1.2",
     "@ladamczyk/structurelint": "1.0.0",
     "@types/node": "^22",
     "@vitest/coverage-v8": "4.1.10",

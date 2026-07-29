@@ -8,6 +8,10 @@ import globals from 'globals';
 
 import type { ESLint, Linter } from 'eslint';
 
+// Re-exported so packages extending this config (qoq-eslint-v9-ts) reach import-x through
+// the inheritance chain instead of declaring eslint-plugin-import-x themselves.
+export { importPlugin, createNodeResolver };
+
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface EslintConfig extends Linter.Config {
   rules: Linter.RulesRecord;

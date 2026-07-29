@@ -284,10 +284,7 @@ describe('EslintExecutor generated config', () => {
         'createTypeScriptImportResolver({ project: ["packages/*/tsconfig.json","tsconfig.json"], noWarnOnMultipleProjects: true })'
       );
       expect(writtenConfig()).toContain(
-        "import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript'"
-      );
-      expect(writtenConfig()).toContain(
-        "import { createNodeResolver } from 'eslint-plugin-import-x'"
+        "import { createTypeScriptImportResolver, createNodeResolver } from '@ladamczyk/qoq-eslint-v9-ts'"
       );
     });
 

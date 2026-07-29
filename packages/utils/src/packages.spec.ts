@@ -56,7 +56,7 @@ describe('getPackageInfo', () => {
     expect(result).toStrictEqual(mockPackageInfo);
 
     // Ensure that getPackageInfoSync was called with the correct package name
-    expect(getPackageInfoSync).toHaveBeenCalledWith('eslint');
+    expect(getPackageInfoSync).toHaveBeenCalledWith('eslint', undefined);
   });
 
   it('should throw an error for a non-existent package', () => {
@@ -69,7 +69,7 @@ describe('getPackageInfo', () => {
     );
 
     // Ensure that getPackageInfoSync was called with the correct package name
-    expect(getPackageInfoSync).toHaveBeenCalledWith('non-existent-package');
+    expect(getPackageInfoSync).toHaveBeenCalledWith('non-existent-package', undefined);
   });
 });
 
