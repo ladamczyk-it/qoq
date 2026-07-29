@@ -1,3 +1,12 @@
+## [5.2.4](https://github.com/ladamczyk-it/qoq/compare/v5.2.3...v5.2.4) (2026-07-29)
+
+
+### Bug Fixes
+
+* bump packages ([4a9d91d](https://github.com/ladamczyk-it/qoq/commit/4a9d91d9746e6c3ad7487ec4f4105552deb422de))
+* bump packages + import rewire ([f897f1d](https://github.com/ladamczyk-it/qoq/commit/f897f1df226fe855cf5094a681de2b63fbf80585))
+* skill config ([13ca514](https://github.com/ladamczyk-it/qoq/commit/13ca514584d07ff43eda166c038916519ba7a786))
+
 ## [5.2.3](https://github.com/ladamczyk-it/qoq/compare/v5.2.2...v5.2.3) (2026-07-27)
 
 
