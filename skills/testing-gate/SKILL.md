@@ -21,10 +21,15 @@ allowed-tools:
   - Skill
   - Bash(npm test:*)
   - Bash(npm run:*)
+  - Bash(npx:*)
   - Bash(yarn test:*)
+  - Bash(yarn run:*)
   - Bash(pnpm test:*)
+  - Bash(pnpm run:*)
+  - Bash(vitest:*)
+  - Bash(jest:*)
 metadata:
-  version: 0.1.0
+  version: 0.2.0
 ---
 
 Writes tests that verify real behavior for TypeScript projects — NestJS APIs
@@ -37,6 +42,24 @@ validate them, gate them.
 `qoq` skill, so assume it's installed — no discovery step needed for it. Phase
 5 always hands off to QoQ's `gate` command as the final step.
 
+## When to use it
+
+Use it whenever a JS/TS project needs unit or integration tests written
+against code that already exists — a controller, a service, a component, or a
+described behavior spanning a few of them.
+
+Two boundaries are worth naming, because crossing either quietly turns a
+testing task into something the user didn't ask for:
+
+- **This skill tests code; it does not fix code.** If a test exposes a real
+  bug in the thing under test, that's a finding to report, not a licence to
+  edit production source. See
+  [When the tests won't pass](#when-the-tests-wont-pass).
+- **In-process runners only** — Vitest or Jest, with React Testing Library
+  and MSW where the project is React. Browser-driving end-to-end suites
+  (Playwright, Cypress) are a different discipline with different conventions;
+  this skill's defaults don't transfer, so say so rather than improvising.
+
 ## Phase 1 — Discovery
 
 Run from the project root; nothing needs to be pasted in. Work out, from the
@@ -44,11 +67,27 @@ repo itself:
 
 1. **Test runner** — Vitest or Jest.
 2. **Whether the runner's config enables globals.** This changes the literal
-   syntax of every file this skill writes: with globals on, reference
-   `describe`/`it`/`expect` directly with no imports; with globals off, import
-   them explicitly at the top of each test file. Read this from the actual
-   config (`vitest.config.*`, `jest.config.*`, or the relevant `package.json`
-   key) — don't assume either way.
+   syntax of every file this skill writes. Read it from the actual config
+   (`vitest.config.*`, `jest.config.*`, or the relevant `package.json` key) —
+   don't assume either way. For example, with `globals: true`:
+
+   ```ts
+   describe('UserService', () => {
+     it('returns null for an unknown id', async () => {
+       await expect(service.findById('nope')).resolves.toBeNull();
+     });
+   });
+   ```
+
+   and with globals off, the same file needs the imports:
+
+   ```ts
+   import { describe, it, expect } from 'vitest';
+   ```
+
+   Getting this backwards is the single most common way a generated test file
+   fails to run at all, which is why it's discovered rather than assumed.
+
 3. **Whether this is a React project.** If so, layer in React Testing Library
    and MSW conventions (Phase 3, detailed in
    [references/conventions.md](references/conventions.md)).
@@ -141,3 +180,58 @@ Then follow the contract exactly as `qoq` defines it for callers (see
 test run in Phase 4 is necessary but not sufficient — `gate` is what confirms
 the new test files meet the project's own formatting, naming, and duplication
 standards, not just that they pass.
+
+## When the tests won't pass
+
+A red test is information, and the right response depends entirely on _what_
+is broken. Diagnose before touching anything, because the three cases have
+opposite correct answers:
+
+1. **The test is wrong** — bad setup, a mock that doesn't match the real
+   signature, a wrong expectation. Fix the test. This is the only case where
+   editing is the answer.
+2. **The code under test is genuinely broken** — the test is right and it
+   caught a real bug. Report it and stop. If the user asked for tests, then
+   editing production source to make your own test green is scope they never
+   granted, and it destroys the finding: a bug silently fixed in the same
+   change that "added tests" is a bug nobody ever learns about. Show the
+   failing assertion and what it proves, and let the user decide.
+3. **The code isn't testable as written** — a dependency constructed inline
+   with no seam to inject, a module-level side effect on import. Say so,
+   name the smallest change that would open a seam, and ask before making
+   it. Restructuring production code is a refactor, not a test.
+
+**Three attempts, then stop.** One attempt is: fix, re-run. If Phase 4 or
+Phase 5 is still red after the third, report what's blocking rather than
+trying a fourth time. Report immediately, without spending attempts, when the
+blocker is case 2 or 3 — those aren't fixable by retrying, so retries only
+burn time.
+
+When reporting back, quote the actual failure — the assertion diff, or the
+verbatim `qoq` `FAIL` text. A caller that dispatched this skill (a
+`planning-gate` ticket, for instance) is deciding what to do next based on
+that text, and a paraphrase costs it the detail it needs.
+
+**Never buy green.** Deleting the failing case, adding `.skip`, loosening an
+assertion until it can't fail, or asserting the buggy behavior as if it were
+correct — each converts a real signal into a permanent silent gap, and the
+suite now actively lies about what's covered. A reported failure is a
+successful outcome for this skill; a fake pass is the one true failure.
+
+## Anti-patterns
+
+The recurring mistakes in generated test suites, and what each actually costs.
+The full rule set lives in
+[references/conventions.md](references/conventions.md) — these are the ones
+worth keeping in mind before the first line is written:
+
+| Pitfall                                                                     | Why it bites                                                                                                                                                                                               |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mocking reflexively, including well-tested pure dependencies                | Ceremony without risk reduction, and the test stops proving the pieces work together. Mock what's external, non-deterministic, or side-effecting; prefer the real thing when it's cheap and deterministic. |
+| Chasing a coverage number                                                   | Produces tests that execute lines without asserting on real risk. A valuable test set beats an exhaustive one; coverage is a side effect.                                                                  |
+| Testing implementation details — internal state, private methods, instances | Breaks on every refactor that changes nothing a user could observe, which trains people to distrust and delete tests.                                                                                      |
+| Guessing the run command instead of using Phase 1's                         | A plausible-looking `npm test` may not be how this project runs its suite; the "green" you report was never actually observed.                                                                             |
+| Assuming the globals setting                                                | Wrong either way means a file that can't even execute. It's two lines of config to check.                                                                                                                  |
+| Editing production code to make a test pass                                 | Silently converts a caught bug into an unreported one. Report it instead.                                                                                                                                  |
+| Leaving `.skip`/`.only`, or a test with no `expect`                         | A gap wearing the costume of coverage — worse than no test, because it reads as covered.                                                                                                                   |
+| Snapshotting an entire object graph                                         | Nobody reviews a 300-line snapshot, so it asserts nothing and fails noisily on unrelated change. Assert the fields that matter.                                                                            |

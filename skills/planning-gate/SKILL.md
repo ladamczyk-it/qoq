@@ -6,14 +6,13 @@ description: >-
   orchestrator: every ticket is t-shirt sized, rated for complexity so the
   cheapest capable agent tier gets assigned, self-contained enough for a
   subagent to pick up cold with no shared context, and gated on delivery by
-  QoQ's `gate` command plus the `testing-gate` skill, with a full quality
-  suite run at the end of each milestone. Use whenever the user wants to plan
-  out a feature before writing code, break a spec/PRD/requirements doc into
-  milestones and tickets, decompose work for multiple subagents to execute,
-  size and triage tickets by complexity, or asks "what's the implementation
-  plan for X" — even if they don't say "planning-gate" or name qoq/testing-gate
-  explicitly. Also use to resume or check status on a plan file already saved
-  under `./plans/`.
+  QoQ's `gate` command — plus the `testing-gate` skill on tickets that create
+  or edit tests. Use whenever the user wants to plan out a feature before
+  writing code, break a spec/PRD/requirements doc into milestones and tickets,
+  decompose work for multiple subagents to execute, size and triage tickets by
+  complexity, or asks "what's the implementation plan for X" — even if they
+  don't say "planning-gate" or name qoq/testing-gate explicitly. Also use to
+  resume or check status on a plan file already saved under `./plans/`.
 argument-hint: '[requirements description or spec, or "resume ./plans/<file>.md"]'
 user-invocable: true
 allowed-tools:
@@ -28,11 +27,16 @@ allowed-tools:
   - Bash(git status:*)
   - Bash(git add:*)
   - Bash(git commit:*)
+  - Bash(git diff:*)
+  - Bash(git log:*)
   - Bash(git rev-parse:*)
   - Bash(git remote:*)
   - Bash(npm run:*)
+  - Bash(npm test:*)
+  - Bash(yarn:*)
+  - Bash(pnpm:*)
 metadata:
-  version: 0.1.1
+  version: 0.3.0
 ---
 
 Turns requirements into a plan file an orchestrator can actually execute:
@@ -40,252 +44,253 @@ every ticket sized, complexity-rated, tiered to a specific agent, and gated
 on delivery — never a prose outline someone has to reinterpret before
 dispatching work against it.
 
-**This skill is a producer of work, not a quality engine.** It does not
-re-implement linting, testing, or review standards — it consumes `qoq` and
-`testing-gate` exactly the way `qoq`'s own SKILL.md defines the contract for
-callers (see
-[Ticket delivery gate](#ticket-delivery-gate--per-ticket-consumes-testing-gate--qoq)
-below, which quotes that contract rather than restating a different one).
-Planning and gating are separate concerns on purpose: this skill's job ends
-at "the plan is approved and tickets are dispatched with a working gate
-attached to each one" — it does not decide what "passing" means.
+**The main thread orchestrates; it never implements.** Every ticket goes to a
+subagent under a bounded retry budget. Keep on the main thread only what
+belongs there — rating complexity, approving dependencies, reading
+escalations, talking to the user — and delegate the typing. A subagent's
+context is disposable; the orchestrator's holds the whole plan.
 
-## Setup check (run once, before anything else)
+**This skill produces work; it does not define quality.** It consumes `qoq`
+and `testing-gate` on their own published terms rather than restating a
+different contract. Its job ends at "the plan is approved and tickets are
+dispatched with a working gate attached to each one."
 
-The per-ticket and per-milestone gates below are meaningless if `qoq` and
-`testing-gate` aren't actually available to dispatch to. Confirm both are
-installed **once**, at the start of planning — not per-ticket, and not
-re-checked during execution.
+## When to use it
 
-The check is cheap: the list of skills already available to you (the same
-listing that tells you this skill itself is installed) either names `qoq`
-and `testing-gate`, or it doesn't.
+Reach for this when work needs decomposing before anyone writes code: a spec
+or PRD to break down, a feature spanning several files, work to be spread
+across multiple subagents, or an existing plan under `./plans/` to resume.
 
-- **Both present** — continue to Phase 1.
-- **Either missing** — stop here. Tell the user plainly which one(s) are
-  missing and that they need to be installed before `planning-gate` can
-  produce a plan whose delivery gates actually run. Do not draft a plan with
-  the gate steps quietly omitted, and do not attempt to install either skill
-  yourself — that's the user's call, same as `qoq` never self-installs its
-  own external lenses.
+Don't reach for it when a plan would cost more than the work. A single-file
+change, a bug with a known root cause, or anything that lands in one gated
+edit should go straight to the code — a plan file for it is ceremony, and the
+`qoq` gate alone already covers the quality bar. If the work is only ever one
+ticket, it isn't a plan.
+
+## Routing
+
+- **Argument is a path under `./plans/`** (or the user says "resume") — this
+  is a resume. Skip everything below and load
+  [references/execution.md](references/execution.md).
+- **Anything else** — new requirements. Work Phases 1–4 here, then load
+  [references/execution.md](references/execution.md) once the user approves.
+
+That file owns everything after approval: dispatch, retry and escalation, the
+per-ticket delivery gate, the milestone gate, archiving, and resume. Drafting
+a plan doesn't need any of it, so don't read it until Phase 4 is signed off.
+
+## Setup check
+
+`qoq` gates every ticket, so confirm it's in your available-skills listing
+before drafting. If it isn't there, then stop and tell the user it needs
+installing — don't draft a plan with the gate steps quietly omitted, and
+don't install it yourself. `testing-gate` missing is not blocking; note it
+and raise it at Phase 4 if decomposition produces test-touching tickets.
 
 ## Phase 1 — Discovery
 
-Before drafting a single ticket, find out what the project already has —
-guessing here produces tickets that reinvent an existing helper or assume a
-library that isn't installed.
+Tickets written from guesses reinvent helpers that already exist and assume
+libraries that aren't installed. Find out what the project actually has
+first.
 
-- Read `package.json` (root and, in a monorepo, the affected packages) for
-  existing dependencies and scripts — the build/test/lint commands the
-  milestone gate will need later (Phase 6) live here.
-- Grep/Glob for existing patterns the requirements are likely to touch —
-  similar components, existing service/controller shapes, test conventions
-  — the same discovery-over-assumption principle `qoq`'s own commands use
-  before analyzing anything.
-- Note the test runner and framework conventions if `testing-gate` will be
-  invoked later (it re-discovers this itself per-ticket, but knowing it now
-  helps write realistic acceptance criteria).
+**Delegate this.** Discovery is high-volume, zero-judgment reading — exactly
+the work that shouldn't sit in the orchestrator's context, and on a monorepo
+it's the largest single consumer of it. Dispatch one `Explore` subagent and
+take back a summary:
 
-If the requirements come as a file path, read it in full before decomposing
-— don't decompose from a paraphrase.
+> Report on this repo, for planning work on: `<the requirements, in one or
+two sentences>`.
+>
+> 1. Dependencies and scripts from `package.json` (root, plus any package
+>    the work touches) — name the exact build, test, and lint commands.
+> 2. Existing patterns the work will touch: similar components, service or
+>    controller shapes, module layout. Give exact file paths.
+> 3. Test runner, config, and file-naming conventions.
+>    Report findings only, with paths. Make no edits.
+
+Read the requirements yourself, in full, if they arrive as a file path —
+decomposing from a paraphrase is how requirements get silently dropped.
 
 ## Scope check
 
-If the requirements span multiple genuinely independent subsystems (for
-example: "add billing" and "redesign the settings page" arrived in the same
-request), split them into **separate plans** before decomposing into
-tickets, rather than forcing one plan to cover both. This is the same
-principle obra/superpowers' `writing-plans` calls a scope check: a plan that
-tries to cover unrelated subsystems is harder to review, harder to approve
-atomically, and harder to resume correctly. An `XL` milestone (see sizing
-below) discovered mid-decomposition is a second version of this same signal
-— it means what looked like one milestone is really two plans.
+Requirements spanning genuinely independent subsystems ("add billing" and
+"redesign the settings page" in one request) become **separate plans**, not
+one plan with both. A plan covering unrelated subsystems is harder to review,
+can't be approved atomically, and resumes badly. Say so and split, rather
+than complying silently or refusing.
+
+An `XL` milestone found mid-decomposition is the same signal arriving later:
+it means one milestone is really two plans.
 
 ## Phase 2 — Decomposition
 
-Draft milestones and tickets against
-[references/plan-template.md](references/plan-template.md) — that file is
-the single source of truth for the plan's shape; don't improvise a different
-structure. Assign every ticket a size, a complexity rating, and an agent
-tier as you write it, not as a pass afterward.
+Draft against [references/plan-template.md](references/plan-template.md) —
+that file is the single source of truth for the plan's shape. Assign size,
+complexity, and tier as you write each ticket, not in a pass afterward.
 
 ### T-shirt sizing
 
-Ticket size is about diff footprint, not time-to-complete:
+Size is diff footprint, not time-to-complete:
 
-| Size | Footprint                                                                                                                      |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------ |
-| XS   | 1 file, small diff, no new test scenarios beyond one                                                                           |
-| S    | 1–2 files, one cohesive change, straightforward tests                                                                          |
-| M    | 3–5 files, or one new module/component with several test cases                                                                 |
-| L    | More than 5 files or crosses a subsystem boundary — flag it for splitting into multiple tickets rather than accepting it as-is |
+| Size | Footprint                                                      |
+| ---- | -------------------------------------------------------------- |
+| XS   | 1 file, small diff, at most one new test scenario              |
+| S    | 1–2 files, one cohesive change, straightforward tests          |
+| M    | 3–5 files, or one new module/component with several test cases |
 
-Milestone size (`S`/`M`/`L`/`XL`) is a roll-up judgment call, not a sum of
-ticket sizes. An `XL` milestone is the same signal as the scope check above:
-it should become its own separate plan.
+**There is no valid ticket larger than `M`.** More than 5 files, or crossing
+a subsystem boundary, means split it into multiple tickets before writing it
+down — a size that big is a decomposition that hasn't finished, and a cold
+subagent handed one has no way to tell which half matters.
+
+Milestone size (`S`/`M`/`L`/`XL`) is a roll-up judgment call, not a sum. `XL`
+follows the scope check above: its own plan.
 
 ### Complexity → agent tier
 
-Every ticket's complexity is decided here, during planning, by you — never
-left for the executing subagent to self-assess. The tier names below are a
-single named config point (mirroring how `qoq`'s own external-lens tiering
-works — one table, not a choice re-made at each dispatch site) so they can
-be retuned later without hunting through this file:
+Complexity is decided here, by you, during planning — never left for the
+executing subagent to self-assess. One table, so the tiers can be retuned
+without hunting through the file:
 
-| Complexity     | Signal                                                                                              | Named tier point         | Default agent tier                         |
-| -------------- | --------------------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------ |
-| Trivial        | Single file, mechanical, pattern already established elsewhere in the codebase, no decision to make | `ticket.trivial.tier`    | cheapest available subagent (e.g. `haiku`) |
-| Mechanical     | Multiple files but rote — apply the same change N places, wire up an existing interface             | `ticket.mechanical.tier` | cheap/mid subagent (e.g. `haiku`)          |
-| Moderate       | New logic, local design decisions, but scope and acceptance criteria are unambiguous                | `ticket.moderate.tier`   | mid-tier subagent (e.g. `sonnet`)          |
-| Judgment-heavy | Cross-cutting, ambiguous requirements, architecture-shaping, security/perf tradeoffs                | —                        | **main-thread — never delegated**          |
+| Complexity     | Signal                                                                              | Tier                    | Escalates to       |
+| -------------- | ----------------------------------------------------------------------------------- | ----------------------- | ------------------ |
+| Trivial        | Single file, mechanical, pattern already established elsewhere, no decision to make | `haiku`                 | moderate's tier    |
+| Mechanical     | Multiple files but rote — same change in N places, wire up an existing interface    | `haiku`                 | moderate's tier    |
+| Moderate       | New logic, local design decisions, unambiguous scope and acceptance criteria        | `sonnet`                | judgment's tier    |
+| Judgment-heavy | Cross-cutting, ambiguous, architecture-shaping, security/perf tradeoffs             | the session's own model | nothing — the user |
 
-Pass the tier straight through as the `model` parameter of the ticket's
-dispatch (Phase 5). If a ticket looks judgment-heavy, say so explicitly in
-the plan and keep it on the main thread — don't downgrade it to fit a
-cheaper tier just to keep the plan looking parallelizable. This is the same
-principle the source spec for this skill states directly: judgment and
-ambiguity resolution stay on the main thread; only mechanical, rule-bound
-work gets delegated.
+Rate honestly in both directions. Don't downgrade a judgment-heavy ticket to
+keep the plan looking parallelizable, and don't inflate a mechanical one "to
+be safe" — the escalation ladder means guessing too low costs one cheap run,
+not a broken ticket.
 
-### Dependency / install discipline
+**The top tier is the model this session is already running on, and nothing
+above it.** Read that model ID from your own system prompt and pass it
+explicitly as the dispatch's `model` — don't omit the parameter hoping the
+subagent inherits it, since a subagent's model comes from its own agent
+definition before it falls back to the parent. Spending more is the user's
+call: if the session runs on a mid-tier model and the plan has tickets that
+plausibly need more, say so at Phase 4 so they can restart _before_ any
+dispatch.
 
-- Never install a dependency without explicit user approval, even one a
-  ticket seems to obviously need.
-- Build only what the current ticket's acceptance criteria require — no
-  speculative abstractions, no unused exports, no "the next ticket will
-  need this" scaffolding. `knip` (part of `qoq`'s own engine) will flag
-  exactly this kind of dead code downstream, and the milestone gate
-  (Phase 6) will catch it.
-- If decomposition surfaces a genuine new-dependency need, write it under
-  that ticket's **Needs approval** field instead of assuming it — don't
-  silently add it to `package.json` during Phase 2, and flag it again during
-  Phase 4 approval so the user sees it before that ticket is ever dispatched.
+Judgment-heavy tickets are still delegated, at that ceiling — same model
+either way, but the orchestrator's context stays free.
+
+### Writing a self-contained ticket — a worked example
+
+Sizing and tiering are the easy part; **Context** is where plans actually
+fail. The subagent that receives it has never seen this conversation, the
+other tickets, or the repo. Whatever the field leaves implicit, it invents.
+
+Two versions of the same ticket. The first example is what a planner writes
+while it's still holding the whole plan in its head:
+
+```markdown
+### Ticket 2.2: Add rate limiting to the auth routes
+
+- **Files:**
+  - Modify: the auth controller
+
+**Context:** Add rate limiting like we discussed. Follow the same approach as
+Ticket 1.4 and handle the edge cases. Use the usual middleware pattern.
+```
+
+Every phrase there resolves to nothing on the other side: "as we discussed",
+"like Ticket 1.4", "the usual pattern", "the edge cases", and a **Files**
+entry that sends the subagent grepping. Rewritten so it stands alone:
+
+```markdown
+### Ticket 2.2: Add rate limiting to the auth routes
+
+- **Files:**
+  - Create: `src/auth/rate-limit.guard.ts`
+  - Modify: `src/auth/auth.controller.ts:18-52`
+  - Test: `src/auth/rate-limit.guard.spec.ts`
+
+**Context:** `AuthController` exposes `login`, `refresh`, and
+`requestPasswordReset`. Each should reject a caller after 5 attempts in 60
+seconds, keyed on client IP, returning 429. `@nestjs/throttler` is already a
+dependency and registered in `src/app.module.ts` — use its `ThrottlerGuard`
+rather than adding a limiter. Follow the guard shape in
+`src/common/roles.guard.ts`: implements `CanActivate`, applied per-route with
+`@UseGuards`, never registered globally.
+
+**Acceptance criteria:**
+
+- [ ] A 6th request inside 60s to any of the three routes returns 429
+- [ ] The counter is per-IP, so one client's limit doesn't affect another's
+- [ ] Successful requests under the limit are unaffected
+```
+
+The rewrite is longer, and that's the trade the plan is making: pay the words
+once at planning time, or pay for a wrong guess at execution time when the
+subagent is the only one still awake. If writing a ticket's Context feels
+tedious, that's usually the signal it wasn't decomposed far enough.
+
+### Dependency discipline
+
+- Never install a dependency without explicit user approval, however
+  obviously a ticket seems to need it.
+- Build only what the current ticket's acceptance criteria require. No
+  speculative abstractions, no unused exports, no "the next ticket will need
+  this." `knip` runs inside `qoq`'s engine and flags exactly this downstream.
+- A genuine new-dependency need goes in that ticket's **Needs approval**
+  field, and gets raised again at Phase 4 — never added to `package.json`
+  during decomposition.
 
 ## Phase 3 — Self-review
 
-Before presenting the plan, check it against all three of these — this
-matters more here than in a single-executor plan, since different subagents
-implement different tickets with no shared context to catch a mismatch:
+Different subagents implement different tickets with no shared context to
+catch a mismatch, so check all three before presenting:
 
-1. **Requirements coverage.** Every requirement in the source maps to at
-   least one ticket. If something in the requirements has no ticket, that's
-   a gap, not an implicit "later."
-2. **No-placeholder scan.** Grep the plan you just wrote for "TBD", "handle
-   edge cases", "similar to", "etc." — anything that reads as a placeholder
-   rather than actual content. A ticket's **Context** field is where this
-   most often creeps in; go back and write the real thing.
+1. **Requirements coverage.** Every requirement maps to at least one ticket.
+   A requirement with no ticket is a gap, not an implicit "later."
+2. **No placeholders.** Scan the draft for "TBD", "handle edge cases",
+   "similar to", "etc." **Context** is where these creep in. Write the real
+   thing.
 3. **Cross-ticket interface consistency.** Where two tickets share a type,
-   function signature, or API shape, confirm both tickets describe it
-   identically. A subagent implementing Ticket 2.3 will never read Ticket
-   1.1's notes, so a mismatch here becomes a real integration bug, not just
-   a documentation inconsistency.
+   signature, or API shape, both must describe it identically. The subagent
+   on Ticket 2.3 will never read Ticket 1.1, so a mismatch here ships as an
+   integration bug.
 
 ## Phase 4 — Plan approval
 
-Save the draft to `./plans/YYYY-MM-DD-<feature-name>.md` (ask if the user
-states a different location preference) and present it for approval. Do not
-dispatch any subagent before the user approves. Also surface, at this point,
-every ticket that flagged a **Needs approval** dependency — the user should
-sign off on new dependencies in the same pass as the plan itself, not
-discover them mid-execution.
+Save to `./plans/YYYY-MM-DD-<feature-name>.md` (ask if the user prefers
+elsewhere) and present for approval. Dispatch nothing before they approve.
 
-Set **Plan status** to `approved` once the user signs off.
+Surface in the same pass:
 
-## Phase 5 — Execution loop
+- Every **Needs approval** dependency, so new deps get signed off with the
+  plan rather than discovered mid-execution.
+- The model ceiling, if the plan has judgment-heavy tickets and this session
+  is running mid- or low-tier — those dispatch at the session's model with
+  nothing above to escalate to, so restarting has to happen now. State it
+  once as a fact about the plan and take their answer; the plan runs fine
+  either way.
+- `testing-gate` being absent, if any ticket touches tests.
 
-Work tickets in dependency order. Parallel dispatch is allowed only across
-tickets with disjoint file sets — never two agents touching the same file,
-since there's no merge step in this workflow to reconcile that.
+Set **Plan status** to `approved` on sign-off, then load
+[references/execution.md](references/execution.md).
 
-For each ticket:
+## Anti-patterns
 
-1. Set **Status** to `in-progress` in the plan file.
-2. **Dispatch:**
-   - `trivial` / `mechanical` / `moderate` → the Agent tool, `model` set to
-     the tier from the table above, with a prompt built entirely from that
-     ticket's **Context**, **Files**, and **Acceptance criteria** fields —
-     a fresh subagent has zero access to this conversation, so paste
-     everything in rather than referencing "the plan" or another ticket.
-   - `judgment-heavy` → handle inline, on the main thread.
-3. The implementer (subagent or you) writes the code, then runs the
-   ticket's own delivery gate below.
-4. **On PASS** — flip **Status** to `done`, copy any advisories into the
-   ticket's **Advisories** field, and record the commit made below in the
-   ticket's **Commit** field.
-5. **On FAIL after reasonable effort to fix** — leave **Status** as
-   `blocked`, do not mark the ticket done, and escalate to the user rather
-   than retrying indefinitely or loosening the gate.
+The common mistakes, and what each one actually costs:
 
-### Ticket delivery gate — per-ticket, consumes `testing-gate` + `qoq`
-
-This is not a new contract — it's `qoq`'s own, applied with an explicit file
-list every time, because a ticket's implementer always knows exactly which
-files it just touched:
-
-1. Run `testing-gate` over the files the ticket touched (it writes/updates
-   tests and, as its own last phase, already gates itself through `qoq`).
-2. Run `qoq gate <the files touched>` — the explicit list from the ticket's
-   **Files** field, never an inferred/dirty-tree scope. Per
-   [qoq's own contract](../qoq/SKILL.md#consuming-qoq-from-another-skill):
-
-   > Run `/qoq gate <the files you changed>` and wait for its verdict. If it
-   > returns `FAIL`, fix the reported blockers and re-run it. Only declare
-   > the task complete on `PASS`; pass along any advisories it reported.
-
-3. React exactly as that contract says: `PASS` → ticket is done, advisories
-   ride along into the ticket's notes for the user, never dropped silently.
-   `FAIL` → fix the reported blockers and re-gate; if it still won't pass
-   after reasonable effort, stop and report back up rather than marking the
-   ticket done or weakening the gate to force a pass.
-4. On `PASS`, commit exactly the files in the ticket's **Files** field —
-   `git add <those paths>` then `git commit -m "<ticket id>: <ticket
-title>"` — and capture the resulting hash (`git rev-parse HEAD`). A
-   ticket isn't delivered until its change is committed; a `PASS` left
-   uncommitted is just an untracked promise that the next ticket's
-   dependency graph, or a future resume, can't build on.
-
-**Commit link.** If `git remote get-url origin` resolves to a github.com,
-gitlab.com, or bitbucket.org remote, format the **Commit** field as
-`[<short-hash>](<https-url>/commit/<hash>)` — strip a trailing `.git` and
-convert an `ssh://`/`git@` remote to its `https://` form first. No remote, or
-a host you don't recognize, record the bare hash instead of guessing at a
-URL.
-
-## Phase 6 — Milestone gate
-
-Once every ticket in a milestone is `done`, run the full quality suite as
-its own phase — deliberately broader than any single ticket's gate, to
-catch integration issues between tickets that individually passed:
-
-1. `qoq gate` with **no explicit paths** — this makes it infer scope from
-   everything currently dirty in the milestone, not just one ticket's files.
-2. The project's own **full** build and test commands from Phase 1's
-   discovery (`npm run build`, `npm test`, etc.) — not the scoped
-   single-file commands a ticket's own gate used.
-
-Both green → set the milestone's tickets' rollup complete and move to the
-next milestone. Either red → treat it the same as a ticket-level `FAIL`:
-fix and re-run, or escalate to the user if it doesn't resolve.
-
-## Resume support
-
-The plan file's **Status** fields (plan-level and per-ticket) are the source
-of truth for resuming later, including across sessions. Re-entering
-execution on an existing plan:
-
-- Read the plan file fresh rather than trusting memory of an earlier
-  session.
-- Skip every ticket already `done` — don't re-decide its scope or re-run its
-  gate.
-- Pick up `todo` and `blocked` tickets in dependency order, same as a fresh
-  run.
-
-If the user's argument is a path to an existing file under `./plans/`
-(rather than new requirements text), treat this as a resume request: read
-that plan and jump straight to Phase 5 — Discovery, the scope check, and
-Phase 2's decomposition don't re-run against an already-approved plan.
+| Pitfall                                                                 | Why it bites                                                                                                                                                                                           |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Implementing "just the trivial ticket" on the main thread               | If the orchestrator implements anything, its context fills with implementation detail and the plan's tiering stops meaning anything. Cost is the same either way — a subagent's context is disposable. |
+| Sizing a ticket `L` to avoid splitting it                               | Oversized tickets are unfinished decomposition. A cold subagent handed one can't tell which half matters, and the escalation ladder can't rescue a scoping failure.                                    |
+| Inflating complexity "to be safe"                                       | Every ticket then runs at the top tier and the cost tiering buys nothing. Guessing too low costs one cheap run; the ladder exists for exactly that.                                                    |
+| Writing Context that points sideways ("see Ticket 1.2", "as discussed") | Resolves to nothing for the subagent. It invents a plausible substitute, and the mismatch surfaces as an integration bug a milestone later.                                                            |
+| Adding a dependency a ticket "obviously needs"                          | Never the planner's call. It goes in **Needs approval** and gets raised at Phase 4, before dispatch.                                                                                                   |
+| Marking a ticket done on a `FAIL`, or narrowing scope to force a `PASS` | Converts a visible blocker into a silent one. Hand the ticket back instead — reporting back is the correct outcome.                                                                                    |
+| Recording a delivery decision only under `## Completed`                 | No subagent ever reads that section. If a later ticket depends on the fact, it belongs in that ticket's **Context**.                                                                                   |
+| Re-dispatching a `blocked` ticket at the tier that already failed       | The one rung already known not to work. Resume at the tier its **Escalation** field points to.                                                                                                         |
 
 ## Storage convention
 
-Plans save to `./plans/YYYY-MM-DD-<feature-name>.md`. Use the date the plan
-is first drafted, not the date of any later resume.
+Plans live at `./plans/YYYY-MM-DD-<feature-name>.md`, dated when first
+drafted, not when resumed. Delivered milestones move to
+`./plans/YYYY-MM-DD-<feature-name>.completed.md` — same base name, so the
+pair is obvious in a listing and a resume never guesses which archive belongs
+to which plan.
