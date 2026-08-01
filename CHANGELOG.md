@@ -1,3 +1,11 @@
+## [5.2.5](https://github.com/ladamczyk-it/qoq/compare/v5.2.4...v5.2.5) (2026-08-01)
+
+
+### Bug Fixes
+
+* bump packages + skill update ([f9e9212](https://github.com/ladamczyk-it/qoq/commit/f9e92123732c5853e8d2b49152ccf30879039313))
+* skill config ([6925fa6](https://github.com/ladamczyk-it/qoq/commit/6925fa68b6c184494b100a7b487be7f7d3058e49))
+
 ## [5.2.4](https://github.com/ladamczyk-it/qoq/compare/v5.2.3...v5.2.4) (2026-07-29)
 
 
