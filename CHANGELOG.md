@@ -1,3 +1,16 @@
+# [5.3.0](https://github.com/ladamczyk-it/qoq/compare/v5.2.5...v5.3.0) (2026-08-05)
+
+
+### Bug Fixes
+
+* bump packages ([efa0167](https://github.com/ladamczyk-it/qoq/commit/efa01675e588158a69caa689587afce67d76ebf8))
+* bump typescript v7 where possible ([0406d61](https://github.com/ladamczyk-it/qoq/commit/0406d614748757892ed63cae1dbb92fb20b025bd))
+
+
+### Features
+
+* move to rolldown + bump ([dc0ee31](https://github.com/ladamczyk-it/qoq/commit/dc0ee3123dc8e3eef5d5c10e5f73c9ca44b3ea12))
+
 ## [5.2.5](https://github.com/ladamczyk-it/qoq/compare/v5.2.4...v5.2.5) (2026-08-01)
 
 
