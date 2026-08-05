@@ -63,7 +63,7 @@ export class PrettierExecutor extends AbstractApiWithProgressExecutor {
 
   protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
     // Resolved from the consumer's on-demand install (via the @ladamczyk/qoq-prettier*
-    // templates); kept external in rollup.bin.js.
+    // templates); kept external in rolldown.config.js.
     const prettier = await import('prettier');
 
     const configPath = resolveCwdRelativePath(this.modulesConfig.configPaths.prettier);

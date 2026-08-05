@@ -33,7 +33,7 @@
     "AGENTS.md"
   ],
   "scripts": {
-    "build": "rimraf ./lib && rollup -c --silent",
+    "build": "rimraf ./lib && rolldown -c && tsc --emitDeclarationOnly",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -41,9 +41,8 @@
     "stylelint-config-standard-scss": "17.0.0"
   },
   "devDependencies": {
-    "@rollup/plugin-typescript": "12.3.0",
     "rimraf": "6.1.3",
-    "rollup": "4.62.4",
+    "rolldown": "1.2.3",
     "typescript": "6.0.3"
   },
   "peerDependencies": {

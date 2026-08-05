@@ -13,6 +13,7 @@
         "Every ticket has non-blank Status, Size, Complexity, and Agent tier fields, and the Agent tier assigned is consistent with the Complexity rating (a trivial/mechanical ticket gets a cheap tier; a judgment-heavy ticket is tiered at the session's own model, not at some named model above it).",
         "No ticket is sized larger than M — an L or XL ticket size anywhere in the plan is a failure, since oversized work is supposed to be split during decomposition.",
         "Every ticket is assigned to a subagent tier — no ticket is left as 'main-thread' or otherwise marked for the orchestrator to implement itself.",
+        "Ticket 'Depends on' fields record only genuine dependencies (the ticket needs a file, type, or export another ticket creates) — tickets that are merely sequential in the narrative are left independent so they can be dispatched in the same parallel wave.",
         "Every ticket carries an Escalation field, set to 'none' on a freshly drafted plan.",
         "Every ticket's Definition of done includes a qoq gate step naming that ticket's own files, and includes a testing-gate step if and only if that ticket's Files field lists a test file to create or modify.",
         "The milestone-level Definition of done includes a qoq gate run with no explicit paths plus the project's full build/test commands (not the scoped single-file commands).",
@@ -64,6 +65,7 @@
         "The response describes escalation as re-dispatching the same ticket to a stronger tier with the previous failure report included, not as the orchestrator taking the ticket over itself.",
         "The response states that the escalation ladder stops at the model the user is already running the session on — the skill does not pick a more expensive model above that ceiling on the user's behalf.",
         "The response describes passing the tier explicitly as the dispatch's model parameter (including for judgment-heavy tickets, where the session's own model ID is passed), rather than omitting the parameter and relying on inheritance.",
+        "The response describes dispatching independent tickets as a parallel wave — all Agent calls issued in one message — rather than working tickets strictly one at a time, and names the two constraints that bound a wave (unmet dependencies, overlapping Files).",
         "The response states that a failure at the top tier results in the ticket being marked blocked and handed to the user to decide (respecify/split the ticket, or restart on a stronger model), rather than the main thread implementing it.",
         "The response states that the gate is never loosened and the ticket scope is never narrowed to force a PASS.",
         "The plan contains no unresolved placeholder text."
@@ -97,6 +99,7 @@
       "assertions": [
         "The milestone gate is run as unscoped `qoq gate` with no explicit paths, not a per-ticket scoped gate.",
         "The project's full build and full test commands are run, not the scoped single-file variants a ticket gate would use.",
+        "The milestone gate run itself is delegated to a subagent that reports back the verdict plus verbatim failures, rather than the orchestrator running the full build/test suite in its own context.",
         "The delivered milestone's full text is moved out of the plan file into the companion .completed.md file (appended, not overwriting existing archived milestones).",
         "A short summary block for the milestone is left under a ## Completed section at the top of the plan, containing at minimum what was delivered, the tickets with their commits, and decisions that outlive the milestone.",
         "The plan file is shorter after archiving than before — the milestone body is not duplicated in both files.",

@@ -20,17 +20,17 @@
   "license": "MIT",
   "type": "module",
   "main": "./bin/qoq.js",
-  "types": "./bin/types.d.ts",
+  "types": "./bin/src/types.d.ts",
   "bin": {
     "qoq": "bin/qoq.js"
   },
   "files": [
     "bin/qoq.js",
-    "bin/types.d.ts",
+    "bin/src",
     "AGENTS.md"
   ],
   "scripts": {
-    "build": "rimraf ./bin && rollup -c rollup.bin.js --silent && rollup -c rollup.config.js --silent && chmod +x ./bin/qoq.js",
+    "build": "rimraf ./bin && rolldown -c && tsc --emitDeclarationOnly && chmod +x ./bin/qoq.js",
     "dev": "npm run build && node ./bin/qoq.js",
     "typecheck": "tsc --noEmit"
   },
@@ -50,17 +50,10 @@
     "semver": "7.8.5"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "29.0.3",
-    "@rollup/plugin-json": "6.1.0",
-    "@rollup/plugin-node-resolve": "16.0.3",
-    "@rollup/plugin-terser": "1.0.0",
     "@types/micromatch": "4.0.10",
     "@types/prompts": "2.4.9",
-    "esbuild": "0.28.1",
     "rimraf": "6.1.3",
-    "rollup": "4.62.4",
-    "rollup-plugin-dts": "6.4.1",
-    "rollup-plugin-esbuild": "6.2.1",
+    "rolldown": "1.2.3",
     "typescript": "6.0.3"
   },
   "peerDependencies": {

@@ -36,7 +36,7 @@ allowed-tools:
   - Bash(yarn:*)
   - Bash(pnpm:*)
 metadata:
-  version: 0.3.0
+  version: 0.4.0
 ---
 
 Turns requirements into a plan file an orchestrator can actually execute:
@@ -45,10 +45,11 @@ on delivery — never a prose outline someone has to reinterpret before
 dispatching work against it.
 
 **The main thread orchestrates; it never implements.** Every ticket goes to a
-subagent under a bounded retry budget. Keep on the main thread only what
-belongs there — rating complexity, approving dependencies, reading
-escalations, talking to the user — and delegate the typing. A subagent's
-context is disposable; the orchestrator's holds the whole plan.
+subagent under a bounded retry budget, and independent tickets go out
+together, not one per turn. Keep on the main thread only what belongs there —
+rating complexity, approving dependencies, reading escalations, talking to the
+user — and delegate the typing, the reading, and the command output. A
+subagent's context is disposable; the orchestrator's holds the whole plan.
 
 **This skill produces work; it does not define quality.** It consumes `qoq`
 and `testing-gate` on their own published terms rather than restating a
@@ -252,6 +253,14 @@ catch a mismatch, so check all three before presenting:
    signature, or API shape, both must describe it identically. The subagent
    on Ticket 2.3 will never read Ticket 1.1, so a mismatch here ships as an
    integration bug.
+4. **Dependencies are real.** Execution dispatches tickets in parallel waves,
+   and **Depends on** is the one thing that holds a ticket out of a wave — so
+   a dependency written in out of narrative habit ("2.2 comes after 2.1")
+   silently serializes work that had no reason to be. Keep it only where the
+   ticket genuinely cannot start until the other has landed: it needs a file,
+   type, or export the other one creates. Overlapping **Files** already
+   handle themselves at execution time and don't need a dependency to
+   enforce.
 
 ## Phase 4 — Plan approval
 
@@ -276,16 +285,18 @@ Set **Plan status** to `approved` on sign-off, then load
 
 The common mistakes, and what each one actually costs:
 
-| Pitfall                                                                 | Why it bites                                                                                                                                                                                           |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Implementing "just the trivial ticket" on the main thread               | If the orchestrator implements anything, its context fills with implementation detail and the plan's tiering stops meaning anything. Cost is the same either way — a subagent's context is disposable. |
-| Sizing a ticket `L` to avoid splitting it                               | Oversized tickets are unfinished decomposition. A cold subagent handed one can't tell which half matters, and the escalation ladder can't rescue a scoping failure.                                    |
-| Inflating complexity "to be safe"                                       | Every ticket then runs at the top tier and the cost tiering buys nothing. Guessing too low costs one cheap run; the ladder exists for exactly that.                                                    |
-| Writing Context that points sideways ("see Ticket 1.2", "as discussed") | Resolves to nothing for the subagent. It invents a plausible substitute, and the mismatch surfaces as an integration bug a milestone later.                                                            |
-| Adding a dependency a ticket "obviously needs"                          | Never the planner's call. It goes in **Needs approval** and gets raised at Phase 4, before dispatch.                                                                                                   |
-| Marking a ticket done on a `FAIL`, or narrowing scope to force a `PASS` | Converts a visible blocker into a silent one. Hand the ticket back instead — reporting back is the correct outcome.                                                                                    |
-| Recording a delivery decision only under `## Completed`                 | No subagent ever reads that section. If a later ticket depends on the fact, it belongs in that ticket's **Context**.                                                                                   |
-| Re-dispatching a `blocked` ticket at the tier that already failed       | The one rung already known not to work. Resume at the tier its **Escalation** field points to.                                                                                                         |
+| Pitfall                                                                 | Why it bites                                                                                                                                                                                                                                                        |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Implementing "just the trivial ticket" on the main thread               | If the orchestrator implements anything, its context fills with implementation detail and the plan's tiering stops meaning anything. Cost is the same either way — a subagent's context is disposable.                                                              |
+| Running the milestone's full build and test suite on the main thread    | Thousands of lines of output the orchestrator stops needing the moment it knows the verdict, spent from the one context that has to survive the whole plan. Delegate the run, take back pass/fail plus the verbatim failures.                                       |
+| Working a wave of independent tickets one at a time                     | Tickets with disjoint files and no dependency between them have nothing to serialize on. Dispatching them one per turn multiplies the plan's wall-clock time by the wave size for no benefit — and a serial loop is where "I'll just do this one myself" creeps in. |
+| Sizing a ticket `L` to avoid splitting it                               | Oversized tickets are unfinished decomposition. A cold subagent handed one can't tell which half matters, and the escalation ladder can't rescue a scoping failure.                                                                                                 |
+| Inflating complexity "to be safe"                                       | Every ticket then runs at the top tier and the cost tiering buys nothing. Guessing too low costs one cheap run; the ladder exists for exactly that.                                                                                                                 |
+| Writing Context that points sideways ("see Ticket 1.2", "as discussed") | Resolves to nothing for the subagent. It invents a plausible substitute, and the mismatch surfaces as an integration bug a milestone later.                                                                                                                         |
+| Adding a dependency a ticket "obviously needs"                          | Never the planner's call. It goes in **Needs approval** and gets raised at Phase 4, before dispatch.                                                                                                                                                                |
+| Marking a ticket done on a `FAIL`, or narrowing scope to force a `PASS` | Converts a visible blocker into a silent one. Hand the ticket back instead — reporting back is the correct outcome.                                                                                                                                                 |
+| Recording a delivery decision only under `## Completed`                 | No subagent ever reads that section. If a later ticket depends on the fact, it belongs in that ticket's **Context**.                                                                                                                                                |
+| Re-dispatching a `blocked` ticket at the tier that already failed       | The one rung already known not to work. Resume at the tier its **Escalation** field points to.                                                                                                                                                                      |
 
 ## Storage convention
 

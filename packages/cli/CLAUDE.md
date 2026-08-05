@@ -7,7 +7,7 @@ Consumer-facing context (commands, qoq.config.js schema, generated files) lives 
 ## Commands
 
 ```bash
-# Build (Rollup → ./bin)
+# Build (Rolldown bundle + tsc declarations → ./bin)
 npm run build
 
 # Build and run locally
@@ -35,7 +35,7 @@ Executors split by how they drive the underlying tool:
 - `AbstractApiExecutor` — drives the tool's JS API directly instead of spawning a process (`getCommandArgs()` returns `[]`); provides a `writeReport()` helper for `--json` output. Used by Skillslint and Structurelint.
 - `AbstractApiWithProgressExecutor extends AbstractApiExecutor` — adds live per-file progress output (`showProgress()`/`printProgress()`/`clearProgress()`/`finishProgress()`) for API-driven tools that stream over many files: ESLint, Prettier, Stylelint. None of these tools' JS APIs expose a public per-file callback, so each subclass feeds progress from whatever hook it can get — Prettier loops over files itself; ESLint/Stylelint inject an internal `qoq-internal/file-progress` rule/plugin purely to observe the filename as it's processed.
 
-`PrettierExecutor` (extends `AbstractApiWithProgressExecutor`) drives `prettier`'s JS API directly rather than spawning its CLI — `execute()` calls `prettier.check()`/`prettier.format()` per resolved target (dynamically imported at runtime, so it resolves from the consumer's on-demand install; kept external in `rollup.bin.js`). Under `--json` it collects unformatted files into a lean report via `writeReport()` instead of printing.
+`PrettierExecutor` (extends `AbstractApiWithProgressExecutor`) drives `prettier`'s JS API directly rather than spawning its CLI — `execute()` calls `prettier.check()`/`prettier.format()` per resolved target (dynamically imported at runtime, so it resolves from the consumer's on-demand install; kept external in `rolldown.config.js`). Under `--json` it collects unformatted files into a lean report via `writeReport()` instead of printing.
 
 `SkillslintExecutor` (extends `AbstractApiExecutor`) does not spawn a binary at all — it overrides `execute()` to call `@ladamczyk/skillslint`'s `lint()` + `format()` JS API directly (dynamically imported at runtime for the same reason as Prettier above). `format()` returns the skillslint CLI's console output verbatim; under `--json` it skips `format()` and writes `skillslint-report.json` itself.
 

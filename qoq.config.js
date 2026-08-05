@@ -19,12 +19,15 @@ export default {
   knip: {
     entry: './src/index.{js,ts}',
     project: './src/**/*.{js,ts}',
-    ignore: ['**/bin.ts', '**/rollup.*.js', 'packages/cli/src/types.ts'],
+    ignore: [
+      '**/bin.ts',
+      '**/rolldown.config.js',
+      'packages/cli/src/types.ts',
+      'configs/eslint-v9/rolldown.config.js',
+    ],
     ignoreDependencies: [
       // build specific
-      '@rollup/*',
-      'rollup-*',
-      'esbuild',
+      'rolldown',
       'dotenv',
       // this is subpackage specific
       'postcss',

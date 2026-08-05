@@ -7,7 +7,7 @@ Consumer-facing context (exported config, inheritance) lives in `AGENTS.md` — 
 ## Commands
 
 ```bash
-# Build (Rollup → ./lib)
+# Build (Rolldown → ./lib)
 npm run build
 
 # Run tests

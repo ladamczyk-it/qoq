@@ -7,7 +7,7 @@ Consumer-facing context (exports, plugins, key rules) lives in `AGENTS.md` — s
 ## Commands
 
 ```bash
-# Build (Rollup → ./lib CJS+ESM + ./bin inspector)
+# Build (Rolldown → ./lib CJS+ESM + ./bin inspector)
 npm run build
 
 # Run tests

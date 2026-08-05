@@ -6,6 +6,7 @@ immediately when the argument is a resume. Drafting a plan never needs it.
 ## Table of contents
 
 - [Phase 5 — Execution loop](#phase-5--execution-loop)
+- [Dispatching a wave in parallel](#dispatching-a-wave-in-parallel)
 - [The dispatch prompt](#the-dispatch-prompt)
 - [Retry budget and escalation](#retry-budget-and-escalation)
 - [Ticket delivery gate](#ticket-delivery-gate)
@@ -15,11 +16,13 @@ immediately when the argument is a resume. Drafting a plan never needs it.
 
 ## Phase 5 — Execution loop
 
-Work tickets in dependency order. Parallel dispatch is allowed only across
-tickets with disjoint file sets — there's no merge step in this workflow to
-reconcile two agents editing the same file.
+Work tickets in dependency order, in **waves**: at each step, take every
+ticket whose dependencies are all `done` and whose files don't overlap another
+ticket in the same wave, and dispatch the whole wave at once. Serial dispatch
+is the exception, for a wave that genuinely holds one ticket — not the default
+shape of the loop.
 
-For each ticket:
+For every ticket in a wave:
 
 1. Set **Status** to `in-progress` in the plan file.
 2. **Dispatch to a subagent** via the Agent tool — every ticket, every
@@ -30,6 +33,10 @@ For each ticket:
      omitted parameter, which resolves to the agent definition's own model
      before it falls back to yours.
    - Prompt: built per [The dispatch prompt](#the-dispatch-prompt).
+
+   All of a wave's dispatches go in **one** message — see
+   [Dispatching a wave in parallel](#dispatching-a-wave-in-parallel).
+
 3. The subagent implements, then runs the ticket's
    [delivery gate](#ticket-delivery-gate) within its three-attempt budget.
 4. **On PASS** — **Status** → `done`, advisories copied into the ticket's
@@ -37,6 +44,39 @@ For each ticket:
 5. **On a handoff report** — re-dispatch one rung up per
    [Retry budget and escalation](#retry-budget-and-escalation). Never mark a
    ticket done without a `PASS`, and never loosen the gate to get one.
+
+## Dispatching a wave in parallel
+
+Two tickets with no dependency between them and no shared file have nothing to
+serialize on. Running them one after another costs the plan real wall-clock
+time for nothing — and a serial loop is also where the orchestrator starts
+implementing: waiting on one subagent at a time makes "this next one is
+trivial, I'll just do it here" feel efficient, and that's the failure this
+whole workflow exists to prevent.
+
+**A wave's Agent calls must all be in the same message.** Issued one per
+message, they run one at a time no matter how independent they are — the
+parallelism comes from batching the calls, not from the tickets being
+independent. So: mark every ticket in the wave `in-progress`, then emit all its
+Agent calls together, then handle the reports as they land.
+
+Two constraints bound a wave, and only these two:
+
+- **Dependencies.** A ticket joins the wave only when every ticket in its
+  **Depends on** is already `done`.
+- **Disjoint files.** No two tickets in one wave may name the same path in
+  **Files**. There's no merge step here to reconcile two subagents editing the
+  same file, and the loser's edits vanish silently. Overlap means the later
+  ticket waits for the next wave.
+
+Nothing else is a reason to hold a ticket back. Different tiers in one wave is
+normal and fine — a `haiku` ticket and a judgment-heavy one dispatch side by
+side. Wanting to "see how the first one goes" is not a constraint; that's what
+the retry budget and the gate are for.
+
+Mixed results within a wave don't stall the rest: each ticket's `PASS` is
+recorded and each handoff report escalates on its own. A wave doesn't have a
+collective verdict — only the milestone gate does.
 
 ## The dispatch prompt
 
@@ -167,6 +207,17 @@ issues between tickets that individually passed:
 2. The project's **full** build and test commands from Phase 1's discovery —
    not the scoped single-file commands the ticket gates used.
 
+**Delegate this run too.** A full build and test suite emits thousands of
+lines the orchestrator has no use for once it knows the verdict, and it's the
+orchestrator's context that has to survive the rest of the plan. Dispatch one
+subagent at the cheapest tier — this is running commands, not judgment — and
+ask for the verdict plus the verbatim failures only, with no fixes attempted:
+
+> Run `qoq gate` with no path arguments, then `<full build command>` and
+> `<full test command>`. Make no edits and fix nothing. Reply with each
+> command's pass/fail and, for anything that failed, the verbatim error output
+> and the files it names.
+
 Both green → delivered; archive before starting the next milestone. Either
 red → write the failure up as a new ticket in the milestone (sized, rated,
 tiered like any other) and dispatch it. An integration failure between two
@@ -211,7 +262,9 @@ of truth, including across sessions.
   what keeps a resume from costing the whole history. Read it only for a
   specific question the summary can't answer, like tracing a regression back
   to the ticket that introduced it.
-- Pick up `todo` and `blocked` tickets in dependency order — but dispatch a
+- Pick up `todo` and `blocked` tickets in dependency-ordered waves, the same
+  as a fresh run — a resume that has three unblocked tickets left dispatches
+  all three at once. But dispatch a
   `blocked` ticket whose **Escalation** field is already filled at the tier
   it escalated _to_, not the tier that failed. Re-running that rung is the
   one thing already known not to work.

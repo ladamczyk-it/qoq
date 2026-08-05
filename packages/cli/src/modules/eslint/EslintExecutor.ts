@@ -48,7 +48,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
 
   protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
     // Resolved from the consumer's on-demand install (via the @ladamczyk/qoq-eslint-v9-*
-    // templates that bring in `eslint`); kept external in rollup.bin.js.
+    // templates that bring in `eslint`); kept external in rolldown.config.js.
     const { ESLint } = await import('eslint');
 
     const showProgress = this.showProgress(options);
