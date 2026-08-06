@@ -18,7 +18,9 @@ scope is too big for one pass.
 
 ## Phase 1 — Scoping
 
-Setup already confirmed a clean tree and located the engine.
+Setup already confirmed a clean tree — or, under `--tree dirty`, deliberately
+didn't ([Run modes](workflow.md#run-modes--tree-and-decisions)) — and located
+the engine.
 
 1. **Resolve the scope.** Ask the user what to refactor, unless they already
    said. Accept whichever form is natural and resolve it to a concrete file
@@ -30,7 +32,10 @@ Setup already confirmed a clean tree and located the engine.
      project's configured source: `qoq.config.js`'s `srcPath` in QoQ mode,
      otherwise infer from `tsconfig.json` `include` / `package.json` / the repo
      layout. Confirm the resolved set before proceeding — "whole project" on a
-     monorepo can be large.
+     monorepo can be large. **This default is off under `--tree dirty`:** a
+     caller running against uncommitted work must name its scope, or the run
+     silently absorbs unrelated dirty files it doesn't own. No scope plus
+     `--tree dirty` is a caller error — say so instead of guessing.
 
    ```bash
    git ls-files -- <path-or-glob> | grep -E '\.(ts|tsx|js|jsx|mjs|cjs)$'
@@ -52,12 +57,14 @@ Setup already confirmed a clean tree and located the engine.
    the whole project — too much for one agent to do well in a single pass, and
    it parallelizes cleanly by area. If the user hasn't already allowed or
    declined subagents, tell them how many you'd use and how you'd divide the
-   work, and ask — a broad fan-out is worth one question.
+   work, and ask — a broad fan-out is worth one question. Under
+   `--decisions auto` there's nobody to ask: decide from the resolved scope
+   alone, which for a caller-supplied file list means analyzing sequentially.
 
 3. **Initialize the workspace, take the snapshot, discover the validation
    commands, and confirm the green baseline** per
    [workflow.md](workflow.md). When fanning out, each area gets its own
-   subdirectory (`.qoq/<area>/`) so workers never write to the same path.
+   subdirectory (`<ws>/<area>/`) so workers never write to the same path.
 
 ---
 
@@ -85,8 +92,8 @@ do the per-file analysis yourself; you divide, brief, collect, and regroup:
    every worker reads it instead of re-running linters or loading raw JSON:
 
    ```bash
-   npx qoq --check --json --output .qoq/reports
-   node <skill>/scripts/summarize.mjs .qoq/reports > .qoq/digest.txt
+   npx qoq --check --json --output <ws>/reports
+   node <skill>/scripts/summarize.mjs <ws>/reports > <ws>/digest.txt
    ```
 
 2. **Divide the scope by code area** into disjoint slices along the Phase 1
@@ -96,11 +103,11 @@ do the per-file analysis yourself; you divide, brief, collect, and regroup:
    a very large package further.
 
 3. **Dispatch one `qoq-analyzer` worker per slice**
-   ([../agents/qoq-analyzer.md](../agents/qoq-analyzer.md); via the Task tool
+   ([../agents/qoq-analyzer.md](../agents/qoq-analyzer.md); via the Agent tool
    with `subagent_type: qoq-analyzer` when registered, else a `general-purpose`
    subagent pointed at that file). Pass each: its **scope** (exactly this
    slice's file list), **checks** = the six dimensions above, **digest_path** =
-   `.qoq/digest.txt`, the **tooling** mode, **output_dir** = `.qoq/<slice>/`,
+   `<ws>/digest.txt`, the **tooling** mode, **output_dir** = `<ws>/<slice>/`,
    and the references — [analysis.md](analysis.md) and
    [tool-playbook.md](tool-playbook.md) always;
    [design-patterns.md](design-patterns.md) is not needed here since that
@@ -137,6 +144,15 @@ skip note into Phase 3.
 ---
 
 ## Phase 3 — Present the plan & get approval
+
+**Under `--decisions auto`, skip this phase entirely** and go straight to
+Phase 4 with the safe tier only, per
+[Run modes](workflow.md#run-modes--tree-and-decisions). The advisory tier —
+along with any lens that was skipped for a missing skill, and any finding that
+would have edited a file outside the resolved scope — becomes the structured
+report you return at the end instead of a plan you present now. Everything
+below is the `human` default.
+
 
 Present as `review` does — grouped by dimension, one-line rationale, size,
 dropped findings — but aggregate across slices and surface the cross-cutting

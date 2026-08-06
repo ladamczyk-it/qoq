@@ -7,7 +7,7 @@ the digest doesn't carry (a precise unused-export position, the full message tex
 of one ESLint finding), and then read just that entry, not the whole file.
 
 All files land in the `--output` directory (default `bin/report/`; the skill uses
-the shared workspace `.qoq/reports/`). A file is absent when its tool was skipped
+the shared workspace `<ws>/reports/`). A file is absent when its tool was skipped
 or disabled.
 
 ---

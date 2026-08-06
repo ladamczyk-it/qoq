@@ -26,8 +26,9 @@ lint/test/build.
 
 ## Phase 1 — Discovery
 
-Setup already confirmed a clean tree and located the engine
-([engine.md](engine.md)).
+Setup already confirmed a clean tree — or, under `--tree dirty`, deliberately
+didn't ([Run modes](workflow.md#run-modes--tree-and-decisions)) — and located
+the engine ([engine.md](engine.md)).
 
 1. **Establish the base branch.** Infer it rather than opening with a question:
    `git symbolic-ref refs/remotes/origin/HEAD` names the default branch, and
@@ -95,7 +96,7 @@ Each dimension with a real finding becomes one patch, staged via
 stays untouched until Phase 4. If a dimension yields nothing worth changing,
 say so and skip its patch.
 
-**Fanning out:** dispatch one `qoq-analyzer` per dimension via the Task tool
+**Fanning out:** dispatch one `qoq-analyzer` per dimension via the Agent tool
 (`subagent_type: qoq-analyzer` when registered — see
 [../agents/qoq-analyzer.md](../agents/qoq-analyzer.md); otherwise spawn a
 `general-purpose` subagent and have it read that file as its instructions).
@@ -127,6 +128,13 @@ and carry the skip note into Phase 3.
 ---
 
 ## Phase 3 — Present the plan & get approval
+
+**Under `--decisions auto`, skip this phase entirely** and go straight to
+Phase 4 with the safe tier only, per
+[Run modes](workflow.md#run-modes--tree-and-decisions). What you'd have
+presented here — the advisory tier, the dropped findings and why, any lens
+skipped for a missing skill — becomes the structured report you return at the
+end. Everything below is the `human` default.
 
 Summarize what each analysis found and what its patch would change — grouped by
 dimension, each with a one-line rationale and a sense of size (lines/files
@@ -166,6 +174,6 @@ Run the validation step one final time so the formatted result is confirmed
 green, then summarize what landed.
 
 Finally clean up per [workflow.md](workflow.md#cleanup): on a fully successful
-run, `workspace.mjs cleanup` leaves a tree containing exactly the applied
+run, `workspace.mjs cleanup --run <run-id>` leaves a tree containing exactly the applied
 improvements, ready to commit; on an aborted run, leave the workspace in place
 as the record of what's left.

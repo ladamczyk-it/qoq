@@ -29,5 +29,4 @@ logs
 *.log
 lerna-debug.log*
 eslint.config.local.bundled_*.cjs
-.agents/skills
-.claude/skills
+.claude

@@ -12,6 +12,7 @@ sections.
 **Goal:** <one sentence>
 **Architecture:** <2-3 sentences>
 **Requirements source:** <link or short description of what was decomposed>
+**Commands:** build `<full build command>` · test `<full test command>`
 **Plan status:** draft | approved | in-progress | complete
 
 ---
@@ -65,9 +66,17 @@ why this ticket exists. No "similar to Ticket 1.3" — restate what's needed.
 **Definition of done:**
 
 - [ ] Acceptance criteria met
-- [ ] `testing-gate` run over the test files above — include this line only
-      when **Files** has a `Test:` entry; omit it entirely otherwise
-- [ ] `qoq gate <files above>` → PASS
+- [ ] `testing-gate` run over the test files above — include this line only on
+      a **test-only** ticket, where **Files** lists nothing but `Test:`
+      entries; omit it entirely otherwise. A ticket that ships a feature plus
+      its tests has the implementer write those tests, and `qoq gate` covers
+      them
+- [ ] `qoq refactor <files above> --tree dirty --decisions auto --run <ticket
+      id>` standards pass run before the gate — include this line only on a
+      **moderate** or **judgment-heavy** ticket; omit it on trivial,
+      mechanical, and test-only ones, where the wide lens has no decision to
+      review and the milestone gate covers the code anyway
+- [ ] `qoq gate <files above> --run <ticket id>` → PASS
 - [ ] Change committed; hash recorded in **Commit** below
 - [ ] Status set to `done`; advisories (if any) noted below
 
@@ -81,8 +90,12 @@ a known host; "none" until then>
 ### Milestone 1 — Definition of done
 
 - [ ] All tickets above are `done`
-- [ ] Full quality suite: `qoq gate` (no explicit paths, full milestone
-      scope) → PASS
+- [ ] Full quality suite: `qoq refactor <union of every ticket's Files above>
+      --decisions auto --run milestone-<N>` → clean. `refactor` rather than
+      `gate`, because this is the only scope where cross-ticket findings
+      (duplication, a now-dead export, three tickets that each picked a
+      different shape) are visible at all. Pass the union explicitly — bare, it
+      widens to the whole project
 - [ ] Project's full build + full test suite green (not the scoped commands)
 - [ ] Milestone archived: full text moved to `<plan-name>.completed.md`,
       summary block left under `## Completed`, downstream tickets' **Context**
@@ -114,6 +127,11 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
 
 ## Field notes
 
+- **Commands** are the project's _full_ build and test commands, exactly as
+  Phase 1's discovery reported them — not the scoped single-file variants a
+  ticket gate uses. The milestone gate runs them, in a session that may be days
+  later and has no memory of discovery. Writing them down here is the only
+  thing that keeps them from being re-derived or guessed.
 - **Plan status** tracks the whole plan; **Ticket status** tracks one ticket.
   Don't conflate them — a plan can be `in-progress` while individual tickets
   are still `todo`.

@@ -108,6 +108,13 @@
         }
       ],
       "files": []
+    },
+    {
+      "id": 7,
+      "name": "refactor-unattended-run-modes",
+      "prompt": "/qoq refactor packages/cli/src/modules/knip --tree dirty --decisions auto",
+      "expected_output": "The run honors both modes rather than falling back to the interactive defaults: setup does not stop on the uncommitted changes (the safety snapshot is the net instead), the scope stays exactly the paths given with no whole-project fallback, and Phase 3's plan-and-sign-off is skipped entirely — the safe tier is applied and the advisory tier comes back as a structured report naming what was applied, what was left, any finding that would have edited a file outside the scope, and any external lens skipped for a missing skill (degraded, never offered as an install prompt). Fan-out is decided from the scope size, not asked about. The risk-tier boundary is unchanged: nothing from the advisory tier is applied just because nobody is watching.",
+      "files": []
     }
   ]
 }

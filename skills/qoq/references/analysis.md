@@ -40,8 +40,8 @@ Four dimensions are backed by a tool. Get their findings from the engine
 the linters ad hoc or load raw JSON:
 
 ```bash
-npx qoq --check --json --output .qoq/reports
-node <skill>/scripts/summarize.mjs .qoq/reports
+npx qoq --check --json --output <ws>/reports
+node <skill>/scripts/summarize.mjs <ws>/reports
 ```
 
 | Dimension          | Digest section                          |

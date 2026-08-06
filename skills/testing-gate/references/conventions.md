@@ -5,6 +5,15 @@ project-root `testing-gate.md` (see [SKILL.md](../SKILL.md), Phase 1 step 5)
 wherever the two conflict — that file is human-written and knows things about
 the project this skill can't infer.
 
+**Readable on its own.** Nothing below depends on the rest of the skill, which
+is deliberate: most tests in a plan-driven project aren't written by
+`testing-gate` at all, but by whoever implements the feature they cover. That
+implementer should read this file rather than reinvent a house style — one
+Read is much cheaper than a second subagent, and it's the same rulebook either
+way. What it won't give you is the skill's Phase 1 discovery (runner, globals
+setting, run commands) or its Phase 5 gate; work those out from the repo, as
+[SKILL.md](../SKILL.md) describes.
+
 ## Coverage philosophy
 
 Cover happy paths **and** reasonable edge cases / negative scenarios. Don't

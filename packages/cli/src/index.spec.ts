@@ -55,13 +55,19 @@ describe('cli', () => {
     it('should load the config and run every tool when no flags are passed', async () => {
       await run();
 
-      expect(getConfig).toHaveBeenCalledWith(['packages/*']);
+      expect(getConfig).toHaveBeenCalledWith(['packages/*'], false);
       expect(execute).toHaveBeenCalledWith(
         dummyConfig,
         expect.objectContaining({ fix: false, disableCache: false, concurrency: 'off' }),
         undefined,
         undefined
       );
+    });
+
+    it('should skip the setup wizard when --warmup is passed', async () => {
+      await run('--warmup');
+
+      expect(getConfig).toHaveBeenCalledWith(['packages/*'], true);
     });
 
     it('should scaffold a config and skip execution when --init is passed', async () => {
@@ -143,6 +149,14 @@ describe('cli', () => {
         undefined,
         undefined
       );
+    });
+
+    it('should skip the setup wizard when CI=true', async () => {
+      vi.stubEnv('CI', 'true');
+
+      await run();
+
+      expect(getConfig).toHaveBeenCalledWith(['packages/*'], true);
     });
   });
 

@@ -1,0 +1,29 @@
+{
+  "skill_name": "testing-gate",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "can you write unit tests for the AuditRetentionService in src/audit/audit-retention.service.ts? it's the thing that prunes old audit rows, takes a cutoff in days",
+      "expected_output": "Discovers the runner and whether globals are enabled from the actual config before writing anything, writes unit tests covering the pruning behavior and its edge cases (cutoff boundary, nothing to prune), runs the scoped command it discovered plus the full suite, then gates the new spec file through `qoq gate` with an explicit path list and only declares done on PASS.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "add tests for the checkout form component — I want to know that submitting it with a valid card actually posts to /api/orders and shows the confirmation, and that a 422 back from the server surfaces the field errors",
+      "expected_output": "Recognizes this as integration scope spanning component + network rather than isolated unit tests, states that inference back before writing, uses React Testing Library and MSW for the interceptor per references/conventions.md, asserts on user-observable behavior rather than component internals, validates, then gates through `qoq gate`.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "write tests for src/billing/proration.ts. heads up, I think there might be a rounding bug in there somewhere",
+      "expected_output": "Writes tests that pin real behavior; on finding the rounding bug, reports it with the failing assertion and what it proves rather than editing src/billing/proration.ts to make its own test green, and does not weaken the assertion or skip the case to buy a pass. Stops and hands the finding to the user.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I'm running ticket 3.2 from our plan — it's test-only, Files lists just src/audit/audit.controller.spec.ts. Write the coverage for the controller and gate it.",
+      "expected_output": "Treats the ticket id as the run id and passes `--run 3.2` to the `qoq gate` invocation so a concurrent ticket's cleanup can't delete this run's workspace, gates the explicit spec path rather than the dirty tree, and reports the verdict plus any advisories verbatim for the dispatching lead.",
+      "files": []
+    }
+  ]
+}

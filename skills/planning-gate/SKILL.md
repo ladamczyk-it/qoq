@@ -6,14 +6,15 @@ description: >-
   orchestrator: every ticket is t-shirt sized, rated for complexity so the
   cheapest capable agent tier gets assigned, self-contained enough for a
   subagent to pick up cold with no shared context, and gated on delivery by
-  QoQ's `gate` command — plus the `testing-gate` skill on tickets that create
-  or edit tests. Use whenever the user wants to plan out a feature before
+  QoQ's `gate` command — plus the `testing-gate` skill on tickets whose whole
+  deliverable is test coverage. Use whenever the user wants to plan out a feature before
   writing code, break a spec/PRD/requirements doc into milestones and tickets,
   decompose work for multiple subagents to execute, size and triage tickets by
   complexity, or asks "what's the implementation plan for X" — even if they
-  don't say "planning-gate" or name qoq/testing-gate explicitly. Also use to
-  resume or check status on a plan file already saved under `./plans/`.
-argument-hint: '[requirements description or spec, or "resume ./plans/<file>.md"]'
+  don't say "planning-gate" or name qoq/testing-gate explicitly. Hands the
+  approved plan to the `execution-gate` skill, which owns everything after
+  sign-off — dispatch, gates, and resume.
+argument-hint: '[requirements description or spec]'
 user-invocable: true
 allowed-tools:
   - Read
@@ -25,8 +26,6 @@ allowed-tools:
   - Agent
   - Bash(ls:*)
   - Bash(git status:*)
-  - Bash(git add:*)
-  - Bash(git commit:*)
   - Bash(git diff:*)
   - Bash(git log:*)
   - Bash(git rev-parse:*)
@@ -36,7 +35,7 @@ allowed-tools:
   - Bash(yarn:*)
   - Bash(pnpm:*)
 metadata:
-  version: 0.4.0
+  version: 0.5.0
 ---
 
 Turns requirements into a plan file an orchestrator can actually execute:
@@ -44,23 +43,22 @@ every ticket sized, complexity-rated, tiered to a specific agent, and gated
 on delivery — never a prose outline someone has to reinterpret before
 dispatching work against it.
 
-**The main thread orchestrates; it never implements.** Every ticket goes to a
-subagent under a bounded retry budget, and independent tickets go out
-together, not one per turn. Keep on the main thread only what belongs there —
-rating complexity, approving dependencies, reading escalations, talking to the
-user — and delegate the typing, the reading, and the command output. A
-subagent's context is disposable; the orchestrator's holds the whole plan.
+**Every ticket will be executed by a subagent that has never seen this
+conversation.** That single fact drives most of the decisions here: why
+**Context** has to stand alone, why complexity is rated now rather than left
+for the implementer to self-assess, and why a dependency written in out of
+narrative habit costs real wall-clock time later. Plan for a cold reader.
 
-**This skill produces work; it does not define quality.** It consumes `qoq`
-and `testing-gate` on their own published terms rather than restating a
-different contract. Its job ends at "the plan is approved and tickets are
-dispatched with a working gate attached to each one."
+**This skill plans; it does not execute or define quality.** Dispatch, gates,
+escalation, and resume belong to [`execution-gate`](../execution-gate/SKILL.md);
+the quality bar itself belongs to `qoq` and `testing-gate`, consumed on their
+own published terms. This skill's job ends at "the plan is approved."
 
 ## When to use it
 
 Reach for this when work needs decomposing before anyone writes code: a spec
-or PRD to break down, a feature spanning several files, work to be spread
-across multiple subagents, or an existing plan under `./plans/` to resume.
+or PRD to break down, a feature spanning several files, or work to be spread
+across multiple subagents.
 
 Don't reach for it when a plan would cost more than the work. A single-file
 change, a bug with a known root cause, or anything that lands in one gated
@@ -68,25 +66,30 @@ edit should go straight to the code — a plan file for it is ceremony, and the
 `qoq` gate alone already covers the quality bar. If the work is only ever one
 ticket, it isn't a plan.
 
-## Routing
-
-- **Argument is a path under `./plans/`** (or the user says "resume") — this
-  is a resume. Skip everything below and load
-  [references/execution.md](references/execution.md).
-- **Anything else** — new requirements. Work Phases 1–4 here, then load
-  [references/execution.md](references/execution.md) once the user approves.
-
-That file owns everything after approval: dispatch, retry and escalation, the
-per-ticket delivery gate, the milestone gate, archiving, and resume. Drafting
-a plan doesn't need any of it, so don't read it until Phase 4 is signed off.
+**A plan that already exists is not this skill's job.** If the argument is a
+path under `./plans/`, or the user says "resume", "execute", "start building",
+or "close out milestone N", that's [`execution-gate`](../execution-gate/SKILL.md)
+— hand it straight over rather than re-deriving a plan that's already approved.
+Come back here only to re-plan a ticket that execution handed back as
+under-specified.
 
 ## Setup check
 
-`qoq` gates every ticket, so confirm it's in your available-skills listing
-before drafting. If it isn't there, then stop and tell the user it needs
-installing — don't draft a plan with the gate steps quietly omitted, and
-don't install it yourself. `testing-gate` missing is not blocking; note it
-and raise it at Phase 4 if decomposition produces test-touching tickets.
+`qoq` gates every ticket, so check whether it's in your available-skills
+listing before drafting. Missing isn't fatal here — the deliverable is a
+markdown file, and a plan is still worth writing — but it will be fatal at
+execution time, so say so now and keep the gate steps in the plan exactly as
+written. Never draft a plan with them quietly omitted, and don't install
+anything yourself.
+
+`testing-gate` missing matters even less: note it and raise it at Phase 4 if
+decomposition produces a test-only ticket — one whose **Files** lists nothing
+but `Test:` entries. Tickets that ship a feature alongside its tests don't
+need the skill at all; the implementer writes those tests as part of the
+change, reading
+[`testing-gate/references/conventions.md`](../testing-gate/references/conventions.md)
+for the house rules, and `qoq gate` covers the result. Expect that to be most
+tickets.
 
 ## Phase 1 — Discovery
 
@@ -164,6 +167,16 @@ Rate honestly in both directions. Don't downgrade a judgment-heavy ticket to
 keep the plan looking parallelizable, and don't inflate a mechanical one "to
 be safe" — the escalation ladder means guessing too low costs one cheap run,
 not a broken ticket.
+
+**Complexity buys more than a model.** It also decides whether the ticket runs
+the `qoq refactor` standards pass on delivery: `moderate` and `judgment-heavy`
+do, `trivial` and `mechanical` don't. Those lenses ask whether the code is
+over-built and whether it's the right pattern — questions that only exist
+where a decision was made, and a ticket rated trivial is one where the plan
+already made it. So inflating a rating doesn't just spend a bigger model; it
+adds two more review subagents to a ticket with nothing for them to find. The
+code is still covered — the milestone gate runs the wide lens over every
+ticket's files together, which is where cross-file findings live anyway.
 
 **The top tier is the model this session is already running on, and nothing
 above it.** Read that model ID from your own system prompt and pass it
@@ -276,10 +289,25 @@ Surface in the same pass:
   nothing above to escalate to, so restarting has to happen now. State it
   once as a fact about the plan and take their answer; the plan runs fine
   either way.
-- `testing-gate` being absent, if any ticket touches tests.
+- `testing-gate` being absent, if any ticket is test-only.
 
-Set **Plan status** to `approved` on sign-off, then load
-[references/execution.md](references/execution.md).
+Set **Plan status** to `approved` on sign-off, and record the project's full
+build and test commands from Phase 1 in the plan's **Commands** header — the
+milestone gate needs them, and by then this conversation's discovery is gone.
+
+Then hand off. Execution is a separate skill so the orchestrator that runs the
+plan doesn't inherit a context full of decomposition reasoning it will never
+use again — the plan file is the whole handoff, which is also what lets a
+different session resume it tomorrow. Tell the user plainly:
+
+> The plan is approved and saved at `./plans/<file>.md`. Run
+> `/execution-gate ./plans/<file>.md` to build it — every ticket dispatches to
+> a subagent at the tier this plan assigned, gated and committed. Add
+> `--parallelism linear` if you want them one at a time instead of in parallel
+> waves.
+
+Offer to invoke it now. If they say yes, invoke the `execution-gate` skill with
+that path; don't start dispatching tickets from here.
 
 ## Anti-patterns
 
@@ -287,16 +315,13 @@ The common mistakes, and what each one actually costs:
 
 | Pitfall                                                                 | Why it bites                                                                                                                                                                                                                                                        |
 | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Implementing "just the trivial ticket" on the main thread               | If the orchestrator implements anything, its context fills with implementation detail and the plan's tiering stops meaning anything. Cost is the same either way — a subagent's context is disposable.                                                              |
-| Running the milestone's full build and test suite on the main thread    | Thousands of lines of output the orchestrator stops needing the moment it knows the verdict, spent from the one context that has to survive the whole plan. Delegate the run, take back pass/fail plus the verbatim failures.                                       |
-| Working a wave of independent tickets one at a time                     | Tickets with disjoint files and no dependency between them have nothing to serialize on. Dispatching them one per turn multiplies the plan's wall-clock time by the wave size for no benefit — and a serial loop is where "I'll just do this one myself" creeps in. |
+| Starting to implement instead of finishing the plan                     | Planning and executing are different skills with different contexts for a reason. A half-built feature makes the remaining tickets impossible to size honestly. Finish the plan, get it approved, hand it to `execution-gate`.                                      |
 | Sizing a ticket `L` to avoid splitting it                               | Oversized tickets are unfinished decomposition. A cold subagent handed one can't tell which half matters, and the escalation ladder can't rescue a scoping failure.                                                                                                 |
-| Inflating complexity "to be safe"                                       | Every ticket then runs at the top tier and the cost tiering buys nothing. Guessing too low costs one cheap run; the ladder exists for exactly that.                                                                                                                 |
+| Inflating complexity "to be safe"                                       | Every ticket then runs at the top tier and the cost tiering buys nothing. Guessing too low costs one cheap run; the escalation ladder exists for exactly that.                                                                                                      |
 | Writing Context that points sideways ("see Ticket 1.2", "as discussed") | Resolves to nothing for the subagent. It invents a plausible substitute, and the mismatch surfaces as an integration bug a milestone later.                                                                                                                         |
+| Writing a **Depends on** that isn't real                                | It's the one thing that holds a ticket out of a parallel wave. A dependency added out of narrative habit silently serializes work that had no reason to be.                                                                                                          |
 | Adding a dependency a ticket "obviously needs"                          | Never the planner's call. It goes in **Needs approval** and gets raised at Phase 4, before dispatch.                                                                                                                                                                |
-| Marking a ticket done on a `FAIL`, or narrowing scope to force a `PASS` | Converts a visible blocker into a silent one. Hand the ticket back instead — reporting back is the correct outcome.                                                                                                                                                 |
-| Recording a delivery decision only under `## Completed`                 | No subagent ever reads that section. If a later ticket depends on the fact, it belongs in that ticket's **Context**.                                                                                                                                                |
-| Re-dispatching a `blocked` ticket at the tier that already failed       | The one rung already known not to work. Resume at the tier its **Escalation** field points to.                                                                                                                                                                      |
+| Leaving the **Commands** header empty                                   | The milestone gate runs the project's full build and test commands, and by then Phase 1's discovery is a conversation nobody has anymore. Record them while you still know them.                                                                                    |
 
 ## Storage convention
 

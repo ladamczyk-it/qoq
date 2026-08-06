@@ -40,7 +40,7 @@ the safety net, not a clean-tree requirement.
    stop.
 
 2. **Initialize the workspace and take the snapshot** per
-   [workflow.md](workflow.md) (`workspace.mjs init` + `snapshot`). The
+   [workflow.md](workflow.md) (`workspace.mjs init --run <run-id>` + `snapshot`). The
    snapshot ref is the restore point for every staged patch — it captures any
    uncommitted work the tree had, so restoring to it never throws that away.
 
