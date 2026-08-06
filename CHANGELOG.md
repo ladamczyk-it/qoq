@@ -1,3 +1,11 @@
+## [5.3.1](https://github.com/ladamczyk-it/qoq/compare/v5.3.0...v5.3.1) (2026-08-06)
+
+
+### Bug Fixes
+
+* don't launch wizard in warmup + skills update ([86fedca](https://github.com/ladamczyk-it/qoq/commit/86fedcaef3bc8554907870ad50f066905c3381f7))
+* drop prettier cache ([54d8ba4](https://github.com/ladamczyk-it/qoq/commit/54d8ba46df542f25cb5163aab4d7008ff24a0bff))
+
 # [5.3.0](https://github.com/ladamczyk-it/qoq/compare/v5.2.5...v5.3.0) (2026-08-05)
 
 
