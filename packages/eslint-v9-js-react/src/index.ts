@@ -9,6 +9,7 @@ import {
 } from '@ladamczyk/qoq-eslint-v9-js';
 import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import stylisticPlugin from '@stylistic/eslint-plugin';
+import { defineConfig } from 'eslint/config';
 import compatPlugin from 'eslint-plugin-compat';
 import reactRefreshPlugin from 'eslint-plugin-react-refresh';
 import globals from 'globals';
@@ -85,48 +86,65 @@ const restoredReactRules = restoreSonarjsRules(REACT_ONLY_SONARJS_RULES, [
 
 const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsBaseConfigRest, {
-    name: 'qoq-eslint-v9-js-react',
-    languageOptions: {
-      // Merged on top of the JS base's node globals. Without these, `no-undef`
-      // (error, from @eslint/js recommended) flags `window`/`document` in every
-      // plain-JS React project — TS variants never noticed since `eslint-v9-ts`
-      // turns `no-undef` off.
-      globals: {
-        ...globals.browser,
-      },
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
+/**
+ * Everything this package adds or changes on top of the JS base, as a single
+ * flat-config layer for `defineConfig` composition. Shared by the TS variant
+ * (eslint-v9-ts-react appends it to its own chain), so it holds nothing JS-only.
+ */
+export const reactLayer: EslintConfig = {
+  name: 'qoq-eslint-v9-js-react',
+  languageOptions: {
+    // Merged on top of the JS base's node globals. Without these, `no-undef`
+    // (error, from @eslint/js recommended) flags `window`/`document` in every
+    // plain-JS React project — TS variants never noticed since `eslint-v9-ts`
+    // turns `no-undef` off.
+    globals: {
+      ...globals.browser,
     },
-    rules: {
-      ...compatPlugin.configs['flat/recommended'].rules,
-      ...reactPlugin.configs.recommended.rules,
-      ...stylisticPlugin.configs.recommended.rules,
-      ...restoredReactRules,
-      'import-x/order': importOrderRule,
-      'no-restricted-imports': noRestrictedImportsRule,
-      '@eslint-react/no-multi-comp': 2,
-      // Keep jsx/tsx files Fast-Refresh-safe (HMR): a module may export
-      // multiple components, but mixing component and non-component exports
-      // breaks Fast Refresh. `allowConstantExport` permits Vite-style constants.
-      'react-refresh/only-export-components': [2, { allowConstantExport: true }],
-      ...disabledRules,
-    },
-    settings: {
-      react: {
-        version: 'detect',
+    parserOptions: {
+      ecmaFeatures: {
+        jsx: true,
       },
     },
-  }),
+  },
   plugins: {
-    ...jsBaseConfigPlugins,
     compat: compatPlugin,
     '@stylistic': stylisticPlugin,
     '@eslint-react': reactPluginWithCustomRules,
     'react-refresh': reactRefreshPlugin,
   },
+  rules: {
+    ...compatPlugin.configs['flat/recommended'].rules,
+    ...reactPlugin.configs.recommended.rules,
+    ...stylisticPlugin.configs.recommended.rules,
+    ...restoredReactRules,
+    'import-x/order': importOrderRule,
+    'no-restricted-imports': noRestrictedImportsRule,
+    '@eslint-react/no-multi-comp': 2,
+    // Keep jsx/tsx files Fast-Refresh-safe (HMR): a module may export
+    // multiple components, but mixing component and non-component exports
+    // breaks Fast Refresh. `allowConstantExport` permits Vite-style constants.
+    'react-refresh/only-export-components': [2, { allowConstantExport: true }],
+    ...disabledRules,
+  },
+  settings: {
+    react: {
+      version: 'detect',
+    },
+  },
+};
+
+const { plugins: reactLayerPlugins, ...reactLayerRest } = reactLayer;
+
+export const baseConfig: EslintConfig = {
+  ...objectMergeRight(jsBaseConfigRest, reactLayerRest),
+  plugins: { ...jsBaseConfigPlugins, ...reactLayerPlugins },
+};
+
+/**
+ * Flat-config array form: the JS base and the React layer, merged per file by
+ * ESLint's own cascade instead of being pre-merged with `objectMergeRight`.
+ */
+export const configs: Record<'base', Linter.Config[]> = {
+  base: defineConfig(jsBaseConfig, reactLayer),
 };
