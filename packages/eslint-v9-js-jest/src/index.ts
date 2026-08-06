@@ -5,8 +5,11 @@ import {
   restoreSonarjsRules,
 } from '@ladamczyk/qoq-eslint-v9-js';
 import { objectMergeRight } from '@ladamczyk/qoq-utils';
+import { defineConfig } from 'eslint/config';
 import jestPlugin from 'eslint-plugin-jest';
 import globals from 'globals';
+
+import type { Linter } from 'eslint';
 
 export const disabledRules: EslintConfig['rules'] = {
   'sonarjs/no-duplicate-string': 0,
@@ -58,24 +61,48 @@ const restoredTestRules = restoreSonarjsRules(TEST_ONLY_SONARJS_RULES);
 
 const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsBaseConfigRest, {
-    name: 'qoq-eslint-v9-js-jest',
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-      },
+/**
+ * Everything this package adds or changes on top of the JS base, as a single
+ * flat-config layer for `defineConfig` composition. Shared by the TS variant
+ * (eslint-v9-ts-jest appends it to its own chain), so JS-only overrides stay
+ * out of it — `jsOnlyDisabledRules` above is composed in separately below.
+ */
+export const jestLayer: EslintConfig = {
+  name: 'qoq-eslint-v9-js-jest',
+  languageOptions: {
+    globals: {
+      ...globals.jest,
     },
-    rules: {
-      ...jestPlugin.configs.recommended.rules,
-      ...restoredTestRules,
-      ...additionalJestRules,
-      ...disabledRules,
-      ...jsOnlyDisabledRules,
-    } as EslintConfig['rules'],
-  }),
+  },
   plugins: {
-    ...jsBaseConfigPlugins,
     jest: jestPlugin,
   },
+  rules: {
+    ...jestPlugin.configs.recommended.rules,
+    ...restoredTestRules,
+    ...additionalJestRules,
+    ...disabledRules,
+  } as EslintConfig['rules'],
+};
+
+const { plugins: jestLayerPlugins, ...jestLayerRest } = jestLayer;
+
+export const baseConfig: EslintConfig = {
+  ...objectMergeRight(jsBaseConfigRest, jestLayerRest, { rules: jsOnlyDisabledRules }),
+  plugins: {
+    ...jsBaseConfigPlugins,
+    ...jestLayerPlugins,
+  },
+};
+
+/**
+ * Flat-config array form: the JS base, the jest layer, and the JS-only
+ * relaxations, merged per file by ESLint's own cascade instead of being
+ * pre-merged with `objectMergeRight`.
+ */
+export const configs: Record<'base', Linter.Config[]> = {
+  base: defineConfig(jsBaseConfig, jestLayer, {
+    name: 'qoq-eslint-v9-js-jest-js-only',
+    rules: jsOnlyDisabledRules,
+  }),
 };
