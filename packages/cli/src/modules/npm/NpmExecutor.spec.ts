@@ -86,6 +86,39 @@ describe('NpmExecutor', () => {
       expect(result).toBe(EExitCode.OK);
     });
 
+    it('should write a lean npm-report.json when --json is set', async () => {
+      vi.mocked(executeCommand).mockResolvedValue(
+        JSON.stringify({ pkg: { current: '1.0.0', latest: '2.0.0' } })
+      );
+      const executor = new NpmExecutor(dummyModulesConfig, true, true);
+
+      await executor.run({ ...baseOptions, json: 'true', output: '.qoq/reports' });
+
+      expect(writeFileSync).toHaveBeenCalledWith(
+        '.qoq/reports/npm-report.json',
+        JSON.stringify({
+          major: [{ name: 'pkg', current: '1.0.0', latest: '2.0.0' }],
+          minor: [],
+          patch: [],
+        })
+      );
+    });
+
+    it('should not write a report when --json is not set', async () => {
+      vi.mocked(executeCommand).mockResolvedValue(
+        JSON.stringify({ pkg: { current: '1.0.0', latest: '2.0.0' } })
+      );
+      vi.mocked(writeFileSync).mockClear();
+      const executor = new NpmExecutor(dummyModulesConfig, true, true);
+
+      await executor.run(baseOptions);
+
+      expect(writeFileSync).not.toHaveBeenCalledWith(
+        expect.stringContaining('npm-report.json'),
+        expect.anything()
+      );
+    });
+
     it('should report when all dependencies are up to date', async () => {
       vi.mocked(executeCommand).mockResolvedValue('{}');
       const executor = new NpmExecutor(dummyModulesConfig, true, true);

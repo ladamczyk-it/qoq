@@ -8,6 +8,8 @@ import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import vitestPlugin from '@vitest/eslint-plugin';
 import { defineConfig } from 'eslint/config';
 
+import type { Linter } from 'eslint';
+
 export const disabledRules: EslintConfig['rules'] = {
   'sonarjs/no-duplicate-string': 0,
   // Duplicates of vitest's own recommended rules - same violation would be reported
@@ -99,7 +101,7 @@ export const baseConfig: EslintConfig = {
  * relaxations, merged per file by ESLint's own cascade instead of being
  * pre-merged with `objectMergeRight`.
  */
-export const configs = {
+export const configs: Record<'base', Linter.Config[]> = {
   base: defineConfig(jsBaseConfig, vitestLayer, {
     name: 'qoq-eslint-v9-js-vitest-js-only',
     rules: jsOnlyDisabledRules,

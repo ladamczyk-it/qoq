@@ -10,6 +10,9 @@ describe('preset configs', () => {
       ignore: ['package.json'],
       ignoreDependencies: [],
       ignoreBinaries: [],
+      ignoreFiles: [],
+      ignoreMembers: [],
+      ignoreUnresolved: [],
     });
   });
 
@@ -20,6 +23,9 @@ describe('preset configs', () => {
       ignore: ['package.json'],
       ignoreDependencies: [],
       ignoreBinaries: [],
+      ignoreFiles: [],
+      ignoreMembers: [],
+      ignoreUnresolved: [],
     });
   });
 
@@ -30,6 +36,9 @@ describe('preset configs', () => {
       ignore: ['package.json', 'tsconfig.json', '**/*.d.ts'],
       ignoreDependencies: [],
       ignoreBinaries: [],
+      ignoreFiles: [],
+      ignoreMembers: [],
+      ignoreUnresolved: [],
     });
   });
 
@@ -40,6 +49,9 @@ describe('preset configs', () => {
       ignore: ['package.json', 'tsconfig.json', '**/*.d.ts'],
       ignoreDependencies: [],
       ignoreBinaries: [],
+      ignoreFiles: [],
+      ignoreMembers: [],
+      ignoreUnresolved: [],
     });
   });
 });

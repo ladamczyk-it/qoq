@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -35,7 +35,9 @@ const config = {
 describe('PrettierExecutor', () => {
   const executor = new PrettierExecutor(config, true, true);
   let workdir: string;
+  let cacheDir: string;
   let cwd: string;
+  let cachePath: string;
   let stdout: ReturnType<typeof vi.spyOn>;
   let stderr: ReturnType<typeof vi.spyOn>;
 
@@ -45,6 +47,13 @@ describe('PrettierExecutor', () => {
     writeFileSync(join(workdir, 'b.ts'), 'const b=2');
     cwd = process.cwd();
     process.chdir(workdir);
+
+    // Redirect the real (repo-relative) cache path to a scratch dir *outside*
+    // workdir — the prettier `sources: ['.']` config would otherwise pick the
+    // cache file itself up as a lint target.
+    cacheDir = mkdtempSync(join(tmpdir(), 'qoq-prettier-cache-'));
+    cachePath = join(cacheDir, '.prettiercache');
+    (PrettierExecutor as unknown as { CACHE_PATH: string }).CACHE_PATH = cachePath;
 
     stdout = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
@@ -60,6 +69,7 @@ describe('PrettierExecutor', () => {
   afterEach(() => {
     process.chdir(cwd);
     rmSync(workdir, { recursive: true, force: true });
+    rmSync(cacheDir, { recursive: true, force: true });
     vi.restoreAllMocks();
     vi.clearAllMocks();
   });
@@ -181,6 +191,65 @@ describe('PrettierExecutor', () => {
 
       expect(result).toBe(EExitCode.OK);
       expect(readReport()).toStrictEqual({ issues: [] });
+    });
+  });
+
+  describe('cache', () => {
+    it('should not read or write a cache file when caching is disabled', async () => {
+      await executor.run({ ...baseOptions, disableCache: true });
+
+      expect(existsSync(cachePath)).toBe(false);
+    });
+
+    it('should skip rechecking clean, unchanged files on a later run', async () => {
+      await executor.run({ ...baseOptions, disableCache: false });
+
+      expect(existsSync(cachePath)).toBe(true);
+      check.mockClear();
+
+      const result = await executor.run({ ...baseOptions, disableCache: false });
+
+      expect(check).not.toHaveBeenCalled();
+      expect(result).toBe(EExitCode.OK);
+    });
+
+    it('should recheck only the files that changed since the cached run', async () => {
+      await executor.run({ ...baseOptions, disableCache: false });
+
+      check.mockClear();
+      writeFileSync(join(workdir, 'a.ts'), 'const a = 100');
+
+      const result = await executor.run({ ...baseOptions, disableCache: false });
+
+      expect(check).toHaveBeenCalledTimes(1);
+      expect(result).toBe(EExitCode.OK);
+    });
+
+    it('should cache a freshly fixed file so a later check run skips it entirely', async () => {
+      format.mockResolvedValueOnce('FIXED');
+
+      await executor.run({ ...baseOptions, disableCache: false, fix: true });
+
+      check.mockClear();
+
+      const result = await executor.run({ ...baseOptions, disableCache: false });
+
+      expect(check).not.toHaveBeenCalled();
+      expect(stdout).toHaveBeenCalledWith('All matched files use Prettier code style!\n');
+      expect(result).toBe(EExitCode.OK);
+    });
+
+    it('should never cache an unformatted file left unfixed', async () => {
+      check.mockResolvedValueOnce(false);
+
+      await executor.run({ ...baseOptions, disableCache: false });
+
+      check.mockClear().mockResolvedValue(false);
+
+      const result = await executor.run({ ...baseOptions, disableCache: false });
+
+      expect(check).toHaveBeenCalledTimes(1);
+      expect(result).toBe(EExitCode.ERROR);
     });
   });
 });

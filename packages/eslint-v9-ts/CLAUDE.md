@@ -7,7 +7,7 @@ Consumer-facing context (exports, naming conventions, added plugins) lives in `A
 ## Commands
 
 ```bash
-# Build (Rollup → ./lib CJS+ESM + ./bin inspector)
+# Build (Rolldown → ./lib CJS+ESM + ./bin inspector)
 npm run build
 
 # Run tests

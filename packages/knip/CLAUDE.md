@@ -7,7 +7,7 @@ Consumer-facing context (exports, pre-built configs) lives in `AGENTS.md` — sh
 ## Commands
 
 ```bash
-# Build (Rollup → ./lib)
+# Build (Rolldown → ./lib)
 npm run build
 
 # Run tests

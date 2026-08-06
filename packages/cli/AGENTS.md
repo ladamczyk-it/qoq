@@ -92,6 +92,9 @@ export default {
     ignore: [],
     ignoreDependencies: [], // '@ladamczyk/qoq-*' is always ignored by default
     ignoreBinaries: [],
+    ignoreFiles: [],
+    ignoreMembers: [],
+    ignoreUnresolved: [],
   },
 
   eslint: [

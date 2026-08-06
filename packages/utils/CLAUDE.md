@@ -7,7 +7,7 @@ Consumer-facing context (exported functions and their signatures) lives in `AGEN
 ## Commands
 
 ```bash
-# Build (Rollup → ./lib, outputs CJS + ESM)
+# Build (Rolldown → ./lib, outputs CJS + ESM)
 npm run build
 
 # Run tests

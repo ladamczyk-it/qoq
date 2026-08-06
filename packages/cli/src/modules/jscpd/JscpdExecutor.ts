@@ -35,7 +35,7 @@ export class JscpdExecutor extends AbstractApiExecutor {
     const { format, threshold, ignore } = this.modulesConfig.modules.jscpd as IModuleJscpdConfig;
 
     // Resolved from the consumer's on-demand install (via the @ladamczyk/qoq-jscpd
-    // peer dependency); kept external in rollup.bin.js. We `require` the CJS build
+    // peer dependency); kept external in rolldown.config.js. We `require` the CJS build
     // rather than `import()` it: jscpd's ESM entry transitively imports
     // `colors/safe` without an extension, which Node's ESM resolver rejects.
     const { detectClonesAndStatistic } = createRequire(import.meta.url)(

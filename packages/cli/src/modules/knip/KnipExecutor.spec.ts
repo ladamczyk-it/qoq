@@ -40,6 +40,9 @@ const configWithKnip = {
       ignore: [],
       ignoreDependencies: [],
       ignoreBinaries: [],
+      ignoreFiles: [],
+      ignoreMembers: [],
+      ignoreUnresolved: [],
     },
   },
 };

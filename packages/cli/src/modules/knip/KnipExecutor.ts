@@ -31,8 +31,16 @@ export class KnipExecutor extends AbstractCommandExecutor {
         workspaces,
         modules: { knip },
       } = this.modulesConfig;
-      const { entry, project, ignore, ignoreDependencies, ignoreBinaries } =
-        knip as IModuleKnipConfig;
+      const {
+        entry,
+        project,
+        ignore,
+        ignoreDependencies,
+        ignoreBinaries,
+        ignoreFiles,
+        ignoreMembers,
+        ignoreUnresolved,
+      } = knip as IModuleKnipConfig;
       const configFilePath = resolveCliPackagePath(
         `/bin/knip.config.${configType === EConfigType.ESM ? 'm' : 'c'}js`
       );
@@ -43,7 +51,10 @@ export class KnipExecutor extends AbstractCommandExecutor {
         project,
         ignore,
         ignoreDependencies,
-        ignoreBinaries
+        ignoreBinaries,
+        ignoreFiles,
+        ignoreMembers,
+        ignoreUnresolved
       );
 
       if (!workspaces) {

@@ -9,6 +9,10 @@ import globals from 'globals';
 
 import type { ESLint, Linter } from 'eslint';
 
+// Re-exported so packages extending this config (qoq-eslint-v9-ts) reach import-x through
+// the inheritance chain instead of declaring eslint-plugin-import-x themselves.
+export { importPlugin, createNodeResolver };
+
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface EslintConfig extends Linter.Config {
   rules: Linter.RulesRecord;
@@ -51,6 +55,7 @@ export const TEST_ONLY_SONARJS_RULES = [
   'hooks-before-test-cases',
   'no-incompatible-assertion-types',
   'no-forced-browser-interaction',
+  'parameterized-tests',
 ] as const;
 
 // Rule names that only fire on JSX/DOM markup. Disabled here so plain Node/CLI consumers
@@ -338,7 +343,6 @@ export const baseConfig: EslintConfig = {
     'no-useless-call': 1,
     'no-useless-constructor': 1,
     'no-var': 1,
-    'object-shorthand': 1,
     'prefer-const': 1,
     'prefer-destructuring': 1,
     'prefer-rest-params': 1,
@@ -358,6 +362,6 @@ export const baseConfig: EslintConfig = {
  * let ESLint's cascade merge them per file, instead of pre-merging with
  * `objectMergeRight`.
  */
-export const configs = {
+export const configs: Record<'base', Linter.Config[]> = {
   base: defineConfig(baseConfig),
 };

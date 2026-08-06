@@ -4,7 +4,7 @@ Knip configuration builder used internally by `@ladamczyk/qoq-cli`. Can also be 
 
 ## Exports
 
-### `getKnipConfig(srcPath?, entry?, project?, ignore?, ignoreDependencies?, ignoreBinaries?)`
+### `getKnipConfig(srcPath?, entry?, project?, ignore?, ignoreDependencies?, ignoreBinaries?, ignoreFiles?, ignoreMembers?, ignoreUnresolved?)`
 
 Returns a Knip configuration object. All parameters are optional with sensible defaults.
 
@@ -16,6 +16,9 @@ Returns a Knip configuration object. All parameters are optional with sensible d
 | `ignore`             | `['package.json']`       |
 | `ignoreDependencies` | `[]`                     |
 | `ignoreBinaries`     | `[]`                     |
+| `ignoreFiles`        | `[]`                     |
+| `ignoreMembers`      | `[]`                     |
+| `ignoreUnresolved`   | `[]`                     |
 
 ### Pre-built configs
 

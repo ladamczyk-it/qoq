@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-cli",
-  "version": "5.0.2",
+  "version": "5.3.0",
   "description": "CLI that handles formatting, linting and testing Your JS/TS code",
   "keywords": [
     "cli",
@@ -20,28 +20,28 @@
   "license": "MIT",
   "type": "module",
   "main": "./bin/qoq.js",
-  "types": "./bin/types.d.ts",
+  "types": "./bin/src/types.d.ts",
   "bin": {
     "qoq": "bin/qoq.js"
   },
   "files": [
     "bin/qoq.js",
-    "bin/types.d.ts",
+    "bin/src",
     "AGENTS.md"
   ],
   "scripts": {
-    "build": "rimraf ./bin && rollup -c rollup.bin.js --silent && rollup -c rollup.config.js --silent && chmod +x ./bin/qoq.js",
+    "build": "rimraf ./bin && rolldown -c && tsc --emitDeclarationOnly && chmod +x ./bin/qoq.js",
     "dev": "npm run build && node ./bin/qoq.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@antfu/install-pkg": "1.1.0",
+    "@antfu/install-pkg": "2.0.1",
     "@eslint/compat": "2.1.0",
-    "@ladamczyk/qoq-utils": "^5.0.2",
+    "@ladamczyk/qoq-utils": "^5.3.0",
     "@npmcli/package-json": "7.0.5",
     "cac": "7.0.0",
     "cosmiconfig": "9.0.2",
-    "es-toolkit": "1.49.0",
+    "es-toolkit": "1.50.0",
     "fast-glob": "3.3.3",
     "micromatch": "4.0.8",
     "picocolors": "1.1.1",
@@ -50,18 +50,11 @@
     "semver": "7.8.5"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "29.0.3",
-    "@rollup/plugin-json": "6.1.0",
-    "@rollup/plugin-node-resolve": "16.0.3",
-    "@rollup/plugin-terser": "1.0.0",
     "@types/micromatch": "4.0.10",
     "@types/prompts": "2.4.9",
-    "esbuild": "0.28.1",
     "rimraf": "6.1.3",
-    "rollup": "4.62.2",
-    "rollup-plugin-dts": "6.4.1",
-    "rollup-plugin-esbuild": "6.2.1",
-    "typescript": "6.0.3"
+    "rolldown": "1.2.3",
+    "typescript": "7.0.2"
   },
   "peerDependencies": {
     "@ladamczyk/qoq-eslint-v9-js": "^5",

@@ -1,9 +1,20 @@
-import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import {
+  EslintConfig,
+  baseConfig as jsBaseConfig,
+  importPlugin,
+  createNodeResolver,
+} from '@ladamczyk/qoq-eslint-v9-js';
 import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import { defineConfig } from 'eslint/config';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
-import importPlugin, { createNodeResolver } from 'eslint-plugin-import-x';
 import tseslint from 'typescript-eslint';
+
+import type { Linter } from 'eslint';
+
+// Re-exported so a generated eslint.config can build the monorepo resolver override by
+// importing from the config package it already depends on, not from the resolver packages
+// directly (which it never declares). `createNodeResolver` comes through from the JS base.
+export { createTypeScriptImportResolver, createNodeResolver };
 
 const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
@@ -206,7 +217,7 @@ export const strictConfig: EslintConfig = objectMergeRight(
  * instead of being pre-merged with `objectMergeRight`. Compose further with
  * `defineConfig({ files: [...], extends: [configs.base] })`.
  */
-export const configs = {
+export const configs: Record<'base' | 'test' | 'strict', Linter.Config[]> = {
   base: defineConfig(jsBaseConfig, tsLayer),
   test: defineConfig(jsBaseConfig, tsLayer, testLayer),
   strict: defineConfig(jsBaseConfig, tsLayer, strictLayer),

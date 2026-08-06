@@ -62,6 +62,6 @@ export const tsVitestLayer: Linter.Config = {
  * relaxations from eslint-v9-js-vitest are deliberately absent — they don't apply
  * under typed linting.
  */
-export const configs = {
+export const configs: Record<'base', Linter.Config[]> = {
   base: defineConfig(jsBaseConfig, vitestLayer, tsLayer, tsTestLayer, tsVitestLayer),
 };

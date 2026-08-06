@@ -48,7 +48,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
 
   protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
     // Resolved from the consumer's on-demand install (via the @ladamczyk/qoq-eslint-v9-*
-    // templates that bring in `eslint`); kept external in rollup.bin.js.
+    // templates that bring in `eslint`); kept external in rolldown.config.js.
     const { ESLint } = await import('eslint');
 
     const showProgress = this.showProgress(options);
@@ -175,8 +175,12 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
             Boolean(workspaces?.length) && (template?.startsWith('qoq-eslint-v9-ts') ?? false);
 
           if (usesResolverOverride) {
-            imports['{ createTypeScriptImportResolver }'] = 'eslint-import-resolver-typescript';
-            imports['{ createNodeResolver }'] = 'eslint-plugin-import-x';
+            // Through the TS base config, which every qoq-eslint-v9-ts* template inherits
+            // from and which declares the resolvers. Importing them directly would make the
+            // generated config depend on packages the consumer never declares, so it breaks
+            // as soon as npm nests them instead of hoisting.
+            imports['{ createTypeScriptImportResolver, createNodeResolver }'] =
+              `@ladamczyk/${EModulesEslint.ESLINT_V9_TS}`;
           }
 
           const mergeArgs = [

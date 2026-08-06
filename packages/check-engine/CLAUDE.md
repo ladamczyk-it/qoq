@@ -7,7 +7,7 @@ Consumer-facing context (what the tool checks, monorepo support, Node LTS refere
 ## Commands
 
 ```bash
-# Build (Rollup → ./bin)
+# Build (Rolldown → ./bin)
 npm run build
 
 # Build and run locally

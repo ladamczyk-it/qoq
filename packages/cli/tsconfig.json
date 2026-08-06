@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "./bin",
+    "rootDir": ".",
     "paths": {
       "__tests__/*": ["./src/__tests__/*"]
     }

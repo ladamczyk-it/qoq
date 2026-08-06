@@ -1,3 +1,95 @@
+# [5.3.0](https://github.com/ladamczyk-it/qoq/compare/v5.2.5...v5.3.0) (2026-08-05)
+
+
+### Bug Fixes
+
+* bump packages ([efa0167](https://github.com/ladamczyk-it/qoq/commit/efa01675e588158a69caa689587afce67d76ebf8))
+* bump typescript v7 where possible ([0406d61](https://github.com/ladamczyk-it/qoq/commit/0406d614748757892ed63cae1dbb92fb20b025bd))
+
+
+### Features
+
+* move to rolldown + bump ([dc0ee31](https://github.com/ladamczyk-it/qoq/commit/dc0ee3123dc8e3eef5d5c10e5f73c9ca44b3ea12))
+
+## [5.2.5](https://github.com/ladamczyk-it/qoq/compare/v5.2.4...v5.2.5) (2026-08-01)
+
+
+### Bug Fixes
+
+* bump packages + skill update ([f9e9212](https://github.com/ladamczyk-it/qoq/commit/f9e92123732c5853e8d2b49152ccf30879039313))
+* skill config ([6925fa6](https://github.com/ladamczyk-it/qoq/commit/6925fa68b6c184494b100a7b487be7f7d3058e49))
+
+## [5.2.4](https://github.com/ladamczyk-it/qoq/compare/v5.2.3...v5.2.4) (2026-07-29)
+
+
+### Bug Fixes
+
+* bump packages ([4a9d91d](https://github.com/ladamczyk-it/qoq/commit/4a9d91d9746e6c3ad7487ec4f4105552deb422de))
+* bump packages + import rewire ([f897f1d](https://github.com/ladamczyk-it/qoq/commit/f897f1df226fe855cf5094a681de2b63fbf80585))
+* skill config ([13ca514](https://github.com/ladamczyk-it/qoq/commit/13ca514584d07ff43eda166c038916519ba7a786))
+
+## [5.2.3](https://github.com/ladamczyk-it/qoq/compare/v5.2.2...v5.2.3) (2026-07-27)
+
+
+### Bug Fixes
+
+* bump packages + skill ([171deb8](https://github.com/ladamczyk-it/qoq/commit/171deb80c5f71817c0bb46a7563e2962c3d1ded0))
+* bump packages + skill bump ([3ab0ece](https://github.com/ladamczyk-it/qoq/commit/3ab0ecec3afb01c7d5bb1e26aaaaedb59fa3ca5f))
+
+## [5.2.2](https://github.com/ladamczyk-it/qoq/compare/v5.2.1...v5.2.2) (2026-07-21)
+
+
+### Bug Fixes
+
+* bump packages + reconfigure ([d86902b](https://github.com/ladamczyk-it/qoq/commit/d86902b5629860c069f7326b61ea5916b747bd4a))
+
+## [5.2.1](https://github.com/ladamczyk-it/qoq/compare/v5.2.0...v5.2.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* bump packages + skill ([c2e94f2](https://github.com/ladamczyk-it/qoq/commit/c2e94f2ed059546c90d5d8fe599ff9f1966577b1))
+* bump packages + test skill ([a6ecd7b](https://github.com/ladamczyk-it/qoq/commit/a6ecd7b4af06965eb5ad6cf4c3223e02227acb50))
+
+# [5.2.0](https://github.com/ladamczyk-it/qoq/compare/v5.1.1...v5.2.0) (2026-07-15)
+
+
+### Bug Fixes
+
+* bump packages ([63ecf89](https://github.com/ladamczyk-it/qoq/commit/63ecf892c114050ca23bb20739267ee74cf3f5c4))
+
+
+### Features
+
+* allow more Knip ignore options ([2231373](https://github.com/ladamczyk-it/qoq/commit/2231373423a8a6e64260d59f16e2ead5a4073404))
+
+## [5.1.1](https://github.com/ladamczyk-it/qoq/compare/v5.1.0...v5.1.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* re-add Prettier cache, add npm --json, re-work qoq skill ([61a8543](https://github.com/ladamczyk-it/qoq/commit/61a8543e1007e6d6c2e828cb00920a9034c08718))
+
+# [5.1.0](https://github.com/ladamczyk-it/qoq/compare/v5.0.2...v5.1.0) (2026-07-14)
+
+
+### Bug Fixes
+
+* bump packages ([ed54d7e](https://github.com/ladamczyk-it/qoq/commit/ed54d7ef4c1e9ef2df23309bad747ee35f1f6cc2))
+* bump packages ([7b2ff02](https://github.com/ladamczyk-it/qoq/commit/7b2ff02fa2ed5cd56cac55a5fa706c1d6dd04a45))
+* optimize import-x for non-monorepo configs ([6a7489a](https://github.com/ladamczyk-it/qoq/commit/6a7489ab1b74071ae091c751fbdcd22ccf227b1b))
+* optimize sonarjs rules config ([e8c8b65](https://github.com/ladamczyk-it/qoq/commit/e8c8b6552f904a4fb2fe712bb4c71b0118f941a5))
+* reconfigure eslint packages ([5861062](https://github.com/ladamczyk-it/qoq/commit/5861062be007ca5249ecd37c9a8efaedd85ab821))
+* reconfigure eslint packages ([a3dc753](https://github.com/ladamczyk-it/qoq/commit/a3dc753fe80e342788dff28f0f46cda982ec0f89))
+* reconfigure eslint-v9-js ([22d7fea](https://github.com/ladamczyk-it/qoq/commit/22d7fea1fa4a80e0d6214acd14213f6c62520742))
+* reconfigure eslint-v9-ts ([3278bba](https://github.com/ladamczyk-it/qoq/commit/3278bbace074a3e5a58567892254a0ffe93082a1))
+* supress eslint warrning ([76e33f5](https://github.com/ladamczyk-it/qoq/commit/76e33f596e4fd559bffe38ad3cf770512af2bf89))
+
+
+### Features
+
+* for CI=true remove eslint prettier rules since we don't need IDE preview ([78380be](https://github.com/ladamczyk-it/qoq/commit/78380bea5bf7b58130de978919cb4eac9b12febc))
+
 ## [5.0.2](https://github.com/ladamczyk-it/qoq/compare/v5.0.1...v5.0.2) (2026-07-09)
 
 

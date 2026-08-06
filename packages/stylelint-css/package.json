@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-stylelint-css",
-  "version": "5.0.2",
+  "version": "5.3.0",
   "description": "Stylelint config template for CSS",
   "keywords": [
     "stylelint CSS template",
@@ -33,12 +33,12 @@
     "AGENTS.md"
   ],
   "scripts": {
-    "build": "rimraf ./lib && rollup -c --silent",
+    "build": "rimraf ./lib && rolldown -c && tsc --emitDeclarationOnly",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "browserslist": "latest",
-    "stylelint": "^17.14.0",
+    "browserslist": "4.28.7",
+    "stylelint": "^17.14.1",
     "stylelint-config-clean-order": "10.0.0",
     "stylelint-config-standard": "40.0.0",
     "stylelint-file-max-lines": "1.0.0",
@@ -47,10 +47,9 @@
     "stylelint-prettier": "5.0.3"
   },
   "devDependencies": {
-    "@rollup/plugin-typescript": "12.3.0",
     "rimraf": "6.1.3",
-    "rollup": "4.62.2",
-    "typescript": "6.0.3"
+    "rolldown": "1.2.3",
+    "typescript": "7.0.2"
   },
   "engines": {
     "node": ">=22.15.0"

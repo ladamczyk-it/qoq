@@ -24,6 +24,9 @@ describe('KnipConfigHandler', () => {
               ignore: ['dist'],
               ignoreDependencies: ['@x/*'],
               ignoreBinaries: ['foo'],
+              ignoreFiles: ['generated/**'],
+              ignoreMembers: ['bar'],
+              ignoreUnresolved: ['baz'],
             },
           },
         },
@@ -37,6 +40,9 @@ describe('KnipConfigHandler', () => {
           ignore: ['dist'],
           ignoreDependencies: ['@x/*'],
           ignoreBinaries: ['foo'],
+          ignoreFiles: ['generated/**'],
+          ignoreMembers: ['bar'],
+          ignoreUnresolved: ['baz'],
         },
       });
     });
@@ -65,6 +71,9 @@ describe('KnipConfigHandler', () => {
             ],
             ignoreDependencies: ['@ladamczyk/*'],
             ignoreBinaries: [],
+            ignoreFiles: [],
+            ignoreMembers: [],
+            ignoreUnresolved: [],
             project: ['/**/*.{js}'],
           },
         },
@@ -86,7 +95,16 @@ describe('KnipConfigHandler', () => {
 
   describe('getPrompts', () => {
     it('should store the answered knip configuration', async () => {
-      prompts.inject([['index.ts'], ['src/**'], ['dist'], ['@foo/*'], ['eslint']]);
+      prompts.inject([
+        ['index.ts'],
+        ['src/**'],
+        ['dist'],
+        ['@foo/*'],
+        ['eslint'],
+        ['generated/**'],
+        ['bar'],
+        ['baz'],
+      ]);
       const modulesConfig = structuredClone(dummyModulesConfig);
       const handler = new KnipConfigHandler(modulesConfig, {});
 
@@ -98,6 +116,9 @@ describe('KnipConfigHandler', () => {
         ignore: ['dist'],
         ignoreDependencies: ['@foo/*'],
         ignoreBinaries: ['eslint'],
+        ignoreFiles: ['generated/**'],
+        ignoreMembers: ['bar'],
+        ignoreUnresolved: ['baz'],
       });
     });
   });
@@ -108,7 +129,7 @@ describe('KnipConfigHandler', () => {
     const defaultProject = ['/**/*.{js}'];
 
     it('emits an empty config when the user accepts every default', async () => {
-      prompts.inject([defaultEntry, defaultProject, [], [], []]);
+      prompts.inject([defaultEntry, defaultProject, [], [], [], [], [], []]);
       const modulesConfig = structuredClone(dummyModulesConfig);
       const handler = new KnipConfigHandler(modulesConfig, {});
 
@@ -118,7 +139,7 @@ describe('KnipConfigHandler', () => {
     });
 
     it('serializes only the entry when the user changes it', async () => {
-      prompts.inject([['custom.ts'], defaultProject, [], [], []]);
+      prompts.inject([['custom.ts'], defaultProject, [], [], [], [], [], []]);
       const modulesConfig = structuredClone(dummyModulesConfig);
       const handler = new KnipConfigHandler(modulesConfig, {});
 

@@ -10,7 +10,6 @@ export const disabledRules: EslintConfig['rules'] = {
 // Not part of `flat/react` recommended. Pushes toward accessible queries (role/label/text)
 // over implementation-detail selectors, in the spirit of the RTL rules already enabled here.
 const additionalTestingLibraryRules: EslintConfig['rules'] = {
-  'testing-library/no-test-id-queries': 1,
   'testing-library/prefer-user-event': 1,
 };
 

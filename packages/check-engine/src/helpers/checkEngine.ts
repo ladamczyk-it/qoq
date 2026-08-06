@@ -1,4 +1,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
+import { dirname, resolve } from 'node:path';
+
 import { getPackageInfo } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 import { valid, SemVer, validRange, Range } from 'semver';
@@ -37,8 +39,12 @@ export const checkEngine = (path: string, workspaces: boolean = false): void => 
   const dependenciesList =
     dependenciesKeys.length > 0 ? dependenciesKeys : Object.keys(devDependencies ?? {});
 
+  // Resolve from the checked package's own folder: npm may nest a workspace
+  // dependency instead of hoisting it, so root-only resolution misses it.
+  const paths = [resolve(dirname(path))];
+
   const enginesRaw = dependenciesList.reduce((acc: string[], dependency) => {
-    const { packageJson } = getPackageInfo(dependency);
+    const { packageJson } = getPackageInfo(dependency, { paths });
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const enginesNode = String(packageJson?.engines?.node ?? '');

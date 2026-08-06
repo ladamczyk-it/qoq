@@ -7,7 +7,7 @@ Consumer-facing context (inheritance, exports) lives in `AGENTS.md` — shipped 
 ## Commands
 
 ```bash
-# Build (Rollup → ./lib ESM-only + ./bin inspector)
+# Build (Rolldown → ./lib ESM-only + ./bin inspector)
 npm run build
 
 # Run tests

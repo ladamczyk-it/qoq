@@ -300,6 +300,32 @@ if (jscpd && !jscpd.__parseError) {
   sections.push(`JSCPD  ⚠ could not parse report: ${jscpd.__parseError}`);
 }
 
+// ---------- npm outdated ----------
+// Report is written by NpmExecutor's --json path: { major, minor, patch } buckets
+// of { name, current, latest } — already deduped and version-bucketed by
+// NpmExecutor itself, so no further grouping is needed here.
+const npm = read('npm-report.json');
+if (npm && !npm.__parseError) {
+  const buckets = ['major', 'minor', 'patch'];
+  const counts = Object.fromEntries(buckets.map((b) => [b, (npm[b] ?? []).length]));
+  const total = buckets.reduce((n, b) => n + counts[b], 0);
+  machine.tools.npm = { total, ...counts };
+  if (total) {
+    totalFindings += total;
+    const lines = buckets
+      .filter((b) => counts[b])
+      .map((b) => {
+        const items = (npm[b] ?? []).map((p) => `${p.name} ${p.current}->${p.latest}`);
+        return `  ${b.padEnd(8)} x${counts[b]}  ${cap(items)}`;
+      });
+    sections.push(
+      `NPM  ${total} outdated package(s)  [judgment needed — check changelogs before major bumps]\n${lines.join('\n')}`
+    );
+  }
+} else if (npm?.__parseError) {
+  sections.push(`NPM  ⚠ could not parse report: ${npm.__parseError}`);
+}
+
 // ---------- Stylelint (optional) ----------
 // Report is written by StylelintExecutor's JS-API path: an array of
 // { source, warnings:[{ rule, severity:'error'|'warning', line, fixable }] }.
