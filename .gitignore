@@ -10,6 +10,7 @@
 **/stats
 **/build
 **/.docusaurus
+.config-baseline
 
 !configs/bin
 
