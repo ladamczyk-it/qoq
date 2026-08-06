@@ -44,7 +44,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ladamczyk/qoq-eslint-v9-js": "^5.3.1",
+    "@ladamczyk/qoq-eslint-v9-js-vitest": "^5.3.1",
     "@ladamczyk/qoq-eslint-v9-js-vitest-rtl": "^5.3.1",
+    "@ladamczyk/qoq-eslint-v9-ts": "^5.3.1",
     "@ladamczyk/qoq-eslint-v9-ts-vitest": "^5.3.1",
     "@ladamczyk/qoq-utils": "^5.3.1"
   },
