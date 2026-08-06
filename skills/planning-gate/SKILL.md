@@ -173,7 +173,7 @@ the `qoq refactor` standards pass on delivery: `moderate` and `judgment-heavy`
 do, `trivial` and `mechanical` don't. Those lenses ask whether the code is
 over-built and whether it's the right pattern — questions that only exist
 where a decision was made, and a ticket rated trivial is one where the plan
-already made it. So inflating a rating doesn't just spend a bigger model; it
+already made it. Inflating a rating doesn't just spend a bigger model; it
 adds two more review subagents to a ticket with nothing for them to find. The
 code is still covered — the milestone gate runs the wide lens over every
 ticket's files together, which is where cross-file findings live anyway.
@@ -313,15 +313,15 @@ that path; don't start dispatching tickets from here.
 
 The common mistakes, and what each one actually costs:
 
-| Pitfall                                                                 | Why it bites                                                                                                                                                                                                                                                        |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Starting to implement instead of finishing the plan                     | Planning and executing are different skills with different contexts for a reason. A half-built feature makes the remaining tickets impossible to size honestly. Finish the plan, get it approved, hand it to `execution-gate`.                                      |
-| Sizing a ticket `L` to avoid splitting it                               | Oversized tickets are unfinished decomposition. A cold subagent handed one can't tell which half matters, and the escalation ladder can't rescue a scoping failure.                                                                                                 |
-| Inflating complexity "to be safe"                                       | Every ticket then runs at the top tier and the cost tiering buys nothing. Guessing too low costs one cheap run; the escalation ladder exists for exactly that.                                                                                                      |
-| Writing Context that points sideways ("see Ticket 1.2", "as discussed") | Resolves to nothing for the subagent. It invents a plausible substitute, and the mismatch surfaces as an integration bug a milestone later.                                                                                                                         |
-| Writing a **Depends on** that isn't real                                | It's the one thing that holds a ticket out of a parallel wave. A dependency added out of narrative habit silently serializes work that had no reason to be.                                                                                                          |
-| Adding a dependency a ticket "obviously needs"                          | Never the planner's call. It goes in **Needs approval** and gets raised at Phase 4, before dispatch.                                                                                                                                                                |
-| Leaving the **Commands** header empty                                   | The milestone gate runs the project's full build and test commands, and by then Phase 1's discovery is a conversation nobody has anymore. Record them while you still know them.                                                                                    |
+| Pitfall                                                                 | Why it bites                                                                                                                                                                                                                   |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Starting to implement instead of finishing the plan                     | Planning and executing are different skills with different contexts for a reason. A half-built feature makes the remaining tickets impossible to size honestly. Finish the plan, get it approved, hand it to `execution-gate`. |
+| Sizing a ticket `L` to avoid splitting it                               | Oversized tickets are unfinished decomposition. A cold subagent handed one can't tell which half matters, and the escalation ladder can't rescue a scoping failure.                                                            |
+| Inflating complexity "to be safe"                                       | Every ticket then runs at the top tier and the cost tiering buys nothing. Guessing too low costs one cheap run; the escalation ladder exists for exactly that.                                                                 |
+| Writing Context that points sideways ("see Ticket 1.2", "as discussed") | Resolves to nothing for the subagent. It invents a plausible substitute, and the mismatch surfaces as an integration bug a milestone later.                                                                                    |
+| Writing a **Depends on** that isn't real                                | It's the one thing that holds a ticket out of a parallel wave. A dependency added out of narrative habit silently serializes work that had no reason to be.                                                                    |
+| Adding a dependency a ticket "obviously needs"                          | Never the planner's call. It goes in **Needs approval** and gets raised at Phase 4, before dispatch.                                                                                                                           |
+| Leaving the **Commands** header empty                                   | The milestone gate runs the project's full build and test commands, and by then Phase 1's discovery is a conversation nobody has anymore. Record them while you still know them.                                               |
 
 ## Storage convention
 

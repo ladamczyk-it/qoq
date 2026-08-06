@@ -72,7 +72,7 @@ why this ticket exists. No "similar to Ticket 1.3" — restate what's needed.
       its tests has the implementer write those tests, and `qoq gate` covers
       them
 - [ ] `qoq refactor <files above> --tree dirty --decisions auto --run <ticket
-      id>` standards pass run before the gate — include this line only on a
+id>` standards pass run before the gate — include this line only on a
       **moderate** or **judgment-heavy** ticket; omit it on trivial,
       mechanical, and test-only ones, where the wide lens has no decision to
       review and the milestone gate covers the code anyway
@@ -91,7 +91,7 @@ a known host; "none" until then>
 
 - [ ] All tickets above are `done`
 - [ ] Full quality suite: `qoq refactor <union of every ticket's Files above>
-      --decisions auto --run milestone-<N>` → clean. `refactor` rather than
+--decisions auto --run milestone-<N>` → clean. `refactor` rather than
       `gate`, because this is the only scope where cross-ticket findings
       (duplication, a now-dead export, three tickets that each picked a
       different shape) are visible at all. Pass the union explicitly — bare, it

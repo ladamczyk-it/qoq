@@ -27,9 +27,9 @@ Every analyzing command (`review`, `refactor`, `fix`, `gate`) runs against two
 knobs. The defaults suit a human at a terminal; a caller that isn't one — a
 producer skill, a plan-executing subagent, CI — overrides them explicitly.
 
-| Knob        | Default | Override | What the override changes                                                       |
-| ----------- | ------- | -------- | ------------------------------------------------------------------------------- |
-| `tree`      | `clean` | `dirty`  | Skip the clean-tree precondition; lean on the safety snapshot instead            |
+| Knob        | Default | Override | What the override changes                                                      |
+| ----------- | ------- | -------- | ------------------------------------------------------------------------------ |
+| `tree`      | `clean` | `dirty`  | Skip the clean-tree precondition; lean on the safety snapshot instead          |
 | `decisions` | `human` | `auto`   | Don't stop for sign-off: apply the safe tier, report the advisory tier, run on |
 
 Pass them as flags after the scope — `refactor packages/cli/src --tree dirty
@@ -60,7 +60,7 @@ silently widens the run past what anyone asked for. No scope given plus
 ### `decisions: auto`
 
 No new judgment rule — the existing
-[risk tiers](analysis.md#risk-tiers--safe-vs-advisory) already draw the line.
+[risk tiers](analysis.md#risk-tiers--safe-vs-advisory) already settle it.
 Auto mode applies the **safe tier** and reports the **advisory tier** as
 findings instead of applying them. What counts as safe doesn't loosen because
 nobody's watching; if anything, an unattended run is where the tier boundary
@@ -120,18 +120,18 @@ under review.
 
 What lands where:
 
-| Path                    | Contents                                                          |
-| ----------------------- | ----------------------------------------------------------------- |
-| `<ws>/reports/`         | the `qoq --check --json` reports                                  |
-| `<ws>/digest.txt`       | the `summarize.mjs` digest, when saved for subagents              |
-| `<ws>/*.patch`          | staged patches (per-area subdirs when fanning out)                |
-| `<ws>/snapshot/`        | copies of untracked files, saved by `snapshot`                    |
-| `<ws>/.workspace.json`  | this run's state (snapshot ref, untracked copies)                 |
-| `.qoq/.workspace.json`  | shared state (gitignore disposition, cached validation commands)  |
+| Path                   | Contents                                                         |
+| ---------------------- | ---------------------------------------------------------------- |
+| `<ws>/reports/`        | the `qoq --check --json` reports                                 |
+| `<ws>/digest.txt`      | the `summarize.mjs` digest, when saved for subagents             |
+| `<ws>/*.patch`         | staged patches (per-area subdirs when fanning out)               |
+| `<ws>/snapshot/`       | copies of untracked files, saved by `snapshot`                   |
+| `<ws>/.workspace.json` | this run's state (snapshot ref, untracked copies)                |
+| `.qoq/.workspace.json` | shared state (gitignore disposition, cached validation commands) |
 
 The split matters when reading state by hand: the snapshot ref is per-run, and
-the validation commands are per-repo — discovery is a fact about the project,
-so the first run in a wave pays for it and the rest read it.
+the validation commands are per-repo — discovery is a fact about the project:
+the first run in a wave pays for it and the rest read it.
 
 ## The safety snapshot
 
@@ -290,7 +290,7 @@ edits and restores trample each other, and the loser's work vanishes with no
 error. Disjoint file sets are safe and are the normal case for a plan executor's
 wave: separate `--run` ids keep the workspaces apart, and non-overlapping paths
 keep the edits apart. Overlapping paths need an isolated worktree or a
-sequential run; there is no merge step here.
+sequential run; this workflow has no merge step.
 
 ## Applying patches
 

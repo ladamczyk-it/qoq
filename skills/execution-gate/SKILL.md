@@ -99,10 +99,10 @@ holds exactly one ticket, just do that ticket.
 
 Two modes, chosen by the `--parallelism` argument:
 
-| Mode              | Behavior                                                                                          |
-| ----------------- | ------------------------------------------------------------------------------------------------- |
-| `wave` _(default)_ | Every eligible ticket dispatches together in one message. Fastest; the shape the plan was written for. |
-| `linear`          | One ticket at a time, in dependency then plan order. Still dispatched to a subagent — never implemented here. |
+| Mode               | Behavior                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `wave` _(default)_ | Every eligible ticket dispatches together in one message. Fastest; the shape the plan was written for.        |
+| `linear`           | One ticket at a time, in dependency then plan order. Still dispatched to a subagent — never implemented here. |
 
 `wave` is the default because a plan's tickets were decomposed to be
 independent, and dispatching them one per turn multiplies wall-clock time by
@@ -160,6 +160,7 @@ Take from it:
   Leaving `in-progress` out of the resume is the failure this guards against:
   the ticket is never dispatched again and never reported, and the milestone
   gate then runs over work that was never delivered.
+
 - **Commands**, from the plan header — the project's full build and test
   commands, needed by the milestone gate. Older plans may not carry the field;
   then read the root `package.json` scripts yourself. That's one Read, not a
@@ -285,7 +286,7 @@ that did nothing wrong:
   and don't count them against your attempts.**
 - **`git commit` serializes.** Two subagents committing at the same moment
   collide on `index.lock`; the loser sees `Unable to create index.lock: File
-  exists`. That's transient — retrying the commit after a moment works, and it
+exists`. That's transient — retrying the commit after a moment works, and it
   is not a delivery failure. Say so in the dispatch so nobody reports a
   successful ticket as blocked over a lock file.
 
@@ -309,16 +310,17 @@ from:
    **Acceptance criteria**, pasted verbatim. Never "see the plan" or "like
    Ticket 1.2" — those resolve to nothing on the other side.
 
-   The id doubles as the subagent's `--run` value, so state it as such: *"Pass
-   `--run <ticket id>` to every `qoq` command."* Under `wave` also paste the
+   The id doubles as the subagent's `--run` value, so state it as such: _"Pass
+   `--run <ticket id>` to every `qoq` command."_ Under `wave` also paste the
    two shared-tree facts from
    [What a wave shares](#what-a-wave-shares-and-what-it-must-not) — foreign
    validation failures aren't the ticket's, and an `index.lock` collision is
    worth a retry, not a handoff. A subagent that doesn't know it has neighbors
    reads their noise as its own failure.
+
 2. **Which delivery applies** — the row you picked from the
    [delivery gate](#ticket-delivery-gate) table: whether to run the standards
-   pass, and that the ticket isn't delivered until it's gated *and* committed.
+   pass, and that the ticket isn't delivered until it's gated _and_ committed.
    A registered agent already knows the steps; what it can't know is which of
    the three variants its ticket is.
 3. The retry budget, stated outright. This is the part that's easy to leave out
@@ -405,15 +407,15 @@ drifts from the first and then nobody knows which is running.
 
 What is yours is the routing, and it's two reads of the ticket:
 
-| Ticket                            | Delivery                                                                          |
-| --------------------------------- | --------------------------------------------------------------------------------- |
-| **Files** has only `Test:` entries | `plan-tester` → `testing-gate` (which gates itself through `qoq`), then commit    |
+| Ticket                                        | Delivery                                                                       |
+| --------------------------------------------- | ------------------------------------------------------------------------------ |
+| **Files** has only `Test:` entries            | `plan-tester` → `testing-gate` (which gates itself through `qoq`), then commit |
 | **Complexity** `moderate` or `judgment-heavy` | `plan-developer` → `qoq refactor` standards pass, then `qoq gate`, then commit |
-| **Complexity** `trivial` or `mechanical`      | `plan-developer` → `qoq gate`, then commit — no standards pass       |
+| **Complexity** `trivial` or `mechanical`      | `plan-developer` → `qoq gate`, then commit — no standards pass                 |
 
 Both distinctions are about spending where it pays. `testing-gate` authors
 coverage against code that already exists, so pointing it at a ticket that is
-*building* that code burns a subagent duplicating tests the implementer writes
+_building_ that code burns a subagent duplicating tests the implementer writes
 anyway. And `refactor`'s lenses ask whether the code is over-built and whether
 it's the right pattern — questions that only exist where a decision was made,
 which is what the complexity rating already tells you. Say in the dispatch
@@ -443,7 +445,7 @@ own phase — deliberately broader than any ticket's gate, to catch integration
 issues between tickets that individually passed:
 
 1. `qoq refactor <every file the milestone's tickets touched> --decisions auto
-   --run milestone-<N>` — the union of all their **Files**, which you have in
+--run milestone-<N>` — the union of all their **Files**, which you have in
    the plan.
 
    **`refactor`, not `gate`, and this is the one place it belongs.** The
@@ -475,7 +477,7 @@ running commands and relaying output; the cheapest tier is right. Ask for the
 verdict plus the verbatim failures:
 
 > Run `qoq refactor <the union of the milestone's files> --decisions auto --run
-> milestone-<N>`, then `<full build command>` and `<full test command>`.
+milestone-<N>`, then `<full build command>` and `<full test command>`.
 > `refactor` in auto mode applies its safe tier by design — let it, and report
 > what it changed and every advisory it returned verbatim; beyond that, make no
 > edits and fix nothing yourself. Reply with each command's pass/fail, the files
@@ -524,7 +526,7 @@ what the archive file is for — the plan gets shorter as work lands, not longer
 
 ## Resume
 
-A resume is just Phase 1 followed by Phase 2; there is no separate mode. The
+A resume is just Phase 1 followed by Phase 2 — no separate mode. The
 plan file's **Status** fields are the source of truth, including across
 sessions, so re-reading it (Phase 1) is the whole of "catching up".
 
@@ -550,17 +552,17 @@ is what stops the last live run's cleanup from ever tearing the workspace down.
 
 The common mistakes, and what each one actually costs:
 
-| Pitfall                                                                | Why it bites                                                                                                                                                                                                                                                       |
-| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Implementing "just the trivial ticket" on the lead thread              | If the lead implements anything, its context fills with implementation detail and the plan's tiering stops meaning anything. Cost is the same either way — a subagent's context is disposable.                                                                     |
-| Running the milestone's full build and test suite on the lead thread   | Thousands of lines of output the lead stops needing the moment it knows the verdict, spent from the one context that has to survive the whole plan. Delegate the run, take back pass/fail plus the verbatim failures.                                              |
-| Working a wave of independent tickets one at a time                    | Tickets with disjoint files and no dependency between them have nothing to serialize on. Dispatching them one per turn multiplies wall-clock time by the wave size for no benefit. If serialization is genuinely wanted, that's `--parallelism linear`, chosen out loud. |
-| Treating `linear` as permission to implement inline                    | It bounds concurrency, nothing else. One ticket at a time still means one _subagent_ at a time.                                                                                                                                                                     |
-| Marking a ticket done on a `FAIL`, or narrowing scope to force a `PASS` | Converts a visible blocker into a silent one. Hand the ticket back instead — reporting back is the correct outcome.                                                                                                                                                |
-| Re-dispatching a `blocked` ticket at the tier that already failed      | The one rung already known not to work. Resume at the tier its **Escalation** field points to.                                                                                                                                                                     |
-| Finishing a top-tier failure on the lead thread                        | Same model that just failed, now spending the context that has to last. It also hides a planning defect that will recur in the next plan.                                                                                                                          |
-| Recording a delivery decision only under `## Completed`                | No subagent ever reads that section. If a later ticket depends on the fact, it belongs in that ticket's **Context**.                                                                                                                                                |
-| Re-running discovery or re-rating tickets on a resume                  | Those decisions were made and approved at planning time. Re-deriving them burns context and risks contradicting the plan the user signed off on.                                                                                                                    |
-| Skipping an `in-progress` ticket on a resume                           | Nothing is working it — the status is a dispatch that never reported back. Skipped, it is never built and never mentioned, and the milestone gate passes over work that doesn't exist. Reconcile it against `git log` and re-dispatch. |
-| Opening `<plan>.completed.md` "to get up to speed"                     | Archiving exists precisely so a resume doesn't cost the whole history. The `## Completed` summary is sufficient unless you have a specific question it can't answer.                                                                                                |
-| Redesigning an under-specified ticket here                             | Ticket quality is `planning-gate`'s contract. Silently fixing it means the plan on disk no longer describes what was built, and the next resume works from the wrong text.                                                                                          |
+| Pitfall                                                                 | Why it bites                                                                                                                                                                                                                                                             |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Implementing "just the trivial ticket" on the lead thread               | If the lead implements anything, its context fills with implementation detail and the plan's tiering stops meaning anything. Cost is the same either way — a subagent's context is disposable.                                                                           |
+| Running the milestone's full build and test suite on the lead thread    | Thousands of lines of output the lead stops needing the moment it knows the verdict, spent from the one context that has to survive the whole plan. Delegate the run, take back pass/fail plus the verbatim failures.                                                    |
+| Working a wave of independent tickets one at a time                     | Tickets with disjoint files and no dependency between them have nothing to serialize on. Dispatching them one per turn multiplies wall-clock time by the wave size for no benefit. If serialization is genuinely wanted, that's `--parallelism linear`, chosen out loud. |
+| Treating `linear` as permission to implement inline                     | It bounds concurrency, nothing else. One ticket at a time still means one _subagent_ at a time.                                                                                                                                                                          |
+| Marking a ticket done on a `FAIL`, or narrowing scope to force a `PASS` | Converts a visible blocker into a silent one. Hand the ticket back instead — reporting back is the correct outcome.                                                                                                                                                      |
+| Re-dispatching a `blocked` ticket at the tier that already failed       | The one rung already known not to work. Resume at the tier its **Escalation** field points to.                                                                                                                                                                           |
+| Finishing a top-tier failure on the lead thread                         | Same model that just failed, now spending the context that has to last. It also hides a planning defect that will recur in the next plan.                                                                                                                                |
+| Recording a delivery decision only under `## Completed`                 | No subagent ever reads that section. If a later ticket depends on the fact, it belongs in that ticket's **Context**.                                                                                                                                                     |
+| Re-running discovery or re-rating tickets on a resume                   | Those decisions were made and approved at planning time. Re-deriving them burns context and risks contradicting the plan the user signed off on.                                                                                                                         |
+| Skipping an `in-progress` ticket on a resume                            | Nothing is working it — the status is a dispatch that never reported back. Skipped, it is never built and never mentioned, and the milestone gate passes over work that doesn't exist. Reconcile it against `git log` and re-dispatch.                                   |
+| Opening `<plan>.completed.md` "to get up to speed"                      | Archiving exists precisely so a resume doesn't cost the whole history. The `## Completed` summary is sufficient unless you have a specific question it can't answer.                                                                                                     |
+| Redesigning an under-specified ticket here                              | Ticket quality is `planning-gate`'s contract. Silently fixing it means the plan on disk no longer describes what was built, and the next resume works from the wrong text.                                                                                               |

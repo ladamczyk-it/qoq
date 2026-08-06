@@ -3,12 +3,12 @@
 // parallel wave safe: one run's cleanup must never destroy another's snapshot.
 // Run: node skills/qoq/scripts/workspace.test.mjs
 
+import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import assert from 'node:assert/strict';
 
 const SCRIPT = fileURLToPath(new URL('./workspace.mjs', import.meta.url));
 const repo = mkdtempSync(join(tmpdir(), 'qoq-ws-'));
@@ -39,7 +39,10 @@ try {
   // The whole point: a finishing before b must not take b's restore path with it.
   ws('cleanup', '--run', 'ticket-a');
   assert.ok(!existsSync(join(repo, '.qoq/runs/ticket-a')), "a's run dir gone");
-  assert.ok(existsSync(join(repo, '.qoq/runs/ticket-b/snapshot/new-b.ts')), "b's snapshot survived");
+  assert.ok(
+    existsSync(join(repo, '.qoq/runs/ticket-b/snapshot/new-b.ts')),
+    "b's snapshot survived"
+  );
   assert.ok(readFileSync(join(repo, '.gitignore'), 'utf8').includes('.qoq/'), 'ignore entry kept');
 
   // Shared command cache is written once and readable by any run.
@@ -54,9 +57,9 @@ try {
   // A double-appended block (init racing with itself) must fully self-heal.
   ws('init', '--run', 'solo');
   const gi = join(repo, '.gitignore');
-  const block = readFileSync(gi, 'utf8').match(
+  const [block] = readFileSync(gi, 'utf8').match(
     /# --- QoQ workspace[\s\S]*?# --- end QoQ workspace ---\n/
-  )[0];
+  );
   writeFileSync(gi, readFileSync(gi, 'utf8') + block);
   ws('cleanup', '--run', 'solo');
   assert.equal(readFileSync(gi, 'utf8'), 'node_modules\n', 'both blocks stripped');

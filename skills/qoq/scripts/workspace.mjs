@@ -113,7 +113,6 @@ const write = (path, patch) => {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, `${JSON.stringify({ ...read(path), ...patch }, null, 2)}\n`);
 };
-const readState = () => read(join(RUN_DIR, '.workspace.json'));
 const writeState = (patch) => write(join(RUN_DIR, '.workspace.json'), patch);
 const readShared = () => read(SHARED_STATE);
 const writeShared = (patch) => write(SHARED_STATE, patch);
@@ -144,9 +143,7 @@ const init = () => {
   // revert the wrong thing.
   const shared = readShared();
   writeShared({ gitignore: shared.gitignore ?? disposition });
-  process.stdout.write(
-    `${RUN_DIR}/ ready (gitignore: ${shared.gitignore ?? disposition})\n`
-  );
+  process.stdout.write(`${RUN_DIR}/ ready (gitignore: ${shared.gitignore ?? disposition})\n`);
 };
 
 const snapshot = () => {
@@ -183,6 +180,38 @@ const snapshot = () => {
   process.stdout.write(`snapshot: ${ref}${untrackedNote}\n`);
 };
 
+// Strip every QoQ block from the root .gitignore and restore it to what it was
+// before `init` touched it. Split out of `cleanup` because the loop plus its
+// three restore branches is the whole of that function's complexity.
+const revertIgnoreBlock = (shared) => {
+  if (!existsSync('.gitignore')) {
+    return;
+  }
+  const current = readFileSync('.gitignore', 'utf8');
+  // Strip EVERY block, not just the first: two runs racing in `init` can both
+  // pass the "already present?" check and append. Removing all of them makes
+  // that race self-healing instead of leaving a stale entry behind forever.
+  let stripped = current;
+  for (;;) {
+    const begin = stripped.indexOf(BEGIN);
+    if (begin === -1) {
+      break;
+    }
+    const end = stripped.indexOf(END, begin);
+    const after = end === -1 ? stripped.length : end + END.length;
+    stripped = stripped.slice(0, begin) + stripped.slice(after);
+  }
+  if (stripped === current) {
+    return;
+  }
+  stripped = stripped.replace(/\n{3,}/g, '\n\n');
+  if (shared.gitignore === 'created' && stripped.trim() === '') {
+    unlinkSync('.gitignore');
+  } else {
+    writeFileSync('.gitignore', `${stripped.trimEnd()}\n`);
+  }
+};
+
 const cleanup = () => {
   // Read the shared state BEFORE anything gets deleted.
   const shared = readShared();
@@ -204,28 +233,7 @@ const cleanup = () => {
   // never flashes back into `git status`.
   rmSync(WORKSPACE, { recursive: true, force: true });
 
-  if (existsSync('.gitignore')) {
-    const current = readFileSync('.gitignore', 'utf8');
-    // Strip EVERY block, not just the first: two runs racing in `init` can both
-    // pass the "already present?" check and append. Removing all of them makes
-    // that race self-healing instead of leaving a stale entry behind forever.
-    let stripped = current;
-    for (;;) {
-      const begin = stripped.indexOf(BEGIN);
-      if (begin === -1) break;
-      const end = stripped.indexOf(END, begin);
-      const after = end === -1 ? stripped.length : end + END.length;
-      stripped = stripped.slice(0, begin) + stripped.slice(after);
-    }
-    if (stripped !== current) {
-      stripped = stripped.replace(/\n{3,}/g, '\n\n');
-      if (shared.gitignore === 'created' && stripped.trim() === '') {
-        unlinkSync('.gitignore');
-      } else {
-        writeFileSync('.gitignore', `${stripped.trimEnd()}\n`);
-      }
-    }
-  }
+  revertIgnoreBlock(shared);
   process.stdout.write('.qoq/ removed, .gitignore reverted\n');
 };
 

@@ -65,9 +65,10 @@ worth writing are the ones that fail when the acceptance criteria stop holding.
    budget. Only a `PASS` counts.
 
    **A failing test in a file you didn't write is not your ticket.** The full
-   suite runs repo-wide, so a neighbor's in-progress change can redden it. Say
-   so in your report and carry on; don't spend an attempt on it, and never edit
+   suite runs repo-wide, so a neighbor's in-progress change can redden it. Note
+   it in your report and carry on; don't spend an attempt on it, and never edit
    a file outside your **Files** to quiet it.
+
 4. On `PASS`, commit exactly the files in **Files**: `git add <those paths>`
    then `git commit -m "<ticket id>: <ticket title>"`, and capture the hash with
    `git rev-parse HEAD`. An `index.lock` collision means a neighbor is

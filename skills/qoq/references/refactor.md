@@ -153,7 +153,6 @@ would have edited a file outside the resolved scope — becomes the structured
 report you return at the end instead of a plan you present now. Everything
 below is the `human` default.
 
-
 Present as `review` does — grouped by dimension, one-line rationale, size,
 dropped findings — but aggregate across slices and surface the cross-cutting
 work (project-wide dependency cleanup, cross-slice duplication).

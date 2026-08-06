@@ -58,7 +58,7 @@ Three things are true for **every** command, so establish them before routing
 into one.
 
 1. **Confirm a clean working tree** — unless the caller asked for `--tree
-   dirty`. Run `git status`. Most commands edit files and revert them as their
+dirty`. Run `git status`. Most commands edit files and revert them as their
    safety net, so a dirty tree gets tangled in that. If there are uncommitted
    changes, point them out and ask the user to commit, stash, or confirm
    stashing is fine before continuing. `gate` and `fix` never ask: they lean on
@@ -214,6 +214,7 @@ patch files, not just prose.
    [Run modes](references/workflow.md#run-modes--tree-and-decisions). A caller
    describing the same thing in prose ("run it over these files without asking
    me") means the same modes; honor it rather than requiring the flags.
+
 3. **First word doesn't match**: infer the closest command from the request —
    "is this ready to merge?" → `review`; "clean up the auth module" →
    `refactor`; "fix the lint errors / findings" → `fix`; "our deps are stale" →
@@ -252,7 +253,7 @@ treats the verdict as a release gate:
   ```
 
   **A producer that might be running beside other producers adds `--run
-  <id>`** — its ticket id, its task name, anything unique to it:
+<id>`** — its ticket id, its task name, anything unique to it:
 
   ```
   /qoq gate src/audit/audit.controller.ts --run 2.3

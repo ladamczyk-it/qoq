@@ -1,11 +1,10 @@
-import { lstatSync, readFileSync, statSync, writeFileSync } from 'fs';
+import { lstatSync, readFileSync, writeFileSync } from 'fs';
 import { relative, resolve } from 'path';
 
 import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
-import { resolveCliRelativePath } from '../../helpers/paths.ts';
 import { AbstractApiWithProgressExecutor } from '../abstract/AbstractApiWithProgressExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
@@ -17,48 +16,26 @@ const IGNORED_DIRECTORIES = ['.git', '.sl', '.svn', '.hg', '.jj', 'node_modules'
 // Ignore files prettier respects by default (the CLI's `--ignore-path` default).
 const IGNORE_FILES = ['.gitignore', '.prettierignore'];
 
-// Prettier's JS API has no cache/cacheLocation option of its own (unlike
-// ESLint/Stylelint), so caching here is hand-rolled: a size+mtime snapshot per
-// file, mirroring the "metadata" cache strategy those tools default to. Only
-// files confirmed clean (or freshly fixed) are written back, so anything left
-// unformatted keeps getting rechecked every run until it's actually fixed.
-interface ICacheEntry {
-  size: number;
-  mtime: number;
-}
-
-type TCache = Record<string, ICacheEntry>;
-
 export class PrettierExecutor extends AbstractApiWithProgressExecutor {
-  static readonly CACHE_PATH = resolveCliRelativePath('/bin/.prettiercache');
-
-  // Set in prepare(), consumed in execute(): the explicit patterns to format and
-  // whether they came from a caller-supplied file list (vs. the configured sources).
+  // Set in prepare(), consumed in execute(): the explicit patterns to format.
   private patterns: string[] = [];
-  private explicitFiles = false;
-
-  // Set in execute(): the cache read at the start of the run, the one written
-  // back at the end (only ever contains entries for files confirmed clean),
-  // and whether caching is active at all for this run.
-  private cache: TCache = {};
-  private nextCache: TCache = {};
-  private cacheEnabled = false;
 
   protected getCommandName(): string {
     return 'prettier';
   }
 
-  protected async prepare(
-    args: string[],
-    options: IExecutorOptions,
+  // No cache file of its own, so skip AbstractExecutor.prepare (which would
+  // demand a CACHE_PATH).
+  protected prepare(
+    _args: string[],
+    _options: IExecutorOptions,
     files: string[] = []
   ): Promise<EExitCode> {
     const { srcPath, modules } = this.modulesConfig;
 
-    this.explicitFiles = files.length > 0;
-    this.patterns = this.explicitFiles ? files : (modules?.prettier?.sources ?? [srcPath]);
+    this.patterns = files.length > 0 ? files : (modules?.prettier?.sources ?? [srcPath]);
 
-    return super.prepare(args, options, files);
+    return Promise.resolve(EExitCode.OK);
   }
 
   protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
@@ -75,19 +52,9 @@ export class PrettierExecutor extends AbstractApiWithProgressExecutor {
       throw new TerminateExecutorGracefully();
     }
 
-    this.cacheEnabled = !options.disableCache;
-    this.cache = this.cacheEnabled ? this.readCache() : {};
-    this.nextCache = {};
-
-    const result = options.json
-      ? await this.report(prettier, targets, configPath, options.output)
-      : await this.format(prettier, targets, configPath, options.fix, this.showProgress(options));
-
-    if (this.cacheEnabled) {
-      writeFileSync(PrettierExecutor.CACHE_PATH, JSON.stringify(this.nextCache));
-    }
-
-    return result;
+    return options.json
+      ? this.report(prettier, targets, configPath, options.output)
+      : this.format(prettier, targets, configPath, options.fix, this.showProgress(options));
   }
 
   // `--json`: collect the files that are not Prettier-formatted into a lean
@@ -101,21 +68,9 @@ export class PrettierExecutor extends AbstractApiWithProgressExecutor {
     const issues: string[] = [];
 
     for (const file of targets) {
-      const stat = this.statFor(file);
-
-      if (this.cacheEnabled && this.isCached(file, stat)) {
-        this.nextCache[file] = stat;
-
-        continue;
-      }
-
       const options = await this.optionsFor(prettier, file, configPath);
 
-      if (await prettier.check(readFileSync(file, 'utf8'), options)) {
-        if (this.cacheEnabled) {
-          this.nextCache[file] = stat;
-        }
-      } else {
+      if (!(await prettier.check(readFileSync(file, 'utf8'), options))) {
         issues.push(toPosix(file));
       }
     }
@@ -146,14 +101,7 @@ export class PrettierExecutor extends AbstractApiWithProgressExecutor {
         this.printProgress(display);
       }
 
-      const outcome = await this.processFile(
-        prettier,
-        file,
-        display,
-        configPath,
-        fix,
-        showProgress
-      );
+      const outcome = await this.formatFile(prettier, file, display, configPath, fix, showProgress);
 
       if (outcome === 'error') {
         errors += 1;
@@ -169,40 +117,6 @@ export class PrettierExecutor extends AbstractApiWithProgressExecutor {
     }
 
     return this.summarize({ unformatted, errors, fix });
-  }
-
-  // Checks the cache before doing any real work, then delegates to
-  // formatFile(); a cache hit short-circuits as 'ok' without touching
-  // prettier at all. Also owns the caching decision once formatFile() returns
-  // — see the inline comment below for which outcomes are safe to cache.
-  private async processFile(
-    prettier: typeof import('prettier'),
-    file: string,
-    display: string,
-    configPath: string,
-    fix: boolean,
-    showProgress: boolean
-  ): Promise<'ok' | 'unformatted' | 'error'> {
-    const stat = this.statFor(file);
-
-    if (this.cacheEnabled && this.isCached(file, stat)) {
-      this.nextCache[file] = stat;
-
-      return 'ok';
-    }
-
-    const outcome = await this.formatFile(prettier, file, display, configPath, fix, showProgress);
-
-    // In `--check` mode only a clean file is safe to cache — an unformatted
-    // one must be rechecked every run until it's actually fixed. In `--fix`
-    // mode the file is guaranteed clean on disk either way (formatFile() just
-    // rewrote it if it wasn't already), so it's always safe to cache; re-stat
-    // since a rewrite changes its mtime/size.
-    if (this.cacheEnabled && outcome !== 'error' && (fix || outcome === 'ok')) {
-      this.nextCache[file] = fix ? this.statFor(file) : stat;
-    }
-
-    return outcome;
   }
 
   // Formats (or checks) a single file and reports the outcome. `--fix` mirrors
@@ -335,28 +249,6 @@ export class PrettierExecutor extends AbstractApiWithProgressExecutor {
     }
 
     return targets;
-  }
-
-  // Reads the cache written by the previous run; a missing or corrupt file
-  // (first run, or a manually-cleared cache) is treated as an empty cache.
-  private readCache(): TCache {
-    try {
-      return JSON.parse(readFileSync(PrettierExecutor.CACHE_PATH, 'utf8')) as TCache;
-    } catch {
-      return {};
-    }
-  }
-
-  private statFor(file: string): ICacheEntry {
-    const stat = statSync(file);
-
-    return { size: stat.size, mtime: stat.mtimeMs };
-  }
-
-  private isCached(file: string, stat: ICacheEntry): boolean {
-    const cached = this.cache[file];
-
-    return cached?.size === stat.size && cached?.mtime === stat.mtime;
   }
 
   // Mirrors prettier's CLI pattern expansion: explicit files pass through, a
