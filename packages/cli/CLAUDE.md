@@ -49,7 +49,7 @@ To add a new tool: create `src/modules/<tool>/{*ConfigHandler.ts,*Executor.ts,ty
 
 ## Cache behavior
 
-All tools (except npm) use `--cache` by default; cache files land in `bin/.<toolname>cache`. During `--warmup`, existing caches are cleared before config files are pre-generated.
+All tools (except npm and Prettier) use `--cache` by default; Prettier is fast enough to always re-check every target, and a per-file cache made staged-vs-full runs report stale results. cache files land in `bin/.<toolname>cache`. During `--warmup`, existing caches are cleared before config files are pre-generated.
 
 ## JSON reporting (`--json`)
 

@@ -160,6 +160,12 @@ files this skill just created or modified — pass the explicit file list,
 don't let the gate infer scope from the whole working tree, since that could
 also catch unrelated dirty files sitting in the project.
 
+**If a caller gave you a run id** — a `planning-gate` ticket id, a task name —
+append `--run <id>` to the gate invocation. `qoq` keeps a scratch workspace per
+run id, and when several agents gate different files in one repo at once, that
+flag is the only thing stopping the first one to finish from deleting the
+others' snapshots. A lone interactive run needs nothing.
+
 Invoke it either way the `qoq` skill itself documents for producer skills:
 
 - Preferably, invoke it directly: `Skill(skill: "qoq", args: "gate <the test

@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-knip",
-  "version": "5.3.0",
+  "version": "5.3.1",
   "description": "Knip configs template",
   "keywords": [
     "Knip template",
@@ -44,7 +44,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "knip": "6.31.0"
+    "knip": "6.32.0"
   },
   "devDependencies": {
     "rimraf": "6.1.3",

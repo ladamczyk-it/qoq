@@ -1,0 +1,1 @@
+../skills/qoq/agents/qoq-analyzer.md

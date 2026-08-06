@@ -144,7 +144,13 @@ export const getConfig = async (
     return initConfig(workspaces, true);
   }
 
-  return getModulesFromConfig(qoqConfig?.config as QoqConfig, workspaces);
+  if (!qoqConfig) {
+    process.stderr.write('No QoQ config found, running with defaults\n');
+  }
+
+  // No config + skipInit (staged, --warmup, CI): run on defaults instead of
+  // dereferencing an undefined config in the handler chain.
+  return getModulesFromConfig((qoqConfig?.config as QoqConfig) ?? {}, workspaces);
 };
 
 export const execute = async (

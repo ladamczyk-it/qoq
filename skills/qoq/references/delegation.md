@@ -76,6 +76,12 @@ you (the same listing that told you `qoq` itself is available) either names
 `ponytail-review` / `design-pattern-review` or it doesn't. Check both, once,
 before Phase 2's fan-out — not per-worker.
 
+**Under `--decisions auto` there's no one to offer an install to.** Degrade to
+whichever lens remains, name the skipped one in the returned report, and carry
+on — a partial analysis the caller can see is partial beats a run that stalls
+waiting for an answer nobody is there to give
+([Run modes](workflow.md#run-modes--tree-and-decisions)).
+
 **That listing is a hint, not a guarantee the dispatch will succeed.** A lens
 can look installed and still fail when you actually invoke it via the Skill
 tool (an `Unknown skill: <name>` error is the observed failure mode). Treat a
@@ -106,7 +112,7 @@ If a lens is **missing** (not installed, or its dispatch failed per above):
 
 ## Dispatching a lens
 
-Once a lens is confirmed available, dispatch it via the Task tool:
+Once a lens is confirmed available, dispatch it via the Agent tool:
 
 - `subagent_type`: `general-purpose` (no dedicated registered agent for a
   third-party skill).

@@ -18,7 +18,7 @@ allowed-tools:
   - Edit
   - Grep
   - Glob
-  - Task
+  - Agent
   - WebFetch
   - WebSearch
   - Bash(npm run:*)
@@ -54,16 +54,17 @@ the project's own lint/test/build gate.
 
 ## Setup
 
-Two things are true for **every** command, so establish them before routing into
-one.
+Three things are true for **every** command, so establish them before routing
+into one.
 
-1. **Confirm a clean working tree.** Run `git status`. Most commands edit files
-   and revert them as their safety net, so a dirty tree gets tangled in that. If
-   there are uncommitted changes, point them out and ask the user to commit,
-   stash, or confirm stashing is fine before continuing. **Exception: `gate` and
-   `fix`** — both lean on a snapshot as their safety net instead of demanding a
-   clean tree ([references/workflow.md](references/workflow.md#the-safety-snapshot)),
-   and both tolerate uncommitted work.
+1. **Confirm a clean working tree** — unless the caller asked for `--tree
+dirty`. Run `git status`. Most commands edit files and revert them as their
+   safety net, so a dirty tree gets tangled in that. If there are uncommitted
+   changes, point them out and ask the user to commit, stash, or confirm
+   stashing is fine before continuing. `gate` and `fix` never ask: they lean on
+   the snapshot instead ([references/workflow.md](references/workflow.md#the-safety-snapshot)).
+   Any command can be put in that mode deliberately — see
+   [Run modes](references/workflow.md#run-modes--tree-and-decisions).
 
 2. **Locate the QoQ engine.** The linters and formatters (Prettier, ESLint,
    Knip, JSCPD, Stylelint, Structurelint) and their `--json` digest are owned by
@@ -74,6 +75,15 @@ one.
    raw reports. If a project has no `qoq` set up at all, the engine documents
    the fallback to the project's own ESLint/Knip/JSCPD/Prettier scripts.
 
+3. **Pick a run id.** Every command works inside its own
+   `.qoq/runs/<run-id>/` directory, passed to the bundled scripts as
+   `--run <id>` ([workflow.md](references/workflow.md#the-workspace--qoq)).
+   Use the caller's natural identifier when there is one — a plan executor's
+   ticket id (`--run 2.3`) is ideal — and `default` for an ordinary
+   human-driven run. The id is what keeps two agents gating different files in
+   the same repo from deleting each other's restore points, so a caller that
+   might be running beside another one must pass a distinct one.
+
 Skipping these produces output that fights the project's own tools or corrupts
 the patch workflow's safety net.
 
@@ -82,11 +92,12 @@ the patch workflow's safety net.
 Three files own everything the commands have in common; the command references
 link to them instead of restating them:
 
-- **[references/workflow.md](references/workflow.md)** — the `.qoq/` workspace,
-  the safety snapshot, validation-command discovery, staging and applying
-  patches, cleanup. Backed by two bundled scripts (`scripts/workspace.mjs`,
-  `scripts/stage-patch.mjs`) — use them rather than re-implementing the
-  procedures by hand.
+- **[references/workflow.md](references/workflow.md)** — the two run modes
+  (`tree`, `decisions`) that let any command run unattended, plus the `.qoq/`
+  workspace, the safety snapshot, validation-command discovery, staging and
+  applying patches, cleanup. Backed by two bundled scripts
+  (`scripts/workspace.mjs`, `scripts/stage-patch.mjs`) — use them rather than
+  re-implementing the procedures by hand.
 - **[references/analysis.md](references/analysis.md)** — the seven quality
   dimensions (`review`/`refactor` source one of the seven, design patterns,
   from an external lens instead — see below) and the keep-vs-drop bar. The
@@ -97,9 +108,10 @@ link to them instead of restating them:
   `scripts/summarize.mjs`.
 
 The shared analysis worker the commands fan out to is
-[agents/qoq-analyzer.md](agents/qoq-analyzer.md) (register it under
-`.claude/agents/` to dispatch it as `subagent_type: qoq-analyzer`; without
-registration, spawn a `general-purpose` subagent pointed at that file).
+[agents/qoq-analyzer.md](agents/qoq-analyzer.md), dispatched as
+`subagent_type: qoq-analyzer`. It ships registered with the plugin; if it isn't
+in your available agent types, spawn a `general-purpose` subagent pointed at
+that file instead.
 
 ## External skill dependencies (`review`, `refactor` only)
 
@@ -136,9 +148,10 @@ Two principles hold everywhere:
   `review`/`refactor` call hits the same missing-lens prompt — once the user
   has answered it for this conversation, treat later calls in the same
   conversation as already answered instead of asking again per-command.
-  **`gate` is the deliberate exception:** it runs to completion without
+  **`decisions: auto` is the deliberate exception:** the run completes without
   interactive approval, auto-applying only safe fixes and reporting judgment
-  calls as advisories.
+  calls as advisories. `gate` is pinned there; any command can be sent there by
+  a caller that has no human to ask.
 
 ## Commands
 
@@ -153,13 +166,19 @@ Two principles hold everywhere:
 When to use which command — how the four analyzing commands differ (this table
 is the single owner of the comparison; the command references don't repeat it):
 
-| Aspect       | `review`             | `refactor`         | `fix`                                        | `gate`                                     |
-| ------------ | -------------------- | ------------------ | -------------------------------------------- | ------------------------------------------ |
-| Scope        | branch vs. base diff | a scope you choose | full project (or named scope), `qoq --check` | producer's just-changed files (dirty tree) |
-| Working tree | clean                | clean              | dirty tolerated via snapshot                 | expected dirty — the changes are the scope |
-| Findings     | staged as patches    | staged as patches  | **both tiers** staged as patches             | safe tier auto-applied, rest = advisories  |
-| Approval     | plan → sign-off      | plan → sign-off    | plan → sign-off (or non-interactive)         | none — runs to completion                  |
-| Output       | applied patches      | applied patches    | patch series (+ optional verdict)            | structured `PASS`/`FAIL` verdict           |
+| Aspect          | `review`             | `refactor`         | `fix`                                        | `gate`                                     |
+| --------------- | -------------------- | ------------------ | -------------------------------------------- | ------------------------------------------ |
+| Scope           | branch vs. base diff | a scope you choose | full project (or named scope), `qoq --check` | producer's just-changed files (dirty tree) |
+| `tree` default  | `clean`              | `clean`            | `dirty`                                      | `dirty` (pinned)                           |
+| Findings        | staged as patches    | staged as patches  | **both tiers** staged as patches             | safe tier auto-applied, rest = advisories  |
+| `decisions` def | `human`              | `human`            | `human`                                      | `auto` (pinned)                            |
+| Output          | applied patches      | applied patches    | patch series (+ optional verdict)            | structured `PASS`/`FAIL` verdict           |
+
+The `tree` and `decisions` columns are **defaults, not fixed properties** —
+`review` and `refactor` both accept `--tree dirty` and `--decisions auto`, which
+is how a non-human caller gets refactor-grade analysis without a sign-off step.
+The mode contract is [Run modes](references/workflow.md#run-modes--tree-and-decisions);
+what stays true in every mode is the risk-tier boundary and the scope bound.
 
 **`fix`'s non-interactive shortcut vs. `gate`.** Told to run unattended, `fix`
 starts to look like `gate` — safe tier applied, advisory tier left behind —
@@ -188,6 +207,14 @@ patch files, not just prose.
    `gate src/foo.test.ts src/foo.ts`; `bump packages` → command `bump`, the
    word `packages` just confirms the noun). Setup has already run, so the
    command reference picks up from its own first phase.
+
+   `--tree clean|dirty`, `--decisions human|auto`, and `--run <id>` are modes,
+   not targets — strip them from the argument before resolving the scope, and
+   apply the first two per
+   [Run modes](references/workflow.md#run-modes--tree-and-decisions). A caller
+   describing the same thing in prose ("run it over these files without asking
+   me") means the same modes; honor it rather than requiring the flags.
+
 3. **First word doesn't match**: infer the closest command from the request —
    "is this ready to merge?" → `review`; "clean up the auth module" →
    `refactor`; "fix the lint errors / findings" → `fix`; "our deps are stale" →
@@ -225,6 +252,17 @@ treats the verdict as a release gate:
   /qoq gate src/generated/UserApi.ts src/generated/UserApi.spec.ts
   ```
 
+  **A producer that might be running beside other producers adds `--run
+<id>`** — its ticket id, its task name, anything unique to it:
+
+  ```
+  /qoq gate src/audit/audit.controller.ts --run 2.3
+  ```
+
+  Without it every concurrent caller shares the `default` workspace, and the
+  first one to finish deletes the snapshots the others still need to roll back
+  a bad fix. One flag, and the runs can't touch each other.
+
 - **What it does** — autonomously brings that scope up to standard: auto-applies
   the safe fixes behind the project's own `qoq --check` + test/build gate, and
   lists the judgment-heavy findings as advisories instead of forcing them.
@@ -244,3 +282,33 @@ the fallback is explicit:
 
 This keeps one definition of "quality" — the seven dimensions and the engine —
 and lets every other skill borrow it without duplicating any of it.
+
+### Going past the gate — unattended `review` / `refactor`
+
+`gate` is a floor: safe fixes applied, everything else reported. A producer
+that wants the **wider lens** — the minimalism and design-pattern reviews that
+only `review`/`refactor` run — doesn't need a second gate-shaped command. It
+runs the real one in the modes that suit a caller with no human attached:
+
+```
+/qoq refactor <the files you changed> --tree dirty --decisions auto
+```
+
+`--tree dirty` is what makes this usable _before_ the producer commits, which
+is the only moment the analysis can still change what lands;
+`--decisions auto` drops the sign-off pause while keeping the risk-tier
+boundary and the scope bound exactly where they are. Full contract:
+[Run modes](references/workflow.md#run-modes--tree-and-decisions).
+
+Same shape for a diff instead of a file list: `/qoq review --tree dirty
+--decisions auto`.
+
+**How the producer reacts.** The safe tier has already been applied to its
+working tree, so the code it's about to hand over is not quite the code it
+wrote — re-run whatever it validates with, and read the advisory tier rather
+than dropping it. A caller that can't act on advisories itself passes them up;
+that's what keeps an unattended run honest about what it chose not to touch.
+
+Order matters when a producer uses both: **refactor first, gate second.**
+Refactor can change the files, and the gate's verdict should describe what
+actually lands.

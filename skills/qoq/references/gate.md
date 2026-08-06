@@ -53,15 +53,21 @@ producer's uncommitted work _is_ the scope.
    [workflow.md](workflow.md):
 
    ```bash
-   node <skill>/scripts/workspace.mjs init
-   node <skill>/scripts/workspace.mjs snapshot -- <scope paths>
+   node <skill>/scripts/workspace.mjs init --run <run-id>
+   node <skill>/scripts/workspace.mjs snapshot --run <run-id> -- <scope paths>
    ```
+
+   `<run-id>` is whatever the caller passed as `--run`, or `default`. **Gate is
+   the command most likely to be running concurrently** — it's the one producers
+   call, and a plan executor calls it from every ticket in a wave at once — so
+   an unstated id here is worth one question back to the caller if anything
+   suggests it isn't alone.
 
    The snapshot captures the producer's work _before_ any gate fix — tracked
    changes via `git stash create` **and** copies of untracked files (a
    producer's brand-new files aren't in the stash commit; the copy is what
    makes them restorable). If a fix regresses validation, restore the affected
-   files from the printed ref / `.qoq/snapshot/`.
+   files from the printed ref / `<ws>/snapshot/`.
 
 3. **Establish the baseline.** Discover the validation commands and run them
    once over the scope, per
@@ -115,11 +121,11 @@ one last time — the engine's `qoq --check` (or `qoq:check`) plus the project's
 ## Phase 4 — Clean up and return the verdict
 
 1. **Clean up unconditionally — on `PASS` and `FAIL` alike:**
-   `node <skill>/scripts/workspace.mjs cleanup`. This is the one command that
+   `node <skill>/scripts/workspace.mjs cleanup --run <run-id>`. This is the one command that
    deviates from [workflow.md](workflow.md#cleanup)'s "only on a fully
    successful run" rule, deliberately: gate never leaves patches staged for a
    later run to resume (Phase 2 applies safe fixes directly and only ever
-   _reports_ advisories), so there's nothing in `.qoq/` worth preserving after
+   _reports_ advisories), so there's nothing in `<ws>` worth preserving after
    a `FAIL` — the returned verdict text is the record. The working tree ends
    with the producer's code plus whatever safe fixes applied cleanly.
 

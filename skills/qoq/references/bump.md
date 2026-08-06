@@ -108,7 +108,7 @@ Set up the shared workspace for patch files
 ([workflow.md](workflow.md#the-workspace--qoq)):
 
 ```bash
-node <skill>/scripts/workspace.mjs init
+node <skill>/scripts/workspace.mjs init --run <run-id>
 ```
 
 It's a scratch directory — the patches exist only to stage and isolate each bump
@@ -137,13 +137,13 @@ instead of re-deriving it, so bump's categorization can never disagree with what
 
    ```bash
    rm -f node_modules/@ladamczyk/qoq-cli/bin/.npm-outdated-lock
-   npx qoq npm --json --output .qoq/reports
+   npx qoq npm --json --output <ws>/reports
    ```
 
    (the `npm` positional arg scopes the run to that one tool — no reason to pay for
    Prettier/ESLint/Knip/JSCPD when all you need is the outdated list.) A non-zero
    exit just means outdated packages exist, same as every other `qoq` tool — the
-   report is still written. Read `.qoq/reports/npm-report.json` directly (schema in
+   report is still written. Read `<ws>/reports/npm-report.json` directly (schema in
    [report-schemas.md](report-schemas.md)): `{ major, minor, patch }`, each an array
    of `{ name, current, latest }`, already deduped across workspaces and classified
    by semver jump. It's small enough to read straight — no need to route it through
@@ -197,8 +197,8 @@ editing only the version ranges in `package.json` (and `package.json` files of
 workspaces, if applicable). Keep the prefix style the project already uses (`^`, `~`, or
 pinned).
 
-- `.qoq/safe_dev.patch` — the `devDependencies` bumps
-- `.qoq/safe.patch` — the `dependencies` bumps
+- `<ws>/safe_dev.patch` — the `devDependencies` bumps
+- `<ws>/safe.patch` — the `dependencies` bumps
 
 Generate patches without dirtying the tree — edit the `package.json`(s), then
 stage with the shared script ([workflow.md](workflow.md#staging-a-patch)),
@@ -206,7 +206,7 @@ which captures the diff, restores the tree, and verifies the patch applies:
 
 ```bash
 # after editing package.json for the dev bumps:
-node <skill>/scripts/stage-patch.mjs safe_dev -- package.json 'packages/*/package.json'
+node <skill>/scripts/stage-patch.mjs safe_dev --dir <ws> -- package.json 'packages/*/package.json'
 ```
 
 If there's nothing to bump in a group, skip that patch and note it.
@@ -248,8 +248,8 @@ match. Don't opportunistically refactor unrelated code.
 Stage each step as its own patch (version bump + the matching code changes together, so
 the patch is self-consistent):
 
-- `.qoq/DEV_<PACKAGE>_<FROM>_<TO>.patch` — for a `devDependencies` package
-- `.qoq/<PACKAGE>_<FROM>_<TO>.patch` — for a `dependencies` package
+- `<ws>/DEV_<PACKAGE>_<FROM>_<TO>.patch` — for a `devDependencies` package
+- `<ws>/<PACKAGE>_<FROM>_<TO>.patch` — for a `dependencies` package
 
 where `<PACKAGE>` is the name, `<FROM>` is the version bumping from, `<TO>` is the
 target. Sanitize scoped names for filenames — `@scope/pkg` → `scope__pkg`. Generate the
@@ -322,7 +322,7 @@ the patches in `.qoq/` are spent — remove the workspace and revert the ignore 
 step, no need to ask ([workflow.md](workflow.md#cleanup)):
 
 ```bash
-node <skill>/scripts/workspace.mjs cleanup
+node <skill>/scripts/workspace.mjs cleanup --run <run-id>
 ```
 
 The one thing that keeps this safe is the precondition: clean up only on a fully

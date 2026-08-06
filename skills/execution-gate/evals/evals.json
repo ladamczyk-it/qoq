@@ -1,0 +1,114 @@
+{
+  "skill_name": "execution-gate",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "resume ./plans/2026-07-20-audit-log.md \u2014 pick up where we left off.",
+      "expected_output": "The skill recognizes this as a resume: it reads the plan file fresh, skips tickets already marked done without re-gating them, does not re-run discovery or decomposition, and re-dispatches the blocked ticket at the tier recorded in its Escalation field (the tier it escalated TO), not the tier that already failed. Remaining tickets go out as a parallel wave, each to a plan-developer/plan-tester subagent (or general-purpose fallback).",
+      "files": [
+        "fixtures/resume/plans/2026-07-20-audit-log.md",
+        "fixtures/resume/plans/2026-07-20-audit-log.completed.md"
+      ],
+      "assertions": [
+        "The transcript shows the plan file being read from disk at the start, rather than the skill working from an assumed or remembered plan.",
+        "No repo discovery or re-decomposition is performed: no Explore dispatch for discovery and no re-drafting or re-rating of tickets that already exist in the plan.",
+        "Tickets already marked done are skipped \u2014 their gates are not re-run and their scope is not re-decided.",
+        "The blocked ticket whose Escalation field records a prior failed tier is re-dispatched at the tier it escalated TO, not at the tier that already failed.",
+        "The completed-milestones archive file is not read in full just to 'get up to speed' \u2014 the ## Completed summary block in the plan is treated as sufficient.",
+        "Every remaining ticket is dispatched to a subagent \u2014 no ticket is implemented on the main thread.",
+        "The eligible remaining tickets are dispatched as a single parallel wave (Agent calls issued together in one message), not one per turn."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "All the tickets in Milestone 2 of ./plans/2026-07-20-audit-log.md are done now. Close the milestone out properly before we start Milestone 3.",
+      "expected_output": "The milestone gate runs qoq gate over the explicit union of every ticket's Files (not bare \u2014 the tickets are committed, so an unscoped gate would resolve an empty scope and pass vacuously), plus the project's full build and test commands from the plan's Commands header and is delegated to a subagent that reports verdict + verbatim failures. Then the milestone is archived: its full text moves to the companion .completed.md file, a short summary block is left under ## Completed in the plan, and any fact established during delivery that a downstream ticket depends on is edited into that ticket's Context field.",
+      "files": [
+        "fixtures/archive/plans/2026-07-20-audit-log.md",
+        "fixtures/archive/plans/2026-07-20-audit-log.completed.md"
+      ],
+      "assertions": [
+        "The milestone gate is run as `qoq gate` over the explicit union of the milestone's ticket Files, NOT bare/unscoped \u2014 a bare gate on the by-then-clean tree resolves an empty scope and returns a vacuous PASS.",
+        "The project's full build and full test commands are run, taken from the plan's Commands header rather than guessed or re-derived.",
+        "The milestone gate run itself is delegated to a subagent that reports back the verdict plus verbatim failures, rather than the main thread running the full build/test suite in its own context.",
+        "Safe fixes that the milestone gate auto-applied are committed rather than left dirty for the next milestone's tickets to inherit.",
+        "The delivered milestone's full text is moved out of the plan file into the companion .completed.md file (appended, not overwriting existing archived milestones).",
+        "A short summary block for the milestone is left under a ## Completed section at the top of the plan, containing at minimum what was delivered, the tickets with their commits, and decisions that outlive the milestone.",
+        "The plan file is shorter after archiving than before \u2014 the milestone body is not duplicated in both files.",
+        "Ticket 3.1's Context is corrected to call `findByCaseId(caseId, page)` \u2014 the name Milestone 2 actually shipped, per Ticket 2.3's advisory \u2014 rather than the `findByCase` it was drafted against; recording that only in the ## Completed summary is a failure, since no subagent reads it.",
+        "If the milestone gate had failed, the failure would be written up as a new sized/rated/tiered ticket and dispatched \u2014 not patched on the main thread."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "before you actually run ./plans/2026-07-20-audit-log.md \u2014 walk me through how you'd dispatch these tickets, and what happens if the cheap agent you picked keeps failing the gate. I got burned last time by an agent that just kept retrying forever.",
+      "expected_output": "An explicit walkthrough of the execution model: every ticket dispatched to a subagent (nothing implemented by the orchestrator), waves bounded by dependencies and file overlap only, each dispatch carrying a three-attempt delivery budget, and a failing subagent returning a 'This feels too complex for me' handoff report that causes re-dispatch one tier up \u2014 with the top tier failing meaning blocked-and-escalated-to-user, not silently absorbed by the main thread.",
+      "files": [
+        "fixtures/resume/plans/2026-07-20-audit-log.md",
+        "fixtures/resume/plans/2026-07-20-audit-log.completed.md"
+      ],
+      "assertions": [
+        "The response states that every ticket is executed by a dispatched subagent and that the orchestrator/main thread does not implement tickets itself.",
+        "The response names a bounded retry budget of exactly three delivery attempts (implement/fix + gate) per dispatch, rather than 'retry until it works' or an unspecified 'reasonable effort'.",
+        "The response describes the failing subagent reporting back with a handoff message beginning 'This feels too complex for me' (or quotes that exact signal phrase).",
+        "The response describes escalation as re-dispatching the same ticket to a stronger tier with the previous failure report included, not as the orchestrator taking the ticket over itself.",
+        "The response states that the escalation ladder stops at the model the user is already running the session on \u2014 the skill does not pick a more expensive model above that ceiling on the user's behalf.",
+        "The response describes passing the tier explicitly as the dispatch's model parameter (including for judgment-heavy tickets, where the session's own model ID is passed), rather than omitting the parameter and relying on inheritance.",
+        "The response describes dispatching independent tickets as a parallel wave \u2014 all Agent calls issued in one message \u2014 and names the two constraints that bound a wave (unmet dependencies, overlapping Files) as the only two.",
+        "The response states that a failure at the top tier results in the ticket being marked blocked and handed to the user to decide (respecify/split the ticket, or restart on a stronger model), rather than the main thread implementing it.",
+        "The response states that the gate is never loosened and the ticket scope is never narrowed to force a PASS.",
+        "The response describes escalating immediately, without spending the retry budget, when the blocker is a specification problem (missing context, contradicted acceptance criterion, a decision that isn't the implementer's)."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "run ./plans/2026-07-20-audit-log.md but go one ticket at a time please \u2014 last time everything ran at once and I couldn't tell which agent broke what.",
+      "expected_output": "The skill recognizes the described constraint as --parallelism linear without needing the flag named, and executes one ticket at a time in dependency order \u2014 but still dispatches each one to a subagent rather than implementing inline, still applies the three-attempt budget, gate, and commit per ticket, and doesn't stop for user approval between tickets.",
+      "files": [
+        "fixtures/resume/plans/2026-07-20-audit-log.md",
+        "fixtures/resume/plans/2026-07-20-audit-log.completed.md"
+      ],
+      "assertions": [
+        "The skill interprets 'one ticket at a time' as linear parallelism mode, without the user having had to name the --parallelism flag.",
+        "Tickets are dispatched one at a time \u2014 only one Agent call is in flight per message \u2014 rather than batched into a parallel wave.",
+        "Every ticket is still dispatched to a subagent; linear mode is not treated as permission to implement tickets on the main thread.",
+        "Each ticket still carries the full delivery contract: three-attempt budget, qoq gate over its own explicit file list, commit on PASS.",
+        "Execution does not pause to ask the user for approval between tickets (the user asked for serialization, not a checkpoint gate); progress is reported per ticket as it lands.",
+        "Ticket order respects dependencies \u2014 a ticket is not started before the tickets in its Depends on are done."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "execute ./plans/2026-07-20-audit-log.md",
+      "expected_output": "Ticket routing is correct per ticket: a ticket whose Files list contains only Test: entries goes to plan-tester (which delegates to testing-gate); every other ticket, including ones that pair source changes with a test file, goes to plan-developer, which writes those tests itself and gates through qoq alone. Where the bundled agents aren't registered under .claude/agents/, the fallback to general-purpose carries the agent body in the prompt rather than silently dropping the contract. Each plan-developer ticket also runs a `qoq refactor <files> --tree dirty --decisions auto` standards pass before its gate, leaning on qoq's own run modes rather than re-inventing an approval rule.",
+      "files": [
+        "fixtures/resume/plans/2026-07-20-audit-log.md",
+        "fixtures/resume/plans/2026-07-20-audit-log.completed.md"
+      ],
+      "assertions": [
+        "Each dispatch names the agent chosen from the ticket's Files: plan-tester only when the Files list is test-only, plan-developer otherwise.",
+        "A ticket that pairs source files with a test file is dispatched as a single plan-developer ticket, not split across a developer and a tester subagent.",
+        "Availability of the bundled agents is checked once up front, not re-decided per dispatch; if they are not registered, dispatches fall back to general-purpose with the agent definition's body included in the prompt.",
+        "Each dispatch prompt contains the ticket's Context, Files, and Acceptance criteria pasted verbatim \u2014 no 'see the plan' or cross-ticket references.",
+        "Each dispatch prompt states the three-attempt budget and the handoff-report escape hatch explicitly.",
+        "testing-gate is invoked only on test-only tickets (dispatched to plan-tester); a ticket that pairs source files with a test file is gated through qoq alone, with its implementer writing the tests.",
+        "Each plan-developer dispatch's definition of done includes a `qoq refactor` standards pass over the ticket's own files, run BEFORE the gate (while the work is still uncommitted and can still change).",
+        "The standards pass is invoked with qoq's run modes \u2014 `--tree dirty` and `--decisions auto` \u2014 rather than the agent inventing its own clean-tree workaround or self-approval rule.",
+        "The gate runs after the standards pass, so its verdict covers whatever the refactor pass applied.",
+        "The standards pass runs once, on the first attempt, and is skipped on test-only tickets dispatched to plan-tester."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "resume ./plans/2026-07-20-audit-log.md \u2014 my laptop died halfway through the last run and I'm not sure what actually landed.",
+      "expected_output": "Reads the plan fresh, treats any ticket left at `in-progress` as an interrupted dispatch rather than skipping it: reconciles each against `git log --oneline -1 -- <its Files>` to see whether it committed before the session ended, marks the ones that landed `done` with their hash, re-dispatches the rest, and clears leftover `.qoq/runs/` directories from the dead session. Reports what it found either way.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "execute ./plans/2026-07-20-audit-log.md \u2014 and I want the first milestone done today so run whatever can run at once",
+      "expected_output": "Dispatches the eligible tickets in one message (disjoint Files, dependencies satisfied), passes each subagent `--run <ticket id>` for its qoq calls, warns the subagents that repo-wide validation failures naming files outside their Files list are a wave-mate's and not theirs, runs the standards pass only on moderate/judgment-heavy tickets, and closes the milestone with `qoq refactor <union> --decisions auto` plus the full build and test commands from the plan header \u2014 delegated, not run on the lead thread.",
+      "files": []
+    }
+  ]
+}

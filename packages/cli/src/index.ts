@@ -63,7 +63,8 @@ withCommonOptions(
       return await initConfig(workspaces);
     }
 
-    const config = await getConfig(workspaces);
+    // --warmup (IDE) and CI are non-interactive: never fall into the setup wizard.
+    const config = await getConfig(workspaces, !!options.warmup || isCi());
 
     return await execute(
       config,

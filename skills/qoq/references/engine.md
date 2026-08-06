@@ -69,10 +69,10 @@ is what makes fixes _dynamic per project_ rather than generic:
 ## Produce reports, then read the digest
 
 Run every tool once in JSON mode, writing reports into the shared workspace at
-`.qoq/reports/`:
+`<ws>/reports/`:
 
 ```bash
-npx qoq --check --json --output .qoq/reports
+npx qoq --check --json --output <ws>/reports
 ```
 
 A non-zero exit just means findings exist — the reports are still written. This
@@ -91,7 +91,7 @@ Now collapse them into the digest — **this is the step that keeps tokens low, 
 do it instead of reading the raw reports**:
 
 ```bash
-node <skill>/scripts/summarize.mjs .qoq/reports
+node <skill>/scripts/summarize.mjs <ws>/reports
 ```
 
 (`<skill>` is this skill's directory.) The digest groups every finding by tool and
@@ -101,7 +101,7 @@ and prints a total. It exits `1` when there are findings, `0` when clean. Pass
 instances per group. What it prints looks like this:
 
 ```
-=== QoQ DIGEST (.qoq/reports) ===
+=== QoQ DIGEST (<ws>/reports) ===
 
 PRETTIER  2 file(s) need formatting  [auto-fixable: run qoq --fix]
   src/helpers/loadConfig.ts
