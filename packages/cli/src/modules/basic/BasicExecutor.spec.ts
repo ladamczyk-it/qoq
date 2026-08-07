@@ -8,9 +8,9 @@ import { IExecutorOptions } from '../types.ts';
 
 import { BasicExecutor } from './BasicExecutor.ts';
 
-const { baseConfig } = vi.hoisted(() => ({ baseConfig: { rules: {} } }));
+const { configs } = vi.hoisted(() => ({ configs: { base: [] } }));
 
-vi.mock('@ladamczyk/qoq-eslint-v9-ts', () => ({ baseConfig }));
+vi.mock('@ladamczyk/qoq-eslint-v9-ts', () => ({ configs }));
 
 // In this monorepo every qoq-eslint-v9-* template is a real symlinked peer
 // dependency, so importing one actually loads the full ESLint toolchain (slow and
@@ -43,7 +43,7 @@ describe('BasicExecutor', () => {
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     vi.spyOn(console, 'time').mockImplementation(() => undefined);
     vi.spyOn(console, 'timeEnd').mockImplementation(() => undefined);
-    baseConfig.rules = {};
+    configs.base = [];
   });
 
   afterEach(() => {
@@ -97,7 +97,7 @@ describe('BasicExecutor', () => {
     });
 
     it('should warn about eslint rules already set in the template base config', async () => {
-      baseConfig.rules = { 'no-console': 'off' };
+      configs.base = [{ rules: { 'no-console': 'off' } }];
       const executor = withRawConfig({
         eslint: [{ template: 'qoq-eslint-v9-ts', rules: { 'no-console': 0 } }],
       });
@@ -109,6 +109,22 @@ describe('BasicExecutor', () => {
       expect(output).toContain(
         'eslint[0].rules.no-console = 0 — already set in qoq-eslint-v9-ts base config'
       );
+    });
+
+    it('should detect redundancy when a later base config layer overrides an earlier one', async () => {
+      configs.base = [
+        { rules: { 'rule1': 2, 'rule2': 1 } },
+        { rules: { 'rule2': 2 } },
+      ];
+      const executor = withRawConfig({
+        eslint: [{ template: 'qoq-eslint-v9-ts', rules: { 'rule2': 2 } }],
+      });
+
+      await executor.run(baseOptions);
+      const output = writes.join('');
+
+      expect(output).toContain('found 1 redundant entry');
+      expect(output).toContain('eslint[0].rules.rule2 = 2 — already set in qoq-eslint-v9-ts base config');
     });
 
     it('should ignore eslint templates that cannot be resolved', async () => {
