@@ -8,7 +8,11 @@ import { IExecutorOptions } from '../types.ts';
 
 import { BasicExecutor } from './BasicExecutor.ts';
 
-const { configs } = vi.hoisted(() => ({ configs: { base: [] } }));
+import type { TRulesRecord } from './checks.ts';
+
+const { configs } = vi.hoisted(() => ({
+  configs: { base: [] as Array<{ rules?: TRulesRecord }> },
+}));
 
 vi.mock('@ladamczyk/qoq-eslint-v9-ts', () => ({ configs }));
 
@@ -112,19 +116,18 @@ describe('BasicExecutor', () => {
     });
 
     it('should detect redundancy when a later base config layer overrides an earlier one', async () => {
-      configs.base = [
-        { rules: { 'rule1': 2, 'rule2': 1 } },
-        { rules: { 'rule2': 2 } },
-      ];
+      configs.base = [{ rules: { rule1: 2, rule2: 1 } }, { rules: { rule2: 2 } }];
       const executor = withRawConfig({
-        eslint: [{ template: 'qoq-eslint-v9-ts', rules: { 'rule2': 2 } }],
+        eslint: [{ template: 'qoq-eslint-v9-ts', rules: { rule2: 2 } }],
       });
 
       await executor.run(baseOptions);
       const output = writes.join('');
 
       expect(output).toContain('found 1 redundant entry');
-      expect(output).toContain('eslint[0].rules.rule2 = 2 — already set in qoq-eslint-v9-ts base config');
+      expect(output).toContain(
+        'eslint[0].rules.rule2 = 2 — already set in qoq-eslint-v9-ts base config'
+      );
     });
 
     it('should ignore eslint templates that cannot be resolved', async () => {
