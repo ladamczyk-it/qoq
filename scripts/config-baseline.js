@@ -52,6 +52,23 @@ const filesScope = { files: ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'] };
 
 const LEGACY_EXPORT_NAME = { base: 'baseConfig', test: 'testConfig', strict: 'strictConfig' };
 
+// Ticket 2.2 fixed a diamond-extends bug in eslint-v9-ts-react's `configs.base`: the
+// legacy `baseConfig` merges the TS base on top of the React base, so objectMergeRight
+// lets the JS base's plain tuples (riding in with tsBaseConfig) overwrite `reactLayer`'s
+// React-specific *option* overrides on exactly these two rules. The composed chain never
+// re-applies the JS base, so it keeps them — a real, sanctioned improvement, not a bug in
+// this oracle. Severities are unchanged on both sides and still compared below; only
+// options diverge, and only ever composed-has-more. Same decision as
+// packages/eslint-v9-ts-react/src/configs.spec.ts's `SANCTIONED_OPTION_DELTAS`.
+// Milestone 4 deletes both the legacy `baseConfig` export and this allow-list — do not
+// extend it for any other package or rule.
+const SANCTIONED_OPTION_DELTAS = {
+  'eslint-v9-ts-react': {
+    'import-x/order': 'react* path group',
+    'no-restricted-imports': 'lodash/debounce',
+  },
+};
+
 // ESLint's flat-config cascade keeps an earlier layer's rule options when a later layer
 // overrides severity only, whereas the objectMergeRight deep-merge this migration
 // replaces used to replace the whole tuple. Options carry no meaning on a disabled rule,
@@ -167,19 +184,41 @@ const diffValues = (label, baselineValue, currentValue, issues) => {
   }
 };
 
-const diffSnapshot = (context, baselineSnapshot, currentSnapshot, issues) => {
+const diffSnapshot = (
+  context,
+  baselineSnapshot,
+  currentSnapshot,
+  issues,
+  sanctionedRules,
+  expectedDeltas
+) => {
   const ruleIds = new Set([
     ...Object.keys(baselineSnapshot.rules ?? {}),
     ...Object.keys(currentSnapshot.rules ?? {}),
   ]);
 
   for (const ruleId of ruleIds) {
-    diffValues(
-      `${context} rule=${ruleId}`,
-      baselineSnapshot.rules?.[ruleId],
-      currentSnapshot.rules?.[ruleId],
-      issues
-    );
+    const baselineRule = baselineSnapshot.rules?.[ruleId];
+    const currentRule = currentSnapshot.rules?.[ruleId];
+
+    // A sanctioned rule still fails on a severity change — only its options are waived,
+    // and only when they actually differ (a re-capture that already matches needs no
+    // waiver).
+    if (sanctionedRules?.[ruleId] && !isDeepStrictEqual(baselineRule, currentRule)) {
+      if (baselineRule?.[0] !== currentRule?.[0]) {
+        issues.push({
+          label: `${context} rule=${ruleId}`,
+          baselineValue: baselineRule,
+          currentValue: currentRule,
+        });
+      } else {
+        expectedDeltas.add(ruleId);
+      }
+
+      continue;
+    }
+
+    diffValues(`${context} rule=${ruleId}`, baselineRule, currentRule, issues);
   }
 
   for (const key of ['plugins', 'settings', 'linterOptions', 'languageOptions']) {
@@ -204,6 +243,8 @@ const compare = async () => {
     const baseline = JSON.parse(readFileSync(baselinePath, 'utf-8'));
     const mod = await loadPackageModule(packageName);
     const issues = [];
+    const expectedDeltas = new Set();
+    const sanctionedRules = SANCTIONED_OPTION_DELTAS[packageName];
     let missingExport = false;
 
     for (const shape of shapes) {
@@ -233,7 +274,9 @@ const compare = async () => {
           `export=${shape} fixture=${fixture}`,
           baselineSnapshot,
           currentSnapshot,
-          issues
+          issues,
+          sanctionedRules,
+          expectedDeltas
         );
       }
     }
@@ -249,7 +292,16 @@ const compare = async () => {
     }
 
     if (!missingExport && issues.length === 0) {
-      console.log(`OK ${packageName}`);
+      const deltaSuffix =
+        expectedDeltas.size > 0
+          ? ` (${expectedDeltas.size} expected delta${expectedDeltas.size === 1 ? '' : 's'})`
+          : '';
+
+      console.log(`OK   ${packageName}${deltaSuffix}`);
+
+      for (const ruleId of expectedDeltas) {
+        console.log(`     ${ruleId.padEnd(22)}${sanctionedRules[ruleId]}`);
+      }
     }
   }
 
