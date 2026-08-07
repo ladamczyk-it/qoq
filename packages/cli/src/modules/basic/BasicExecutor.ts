@@ -59,11 +59,14 @@ export class BasicExecutor extends AbstractExecutor {
         }
 
         try {
-          const { baseConfig } = (await import(`@ladamczyk/${template}`)) as {
-            baseConfig?: { rules?: TRulesRecord };
+          const { configs } = (await import(`@ladamczyk/${template}`)) as {
+            configs?: { base?: Array<{ rules?: TRulesRecord }> };
           };
 
-          baseRulesByIndex[index] = baseConfig?.rules;
+          baseRulesByIndex[index] = configs?.base?.reduce<TRulesRecord | undefined>(
+            (merged, layer) => (layer.rules ? { ...merged, ...layer.rules } : merged),
+            undefined
+          );
         } catch {
           // Template not installed — nothing to compare against.
         }
