@@ -13,14 +13,26 @@ const isEnabled = (entry: Linter.RuleEntry): boolean => {
 
 /**
  * Names of every rule a config actually turns on (severity other than
- * `off`/`0`), read straight from the resolved flat config (e.g. `baseConfig`
- * from a package's `index.ts`). Keeping this off the `@eslint/config-inspector`
- * payload means the package's own config is the source of truth.
+ * `off`/`0`), read straight from the resolved flat config(s) (e.g.
+ * `baseConfig` or `configs.base` from a package's `index.ts`). Accepts either
+ * a single config object or an array of them; an array is folded
+ * left-to-right (a later entry's rule entry wins over an earlier one's, same
+ * precedence as ESLint's own flat-config cascade) before enabled status is
+ * read from the final, merged severity. Keeping this off the
+ * `@eslint/config-inspector` payload means the package's own config is the
+ * source of truth.
  */
-export const getEnabledRuleNames = (config: TEnabledRulesConfig): string[] => {
+export const getEnabledRuleNames = (
+  config: TEnabledRulesConfig | TEnabledRulesConfig[]
+): string[] => {
+  const configs = Array.isArray(config) ? config : [config];
+  const mergedRules = configs.reduce<Partial<Linter.RulesRecord>>(
+    (merged, current) => ({ ...merged, ...current.rules }),
+    {}
+  );
   const enabled = new Set<string>();
 
-  for (const [name, entry] of Object.entries(config.rules ?? {})) {
+  for (const [name, entry] of Object.entries(mergedRules)) {
     if (entry !== undefined && isEnabled(entry)) {
       enabled.add(name);
     }
@@ -133,7 +145,7 @@ const readRuleRegistry = (statsDir: string): Record<string, IInspectorRuleMeta> 
  * dependency bump which deprecates a rule we enable fails the test suite.
  */
 export const getEnabledDeprecatedRules = (
-  config: TEnabledRulesConfig,
+  config: TEnabledRulesConfig | TEnabledRulesConfig[],
   statsDir: string
 ): IDeprecatedRule[] => {
   const registry = readRuleRegistry(statsDir);
