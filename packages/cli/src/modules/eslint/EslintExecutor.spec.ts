@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 
 import { dummyModulesConfig } from '__tests__/common.ts';
 
+import { EConfigType } from '../../helpers/types.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { EslintExecutor } from './EslintExecutor.ts';
@@ -235,20 +236,20 @@ describe('EslintExecutor', () => {
   });
 });
 
+const configWithTemplate = {
+  ...dummyModulesConfig,
+  modules: {
+    eslint: [{ template: EModulesEslint.ESLINT_V9_TS, files: ['src/**/*.ts'], ignores: [] }],
+  },
+};
+
+const writtenConfig = () => (vi.mocked(writeFileSync).mock.calls[0]?.[1] as string) ?? '';
+
 describe('EslintExecutor generated config', () => {
   beforeEach(setupMocks);
   afterEach(teardownMocks);
 
   describe('workspaces', () => {
-    const configWithTemplate = {
-      ...dummyModulesConfig,
-      modules: {
-        eslint: [{ template: EModulesEslint.ESLINT_V9_TS, files: ['src/**/*.ts'], ignores: [] }],
-      },
-    };
-
-    const writtenConfig = () => (vi.mocked(writeFileSync).mock.calls[0]?.[1] as string) ?? '';
-
     it('restores import-x/no-cycle ignoreExternal:false ahead of user overrides when workspaces are detected', async () => {
       const executor = new EslintExecutor(
         { ...configWithTemplate, workspaces: ['packages/*'] },
@@ -258,8 +259,15 @@ describe('EslintExecutor generated config', () => {
 
       await executor.run(baseOptions);
 
+      // defineConfig expands `extends` in order and appends the extending object
+      // (the user's qoq.config.js block) last, so this ordering is what makes the
+      // user's own rules win over both monorepo overrides.
       expect(writtenConfig()).toContain(
-        'objectMergeRight(baseConfig0, {"rules":{"import-x/no-cycle":[1,{"ignoreExternal":false}]}}, {'
+        'const config0 = defineConfig({ extends: [configs0.base, ' +
+          '{"rules":{"import-x/no-cycle":[1,{"ignoreExternal":false}]}}, ' +
+          "{ settings: { 'import-x/resolver-next': [createTypeScriptImportResolver({ project: " +
+          '["packages/*/tsconfig.json","tsconfig.json"], noWarnOnMultipleProjects: true }), ' +
+          'createNodeResolver()] } }], ...{"files":["src/**/*.ts"],"ignores":[]} })'
       );
     });
 
@@ -310,6 +318,67 @@ describe('EslintExecutor generated config', () => {
 
       expect(writtenConfig()).not.toContain('createTypeScriptImportResolver');
       expect(writtenConfig()).toContain('import-x/no-cycle');
+    });
+  });
+
+  describe('composition', () => {
+    it('extends the template configs.base through defineConfig in ESM form', async () => {
+      const executor = new EslintExecutor(configWithTemplate, true, true);
+
+      await executor.run(baseOptions);
+
+      expect(writtenConfig()).toContain(
+        "import { defineConfig } from 'eslint/config';" +
+          "import { includeIgnoreFile } from '@eslint/compat';" +
+          "import { configs as configs0 } from '@ladamczyk/qoq-eslint-v9-ts';" +
+          'const config0 = defineConfig({ extends: [configs0.base], ' +
+          '...{"files":["src/**/*.ts"],"ignores":[]} });'
+      );
+      expect(writtenConfig().endsWith('.concat(config0);')).toBe(true);
+    });
+
+    it('extends the template configs.base through defineConfig in CJS form', async () => {
+      const executor = new EslintExecutor(
+        { ...configWithTemplate, configType: EConfigType.CJS },
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(writtenConfig()).toContain(
+        "const { defineConfig } = require('eslint/config');" +
+          "const { includeIgnoreFile } = require('@eslint/compat');" +
+          "const { configs: configs0 } = require('@ladamczyk/qoq-eslint-v9-ts');" +
+          'const config0 = defineConfig({ extends: [configs0.base], ' +
+          '...{"files":["src/**/*.ts"],"ignores":[]} });'
+      );
+    });
+
+    it('never emits objectMergeRight or a qoq-utils import', async () => {
+      const executor = new EslintExecutor(
+        { ...configWithTemplate, workspaces: ['packages/*'] },
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(writtenConfig()).not.toContain('objectMergeRight');
+      expect(writtenConfig()).not.toContain('@ladamczyk/qoq-utils');
+    });
+
+    it('emits a bare config array with no template import for an entry without a template', async () => {
+      const executor = new EslintExecutor(
+        { ...dummyModulesConfig, modules: { eslint: [{ files: ['**/*.md'] }] } },
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(writtenConfig()).toContain('const config0 = [{"files":["**/*.md"]}]');
+      expect(writtenConfig()).not.toContain('configs0');
     });
   });
 });

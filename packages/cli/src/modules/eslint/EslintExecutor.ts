@@ -124,7 +124,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       );
 
       const imports: Record<string, string> = {
-        '{ objectMergeRight }': '@ladamczyk/qoq-utils',
+        '{ defineConfig }': 'eslint/config',
         '{ includeIgnoreFile }': '@eslint/compat',
       };
 
@@ -134,7 +134,9 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       // just as external as a real node_modules dependency, and cross-package
       // cycles would go undetected. Restore full cycle detection whenever the
       // consumer's package.json declares workspaces; an explicit user override in
-      // qoq.config.js's `rules` still wins, since it's merged in last.
+      // qoq.config.js's `rules` still wins, since the user's block is the config
+      // object doing the extending and defineConfig places it after everything it
+      // extends.
       const monorepoNoCycleOverride = JSON.stringify({
         rules: { 'import-x/no-cycle': [1, { ignoreExternal: false }] },
       });
@@ -147,7 +149,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       // though tsc resolves them fine. Point the resolver at every workspace's tsconfig (plus
       // the root, for any TS file living outside a workspace package) whenever the consumer's
       // package.json declares workspaces; an explicit user override in qoq.config.js's
-      // `rules`/`settings` still wins, since it's merged in last. Passing >1 project path is
+      // `rules`/`settings` still wins, since it applies last (see above). Passing >1 project path is
       // deliberate here, so suppress the resolver's own "Multiple projects found" warning —
       // it only knows the single-project-with-references case is fast, not that this one is fine.
       const monorepoResolverOverride = (consumerWorkspaces: string[]): string =>
@@ -166,9 +168,9 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
           }
 
           if (configType === EConfigType.ESM) {
-            imports[`{ baseConfig as baseConfig${index} }`] = `@ladamczyk/${template}`;
+            imports[`{ configs as configs${index} }`] = `@ladamczyk/${template}`;
           } else {
-            imports[`{ baseConfig: baseConfig${index} }`] = `@ladamczyk/${template}`;
+            imports[`{ configs: configs${index} }`] = `@ladamczyk/${template}`;
           }
 
           const usesResolverOverride =
@@ -183,14 +185,22 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
               `@ladamczyk/${EModulesEslint.ESLINT_V9_TS}`;
           }
 
-          const mergeArgs = [
+          // The template's `configs.base` is a flat-config array, so it's extended rather
+          // than pre-merged: defineConfig expands the `extends` list in order, scopes every
+          // extended entry to the user block's `files`/`ignores`, and appends the user block
+          // itself last — same precedence the objectMergeRight chain used to produce
+          // (base < no-cycle override < resolver override < user's qoq.config.js block).
+          const extendsArgs = [
+            `configs${index}.base`,
             ...(workspaces?.length ? [monorepoNoCycleOverride] : []),
             ...(usesResolverOverride ? [monorepoResolverOverride(workspaces as string[])] : []),
-            JSON.stringify(rest),
           ];
-          const merged = `objectMergeRight(baseConfig${index}, ${mergeArgs.join(', ')})`;
 
-          acc.push(`const config${index} = [${merged}]`);
+          acc.push(
+            `const config${index} = defineConfig({ extends: [${extendsArgs.join(
+              ', '
+            )}], ...${JSON.stringify(rest)} })`
+          );
 
           return acc;
         },
