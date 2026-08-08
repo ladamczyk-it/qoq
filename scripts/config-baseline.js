@@ -60,8 +60,14 @@ const LEGACY_EXPORT_NAME = { base: 'baseConfig', test: 'testConfig', strict: 'st
 // this oracle. Severities are unchanged on both sides and still compared below; only
 // options diverge, and only ever composed-has-more. Same decision as
 // packages/eslint-v9-ts-react/src/configs.spec.ts's `SANCTIONED_OPTION_DELTAS`.
-// Milestone 4 deletes both the legacy `baseConfig` export and this allow-list — do not
-// extend it for any other package or rule.
+// The waiver is tied to the .config-baseline/ snapshots captured from that legacy export,
+// not to the export's existence, so it survives Milestone 4's deletion of baseConfig and
+// is retired by Ticket 5.5, after Ticket 5.4's final `compare` run. Keyed by package *and*
+// rule id, negative-tested three ways — do not extend it for any other package or rule.
+// Milestone 4 also deletes the legacy baseConfig/testConfig/strictConfig exports `capture`
+// reads, so `capture` can no longer run; only `compare` works now, against the snapshots
+// already captured. Never re-capture .config-baseline/ — those snapshots are the plan's
+// only pre-migration evidence, and regenerating them destroys what Ticket 5.4 checks.
 const SANCTIONED_OPTION_DELTAS = {
   'eslint-v9-ts-react': {
     'import-x/order': 'react* path group',
