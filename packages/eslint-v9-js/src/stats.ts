@@ -14,7 +14,8 @@ const isEnabled = (entry: Linter.RuleEntry): boolean => {
 /**
  * Names of every rule a config actually turns on (severity other than
  * `off`/`0`), read straight from the resolved flat config(s) (e.g.
- * `baseConfig` or `configs.base` from a package's `index.ts`). Accepts either
+ * eslint-v9-js's `baseConfig`, or another package's `configs.base`, from its
+ * `index.ts`). Accepts either
  * a single config object or an array of them; an array is folded
  * left-to-right (a later entry's rule entry wins over an earlier one's, same
  * precedence as ESLint's own flat-config cascade) before enabled status is
