@@ -4,7 +4,6 @@ import {
   baseConfig as jsBaseConfig,
   restoreSonarjsRules,
 } from '@ladamczyk/qoq-eslint-v9-js';
-import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import vitestPlugin from '@vitest/eslint-plugin';
 import { defineConfig } from 'eslint/config';
 
@@ -60,8 +59,6 @@ const additionalVitestRules: EslintConfig['rules'] = {
 // spec-file-scopes it) is the only place they're actually applied.
 const restoredTestRules = restoreSonarjsRules(TEST_ONLY_SONARJS_RULES);
 
-const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
-
 /**
  * Everything this package adds or changes on top of the JS base, as a single
  * flat-config layer for `defineConfig` composition. Shared by the TS variant
@@ -86,20 +83,9 @@ export const vitestLayer: EslintConfig = {
   },
 };
 
-const { plugins: vitestLayerPlugins, ...vitestLayerRest } = vitestLayer;
-
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsBaseConfigRest, vitestLayerRest, { rules: jsOnlyDisabledRules }),
-  plugins: {
-    ...jsBaseConfigPlugins,
-    ...vitestLayerPlugins,
-  },
-};
-
 /**
  * Flat-config array form: the JS base, the vitest layer, and the JS-only
- * relaxations, merged per file by ESLint's own cascade instead of being
- * pre-merged with `objectMergeRight`.
+ * relaxations, merged per file by ESLint's own cascade.
  */
 export const configs: Record<'base', Linter.Config[]> = {
   base: defineConfig(jsBaseConfig, vitestLayer, {
