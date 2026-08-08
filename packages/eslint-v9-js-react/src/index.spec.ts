@@ -3,17 +3,17 @@ import { resolve } from 'path';
 import { getEnabledDeprecatedRules, getEnabledRuleNames } from '@ladamczyk/qoq-eslint-v9-js/stats';
 import { describe, it, expect } from 'vitest';
 
-import { baseConfig } from './index';
+import { configs } from './index';
 
 const STATS_DIR = resolve(__dirname, '..', 'stats');
 
 describe('eslint config deprecation guard', () => {
   it('resolves the rules the package config enables', () => {
-    // Reads straight from `baseConfig`, so it also exercises `index.ts`.
-    expect(getEnabledRuleNames(baseConfig)).toContain('eqeqeq');
+    // Reads straight from `configs.base`, so it also exercises `index.ts`.
+    expect(getEnabledRuleNames(configs.base)).toContain('eqeqeq');
   });
 
   it('does not enable any deprecated rules', () => {
-    expect(getEnabledDeprecatedRules(baseConfig, STATS_DIR)).toStrictEqual([]);
+    expect(getEnabledDeprecatedRules(configs.base, STATS_DIR)).toStrictEqual([]);
   });
 });
