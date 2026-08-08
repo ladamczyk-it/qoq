@@ -4,7 +4,6 @@ import {
   baseConfig as jsBaseConfig,
   restoreSonarjsRules,
 } from '@ladamczyk/qoq-eslint-v9-js';
-import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import { defineConfig } from 'eslint/config';
 import jestPlugin from 'eslint-plugin-jest';
 import globals from 'globals';
@@ -14,7 +13,7 @@ import type { Linter } from 'eslint';
 export const disabledRules: EslintConfig['rules'] = {
   'sonarjs/no-duplicate-string': 0,
   // Duplicates of rules eslint-plugin-jest's own `recommended` config already enables
-  // (registered below, and inherited by eslint-v9-ts-jest via this package's baseConfig) —
+  // (registered below, and applied by eslint-v9-ts-jest which appends this package's jestLayer) —
   // reporting the same violation through two rules doubles the check's cost for no extra
   // signal, so keep the jest-aware rule and drop the sonarjs one.
   'sonarjs/no-skipped-tests': 0, // duplicates jest/no-disabled-tests
@@ -59,8 +58,6 @@ const additionalJestRules: EslintConfig['rules'] = {
 // spec-file-scopes it) is the only place they're actually applied.
 const restoredTestRules = restoreSonarjsRules(TEST_ONLY_SONARJS_RULES);
 
-const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
-
 /**
  * Everything this package adds or changes on top of the JS base, as a single
  * flat-config layer for `defineConfig` composition. Shared by the TS variant
@@ -83,16 +80,6 @@ export const jestLayer: EslintConfig = {
     ...additionalJestRules,
     ...disabledRules,
   } as EslintConfig['rules'],
-};
-
-const { plugins: jestLayerPlugins, ...jestLayerRest } = jestLayer;
-
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsBaseConfigRest, jestLayerRest, { rules: jsOnlyDisabledRules }),
-  plugins: {
-    ...jsBaseConfigPlugins,
-    ...jestLayerPlugins,
-  },
 };
 
 /**
