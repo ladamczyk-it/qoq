@@ -216,6 +216,12 @@ export const getNoRestrictedImportsRule = (paths: IPath[] = []): Linter.RuleEntr
   },
 ];
 
+/**
+ * Root delta layer of the qoq ESLint configuration chain. Every downstream package
+ * (`eslint-v9-ts`, `eslint-v9-js-jest`, etc.) extends this config, consuming it
+ * directly. When using `defineConfig` for composition, use `configs.base` (the flat-
+ * config array form) instead.
+ */
 export const baseConfig: EslintConfig = {
   name: 'qoq-eslint-v9-js',
   linterOptions: {
@@ -355,11 +361,10 @@ export const baseConfig: EslintConfig = {
 };
 
 /**
- * `baseConfig` in ESLint's flat-config array form, for `defineConfig`/`extends`
- * composition (e.g. `defineConfig({ files: ['src/**'], extends: [configs.base] })`).
- * This package is the root of the qoq config chain, so `base` is just the base
- * config itself; downstream qoq packages append their own delta layers to it and
- * let ESLint's cascade merge them per file, instead of pre-merging with
+ * Flat-config array form of `baseConfig` for use with `defineConfig` and
+ * composition chains. `configs.base` is the wrapped version of the root delta
+ * layer; downstream packages extend this same root via their own chains and rely
+ * on ESLint's cascade to merge them per-file, rather than pre-merging with
  * `objectMergeRight`.
  */
 export const configs: Record<'base', Linter.Config[]> = {
