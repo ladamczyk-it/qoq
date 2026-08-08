@@ -1,6 +1,5 @@
 import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
-import { baseConfig as jsVitestBaseConfig, vitestLayer } from '@ladamczyk/qoq-eslint-v9-js-vitest';
-import { objectMergeRight } from '@ladamczyk/qoq-utils';
+import { vitestLayer } from '@ladamczyk/qoq-eslint-v9-js-vitest';
 import { defineConfig } from 'eslint/config';
 import testingLibrary from 'eslint-plugin-testing-library';
 
@@ -23,8 +22,6 @@ const jsOnlyDisabledRules: EslintConfig['rules'] = {
   'sonarjs/no-incompatible-assertion-types': 0,
 };
 
-const { plugins: jsVitestBaseConfigPlugins, ...jsVitestBaseConfigRest } = jsVitestBaseConfig;
-
 /**
  * Everything this package adds or changes on top of the JS-Vitest base, as a single
  * flat-config layer for `defineConfig` composition. Contains only RTL concerns — no
@@ -42,22 +39,11 @@ export const rtlLayer: EslintConfig = {
   },
 };
 
-const { plugins: rtlLayerPlugins, ...rtlLayerRest } = rtlLayer;
-
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsVitestBaseConfigRest, rtlLayerRest),
-  plugins: {
-    ...jsVitestBaseConfigPlugins,
-    ...rtlLayerPlugins,
-  },
-};
-
 /**
  * Flat-config array form: the JS base, the vitest layer, the RTL layer, and the JS-only
- * relaxations, merged per file by ESLint's own cascade instead of being pre-merged with
- * `objectMergeRight`. Composed from delta layers (never from `eslint-v9-js-vitest`'s own
- * `configs.base`), which would re-apply the JS base mid-chain and clobber the vitest
- * layer's rule restorations.
+ * relaxations, merged per file by ESLint's own cascade instead of being pre-merged.
+ * Composed from delta layers (never from `eslint-v9-js-vitest`'s own `configs.base`),
+ * which would re-apply the JS base mid-chain and clobber the vitest layer's rule restorations.
  */
 export const configs: Record<'base', Linter.Config[]> = {
   base: defineConfig(jsBaseConfig, vitestLayer, rtlLayer, {
