@@ -1,45 +1,16 @@
-import {
-  EslintConfig,
-  TEST_ONLY_SONARJS_RULES,
-  baseConfig as jsBaseConfig,
-  restoreSonarjsRules,
-} from '@ladamczyk/qoq-eslint-v9-js';
-import {
-  baseConfig as jsJestBaseConfig,
-  disabledRules,
-  jestLayer,
-} from '@ladamczyk/qoq-eslint-v9-js-jest';
-import { testConfig as tsTestConfig, testLayer, tsLayer } from '@ladamczyk/qoq-eslint-v9-ts';
-import { objectMergeRight } from '@ladamczyk/qoq-utils';
+import { baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { jestLayer } from '@ladamczyk/qoq-eslint-v9-js-jest';
+import { testLayer, tsLayer } from '@ladamczyk/qoq-eslint-v9-ts';
 import { defineConfig } from 'eslint/config';
 
 import type { Linter } from 'eslint';
 
-const { plugins: jsJestBaseConfigPlugins, ...jsJestBaseConfigRest } = jsJestBaseConfig;
-const { plugins: tsTestConfigPlugins, ...tsTestConfigRest } = tsTestConfig;
-
-// tsTestConfigRest is merged in after jsJestBaseConfigRest and still carries the
-// test rules disabled (it's built from eslint-v9-js, not eslint-v9-js-jest), so its
-// "off" wins the objectMergeRight merge unless re-restored here as the final override.
-const restoredTestRules = restoreSonarjsRules(TEST_ONLY_SONARJS_RULES);
-
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsJestBaseConfigRest, tsTestConfigRest, {
-    name: 'qoq-eslint-v9-ts-jest',
-    rules: {
-      ...restoredTestRules,
-      ...disabledRules,
-    },
-  }),
-  plugins: { ...jsJestBaseConfigPlugins, ...tsTestConfigPlugins },
-};
-
 /**
  * The delta this package itself contributes. Under `defineConfig` composition the
- * legacy re-restoration hack above disappears: the ts layers are true deltas that
- * never carry the JS base's disabled test rules, so the jest layer's restorations
- * (`restoredTestRules` and `disabledRules`, both already baked into `jestLayer`) are
- * never clobbered and nothing is left for this package to re-add.
+ * legacy pre-merge re-restoration hack disappears: the ts layers are true deltas
+ * that never carry the JS base's disabled test rules, so the jest layer's own
+ * restorations (already baked into `jestLayer`) are never clobbered and nothing
+ * is left for this package to re-add.
  */
 export const tsJestLayer: Linter.Config = {
   name: 'qoq-eslint-v9-ts-jest',
