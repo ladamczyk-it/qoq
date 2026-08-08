@@ -1,6 +1,5 @@
 import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
-import { baseConfig as jsJestBaseConfig, jestLayer } from '@ladamczyk/qoq-eslint-v9-js-jest';
-import { objectMergeRight } from '@ladamczyk/qoq-utils';
+import { jestLayer } from '@ladamczyk/qoq-eslint-v9-js-jest';
 import { defineConfig } from 'eslint/config';
 import testingLibrary from 'eslint-plugin-testing-library';
 
@@ -23,8 +22,6 @@ const jsOnlyDisabledRules: EslintConfig['rules'] = {
   'sonarjs/no-incompatible-assertion-types': 0,
 };
 
-const { plugins: jsJestBaseConfigPlugins, ...jsJestBaseConfigRest } = jsJestBaseConfig;
-
 /**
  * Everything this package adds or changes on top of the JS-Jest base, as a single
  * flat-config layer for `defineConfig` composition. Contains only RTL concerns — no
@@ -39,16 +36,6 @@ export const rtlLayer: EslintConfig = {
     ...(testingLibrary.configs['flat/react'].rules as EslintConfig['rules']),
     ...additionalTestingLibraryRules,
     ...disabledRules,
-  },
-};
-
-const { plugins: rtlLayerPlugins, ...rtlLayerRest } = rtlLayer;
-
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsJestBaseConfigRest, rtlLayerRest),
-  plugins: {
-    ...jsJestBaseConfigPlugins,
-    ...rtlLayerPlugins,
   },
 };
 
