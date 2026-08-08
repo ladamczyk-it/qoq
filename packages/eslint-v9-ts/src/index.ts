@@ -4,7 +4,6 @@ import {
   importPlugin,
   createNodeResolver,
 } from '@ladamczyk/qoq-eslint-v9-js';
-import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import { defineConfig } from 'eslint/config';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 import tseslint from 'typescript-eslint';
@@ -15,8 +14,6 @@ import type { Linter } from 'eslint';
 // importing from the config package it already depends on, not from the resolver packages
 // directly (which it never declares). `createNodeResolver` comes through from the JS base.
 export { createTypeScriptImportResolver, createNodeResolver };
-
-const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
 
 const tsPluginConfigs = (tseslint.plugin as unknown as { configs: Record<string, EslintConfig> })
   .configs;
@@ -33,7 +30,6 @@ const TS_RECOMMENDED_RULES: EslintConfig['rules'] = {
 /**
  * Everything this package adds or changes on top of the JS base, as a single
  * flat-config layer for `defineConfig` composition (see `configs` below).
- * `baseConfig` is derived from it, so both export shapes share one source of truth.
  */
 export const tsLayer: EslintConfig = {
   name: 'qoq-eslint-v9-ts',
@@ -159,38 +155,21 @@ export const tsLayer: EslintConfig = {
   },
 };
 
-const { plugins: tsLayerPlugins, ...tsLayerRest } = tsLayer;
-
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsBaseConfigRest, tsLayerRest),
-  plugins: {
-    ...jsBaseConfigPlugins,
-    ...tsLayerPlugins,
-  },
-};
-
 /** Test-file relaxations as a delta layer — only the rules that change. */
 export const testLayer: EslintConfig = {
   name: 'qoq-eslint-v9-ts-test',
   rules: {
-    // `no-unsafe-assignment` needs no entry here — baseConfig already disables it.
+    // `no-unsafe-assignment` needs no entry here — tsLayer already disables it.
     '@typescript-eslint/no-unsafe-argument': 0,
     '@typescript-eslint/no-unsafe-member-access': 0,
     'sonarjs/no-duplicate-string': 0,
   },
 };
 
-export const testConfig: EslintConfig = objectMergeRight(
-  baseConfig as EslintConfig & Record<string, unknown>,
-  {
-    rules: testLayer.rules,
-  }
-);
-
 /**
- * Opt-in strictness layer on top of `baseConfig`: hand-picked, type-aware rules from
+ * Opt-in strictness layer on top of `tsLayer`: hand-picked, type-aware rules from
  * typescript-eslint's `strict` family that are too opinionated to enable by default.
- * All net-new enables (none is in the recommended presets baseConfig spreads), at warn
+ * All net-new enables (none is in the recommended presets `tsLayer` spreads), at warn
  * like every other hand-picked rule.
  */
 export const strictLayer: EslintConfig = {
@@ -203,19 +182,10 @@ export const strictLayer: EslintConfig = {
   },
 };
 
-export const strictConfig: EslintConfig = objectMergeRight(
-  baseConfig as EslintConfig & Record<string, unknown>,
-  {
-    name: strictLayer.name!,
-    rules: strictLayer.rules,
-  }
-);
-
 /**
- * Flat-config array forms of `baseConfig`/`testConfig`/`strictConfig`: the JS base
- * followed by this package's delta layers, merged per file by ESLint's own cascade
- * instead of being pre-merged with `objectMergeRight`. Compose further with
- * `defineConfig({ files: [...], extends: [configs.base] })`.
+ * Flat-config array forms of the base/test/strict configs: the JS base followed by
+ * this package's delta layers, merged per file by ESLint's own cascade. Compose
+ * further with `defineConfig({ files: [...], extends: [configs.base] })`.
  */
 export const configs: Record<'base' | 'test' | 'strict', Linter.Config[]> = {
   base: defineConfig(jsBaseConfig, tsLayer),
