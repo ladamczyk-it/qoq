@@ -7,7 +7,6 @@ import {
   getNoRestrictedImportsRule,
   restoreSonarjsRules,
 } from '@ladamczyk/qoq-eslint-v9-js';
-import { objectMergeRight } from '@ladamczyk/qoq-utils';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 import { defineConfig } from 'eslint/config';
 import compatPlugin from 'eslint-plugin-compat';
@@ -84,8 +83,6 @@ const restoredReactRules = restoreSonarjsRules(REACT_ONLY_SONARJS_RULES, [
   'no-hook-setter-in-body',
 ]);
 
-const { plugins: jsBaseConfigPlugins, ...jsBaseConfigRest } = jsBaseConfig;
-
 /**
  * Everything this package adds or changes on top of the JS base, as a single
  * flat-config layer for `defineConfig` composition. Shared by the TS variant
@@ -132,13 +129,6 @@ export const reactLayer: EslintConfig = {
       version: 'detect',
     },
   },
-};
-
-const { plugins: reactLayerPlugins, ...reactLayerRest } = reactLayer;
-
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsBaseConfigRest, reactLayerRest),
-  plugins: { ...jsBaseConfigPlugins, ...reactLayerPlugins },
 };
 
 /**
