@@ -1,33 +1,16 @@
-import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
 import { vitestLayer } from '@ladamczyk/qoq-eslint-v9-js-vitest';
-import {
-  baseConfig as jsVitestRtlBaseConfig,
-  disabledRules,
-  rtlLayer,
-} from '@ladamczyk/qoq-eslint-v9-js-vitest-rtl';
+import { rtlLayer } from '@ladamczyk/qoq-eslint-v9-js-vitest-rtl';
 import { testLayer, tsLayer } from '@ladamczyk/qoq-eslint-v9-ts';
-import { baseConfig as tsBaseConfig, tsVitestLayer } from '@ladamczyk/qoq-eslint-v9-ts-vitest';
-import { objectMergeRight } from '@ladamczyk/qoq-utils';
+import { tsVitestLayer } from '@ladamczyk/qoq-eslint-v9-ts-vitest';
 import { defineConfig } from 'eslint/config';
 
 import type { Linter } from 'eslint';
 
-const { plugins: jsVitestRtlBaseConfigPlugins, ...jsVitestRtlBaseConfigRest } =
-  jsVitestRtlBaseConfig;
-const { plugins: tsBaseConfigPlugins, ...tsBaseConfigRest } = tsBaseConfig;
-
-export const baseConfig: EslintConfig = {
-  ...objectMergeRight(jsVitestRtlBaseConfigRest, tsBaseConfigRest, {
-    name: 'qoq-eslint-v9-ts-vitest-rtl',
-    rules: { ...disabledRules },
-  }),
-  plugins: { ...jsVitestRtlBaseConfigPlugins, ...tsBaseConfigPlugins },
-};
-
 /**
- * The delta this package itself contributes. `disabledRules` (testing-library's
- * `prefer-screen-queries` staying off) is already carried by `rtlLayer`, so there's
- * nothing left to add here beyond naming the config.
+ * The delta this package itself contributes. `rtlLayer`'s restoration of
+ * testing-library's `prefer-screen-queries` staying off already covers the
+ * delta, so there's nothing left to add here beyond naming the config.
  */
 export const tsVitestRtlLayer: Linter.Config = {
   name: 'qoq-eslint-v9-ts-vitest-rtl',
