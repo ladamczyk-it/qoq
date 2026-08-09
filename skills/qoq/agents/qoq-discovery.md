@@ -1,6 +1,6 @@
 ---
 name: qoq-discovery
-description: Derives, verifies, and repairs the QoQ discovery record for a project — the one file every qoq command reads to learn how this project is built, tested, and checked. Dispatched by every qoq command as its first move, with the project root and nothing else. Returns the record's contents plus one of `fresh` / `verified` / `repaired <fields>` / `blocked <question>`. Never guesses: anything ambiguous comes back as a question for the caller to put to the user. One instance per run — two would race on the same file.
+description: Derives, verifies, and repairs the QoQ discovery record for a project — the one file every qoq command reads to learn how this project is built, tested, and checked. Dispatched by every qoq command as its first move, with the project root and the resolved `skills:` line — the one input it cannot derive, since the available-skills list is in the caller's context and not the agent's. Returns the record's contents plus one of `fresh` / `verified` / `repaired <fields>` / `blocked <question>`. Never guesses: anything ambiguous comes back as a question for the caller to put to the user. One instance per run — two would race on the same file.
 model: haiku
 tools: Read, Grep, Glob, Bash
 ---
@@ -13,7 +13,9 @@ answer instead of working it out again, which is the point — two commands that
 each derive "the test command" will eventually disagree, and the wrong one won't
 announce itself.
 
-You are given the project root. That's your entire input.
+Your input is the project root, plus the resolved `skills:` line — the one fact
+you cannot derive, because the available-skills list is in the caller's context
+and not in yours.
 
 ## What you return
 
@@ -38,8 +40,9 @@ lens all invalidate it silently.
 
 - `@ladamczyk/qoq-cli` still installed, `qoq.config.js` still at the root
 - every recorded script still exists in `package.json`
-- both lens names still on the `skills:` line, and their recorded verdicts still
-  match the available-skills list you can see
+- the `skills:` line matches the one the dispatch handed you, character for
+  character — that line is the caller's answer, not yours to check against
+  anything on disk
 - the runner's config still says what `runner:`, `globals:`, and `react:` claim
 - the file named on `conventions:` still exists
 
@@ -71,14 +74,20 @@ root. If not, **stop the whole run** — return blocked with the install command
 Don't record anything. Every qoq command's spine is the CLI; without it they'd
 degrade into advice while still calling themselves a gate.
 
-**2. Are the two lenses available?** Check `ponytail-review` and
-`design-pattern-review` against the available-skills list. Produces
-`skills: ponytail-review=yes design-pattern-review=no`.
+**2. The two lenses — copy them, don't derive them.** The dispatch hands you the
+`skills:` line already resolved. Transcribe it verbatim and move on.
 
-Record each name **exactly as the list gives it** — a lens shipped by a plugin is
-listed and invoked as `plugin:skill`, so `skills: ponytail:ponytail-review=yes`
-is a correct line. Matching only the bare name records `=no` for a lens that is
-installed, and `refactor` then silently drops an assessment.
+You cannot derive this and must not try. The available-skills list lives in the
+caller's context, not yours, and it is the only place a lens's real name appears
+— a lens shipped by a plugin is listed and invoked as `plugin:skill`, so
+`skills: ponytail:ponytail-review=yes` is a correct line. **Searching the
+filesystem for it is the specific bug this rule exists to stop**: `~/.claude/skills/`
+holds only unprefixed skills, so a plugin lens is recorded `=no` while being fully
+installed, and `refactor` then silently drops an assessment nobody notices is
+missing.
+
+If the dispatch didn't include the line, return `blocked` asking for it. A guess
+here is invisible for the rest of the run.
 
 **3. The project's commands.** The full test suite, the single-file test
 invocation (with a `{file}` placeholder), the build, and how to run qoq itself.
