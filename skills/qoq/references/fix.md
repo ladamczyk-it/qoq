@@ -1,160 +1,120 @@
-# fix
+# `qoq fix` — the check/fix loop
 
-A **fix-focused** command: it does not ask whether the code is good enough —
-that is [gate.md](gate.md) — and it does not review a branch — that is
-[review.md](review.md). Its one job is _turning findings into landed fixes_,
-delivered as **reviewable git patches** applied one at a time behind the
-project's own lint/test/build gate.
+Tool findings only: Prettier, ESLint, Knip, JSCPD, and whatever else the project
+has enabled. Judgement calls are `refactor`'s. This is the command every other
+one leans on, and it's the only one that invokes no other command.
 
-The analysis is the shared seven dimensions ([analysis.md](analysis.md)); the
-snapshot/staging/apply mechanics are the shared workflow
-([workflow.md](workflow.md)). What is fix-specific:
-
-- **Scope** — the **full project** by default (`qoq --check` over the whole
-  codebase, the engine's native mode), or a scope the user names. `fix` never
-  scans for modified files — a dirty tree is tolerated (the snapshot protects
-  it) but is not the scope. That's the difference from `gate`.
-- **Both tiers become patches.** `gate` auto-applies the safe tier and merely
-  _reports_ the judgment calls (dead-code deletion, clone extraction, pattern
-  changes) as advisories. `fix` escalates: it stages **every** fix — both tiers
-  — as concrete, individually approvable, individually revertible patches, so
-  the advisories `gate` leaves on the floor can actually land.
-
-Reach for `fix` when the goal is to _land_ the findings as a clean patch
-series, not to get a PASS/FAIL verdict or a review narrative.
-
----
-
-## Phase 1 — Resolve scope & baseline
-
-Setup already located the engine. A dirty tree is tolerated — the snapshot is
-the safety net, not a clean-tree requirement.
-
-1. **Determine the scope.** With no argument, the scope is the **full
-   project** — `qoq --check` over the entire codebase, letting the findings it
-   surfaces define the work. When the user names a scope — a path, glob,
-   package, or directory — resolve it to a file list with `git ls-files`,
-   exactly as [refactor.md](refactor.md)'s Phase 1 does. Either way the scope
-   comes from the argument (or its absence), **never** from
-   `git status`/`git diff`. If a named scope resolves to nothing, say so and
-   stop.
-
-2. **Initialize the workspace and take the snapshot** per
-   [workflow.md](workflow.md) (`workspace.mjs init --run <run-id>` + `snapshot`). The
-   snapshot ref is the restore point for every staged patch — it captures any
-   uncommitted work the tree had, so restoring to it never throws that away.
-
-3. **Discover and cache the validation commands, then run what the request
-   calls for.** Per
-   [workflow.md](workflow.md#validation-commands--the-green-baseline), work
-   out (or read from cache) how to lint/test/build and cache all three so
-   Phase 4's per-patch validation step has them ready. Let _what the user
-   said_ decide what to actually run before staging anything:
-   - **Named a tool or area** ("fix the linter problems", "fix the failing
-     tests", "the build is broken") — run only that command to see the actual
-     problem. Don't also run the other two — they weren't asked for, and
-     running them anyway is exactly the wasted upfront work this step avoids.
-   - **No area named** (a plain "fix it" / "fix my project") — with nothing to
-     narrow the request, run the full lint/test/build baseline upfront, same
-     as `review`/`refactor` — you need the full picture to know what "fix it"
-     even covers. Record a red baseline rather than stopping (like `gate`).
-
-   Either way, the goal is to run only as much as the request actually needs —
-   a named area gets a targeted check, an unscoped request gets the full one.
-   Whatever wasn't checked here is simply unknown until Phase 4 surfaces it.
-
----
-
-## Phase 2 — Stage every fix as a patch
-
-Prime the reports once and read the digest via the engine
-([engine.md](engine.md)), filter the findings to the Phase 1 scope, and run
-the seven dimensions from [analysis.md](analysis.md) (skip TypeScript idioms
-for plain JS).
-
-Stage each dimension's fix with `stage-patch.mjs`
-([workflow.md](workflow.md#staging-a-patch)) — the script restores to the
-snapshot ref automatically, so the working tree stays untouched until Phase 4.
-Use the standard patch names so Phase 4 can order them.
-
-Tag each staged patch with its tier, since that drives approval in Phase 3 —
-[analysis.md](analysis.md#risk-tiers--safe-vs-advisory) is the single
-definition of the split (shared with `gate`); what's fix-specific is only how
-each tier is _treated_ here:
-
-- **Safe tier** — approved by default.
-- **Advisory tier** — staged as patches so they _can_ land (unlike `gate`,
-  which only reports these), but default to **needs-approval** — a Knip
-  "unused" export may be reached by a test or a dynamic import, a clone may
-  answer to two different reasons to change.
-
-Respect the project's config throughout (`qoq.config.js` ignores and
-thresholds). For broad scopes, fan out to the `qoq-analyzer` worker over
-disjoint slices exactly as [refactor.md](refactor.md)'s Phase 2 describes —
-workers only _stage_ patches, and restore to the snapshot ref, never HEAD.
-
----
-
-## Phase 3 — Present the plan & get approval
-
-Summarize the staged patches grouped by dimension, each with a one-line
-rationale and a sense of size — **split by tier** so the user sees at a glance
-which patches are mechanical and which are judgment calls:
-
-- **Safe tier** — the default-on set; quality-over-quantity still applies, so
-  recommend _dropping_ any low-value churn.
-- **Advisory tier** — each called out with _why_ it needs a human: what the
-  Knip finding might still be used by, why two clones might honestly differ,
-  why the pattern may add more complexity than it removes.
-
-Ask whether to **edit the plan** (typically the user keeps the safe tier and
-cherry-picks advisories) or **execute it**, and wait.
-
-**Non-interactive shortcut.** If the caller (a skill, or the user up front)
-said to run autonomously: apply the safe tier, leave the advisory tier staged
-in `.qoq/` as patches, and report them — the same posture `gate` takes, except
-the advisories are ready-to-apply patch files rather than prose.
-
----
-
-## Phase 4 — Execution
-
-Apply the approved patches per [workflow.md](workflow.md#applying-patches):
-canonical dimension order, `git apply --check` → `git apply` → validation step
-after each. Phase 1 only ran what the request called for, so for any command
-that wasn't part of that (e.g. `test`/`build` when the request only named
-"linter problems"), the validation run after the _first_ patch touching that
-area is also the first look at whether it was already red — treat a failure
-there outside the files that patch touched as pre-existing, not caused by it.
-On a patch that no longer applies, regenerate just that one; if validation
-goes red _in files the patch touched_, restore the affected files from the
-snapshot, set that patch aside as a left-behind advisory, and continue with
-the others — one bad fix never blocks the rest (the `gate` posture, since
-`fix` may run non-interactively).
-
----
-
-## Phase 5 — Readability, cleanup & optional verdict
-
-Format the changed files (`qoq --fix` / `qoq:fix` in QoQ mode, else Prettier),
-run the validation step one final time, and summarize what landed — grouped by
-dimension, noting which advisories were applied and which were left staged.
-Then clean up per [workflow.md](workflow.md#cleanup) — on a fully successful
-run only; an abort leaves `.qoq/` as the record.
-
-**Optional gate-style verdict** — emit only when invoked programmatically or
-asked to, so a calling skill can branch on it:
+## Scope
 
 ```
-QoQ FIX — PASS            (or: QoQ FIX — FAIL)
-scope:      <n files>
-applied:
-  - <dimension>: <what landed>          (omit empty dimensions)
-left staged (advisory, not applied):
-  - <dimension>: <patch path> — <why it needs a human>   (omit when none)
-validation: qoq --check ✓ · tests ✓ · build ✓   (or the failing command + why)
+/qoq fix                                  # qoq.config's srcPath
+/qoq fix src/auth/token.ts src/auth/token.spec.ts
 ```
 
-`PASS` = the approved patches are in and validation is green; `FAIL` =
-validation couldn't be made green or a hard standard couldn't be fixed. When a
-verdict isn't requested, a plain prose summary of what landed is enough.
+Given files, the verdict is about those files and nothing else. That matters
+because of who asks: `execute` needs to know whether _this ticket_ is clean and
+`test` whether _this slice_ is, not whether the repo is.
+
+Both of those callers dispatch a subagent to do the writing, so the gate runs one
+thread up — see **The gate runs one thread up** in `SKILL.md`. The scope and the
+retry budget both survive the move intact, which is the only property that
+mattered.
+
+## The checker
+
+`qoq-checker` is dispatched at the top of every loop. It never edits: fixing is
+this command's job, and an agent that can both report and fix will do both, which
+loses the audit trail of what changed and why.
+
+**Reports are reused only when they're demonstrably current**, and
+`scripts/reports-current.mjs` is what decides — exit 0 reuse, exit 1 re-run. It's
+an mtime comparison, far cheaper than the tools, and it's what makes the loop head
+safe to call five times in a row without five full tool runs. A stale digest read
+as current would make this command declare PASS over code nothing checked, which
+is why it's a script rather than a judgement call.
+
+**The check is `<run:> --check --json`.** `--json` is not an optimisation — it is
+what writes the reports at all, and without it the checker has nothing to
+summarise. Reports land in the CLI's default output directory, next to the record
+and with the same lifetime; `AGENTS.md` names it. Don't pass `--output`: one less
+path to agree on and get wrong, and `npm install` wipes both together.
+
+**The dispatch hands the checker three things it cannot derive**: the absolute
+paths to `scripts/reports-current.mjs` and `scripts/summarize.mjs` in this skill,
+and the report directory. Neither script defaults an argument — both exit 2 when
+called bare.
+
+## Verifying a fix
+
+Two checks, answering different questions.
+
+1. **The owning tool.** An ESLint finding is verified by re-running ESLint, a
+   Prettier finding by Prettier. Not the whole suite — the full re-check is the
+   _next_ `qoq-checker` at the top of the loop, and that's what catches
+   cross-tool damage: a Prettier rewrite reopening an ESLint rule, a deleted
+   export turning up in Knip.
+
+2. **The scoped check.** The owning tool says the finding is gone; it says
+   nothing about whether the code still works. So each fix is followed by
+   `test:one` on the files it touched — the ones that have tests — plus `build`.
+   Failing means revert **that fix** and carry it as unfixable, rather than
+   leaving a green linter sitting on top of broken code.
+
+`build` isn't scoped, because there's no such thing as a scoped build and a fix
+that breaks the type graph shows up nowhere else.
+
+An unfixable finding is **never retried**. It stays in the digest — the checker
+will keep reporting it — but the loop skips it from then on and lists it at the
+end. Otherwise every subsequent loop re-attempts the same fix, re-breaks the same
+test, and burns the budget on a known dead end.
+
+## Why it loops
+
+Fixes cascade. Prettier reformats a file and ESLint now has an opinion about it;
+a Knip-driven deletion makes another export unused. One pass is not enough, and
+pretending it is means handing back a "fixed" tree that fails the next check.
+
+**Progress is announced, continuation is asked.** One line per loop:
+
+```
+loop 1  eslint 12 → 3, prettier 4 → 0     (13 fixed, 3 left)
+loop 2  eslint 3 → 1, knip 0 → 2          (3 fixed, 3 left)
+loop 3  eslint 1 → 0, knip 2 → 2          (1 fixed, 2 left)
+
+3 loops, 2 findings left. Keep going?
+```
+
+Three loops is a **budget, not a limit** — a yes resets the counter rather than
+buying one more pass, because the useful question is "is this still going
+somewhere", not "have we hit ten".
+
+**Stuck beats looping.** If a loop closes with the finding count no lower than it
+opened with, stop and report instead of asking. The remaining findings need a
+person, and asking "keep going?" about a loop that provably isn't going anywhere
+is just a slower no.
+
+## The verdict
+
+`fix` ends on one line, with the digest underneath:
+
+```
+PASS — 0 findings across 4 tools
+```
+
+```
+FAIL — 2 findings left after 3 loops (1 unfixable: knip/unused-export src/api/legacy.ts)
+```
+
+That line exists for the command's callers — `refactor`'s green base, `execute`'s
+per-ticket gate, `test`'s per-slice gate. One line, same shape every time, so no
+caller has to parse a digest to learn whether it can carry on.
+
+## What `fix` doesn't do
+
+It doesn't delegate the fixing. `qoq-checker` reports; this command edits. A lint
+fix is a mechanical single-file edit that has to be attributed to the tool that
+reported it — dispatching an agent per finding costs more than the fix and blurs
+that attribution.
+
+It also doesn't ask before applying. A lint rule is not a matter of taste, which
+is exactly what separates this command from `refactor`.

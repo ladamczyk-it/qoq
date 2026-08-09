@@ -1,18 +1,17 @@
-# Conventions
+# Test conventions
 
-Built-in defaults for Phase 3. Every one of these is overridable by a
-project-root `testing-gate.md` (see [SKILL.md](../SKILL.md), Phase 1 step 5)
-wherever the two conflict — that file is human-written and knows things about
-the project this skill can't infer.
+The house rules for writing specs in a QoQ project. Every one is overridable by
+the project's own `testing-gate.md` — the file named on the record's
+`conventions:` line — wherever the two conflict. That file is human-written and
+knows things about the project this skill can't infer.
 
-**Readable on its own.** Nothing below depends on the rest of the skill, which
-is deliberate: most tests in a plan-driven project aren't written by
-`testing-gate` at all, but by whoever implements the feature they cover. That
-implementer should read this file rather than reinvent a house style — one
-Read is much cheaper than a second subagent, and it's the same rulebook either
-way. What it won't give you is the skill's Phase 1 discovery (runner, globals
-setting, run commands) or its Phase 5 gate; work those out from the repo, as
-[SKILL.md](../SKILL.md) describes.
+**Readable on its own.** Nothing below depends on the rest of the skill, which is
+deliberate: most tests in a plan-driven project aren't written by `qoq test` at
+all, but by `qoq-developer` implementing the feature they cover. That implementer
+should read this file rather than reinvent a house style — one Read is much
+cheaper than a second subagent, and it's the same rulebook either way. What it
+won't give you is the runner, the `globals` setting, or the run commands; those
+are on the record.
 
 ## Coverage philosophy
 
@@ -50,7 +49,7 @@ debounced updates).
 
 ## React Testing Library conventions
 
-When Phase 1 identifies the project as React:
+When the record's `react:` line says yes:
 
 - Prefer `userEvent` over `fireEvent` — it more closely simulates what a real
   user does (a click dispatches the full sequence of events a browser would,
@@ -81,10 +80,10 @@ is what the test should care about.
 
 QoQ's own `eslint-v9-{js,ts}-{jest,vitest}(-rtl)` configs (the ones a project
 built on this repo's ESLint templates will run) hard-enforce a handful of
-Jest/Vitest/Testing-Library rules on spec files. `gate` (Phase 5) would catch
-violations of these anyway, but writing to them up front means Phase 5 has
-nothing left to fix — treat every point below as how a valid test is
-structured, not an extra pass to run afterward:
+Jest/Vitest/Testing-Library rules on spec files. `qoq fix` would catch violations
+of these anyway, but writing to them up front means the gate has nothing left to
+fix — treat every point below as how a valid test is structured, not an extra
+pass to run afterward:
 
 - **Never commit a focused or disabled test** — no `.only`, no `.skip`, no
   `fit`/`xit`/`fdescribe`/`xdescribe`. If a test doesn't pass, fix it or leave
@@ -129,7 +128,7 @@ structured, not an extra pass to run afterward:
   fields that matter instead of snapshotting an entire object graph.
 
 These reflect this monorepo's own Jest/Vitest + Testing Library lint
-defaults; if Phase 1 finds the target project on a different ESLint setup,
+defaults; if the target project turns out to be on a different ESLint setup,
 they're still sensible defaults grounded in how these test-runner ecosystems
 work, just no longer independently lint-enforced there.
 

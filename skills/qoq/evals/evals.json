@@ -3,118 +3,212 @@
   "evals": [
     {
       "id": 1,
-      "name": "review-branch-before-pr",
-      "prompt": "I think my feature branch is ready — can you review it against master before I open the PR? Focus on anything that would embarrass us in code review.",
-      "expected_output": "Runs the `review` command: infers/confirms the base branch, diffs against the merge-base, runs the engine once and reads the summarize.mjs digest (never raw report JSON), stages per-dimension patches in .qoq/ WITHOUT modifying the working tree, presents a plan split by dimension (including deliberately dropped low-value findings with reasons), and waits for approval before applying anything. Working tree is clean at the pause point.",
-      "files": []
+      "name": "fix-loop-budget-and-verdict",
+      "prompt": "The lint is a mess on this branch — a bunch of prettier stuff plus some eslint complaints and I think knip is unhappy about a couple of exports. Can you just clean it all up? Don't spend the whole afternoon on it though.",
+      "expected_output": "Dispatches qoq-checker (never runs the tools inline), handing it the record's path plus the two paths it cannot derive: the absolute path to scripts/summarize.mjs and the report directory. The checker reads run: and docs: first, runs `<run:> --check --json` (--json is what writes the reports at all), and calls summarize.mjs with the report dir as its positional argument — never bare. The command fixes findings itself rather than delegating, verifies each fix against the owning tool and then a scoped test:one + build, prints one progress line per loop, stops to ask after 3 loops rather than looping indefinitely, stops without asking if the finding count fails to drop, and ends on a single PASS or FAIL line with the digest underneath.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-checker rather than running the tools inline",
+        "Hands the checker the reports-current.mjs path, the summarize.mjs path, and the report directory",
+        "Checker branches on reports-current.mjs's exit code (0 reuse, 1 re-run) instead of judging staleness itself",
+        "Runs `<run:> --check --json` — never without --json",
+        "Calls summarize.mjs with the report dir positionally, never bare",
+        "Reads the digest only; does not load a raw report wholesale",
+        "The command fixes findings itself rather than dispatching an agent per finding",
+        "Each fix is verified by re-running the owning tool, then test:one plus build",
+        "A fix that breaks a test is reverted and carried as unfixable, never retried",
+        "Prints one progress line per loop showing per-tool before → after counts",
+        "Stops and asks after 3 loops rather than looping indefinitely",
+        "Stops without asking when a loop fails to reduce the finding count",
+        "Ends on a single PASS or FAIL line with the digest underneath"
+      ]
     },
     {
       "id": 2,
-      "name": "gate-freshly-generated-code",
-      "prompt": "I just had a codegen step write src/api/client.ts and src/api/client.spec.ts (they're uncommitted). Check that this generated code meets our quality standards — don't ask me questions, just make it compliant and tell me pass or fail.",
-      "expected_output": "Runs the `gate` command non-interactively: snapshots the dirty tree (tracked via stash-create ref AND untracked files copied to .qoq/snapshot/), auto-applies only safe-tier fixes behind the validation gate, reports Knip/JSCPD/pattern findings as advisories without applying them, cleans up .qoq/, and ends with the structured 'QoQ GATE — PASS/FAIL' verdict block including scope, applied, advisories, and validation lines. The producer's original code must be restorable at every step.",
-      "files": []
+      "name": "refactor-four-assessments-sequential",
+      "prompt": "src/modules/npm has gotten pretty gnarly — lots of copy-paste and I don't think the shape is right anymore. Give it a proper going over, just that directory.",
+      "expected_output": "Establishes a green base by dispatching qoq fix scoped to the same path and stops (without asking) if it isn't green. Then runs exactly four assessments strictly in order — JSCPD, project conventions, ponytail-review, design-pattern-review — one at a time and never in parallel, dispatching the two lens skills for 3 and 4. Asks the user per assessment before applying anything, re-greens with qoq fix after each applied assessment, and reports every assessment at the end including empty and declined ones.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq fix over the same scope first and refuses to start unless it returns PASS",
+        "Stops without asking the user when the base isn't green",
+        "Scopes the green base to the requested path, not the whole repo",
+        "Runs exactly four assessments in order: JSCPD, project conventions, ponytail-review, design-pattern-review",
+        "Runs them one at a time, never in parallel",
+        "Dispatches the two lens skills under the names on the record's skills: line",
+        "Asks the user per assessment before applying anything, never once up front for all four",
+        "Re-dispatches qoq fix after each assessment that applied changes",
+        "Reports every assessment at the end, including empty and declined ones",
+        "Accepts the scope positionally (no --path flag)"
+      ]
     },
     {
       "id": 3,
-      "name": "bump-stale-dependencies",
-      "prompt": "our deps are getting pretty stale, can you update them? nothing should break though, we deploy from this repo daily",
-      "expected_output": "Runs `bump packages`: verifies a clean tree and a green baseline first, gets outdated data via the engine's npm module (clearing the throttle lock) or npm outdated fallback, presents the minor/patch vs major grouping and asks about exclusions, stages safe_dev/safe patches plus one patch per major step per package (with changelog research for majors), and only after approval applies patches one at a time with reinstall + validation between each. Majors are never collapsed into one jump; coupled packages move in the same patch.",
-      "files": []
+      "name": "blocked-discovery-asks-and-persists",
+      "prompt": "run qoq fix on this repo",
+      "expected_output": "Dispatches qoq-discovery, which cannot determine the single-file test command because package.json has both `test:unit` and `test:ci` and no project docs answer it. The agent writes no record at all (not a partial one) and returns the question. The caller asks the user, and once answered writes it into the project's own docs (CLAUDE.md, else AGENTS.md, else README.md) inside a `<!-- qoq:discovery -->` block BEFORE re-dispatching — so a later npm install doesn't cost the same question again. Never guesses a default, and never composes an `npx vitest ...` invocation from package.json dependencies. Records each lens under the exact name the available-skills list gives it, plugin prefix included, rather than matching a bare name and recording =no for an installed lens.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-discovery with the project root and nothing else",
+        "The agent writes no record at all when ambiguous — not a partial one",
+        "Returns `blocked` with the question rather than guessing a default",
+        "Never composes an npx vitest/tsc invocation from package.json dependencies",
+        "The caller asks the user rather than picking between test:unit and test:ci",
+        "The answer is written into CLAUDE.md, else AGENTS.md, else README.md — never a new file",
+        "The answer is written inside a <!-- qoq:discovery --> block",
+        "The write happens BEFORE re-dispatching discovery",
+        "Lens names are recorded exactly as the available-skills list gives them, plugin prefix included",
+        "Booleans in the record are written yes/no"
+      ]
     },
     {
       "id": 4,
-      "name": "refactor-chosen-scope",
-      "prompt": "Can you refactor the auth module in src/auth to reduce complexity and clean up naming? We haven't touched it in a while and it's grown a lot of cruft.",
-      "expected_output": "Runs the `refactor` command (never `review` — there's no base branch or diff here, just a named scope): resolves 'the auth module' to a concrete file list via git ls-files and confirms it, decides on fan-out based on scope size (asking before a broad subagent split), initializes the workspace/snapshot and confirms a green baseline, runs the six in-house dimensions from analysis.md over the resolved scope (design patterns excluded — that's delegated), dispatches the two external lenses once over the whole scope per delegation.md, stages one patch per dimension/lens with a real finding, presents a plan grouped by dimension (including dropped low-value findings and any skipped lens) and waits for approval, then applies approved patches in the canonical order with minimalism.patch last, formats, re-validates, and cleans up only on a fully successful run.",
+      "name": "bump-dirty-tree-hard-stop",
+      "prompt": "we're way behind on deps, can you update them? I've got a couple of files I'm still working on but they're unrelated, just leave them alone",
+      "expected_output": "Refuses to start: a clean worktree is an unconditional precondition for bump, because git is what distinguishes a bump's damage from the user's uncommitted work. Says so plainly and tells the user to commit or stash. Does not offer a flag to override, does not proceed on the untouched files only, and does not stash on the user's behalf.",
+      "files": [],
       "assertions": [
-        {
-          "text": "Routes to `refactor`, not `review` or `fix` — the request names a scope, not a branch/diff",
-          "category": "routing"
-        },
-        {
-          "text": "Resolves 'the auth module' to an explicit file list before analyzing anything, and shows that list",
-          "category": "scoping"
-        },
-        {
-          "text": "Confirms a clean working tree and a green lint/test/build baseline before any edit",
-          "category": "safety"
-        },
-        {
-          "text": "Design patterns are not analyzed in-house for this scope — the plan attributes pattern findings (if any) to the design-pattern-review lens, not to a from-scratch read of design-patterns.md",
-          "category": "delegation"
-        },
-        {
-          "text": "Every finding is staged as a patch and the tree is left untouched until an explicit approval step",
-          "category": "workflow"
-        },
-        {
-          "text": "The plan calls out at least one dropped, valid-but-low-value finding with a reason, or states there were none",
-          "category": "quality-over-quantity"
-        }
-      ],
-      "files": []
+        "Refuses to start on a dirty worktree",
+        "States that git is what separates a bump's damage from the user's own work",
+        "Does not offer a flag or option to override the precondition",
+        "Does not proceed on only the untouched files",
+        "Does not stash on the user's behalf"
+      ]
     },
     {
       "id": 5,
-      "name": "review-delegation-lenses-missing",
-      "prompt": "Review my current branch against master before I merge it — and don't just check the usual lint stuff, make sure it's not over-engineered and that we're using sensible design patterns too.",
-      "expected_output": "Runs `review`. In Phase 2, before dispatching Lens A (`ponytail-review`) and Lens B (`design-pattern-review`), checks whether each is installed. Since neither is installed in a stock environment, it must plainly tell the user both are missing and that they're needed for the minimalism/design-pattern checks the user explicitly asked for, ask whether to install them now or proceed without, and — if the user proceeds without — gracefully continue with only the six in-house dimensions rather than failing the whole review or silently pretending it covered both lenses. The Phase 3 plan and final summary must explicitly say both lenses were skipped and why; a reader should not come away thinking design patterns/over-engineering were checked when they weren't.",
+      "name": "bump-analyse-then-split-ladder",
+      "prompt": "worktree is clean. update our npm dependencies — there are a few majors in there I think",
+      "expected_output": "Analyses first and writes nothing: works out what's outdated, groups minor/patch, plans at most one major step per package, and dispatches one qoq-bumper per major (which reads changelogs and greps this codebase, never edits). Presents the impact and lets the user pick and exclude, and only then writes patches for the chosen set. Applies one patch at a time with reinstall, validates with all three of qoq fix, full test suite, and build after every patch, then runs qoq refactor --decisions auto scoped to that patch's changed files AFTER it validates. A failing grouped patch is reverted and re-cut minor/patch, then per-package, before any package is abandoned.",
+      "files": [],
       "assertions": [
-        {
-          "text": "Names both missing skills explicitly (`ponytail-review`, `design-pattern-review`) rather than a generic 'some dependency is missing'",
-          "category": "delegation"
-        },
-        {
-          "text": "Asks the user whether to install or proceed without, rather than silently skipping or silently failing the whole command",
-          "category": "delegation"
-        },
-        {
-          "text": "On proceeding without, the six in-house dimensions still run to completion and stage patches normally",
-          "category": "graceful-degradation"
-        },
-        {
-          "text": "The final plan/summary explicitly flags that the review ran with the design-pattern and minimalism lenses skipped, not just a clean-looking report",
-          "category": "clarity"
-        },
-        {
-          "text": "Does not fabricate design-pattern or minimalism findings to satisfy the user's request when the lenses that produce them aren't available",
-          "category": "correctness"
-        }
-      ],
-      "files": []
+        "The planning phase writes nothing — no tree changes, no patch files",
+        "Groups minor and patch bumps and plans at most one major step per package",
+        "Dispatches one qoq-bumper per major package",
+        "qoq-bumper edits nothing — no source, no package.json, no lockfile",
+        "Presents current → target plus the breaking changes that land here, with files",
+        "Lets the user pick and exclude before any patch is written",
+        "An empty selection is accepted and ends the run",
+        "Applies one patch at a time, never a batch",
+        "Validates every patch with all three of qoq fix, full test suite, and build",
+        "Runs qoq refactor --decisions auto over the patch's changed files AFTER it validates, not before",
+        "A failing grouped patch is reverted and re-cut minor/patch, then per package, before any package is abandoned",
+        "Passes the refactor scope positionally (no --path flag)"
+      ]
     },
     {
       "id": 6,
-      "name": "refactor-delegation-model-tiering",
-      "prompt": "Refactor packages/knip for over-engineering and any design-pattern issues — use whatever specialized review skills you have available for that.",
-      "expected_output": "NOTE: only fully exercisable once `ponytail-review` and `design-pattern-review` are installed in the test environment — until then, this should collapse into the same missing-lens degrade path as eval 5, which is an acceptable interim result, not a failure. Once both are installed: runs `refactor` over packages/knip, dispatches Lens A (`ponytail-review`) on the Haiku tier and Lens B (`design-pattern-review`) on the Sonnet tier per delegation.md's Model tiering table, each exactly once over the whole resolved scope (not once per fan-out slice), converts Lens A's findings into `minimalism.patch` and Lens B's into `patterns.patch`, and applies `minimalism.patch` last in Phase 4, after `typescript.patch`.",
+      "name": "plan-criteria-as-assertions",
+      "prompt": "Here's what we need: users should be able to schedule a report to run daily/weekly, get it emailed as a PDF, and manage their schedules from the settings page. Also rate-limit the schedule creation endpoint. Can you work out how we'd build this?",
+      "expected_output": "Produces a plan file under ./plans/ following the plan template. Every acceptance criterion is written as an observable assertion a spec could be written from today (\"a 6th request inside 60s returns 429\"), never as a task (\"add rate limiting\"). Tickets stop at size M, complexity rates only the model tier (no delivery routing, no per-ticket standards pass), and there are no test-only tickets for feature work. Dispatches Explore for repo patterns but takes build/test commands from the discovery record, not from Explore. Ends at approval and offers qoq execute rather than dispatching any ticket.",
+      "files": [],
       "assertions": [
-        {
-          "text": "If both lenses are available: Lens A (ponytail-review) is dispatched on the haiku tier and Lens B (design-pattern-review) on the sonnet tier, matching delegation.md's table — not both on the same tier",
-          "category": "model-tiering"
-        },
-        {
-          "text": "Each lens is dispatched once over the whole resolved scope, not once per fan-out slice",
-          "category": "model-tiering"
-        },
-        {
-          "text": "minimalism.patch, if staged, is applied last — after typescript.patch, not interleaved with the canonical six-dimension order",
-          "category": "workflow"
-        },
-        {
-          "text": "If neither lens is available, the run degrades the same way as eval 5 rather than erroring out or fabricating findings",
-          "category": "graceful-degradation"
-        }
-      ],
-      "files": []
+        "Writes a plan file under ./plans/ named YYYY-MM-DD-<feature>.md",
+        "Follows assets/plan-template.md structurally without inventing sections",
+        "Every acceptance criterion is an observable assertion, never a task description",
+        "No ticket is sized above M",
+        "Complexity rates the agent tier only — no delivery routing, no per-ticket standards pass",
+        "No test-only tickets for feature work",
+        "Dispatches Explore for repo patterns",
+        "Takes build and test commands from the discovery record, not from Explore",
+        "Saves with Plan status: draft and asks for approval",
+        "Surfaces new dependencies and any ticket rated above the session's own model at approval",
+        "Offers qoq execute rather than dispatching any ticket itself"
+      ]
     },
     {
       "id": 7,
-      "name": "refactor-unattended-run-modes",
-      "prompt": "/qoq refactor packages/cli/src/modules/knip --tree dirty --decisions auto",
-      "expected_output": "The run honors both modes rather than falling back to the interactive defaults: setup does not stop on the uncommitted changes (the safety snapshot is the net instead), the scope stays exactly the paths given with no whole-project fallback, and Phase 3's plan-and-sign-off is skipped entirely — the safe tier is applied and the advisory tier comes back as a structured report naming what was applied, what was left, any finding that would have edited a file outside the scope, and any external lens skipped for a missing skill (degraded, never offered as an install prompt). Fan-out is decided from the scope size, not asked about. The risk-tier boundary is unchanged: nothing from the advisory tier is applied just because nobody is watching.",
-      "files": []
+      "name": "execute-sequential-tdd-milestone-refactor",
+      "prompt": "the plan in ./plans/ is signed off — go ahead and build it",
+      "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order — no waves, no parallelism flag, no run id — handing it the record's path, the test-conventions.md path, and the ticket's tier explicitly. The developer writes assertions transcribed from the acceptance criteria, implements, raises those assertions to test-conventions.md itself (no `qoq test` dispatch — a subagent can't dispatch), proves the work runs with the project's own test:one and build, and hands back the changed-file list. It never invokes the qoq CLI. THE ORCHESTRATOR then dispatches `qoq fix` scoped to that list — the gate — and commits exactly that ticket's files on PASS; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread.",
+      "files": [],
+      "assertions": [
+        "Loads the plan fresh from disk rather than reusing an in-session copy",
+        "Refuses to execute a plan whose status is draft",
+        "Reconciles an in-progress ticket against git log rather than asking the user",
+        "Asks before dispatching when on the default branch",
+        "Dispatches exactly one qoq-developer at a time, in dependency then plan order",
+        "No parallel waves and no flag offering them",
+        "The dispatch carries the ticket's id, Context, Files and Acceptance criteria verbatim",
+        "The dispatch carries the record's path, the test-conventions.md path, and the tier explicitly",
+        "The developer writes failing assertions transcribed from the criteria before implementing",
+        "The developer raises those assertions to test-conventions.md itself, with no qoq test dispatch",
+        "The developer proves its work with the project's own test:one and build",
+        "The developer never invokes the qoq CLI",
+        "The orchestrator dispatches qoq fix scoped to the returned file list",
+        "The commit happens on the orchestrating thread, after PASS, one commit per ticket",
+        "A FAIL re-dispatches the developer with the digest and spends one of three attempts",
+        "The refactor beat runs at the milestone over the union of its files, not per ticket",
+        "The milestone gate also runs the project's full build and test suite",
+        "Escalates one tier when the budget is spent, recording the escalation on the ticket",
+        "The orchestrating thread never implements anything itself"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "test-red-base-asks-first",
+      "prompt": "the TokenService in src/auth has no tests at all, can you write some? unit tests are fine",
+      "expected_output": "Reads runner, globals, react and conventions off the discovery record rather than rediscovering them. States the inferred scope back rather than asking. Runs the full suite BEFORE writing anything to establish a baseline, and on finding pre-existing failures asks the user whether to skip them (recording them as the baseline) or fix them first — it does not silently absorb them into the new work's result. Dispatches qoq-tester one slice at a time, handing over the record path, the test-conventions.md path, the slice, the baseline, and any specs already in place. The tester proves its specs run using only the PROJECT's own scripts — test:one then the full suite against the baseline — never the qoq CLI, and hands back the file list. THE COMMAND then dispatches `qoq fix` scoped to those spec files as the gate, re-running the full suite if fix changed anything, and re-dispatches the tester with the digest on a FAIL. qoq refactor runs ONCE after the last slice, scoped to every file written. Never uses .skip or loosens an assertion to get green.",
+      "files": [],
+      "assertions": [
+        "Reads runner, globals, react and conventions off the record rather than rediscovering them",
+        "States the inferred unit/integration scope back instead of asking",
+        "Runs the full suite BEFORE writing anything, to establish a baseline",
+        "Asks whether to skip or fix pre-existing failures rather than absorbing them",
+        "Dispatches qoq-tester one slice at a time, never two in parallel",
+        "The dispatch carries the record path, test-conventions.md path, slice, baseline, and any existing specs",
+        "The tester proves its specs with the project's own test:one then the full suite",
+        "The tester never invokes the qoq CLI and never edits the code under test",
+        "The command dispatches qoq fix over the returned spec files as the gate",
+        "Re-runs the full suite when fix changed anything",
+        "A FAIL re-dispatches the tester with the digest, spending one of three rewrites",
+        "qoq refactor runs ONCE after the last slice, scoped to every file written",
+        "Never uses .skip or loosens an assertion to reach green"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "bare-invocation-asks-which-command",
+      "prompt": "/qoq",
+      "expected_output": "Six commands are six different jobs and a bare invocation names none of them, so the skill asks which one rather than picking the most likely. Discovery may run first, but no command's work starts before the answer.",
+      "files": [],
+      "assertions": [
+        "Asks the user which command to run rather than guessing one",
+        "Offers the six commands with enough description to choose between them",
+        "Does not fix, refactor, bump, plan, execute or test anything before the answer",
+        "Does not silently default to fix because it is the most common"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "repaired-record-notified-after-the-work",
+      "prompt": "run qoq fix over src/auth — I renamed the test script in package.json this morning",
+      "expected_output": "Discovery finds the recorded test:one no longer resolves, re-derives that line unambiguously and returns `repaired test:one`. The run carries on with the repaired value and the notice reaches the user once the fix loop has reported its verdict — never before it, and never as a request for permission.",
+      "files": [],
+      "assertions": [
+        "Discovery repairs only the stale line, leaving verified lines untouched",
+        "The repair happens in the same dispatch, without asking permission",
+        "The run continues with the repaired value rather than stopping",
+        "The repair notice is reported AFTER the fix verdict, not before the work",
+        "The notice names the field with its old → new value",
+        "An ambiguous repair would have been returned as a question instead"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "escalation-exhausted-blocks-the-ticket",
+      "prompt": "keep going on the plan — ticket 2.3 has already come back failing twice at sonnet",
+      "expected_output": "The ticket's remaining attempt is spent at its current tier, then it escalates one tier up with the last report and digest pasted into the new prompt. When the top rung is already in use there is nowhere to escalate to: the ticket is marked `blocked`, the report goes to the user, and execution does not quietly continue as though the ticket were done.",
+      "files": [],
+      "assertions": [
+        "Escalates exactly one tier when the three-attempt budget is spent",
+        "The escalated dispatch carries the previous report and digest verbatim",
+        "The escalation is recorded on the ticket even if the escalated run passes",
+        "At the top tier the ticket is marked blocked rather than retried again",
+        "The blocking report reaches the user, distinguishing a bad ticket from too small a model",
+        "The ticket is never narrowed and no acceptance criterion is dropped to get past it",
+        "A blocked ticket does not stop the milestone's remaining independent tickets"
+      ]
     }
   ]
 }
