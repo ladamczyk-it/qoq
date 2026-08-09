@@ -3,11 +3,11 @@
 // The contract is the exit code, so the test drives the script the way
 // qoq-checker does: as a subprocess, reading the code and nothing else.
 
+import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const SCRIPT = new URL('reports-current.mjs', import.meta.url).pathname;
