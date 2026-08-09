@@ -74,7 +74,13 @@ in [references/refactor.md](references/refactor.md).
 
 ## Entry
 
-1. **Dispatch `qoq-discovery`** with the project root and nothing else. Branch on
+1. **Dispatch `qoq-discovery`** with the project root and the resolved `skills:`
+   line — look `ponytail-review` and `design-pattern-review` up in your own
+   available-skills list and hand in the verdicts under the exact names it gives
+   them, plugin prefix and all. That list is in your context and not the agent's,
+   so it's the one input it can't derive; left to guess, it searches the
+   filesystem, misses every plugin lens, and `refactor` quietly drops an
+   assessment. Everything else it works out itself. Branch on
    the one status word it returns — `fresh` / `verified` / `repaired <fields>` /
    `blocked <question>` — and nothing else. Once per top-level run: a command
    invoked from inside another inherits the record rather than re-dispatching.

@@ -16,13 +16,14 @@ command" will eventually disagree, and the one that's wrong won't announce it.
 | `test`          | `test:one`, `test`, `runner`, `globals`, `react`, `conventions` |
 | `qoq-developer` | all of it                                                       |
 
-Nobody passes anything but the project root, and nobody gets a different answer
-than anybody else.
+Nobody passes anything but the project root and the `skills:` line, and nobody
+gets a different answer than anybody else.
 
 ## The interface
 
-The caller dispatches `qoq-discovery` with the project root. That's the whole
-interface. The agent returns the record's contents plus one word:
+The caller dispatches `qoq-discovery` with the project root **and the resolved
+`skills:` line**. That's the whole interface. The agent returns the record's
+contents plus one word:
 
 | Returned             | Caller does                                                         |
 | -------------------- | ------------------------------------------------------------------- |

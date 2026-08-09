@@ -41,7 +41,7 @@ anywhere else in a label are fine, so lead with a word: `X["run \`test:one\` on 
 flowchart TD
     Q["/qoq [command]"] --> DISP
 
-    DISP["dispatch **qoq-discovery**<br/>(Haiku, one per top-level run)<br/>caller passes the project root<br/>— and nothing else"]
+    DISP["dispatch **qoq-discovery**<br/>(Haiku, one per top-level run)<br/>caller passes the project root<br/>**+ the resolved skills: line**<br/>*the available-skills list is the<br/>caller's context, not the agent's*"]
 
     subgraph DISCO["qoq-discovery flow *(everything the agent does)*"]
         direction TB
@@ -53,7 +53,7 @@ flowchart TD
 
         D0 --> DOCS["**read the project's docs first** —<br/>CLAUDE.md / AGENTS.md / README.md.<br/>*a written answer outranks a guess*"]
         DOCS --> D1["**1. qoq installed?**<br/>@ladamczyk/qoq-cli + qoq.config.js<br/>→ **no = the run stops**,<br/>with the install command"]
-        D1 --> D2["**2. the two lenses available?**<br/>ponytail-review +<br/>design-pattern-review<br/>*(record the name as listed,<br/>plugin prefix and all)*"]
+        D1 --> D2["**2. the two lenses**<br/>*copy the dispatched skills: line<br/>verbatim — never search the<br/>filesystem for a lens; a plugin<br/>one is invisible there*"]
         D2 --> D3["**3. project commands?**<br/>test — full suite · test — single file · build<br/>*the project's own scripts —<br/>npx is qoq's alone*"]
         D3 --> D4["**4. test conventions?**<br/>runner · globals on or off ·<br/>React? · a testing-gate.md<br/>at the root"]
         D4 --> REC["write record →<br/>node_modules/@ladamczyk/qoq-cli/bin/<br/>qoq-skill-discovery.md<br/>(docs: ../AGENTS.md)"]

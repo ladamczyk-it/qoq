@@ -46,10 +46,10 @@
       "id": 3,
       "name": "blocked-discovery-asks-and-persists",
       "prompt": "run qoq fix on this repo",
-      "expected_output": "Dispatches qoq-discovery, which cannot determine the single-file test command because package.json has both `test:unit` and `test:ci` and no project docs answer it. The agent writes no record at all (not a partial one) and returns the question. The caller asks the user, and once answered writes it into the project's own docs (CLAUDE.md, else AGENTS.md, else README.md) inside a `<!-- qoq:discovery -->` block BEFORE re-dispatching — so a later npm install doesn't cost the same question again. Never guesses a default, and never composes an `npx vitest ...` invocation from package.json dependencies. Records each lens under the exact name the available-skills list gives it, plugin prefix included, rather than matching a bare name and recording =no for an installed lens.",
+      "expected_output": "Dispatches qoq-discovery, which cannot determine the single-file test command because package.json has both `test:unit` and `test:ci` and no project docs answer it. The agent writes no record at all (not a partial one) and returns the question. The caller asks the user, and once answered writes it into the project's own docs (CLAUDE.md, else AGENTS.md, else README.md) inside a `<!-- qoq:discovery -->` block BEFORE re-dispatching — so a later npm install doesn't cost the same question again. Never guesses a default, and never composes an `npx vitest ...` invocation from package.json dependencies. The caller resolves the two lenses against its own available-skills list and hands the `skills:` line in at dispatch under the exact names that list gives them, plugin prefix included — the agent transcribes it and never searches the filesystem, which cannot see a plugin lens and would record =no for an installed one.",
       "files": [],
       "assertions": [
-        "Dispatches qoq-discovery with the project root and nothing else",
+        "Dispatches qoq-discovery with the project root and the resolved skills: line — nothing else",
         "The agent writes no record at all when ambiguous — not a partial one",
         "Returns `blocked` with the question rather than guessing a default",
         "Never composes an npx vitest/tsc invocation from package.json dependencies",
@@ -57,7 +57,7 @@
         "The answer is written into CLAUDE.md, else AGENTS.md, else README.md — never a new file",
         "The answer is written inside a <!-- qoq:discovery --> block",
         "The write happens BEFORE re-dispatching discovery",
-        "Lens names are recorded exactly as the available-skills list gives them, plugin prefix included",
+        "The caller resolves the lens names from its own available-skills list, plugin prefix included, and passes them in — the agent never derives them from the filesystem",
         "Booleans in the record are written yes/no"
       ]
     },
