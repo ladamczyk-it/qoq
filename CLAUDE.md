@@ -37,3 +37,24 @@ npm run qoq:fix     # auto-fix
 ## Testing
 
 Tests live in `packages/*/src/**/*.spec.{ts,js}` and run with Vitest across all packages.
+
+## The `qoq` skill and its diagrams
+
+The skill lives at `skills/qoq/` — `SKILL.md` routes, `references/*.md` hold each
+command's rules, `agents/*.md` are the five subagents. Its Mermaid workflow
+diagrams live **outside** the skill, at `docs/qoq-workflows.md`, so an agent
+reading the skill never spends context on a picture it can't act on.
+
+**Changing either one means changing the other, in the same commit.** The diagram
+and the prose are two renderings of one workflow:
+
+- Edit a command's prose in `skills/qoq/` → update the matching diagram in
+  `docs/qoq-workflows.md`.
+- Edit a diagram → update the reference file it maps to. Its header table says
+  which one.
+
+The prose is what an agent actually executes, so it wins on a disagreement — but
+a stale diagram is worse than no diagram, because it's the thing a person reaches
+for when they want to understand a flow quickly and they have no reason to doubt
+it. Neither direction is "just documentation": a change that only lands on one
+side isn't finished.

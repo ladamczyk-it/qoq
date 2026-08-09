@@ -6,7 +6,9 @@
 // only drills into a specific raw report when a finding needs more detail.
 //
 // Usage:   node summarize.mjs <report-dir> [--max <n>] [--json]
-//   <report-dir>  directory passed to `qoq --output` (e.g. .qoq/reports)
+//   <report-dir>  where `qoq --check --json` wrote its reports — the CLI's own
+//                 default (bin/report inside the package), unless a caller
+//                 overrode it with --output
 //   --max <n>     max instances listed per group before "(+N more)"  (default 6)
 //   --json        emit a machine-readable summary object instead of text
 //
@@ -484,7 +486,7 @@ machine.reportsFound = reportsFound;
 if (reportsFound === 0) {
   // No report files at all — qoq likely never ran (or wrote elsewhere). Don't
   // claim "clean": that would let a caller skip fixes that do exist.
-  const msg = `No *-report.json found in ${reportDir}. Run \`qoq --check --json --output ${reportDir}\` first.`;
+  const msg = `No *-report.json found in ${reportDir}. Run \`qoq --check --json\` first — --json is what writes them, and they land in the CLI's default report dir.`;
   if (asJson) {
     process.stdout.write(`${JSON.stringify({ ...machine, error: msg }, null, 2)}\n`);
   } else {
