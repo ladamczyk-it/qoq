@@ -15,17 +15,16 @@ These configurations inherit from base presets and include all necessary package
 
 ## Usage
 
-This package ships **ESM only** (its React plugin dependencies are ESM-only). Import the named `baseConfig` export in your ESLint flat config — use `eslint.config.js` in an ESM project (`"type": "module"`) or `eslint.config.mjs` otherwise.
+This package ships **ESM only** (its React plugin dependencies are ESM-only). Import the named `configs` export in your ESLint flat config — use `eslint.config.js` in an ESM project (`"type": "module"`) or `eslint.config.mjs` otherwise.
 
 ```js
-import { baseConfig } from '@ladamczyk/qoq-eslint-v9-js-react';
+import { configs } from '@ladamczyk/qoq-eslint-v9-js-react';
+import { defineConfig } from 'eslint/config';
 
-export default [
-  {
-    ...baseConfig,
-    files: [...]
-  }
-];
+export default defineConfig({
+  files: [...],
+  extends: [configs.base],
+});
 ```
 
 ## Rules preview with ESLint Config Inspector

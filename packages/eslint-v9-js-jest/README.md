@@ -18,27 +18,25 @@ Package exports both CommonJS and ESM code just import it in Your eslint config 
 ### For CommonJS
 
 ```js
-const { baseConfig } = require("@ladamczyk/qoq-eslint-v9-js-jest");
+const { configs } = require("@ladamczyk/qoq-eslint-v9-js-jest");
+const { defineConfig } = require("eslint/config");
 
-module.exports = [
-  {
-    ...baseConfig,
-    files: [...]
-  }
-]
+module.exports = defineConfig({
+  files: [...],
+  extends: [configs.base],
+});
 ```
 
 ### For ESM
 
 ```js
-import { baseConfig } from '@ladamczyk/qoq-eslint-v9-js-jest';
+import { configs } from '@ladamczyk/qoq-eslint-v9-js-jest';
+import { defineConfig } from 'eslint/config';
 
-export default [
-  {
-    ...baseConfig,
-    files: [...]
-  }
-];
+export default defineConfig({
+  files: [...],
+  extends: [configs.base],
+});
 ```
 
 ## Rules preview with ESLint Config Inspector

@@ -15,33 +15,45 @@ These configurations inherit from base presets and include all necessary package
 
 ## Usage
 
-Package exports both CommonJS and ESM code just import it in Your eslint config file.
+Package exports both CommonJS and ESM code just import it in Your eslint config file. Three configs are exported under `configs`: `configs.base` for regular source files, `configs.test` — a relaxation of `configs.base` that disables the strictest type-aware unsafe-argument/unsafe-member-access rules for test files, and `configs.strict` — an opt-in layer on top of `configs.base` enabling additional hand-picked `typescript-eslint` `strict`-family rules.
 
 ### For CommonJS
 
 ```js
-const { baseConfig } = require("@ladamczyk/qoq-eslint-v9-ts");
+const { configs } = require('@ladamczyk/qoq-eslint-v9-ts');
+const { defineConfig } = require('eslint/config');
 
-module.exports = [
+module.exports = defineConfig(
   {
-    ...baseConfig,
-    files: [...]
+    files: ['**/*.ts'],
+    extends: [configs.base],
+  },
+  {
+    files: ['**/*.spec.ts'],
+    extends: [configs.test],
   }
-]
+);
 ```
 
 ### For ESM
 
 ```js
-import { baseConfig } from '@ladamczyk/qoq-eslint-v9-ts';
+import { configs } from '@ladamczyk/qoq-eslint-v9-ts';
+import { defineConfig } from 'eslint/config';
 
-export default [
+export default defineConfig(
   {
-    ...baseConfig,
-    files: [...]
+    files: ['**/*.ts'],
+    extends: [configs.base],
+  },
+  {
+    files: ['**/*.spec.ts'],
+    extends: [configs.test],
   }
-];
+);
 ```
+
+Use `configs.strict` in place of (or layered on top of) `configs.base` to opt into the additional strictness rules.
 
 ## Rules preview with ESLint Config Inspector
 
