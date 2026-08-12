@@ -4,10 +4,9 @@ ESLint flat config template for TypeScript projects. Extends `@ladamczyk/qoq-esl
 
 ## Exports
 
-- `baseConfig` — full TS config (extends JS base)
-- `testConfig` — relaxed variant of `baseConfig` for test files (disables unsafe-argument, unsafe-member-access, no-duplicate-string; unsafe-assignment is already off in `baseConfig`)
-- `strictConfig` — opt-in strictness layer on `baseConfig`: hand-picked type-aware rules from typescript-eslint's `strict` family (`no-non-null-assertion`, `no-unnecessary-condition`, `prefer-reduce-type-parameter`, `use-unknown-in-catch-callback-variable`)
-- `tsLayer` / `testLayer` / `strictLayer` — the deltas behind those configs, as flat-config layers for `defineConfig` composition
+- `tsLayer` — only this package's delta on the JS base (TypeScript parser, `@typescript-eslint` rule sets, import-x TS adjustments, naming conventions, etc.), as a flat-config layer for `defineConfig` composition (shared with every `eslint-v9-ts-*` sibling)
+- `testLayer` — delta layer with test-file relaxations (disables `@typescript-eslint/no-unsafe-argument`, `@typescript-eslint/no-unsafe-member-access`, `sonarjs/no-duplicate-string`; `no-unsafe-assignment` is already off in `tsLayer`)
+- `strictLayer` — opt-in strictness delta layer: hand-picked type-aware rules from typescript-eslint's `strict` family (`no-non-null-assertion`, `no-unnecessary-condition`, `prefer-reduce-type-parameter`, `use-unknown-in-catch-callback-variable`)
 - `configs.base` / `configs.test` / `configs.strict` — `defineConfig` array forms (JS base + the matching layers), merged per file by ESLint's cascade
 
 ## Usage
@@ -15,10 +14,16 @@ ESLint flat config template for TypeScript projects. Extends `@ladamczyk/qoq-esl
 Typically consumed via `qoq.config.js` using the `template` field. For manual use:
 
 ```js
-import { baseConfig } from '@ladamczyk/qoq-eslint-v9-ts';
+import { configs } from '@ladamczyk/qoq-eslint-v9-ts';
+import { defineConfig } from 'eslint/config';
 
-export default [baseConfig];
+export default defineConfig({
+  files: ['**/*.ts'],
+  extends: [configs.base],
+});
 ```
+
+For test files use `configs.test`; for the opt-in strictness layer use `configs.strict`.
 
 ## Added on top of the JS base
 

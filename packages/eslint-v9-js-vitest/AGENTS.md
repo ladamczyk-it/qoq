@@ -4,7 +4,6 @@ ESLint flat config template for JavaScript test files using Vitest. Extends `@la
 
 ## Exports
 
-- `baseConfig` — JS + Vitest config (single pre-merged object)
 - `vitestLayer` — only this package's delta on the JS base, as a flat-config layer for `defineConfig` composition (shared with `eslint-v9-ts-vitest`; deliberately excludes the JS-only relaxations)
 - `configs.base` — the `defineConfig` array form: JS base → `vitestLayer` → JS-only relaxations, merged per file by ESLint's cascade
 - `disabledRules` — rules disabled for test files (re-exported for TS-Vitest to reuse)
@@ -14,9 +13,13 @@ ESLint flat config template for JavaScript test files using Vitest. Extends `@la
 Typically consumed via `qoq.config.js` using the `template` field, scoped to test file patterns. For manual use:
 
 ```js
-import { baseConfig } from '@ladamczyk/qoq-eslint-v9-js-vitest';
+import { configs } from '@ladamczyk/qoq-eslint-v9-js-vitest';
+import { defineConfig } from 'eslint/config';
 
-export default [baseConfig];
+export default defineConfig({
+  files: ['**/*.test.js'],
+  extends: [configs.base],
+});
 ```
 
 ## Added on top of the JS base

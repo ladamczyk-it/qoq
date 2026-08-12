@@ -4,17 +4,22 @@ ESLint flat config template for JavaScript test files using Jest. Extends `@lada
 
 ## Exports
 
-- `baseConfig` — JS + Jest config
+- `jestLayer` — only this package's delta on the JS base (Jest plugin + globals, restored test-lifecycle sonarjs rules, jest-specific extras), as a flat-config layer for `defineConfig` composition (shared with `eslint-v9-ts-jest`; deliberately excludes the JS-only relaxations)
 - `disabledRules` — rules disabled for test files (re-exported for TS-Jest to reuse)
+- `configs.base` — the `defineConfig` array form: JS base → `jestLayer` → JS-only relaxations, merged per file by ESLint's cascade
 
 ## Usage
 
 Typically consumed via `qoq.config.js` using the `template` field, scoped to test file patterns. For manual use:
 
 ```js
-import { baseConfig } from '@ladamczyk/qoq-eslint-v9-js-jest';
+import { configs } from '@ladamczyk/qoq-eslint-v9-js-jest';
+import { defineConfig } from 'eslint/config';
 
-export default [baseConfig];
+export default defineConfig({
+  files: ['**/*.test.js'],
+  extends: [configs.base],
+});
 ```
 
 ## Added on top of the JS base

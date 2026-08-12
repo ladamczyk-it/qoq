@@ -4,8 +4,8 @@ Base ESLint flat config template for vanilla JavaScript projects. All other `@la
 
 ## Exports
 
-- `baseConfig` — ESLint flat config object, ready to use or extend
-- `configs.base` — `baseConfig` as a `defineConfig` array, for ESLint-native composition (`defineConfig({ files: [...], extends: [configs.base] })`)
+- `baseConfig` — the root delta layer of the qoq ESLint configuration chain, as a plain flat-config object. Every downstream `@ladamczyk/qoq-eslint-v9-*` package consumes it directly in its own `configs.*` chain; prefer `configs.base` below for your own composition
+- `configs.base` — `baseConfig` wrapped in a `defineConfig` array, for ESLint-native composition (`defineConfig({ files: [...], extends: [configs.base] })`)
 - `EslintConfig` / `EslintConfigPlugin` — TypeScript types for config objects
 - `getNoRestrictedImportsPaths(extra?)` — returns `no-restricted-imports` paths array; auto-detects lodash and es-toolkit in the consumer project and adds usage guidance
 - `getNoRestrictedImportsRule(extraPaths?)` — the full `no-restricted-imports` rule entry (paths above + the one-level-back relative-import pattern), so extending packages can add paths without re-assembling the tuple
@@ -17,9 +17,13 @@ Base ESLint flat config template for vanilla JavaScript projects. All other `@la
 Typically consumed via `qoq.config.js` using the `template` field (handled by `@ladamczyk/qoq-cli`). For manual use:
 
 ```js
-import { baseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { configs } from '@ladamczyk/qoq-eslint-v9-js';
+import { defineConfig } from 'eslint/config';
 
-export default [baseConfig];
+export default defineConfig({
+  files: ['**/*.js'],
+  extends: [configs.base],
+});
 ```
 
 ## Included plugins & key rules
