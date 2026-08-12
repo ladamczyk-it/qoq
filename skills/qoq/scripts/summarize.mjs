@@ -211,6 +211,10 @@ if (knip && !knip.__parseError) {
   const pushFrom = (issue) => {
     const where = issue.file ? ` (${rel(issue.file)})` : '';
     const add = (key, arr) => (arr ?? []).forEach((x) => cats[key].push(`${nameOf(x)}${where}`));
+    // Unused files arrive per-issue in the array shape and top-level in the flat one;
+    // only the top-level spelling was read, so every unused file was silently dropped.
+    // Pushed bare — the name already is the path, so `where` would just repeat it.
+    (issue.files ?? []).forEach((x) => cats['unused files'].push(rel(nameOf(x))));
     add('unused exports', issue.exports);
     add('unused types', issue.types);
     add('unused dependencies', issue.dependencies);
