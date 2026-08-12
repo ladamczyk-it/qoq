@@ -17,3 +17,25 @@ describe('eslint config deprecation guard', () => {
     expect(getEnabledDeprecatedRules(configs.base, STATS_DIR)).toStrictEqual([]);
   });
 });
+
+describe('layer composition order', () => {
+  it('composes configs.base from the expected layer ancestry', () => {
+    expect(configs.base.map((c) => c.name)).toStrictEqual(['qoq-eslint-v9-js', 'qoq-eslint-v9-ts']);
+  });
+
+  it('composes configs.test from the expected layer ancestry', () => {
+    expect(configs.test.map((c) => c.name)).toStrictEqual([
+      'qoq-eslint-v9-js',
+      'qoq-eslint-v9-ts',
+      'qoq-eslint-v9-ts-test',
+    ]);
+  });
+
+  it('composes configs.strict from the expected layer ancestry', () => {
+    expect(configs.strict.map((c) => c.name)).toStrictEqual([
+      'qoq-eslint-v9-js',
+      'qoq-eslint-v9-ts',
+      'qoq-eslint-v9-ts-strict',
+    ]);
+  });
+});

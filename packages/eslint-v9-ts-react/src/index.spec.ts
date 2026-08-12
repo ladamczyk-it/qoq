@@ -72,3 +72,14 @@ describe('eslint config deprecation guard', () => {
     );
   });
 });
+
+describe('layer composition order', () => {
+  it('composes configs.base from the expected layer ancestry', () => {
+    expect(configs.base.map((c) => c.name)).toStrictEqual([
+      'qoq-eslint-v9-js',
+      'qoq-eslint-v9-js-react',
+      'qoq-eslint-v9-ts',
+      'qoq-eslint-v9-ts-react',
+    ]);
+  });
+});

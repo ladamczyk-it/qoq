@@ -24,3 +24,9 @@ describe('eslint config deprecation guard', () => {
     ).toThrow(/no such file or directory/);
   });
 });
+
+describe('layer composition order', () => {
+  it('composes configs.base from the expected layer ancestry', () => {
+    expect(configs.base.map((c) => c.name)).toStrictEqual(['qoq-eslint-v9-js']);
+  });
+});
