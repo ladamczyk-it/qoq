@@ -28,7 +28,7 @@ npm run qoq:fix     # auto-fix
 - `packages/cli` — the `qoq` CLI binary; main orchestrator
 - `packages/utils` — shared utilities used across packages
 - `packages/check-engine` — node version enforcement
-- `packages/eslint-v9-*` — ESLint flat config templates (JS/TS × framework × test runner)
+- `packages/eslint-v9-*` — ESLint flat config templates (JS/TS × framework × test runner). Each package exports its own delta layer plus `configs.*` `defineConfig` arrays composed from its ancestry, so ESLint's own per-file cascade does the merging instead of a pre-merge step
 - `packages/prettier[-with-json-sort]` — Prettier config templates
 - `packages/knip` — Knip config template
 - `packages/jscpd` — JSCPD config template
