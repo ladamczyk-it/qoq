@@ -1,6 +1,6 @@
 import { baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
 import { vitestLayer } from '@ladamczyk/qoq-eslint-v9-js-vitest';
-import { testLayer as tsTestLayer, tsLayer } from '@ladamczyk/qoq-eslint-v9-ts';
+import { testLayer, tsLayer } from '@ladamczyk/qoq-eslint-v9-ts';
 import { defineConfig } from 'eslint/config';
 
 import type { Linter } from 'eslint';
@@ -28,5 +28,5 @@ export const tsVitestLayer: Linter.Config = {
  * under typed linting.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(jsBaseConfig, vitestLayer, tsLayer, tsTestLayer, tsVitestLayer),
+  base: defineConfig(jsBaseConfig, vitestLayer, tsLayer, testLayer, tsVitestLayer),
 };
