@@ -5,12 +5,10 @@
 // agent should NEVER read them directly — it reads this digest instead, and
 // only drills into a specific raw report when a finding needs more detail.
 //
-// Usage:   node summarize.mjs <report-dir> [--max <n>] [--json]
+// Usage:   node summarize.mjs <report-dir>
 //   <report-dir>  where `qoq --check --json` wrote its reports — the CLI's own
 //                 default (bin/report inside the package), unless a caller
 //                 overrode it with --output
-//   --max <n>     max instances listed per group before "(+N more)"  (default 6)
-//   --json        emit a machine-readable summary object instead of text
 //
 // Exit code: 0 when no findings, 1 when any tool reported findings, 2 on a
 // usage/parse error. The non-zero "findings" code lets a caller branch without
@@ -19,14 +17,13 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
-const args = process.argv.slice(2);
-const reportDir = args.find((a) => !a.startsWith('--'));
-const asJson = args.includes('--json');
-const maxIdx = args.indexOf('--max');
-const MAX = maxIdx !== -1 ? Number(args[maxIdx + 1]) || 6 : 6;
+// Max instances listed per group before "(+N more)".
+const MAX = 6;
+
+const reportDir = process.argv.slice(2).find((a) => !a.startsWith('--'));
 
 if (!reportDir) {
-  process.stderr.write('usage: summarize.mjs <report-dir> [--max <n>] [--json]\n');
+  process.stderr.write('usage: summarize.mjs <report-dir>\n');
   process.exit(2);
 }
 
@@ -105,7 +102,6 @@ const nameOf = (x) =>
 
 const sections = [];
 let totalFindings = 0;
-const machine = { reportDir, tools: {} };
 
 // ---------- Prettier ----------
 // Report is written by PrettierExecutor's JS-API path: { issues: string[] } —
@@ -113,7 +109,6 @@ const machine = { reportDir, tools: {} };
 const prettier = read('prettier-report.json');
 if (prettier && !prettier.__parseError) {
   const files = (prettier.issues ?? []).map(rel);
-  machine.tools.prettier = { files: files.length };
   if (files.length) {
     totalFindings += files.length;
     sections.push(
@@ -166,7 +161,6 @@ if (Array.isArray(eslint)) {
     }
   }
   const total = errors + warnings;
-  machine.tools.eslint = { total, errors, warnings, fixable, rules: byRule.size };
   if (total) {
     totalFindings += total;
     const lines = [...byRule.entries()]
@@ -259,10 +253,6 @@ if (knip && !knip.__parseError) {
   }
   const present = Object.entries(cats).filter(([, v]) => v.length);
   const count = present.reduce((n, [, v]) => n + v.length, 0);
-  machine.tools.knip = {
-    total: count,
-    categories: Object.fromEntries(present.map(([k, v]) => [k, v.length])),
-  };
   if (count) {
     totalFindings += count;
     const lines = present.map(([k, v]) => {
@@ -285,7 +275,6 @@ const jscpd = read('jscpd-report.json');
 if (jscpd && !jscpd.__parseError) {
   const dups = jscpd.clones ?? [];
   const pct = jscpd.percentage;
-  machine.tools.jscpd = { clones: dups.length, percentage: pct };
   if (dups.length) {
     totalFindings += dups.length;
     const pctStr = typeof pct === 'number' ? `${pct.toFixed(2)}% duplication` : 'duplication';
@@ -315,7 +304,6 @@ if (npm && !npm.__parseError) {
   const buckets = ['major', 'minor', 'patch'];
   const counts = Object.fromEntries(buckets.map((b) => [b, (npm[b] ?? []).length]));
   const total = buckets.reduce((n, b) => n + counts[b], 0);
-  machine.tools.npm = { total, ...counts };
   if (total) {
     totalFindings += total;
     const lines = buckets
@@ -366,7 +354,6 @@ if (Array.isArray(stylelint)) {
     }
   }
   const warnings = count - errors;
-  machine.tools.stylelint = { total: count, errors, warnings, fixable, rules: byRule.size };
   if (count) {
     totalFindings += count;
     const lines = [...byRule.entries()]
@@ -397,11 +384,6 @@ if (structurelint && !structurelint.__parseError) {
     g.locs.push(v.path ? rel(v.path) : '(root)');
     byType.set(type, g);
   }
-  machine.tools.structurelint = {
-    total: violations.length,
-    root: structurelint.root,
-    types: Object.fromEntries([...byType.entries()].map(([k, g]) => [k, g.count])),
-  };
   if (violations.length) {
     totalFindings += violations.length;
     const lines = [...byType.entries()].map(
@@ -447,12 +429,6 @@ if (skillslint && !skillslint.__parseError) {
   const textTotal = textErrors + textWarnings;
   const failingSkills = (skillslint.skills ?? []).filter((s) => !s.passed);
   const count = textTotal + failingSkills.length;
-  machine.tools.skillslint = {
-    total: count,
-    textlint: textTotal,
-    failingSkills: failingSkills.length,
-    skills: (skillslint.skills ?? []).length,
-  };
   if (count) {
     totalFindings += count;
     const lines = [];
@@ -483,25 +459,15 @@ if (skillslint && !skillslint.__parseError) {
   sections.push(`SKILLSLINT  ⚠ could not parse report: ${skillslint.__parseError}`);
 }
 
-machine.totalFindings = totalFindings;
-
-machine.reportsFound = reportsFound;
-
 if (reportsFound === 0) {
   // No report files at all — qoq likely never ran (or wrote elsewhere). Don't
   // claim "clean": that would let a caller skip fixes that do exist.
   const msg = `No *-report.json found in ${reportDir}. Run \`qoq --check --json\` first — --json is what writes them, and they land in the CLI's default report dir.`;
-  if (asJson) {
-    process.stdout.write(`${JSON.stringify({ ...machine, error: msg }, null, 2)}\n`);
-  } else {
-    process.stderr.write(`=== QoQ DIGEST ===\n⚠ ${msg}\n`);
-  }
+  process.stderr.write(`=== QoQ DIGEST ===\n⚠ ${msg}\n`);
   process.exit(2);
 }
 
-if (asJson) {
-  process.stdout.write(`${JSON.stringify(machine, null, 2)}\n`);
-} else if (!sections.length) {
+if (!sections.length) {
   process.stdout.write('=== QoQ DIGEST ===\nNo findings — all tools clean. ✅\n');
 } else {
   process.stdout.write(

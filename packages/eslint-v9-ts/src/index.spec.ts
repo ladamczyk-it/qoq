@@ -16,8 +16,12 @@ describe('eslint config deprecation guard', () => {
   it('does not enable any deprecated rules', () => {
     expect(getEnabledDeprecatedRules(configs.base, STATS_DIR)).toStrictEqual([]);
   });
+});
 
-  it('does not enable @typescript-eslint/switch-exhaustiveness-check (accidental merge artifact, not part of this migration)', () => {
+describe('rule parity with master', () => {
+  // Restored by plan 5.8: a merge resolution silently dropped master's deliberate
+  // removal of this rule, and nothing in the gate catches that class of error.
+  it('does not enable @typescript-eslint/switch-exhaustiveness-check', () => {
     expect(getEnabledRuleNames(configs.base)).not.toContain(
       '@typescript-eslint/switch-exhaustiveness-check'
     );
