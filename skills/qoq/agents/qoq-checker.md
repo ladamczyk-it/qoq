@@ -25,11 +25,12 @@ You need exactly two lines, and both are ones you cannot afford to assume:
 - **`run:`** — how qoq is invoked here. In a repo that _builds_ the CLI it checks
   with, `npx qoq` is the published binary and the whole run would be checking the
   wrong code.
-- **`docs:`** — relative path to the CLI's own `AGENTS.md`. The flags, the
-  `--json` mode, and the report layout live there and change with the CLI, not
-  with this agent file.
+- **`check:`** — the flags that run a full check and write the JSON reports.
+  `qoq-discovery` read them out of the CLI's own `AGENTS.md` when it wrote the
+  record, so you don't: that file is thousands of tokens whose answer is one
+  line, and you are dispatched at the top of every fix loop.
 
-Two reads before running the slowest command in the system is a good trade.
+One read before running the slowest command in the system is a good trade.
 
 Your dispatch also carries three things you cannot derive: absolute paths to the
 **`reports-current.mjs`** and **`summarize.mjs`** scripts in the qoq skill, and
@@ -54,12 +55,14 @@ failure in this system that leaves no trace.
 ## Then: run the check
 
 ```bash
-<run:> --check --json
+<run:> <check:>
 ```
 
+Both verbatim from the record, concatenated. `check:` carries `--json`, and
 **`--json` is not optional and not an optimisation** — it is what writes the
 reports at all. Without it the tools print to the console and you have nothing to
-summarise.
+summarise. If the record's `check:` line is missing, that's a report, not a set
+of flags for you to invent.
 
 Don't pass `--output`. Reports belong in the CLI's default location, next to the
 discovery record and with the same lifetime — one less path for anyone to agree

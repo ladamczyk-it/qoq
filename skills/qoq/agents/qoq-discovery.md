@@ -106,6 +106,20 @@ dependency — a repo whose source _is_ the CLI — then `npx qoq` would run the
 published release instead of the code being changed, so record
 `npm run build && npx qoq`.
 
+**`check:` — the flags, read once, here.** Open the CLI's own shipped docs at
+`node_modules/@ladamczyk/qoq-cli/AGENTS.md` and record the flags that run a full
+check and write JSON reports — `--check --json` on every version so far. `--json`
+is not an optimisation: it is what writes the reports at all, and without it the
+tools print to a console nobody is reading.
+
+You are the only agent that opens that file. It runs to thousands of tokens and
+its answer is two flags, so every later agent reads your line instead — and the
+record dies with `npm install`, which is exactly when a CLI upgrade could have
+changed them. If the file isn't there, record `--check --json` and carry on
+rather than blocking: a wrong flag makes the CLI error out where the checker
+reports it, which is the loud kind of wrong, not the silent kind this agent
+exists to prevent.
+
 **4. Test conventions.** From the project docs, the runner's config,
 `package.json`, and a `testing-gate.md` at the root:
 
@@ -121,8 +135,8 @@ Write exactly this shape — one fact per line, no headings, no prose, nothing t
 isn't read back, every boolean `yes`/`no`. It's read by agents, not people.
 
 ```
-docs: ../AGENTS.md
 run: npx qoq
+check: --check --json
 test: npm test
 test:one: npm run test -- {file}
 build: npm run build
@@ -133,10 +147,10 @@ conventions: ./testing-gate.md
 skills: ponytail-review=yes design-pattern-review=no
 ```
 
-`docs:` is always `../AGENTS.md` — relative to the record's own directory, which
-puts it at the CLI package root where the shipped docs live. Every command reads
-qoq's flags and report layout from there, so it stays correct across CLI
-upgrades.
+`check:` is the flags alone, appended to `run:` by whoever runs the check —
+`<run:> <check:>`. Two lines rather than one composed command, because `run:`
+carries the workspace-build prefix and that concatenation is the only place both
+answers meet.
 
 There is no `lint:` line. Linting is what `run:` does.
 

@@ -185,15 +185,15 @@ codebase runs to tens of thousands of lines and is almost all repetition. So
 
 ```bash
 node <skill>/scripts/reports-current.mjs <report dir> <scope>   # 0 reuse, 1 re-run
-<run:> --check --json          # --json is what writes the reports at all
+<run:> <check:>                # both from the record; --json is what writes the reports at all
 node <skill>/scripts/summarize.mjs <report dir>
 ```
 
 A subagent can't guess where this skill lives, and neither script defaults its
 arguments, so the **dispatch hands in both script paths and the report
-directory**. `--output` is never passed: the CLI's default is where reports land,
-`AGENTS.md` names it (`bin/report` inside the CLI package), and that default _is_
-the `<report dir>` argument.
+directory**. `--output` is never passed: the CLI's default is where reports land
+(`bin/report` inside the CLI package), and that default _is_ the `<report dir>`
+argument.
 
 Open a raw report only when one specific finding needs a line number, and read
 only that slice.
@@ -207,8 +207,8 @@ node_modules/@ladamczyk/qoq-cli/bin/qoq-skill-discovery.md
 ```
 
 ```
-docs: ../AGENTS.md
 run: npx qoq
+check: --check --json
 test: npm test
 test:one: npm run test -- {file}
 build: npm run build
@@ -221,10 +221,12 @@ skills: ponytail-review=yes design-pattern-review=no
 
 Every boolean is `yes`/`no` — one encoding in a file five agents parse by hand.
 
-- `docs:` is relative to the record's own directory and points at the CLI's
-  shipped `AGENTS.md` — the only source for qoq's flags, config schema, and
-  report layout. Read it there, never from this skill, so both stay correct when
-  the CLI is upgraded.
+- `check:` is the flags a full check needs, appended to `run:` — `<run:>
+<check:>`. `qoq-discovery` reads them out of the CLI's shipped `AGENTS.md`
+  once, so nothing downstream opens that file: it's thousands of tokens whose
+  answer is one line, and `qoq-checker` is dispatched at the top of every `fix`
+  loop. The record dying with `npm install` is what keeps the line honest across
+  a CLI upgrade.
 - `run:` is how qoq itself is invoked. `npx qoq` normally; `npm run build && npx
 qoq` in a repo where `@ladamczyk/qoq-cli` resolves to a workspace package,
   because there `npx qoq` would run the _published_ binary and check the wrong

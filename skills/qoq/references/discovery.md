@@ -8,7 +8,7 @@ command" will eventually disagree, and the one that's wrong won't announce it.
 
 | Command         | Lines it needs                                                  |
 | --------------- | --------------------------------------------------------------- |
-| `fix`           | `run`, `docs`, `test:one`, `build`                              |
+| `fix`           | `run`, `check`, `test:one`, `build`                             |
 | `refactor`      | the same, plus `skills`                                         |
 | `bump`          | `run`, `test`, `build`                                          |
 | `plan`          | `test`, `build` — copied into the plan's Commands header        |
