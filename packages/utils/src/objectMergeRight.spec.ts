@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-deprecated -- the deprecated export's own spec; both go in the next major */
 import { describe, it, expect } from 'vitest';
 
 import { objectMergeRight } from './objectMergeRight';

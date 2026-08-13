@@ -18,3 +18,6 @@ export const baseConfig: StylelintConfig = {
     },
   ],
 };
+
+/** Default export so stylelint can `extends` this package by name. @alias */
+export default baseConfig;

@@ -133,7 +133,7 @@ export const reactLayer: EslintConfig = {
 
 /**
  * Flat-config array form: the JS base and the React layer, merged per file by
- * ESLint's own cascade instead of being pre-merged with `objectMergeRight`.
+ * ESLint's own cascade instead of being pre-merged.
  */
 export const configs: Record<'base', Linter.Config[]> = {
   base: defineConfig(jsBaseConfig, reactLayer),

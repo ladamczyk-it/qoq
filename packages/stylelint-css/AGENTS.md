@@ -5,6 +5,7 @@ Stylelint configuration template for CSS projects. All other `@ladamczyk/qoq-sty
 ## Exports
 
 - `baseConfig` — Stylelint config object, ready to use or extend
+- `default` — the same object, so `extends: ['@ladamczyk/qoq-stylelint-css']` resolves
 
 ## Usage
 

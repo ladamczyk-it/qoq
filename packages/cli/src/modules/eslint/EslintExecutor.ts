@@ -209,8 +209,8 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor<IEslintConte
         // The template's `configs.base` is a flat-config array, so it's extended rather
         // than pre-merged: defineConfig expands the `extends` list in order, scopes every
         // extended entry to the user block's `files`/`ignores`, and appends the user block
-        // itself last — same precedence the objectMergeRight chain used to produce
-        // (base < no-cycle override < resolver override < user's qoq.config.js block).
+        // itself last — precedence is base < no-cycle override < resolver override <
+        // user's qoq.config.js block.
         const extendsArgs = [
           `configs${index}.base`,
           ...(workspaces?.length ? [monorepoNoCycleOverride] : []),

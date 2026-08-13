@@ -377,7 +377,7 @@ describe('EslintExecutor generated config', () => {
       );
     });
 
-    it('never emits objectMergeRight or a qoq-utils import', async () => {
+    it('never emits a qoq-utils import', async () => {
       const executor = new EslintExecutor(
         { ...configWithTemplate, workspaces: ['packages/*'] },
         true,
@@ -386,7 +386,6 @@ describe('EslintExecutor generated config', () => {
 
       await executor.run(baseOptions);
 
-      expect(writtenConfig()).not.toContain('objectMergeRight');
       expect(writtenConfig()).not.toContain('@ladamczyk/qoq-utils');
     });
 

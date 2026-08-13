@@ -19,7 +19,7 @@ export const tsVitestRtlLayer: Linter.Config = {
 /**
  * Flat-config array form: the full chain (JS base → vitest layer → RTL layer → ts
  * layer → ts test relaxations → ts-vitest layer → this package's delta), merged per
- * file by ESLint's own cascade instead of being pre-merged with `objectMergeRight`.
+ * file by ESLint's own cascade instead of being pre-merged.
  * `rtlLayer` sits before the TS layers so TS-layer decisions win, matching the legacy
  * merge order. Composed from delta layers only — never from another package's
  * `configs.*`, which would re-apply the JS base mid-chain and clobber the earlier

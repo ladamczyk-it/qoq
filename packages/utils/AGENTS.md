@@ -4,7 +4,10 @@ Shared utility library used internally across all `@ladamczyk/qoq-*` packages. C
 
 ## Exports
 
-### `objectMergeRight(first, ...args)`
+### `objectMergeRight(first, ...args)` — deprecated
+
+**Deprecated: to reduce unnecessary complexity this will be removed in next major version.** No
+consumer left in this monorepo.
 
 Deep-merges objects with right-side precedence. Setting a key to `undefined` in a right-side object removes that key from the result. Does not mutate inputs — uses `structuredClone` where possible.
 

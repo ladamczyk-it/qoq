@@ -51,6 +51,7 @@ const walk = <T extends TObjectType>(first: T, second: Partial<T>): T => {
  * Object on the right have precedence in every key, and If key is set to 'undefined'
  * it will be removed from object on the left.
  *
+ * @deprecated to reduce unnecessary complexity this will be removed in next major version
  * @param first input object
  * @param args input objects
  * @returns merged object

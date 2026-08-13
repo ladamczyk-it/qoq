@@ -364,8 +364,7 @@ export const baseConfig: EslintConfig = {
  * Flat-config array form of `baseConfig` for use with `defineConfig` and
  * composition chains. `configs.base` is the wrapped version of the root delta
  * layer; downstream packages extend this same root via their own chains and rely
- * on ESLint's cascade to merge them per-file, rather than pre-merging with
- * `objectMergeRight`.
+ * on ESLint's cascade to merge them per-file, rather than pre-merging.
  */
 export const configs: Record<'base', Linter.Config[]> = {
   base: defineConfig(baseConfig),

@@ -41,8 +41,8 @@ export const rtlLayer: EslintConfig = {
 
 /**
  * Flat-config array form: the JS base, the jest layer, the RTL layer, and the JS-only
- * relaxations, merged per file by ESLint's own cascade instead of being pre-merged with
- * `objectMergeRight`. Composed from delta layers (never from `eslint-v9-js-jest`'s own
+ * relaxations, merged per file by ESLint's own cascade instead of being pre-merged.
+ * Composed from delta layers (never from `eslint-v9-js-jest`'s own
  * `configs.base`), which would re-apply the JS base mid-chain and clobber the jest
  * layer's rule restorations.
  */

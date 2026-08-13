@@ -85,7 +85,7 @@ export const jestLayer: EslintConfig = {
 /**
  * Flat-config array form: the JS base, the jest layer, and the JS-only
  * relaxations, merged per file by ESLint's own cascade instead of being
- * pre-merged with `objectMergeRight`.
+ * pre-merged.
  */
 export const configs: Record<'base', Linter.Config[]> = {
   base: defineConfig(jsBaseConfig, jestLayer, {

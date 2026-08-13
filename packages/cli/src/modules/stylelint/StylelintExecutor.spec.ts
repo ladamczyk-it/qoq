@@ -128,6 +128,27 @@ describe('StylelintExecutor', () => {
       expect(result).toBe(EExitCode.OK);
     });
 
+    it('should extend the template package by name, keeping the consumer own extends after it', async () => {
+      const executor = new StylelintExecutor(
+        configWith({
+          strict: false,
+          template: EModulesStylelint.STYLELINT_CSS,
+          extends: 'stylelint-config-recess-order',
+        }),
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(writeFileSync).toHaveBeenCalledWith(
+        expect.stringContaining('stylelint.config.'),
+        expect.stringContaining(
+          '"extends":["@ladamczyk/qoq-stylelint-css","stylelint-config-recess-order"]'
+        )
+      );
+    });
+
     it('should derive the glob from a scss template and set strict max warnings', async () => {
       const executor = new StylelintExecutor(
         configWith({ strict: true, template: EModulesStylelint.STYLELINT_SCSS }),

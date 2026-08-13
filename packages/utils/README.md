@@ -14,13 +14,13 @@ Package exports both CommonJS and ESM code, just import it in Your project.
 ### For CommonJS
 
 ```js
-const { objectMergeRight } = require('@ladamczyk/qoq-utils');
+const { executeCommand } = require('@ladamczyk/qoq-utils');
 ```
 
 ### For ESM
 
 ```js
-import { objectMergeRight } from '@ladamczyk/qoq-utils';
+import { executeCommand } from '@ladamczyk/qoq-utils';
 ```
 
 See [AGENTS.md](./AGENTS.md) for the full list of exports.

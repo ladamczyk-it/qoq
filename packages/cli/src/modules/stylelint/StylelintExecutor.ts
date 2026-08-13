@@ -139,23 +139,22 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor<IStylelin
         `/bin/stylelint.config.${configType === EConfigType.ESM ? 'm' : 'c'}js`
       );
 
-      const imports: Record<string, string> = {
-        '{ objectMergeRight }': '@ladamczyk/qoq-utils',
-      };
+      // The template is pulled in through stylelint's own `extends` rather
+      // than merged here: stylelint concatenates plugins/overrides and lets
+      // the consumer's rules win, and resolving it by name keeps the
+      // template's own extends/plugins rooted in the template package.
+      const config =
+        'template' in stylelint && stylelint.template
+          ? {
+              ...rest,
+              extends: [`@ladamczyk/${stylelint.template}`, ...[rest.extends ?? []].flat()],
+            }
+          : rest;
 
-      const content: string[] = [];
-
-      if ('template' in stylelint && stylelint.template) {
-        imports[`{ baseConfig }`] = `@ladamczyk/${stylelint.template}`;
-
-        content.push(`const config = objectMergeRight(baseConfig, ${JSON.stringify(rest)})`);
-      } else {
-        content.push(`const config = ${JSON.stringify(rest)}`);
-      }
-
-      const exports = 'config';
-
-      writeFileSync(configFilePath, formatCode(configType, imports, content, exports));
+      writeFileSync(
+        configFilePath,
+        formatCode(configType, {}, [`const config = ${JSON.stringify(config)}`], 'config')
+      );
 
       return {
         strict: !!strict,

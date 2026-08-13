@@ -19,7 +19,7 @@ export const tsJestLayer: Linter.Config = {
 /**
  * Flat-config array form: the full chain (JS base → jest layer → ts layer →
  * ts test relaxations → this package's delta), merged per file by ESLint's own
- * cascade instead of being pre-merged with `objectMergeRight`. The JS-only
+ * cascade instead of being pre-merged. The JS-only
  * `sonarjs/no-incompatible-assertion-types` disable that eslint-v9-js-jest appends
  * to its own `configs.base` is deliberately absent here — this package
  * has type information, so that rule stays enabled.

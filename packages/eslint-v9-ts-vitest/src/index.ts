@@ -23,7 +23,7 @@ export const tsVitestLayer: Linter.Config = {
 /**
  * Flat-config array form: the full chain (JS base → vitest layer → ts layer →
  * ts test relaxations → this package's delta), merged per file by ESLint's own
- * cascade instead of being pre-merged with `objectMergeRight`. The JS-only vitest
+ * cascade instead of being pre-merged. The JS-only vitest
  * relaxations from eslint-v9-js-vitest are deliberately absent — they don't apply
  * under typed linting.
  */

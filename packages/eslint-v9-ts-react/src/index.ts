@@ -23,7 +23,7 @@ export const tsReactLayer: Linter.Config = {
 /**
  * Flat-config array form: the full chain (JS base → React layer → ts layer →
  * this package's delta), merged per file by ESLint's own cascade instead of being
- * pre-merged with `objectMergeRight`. Composed from delta layers only — a nested
+ * pre-merged. Composed from delta layers only — a nested
  * `configs.*` would re-apply the JS base mid-chain and clobber `reactLayer`'s
  * sonarjs restorations. `testLayer` is deliberately absent: this bundle is the
  * base delta chain only, not the test-file relaxations.
