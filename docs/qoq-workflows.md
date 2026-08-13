@@ -22,8 +22,9 @@ in the reference file too.
 | [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                            |
 | [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                      |
 | [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                            |
+| [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                    |
 
-**Legend, shared by all seven.** Purple = a subagent and everything it does.
+**Legend, shared by all eight.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
 invoked from inside another.
 
@@ -39,7 +40,9 @@ anywhere else in a label are fine, so lead with a word: `X["run \`test:one\` on 
 
 ```mermaid
 flowchart TD
-    Q["/qoq [command]"] --> DISP
+    Q["/qoq [command]"] --> ISC{"command =<br/>compress?"}
+    ISC -->|"yes"| RCOMP["**qoq compress**<br/>*no discovery — no line of the<br/>record describes a markdown file*"]
+    ISC -->|"no"| DISP
 
     DISP["dispatch **qoq-discovery**<br/>(Haiku, one per top-level run)<br/>caller passes the project root<br/>**+ the resolved skills: line**<br/>*the available-skills list is the<br/>caller's context, not the agent's*"]
 
@@ -97,7 +100,7 @@ flowchart TD
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
 
     class DISCO agent
-    class RFIX,RREF,RBUMP,RPLAN,REXEC,RTEST command
+    class RFIX,RREF,RBUMP,RPLAN,REXEC,RTEST,RCOMP command
     class ASK,OASK,NOTE user
 ```
 
@@ -408,3 +411,53 @@ flowchart TD
     class TNARROW,TBASK user
     class TGATE,TREF skill
 ```
+
+---
+
+## `compress`
+
+```mermaid
+flowchart TD
+    CQ["/qoq compress [paths]"] --> CSCOPE
+
+    CSCOPE{"paths<br/>given?"}
+    CSCOPE -->|"yes"| CLIST["those files"]
+    CSCOPE -->|"no"| CDEF["git ls-files '*CLAUDE.md' '*AGENTS.md'<br/>*tracked only — an untracked scratch<br/>file has no reader to save*"]
+    CDEF --> CLIST
+    CLIST --> CSHOW["**list what matched** before touching<br/>anything — in a monorepo that's<br/>twenty files, some shipped to npm"]
+
+    CSHOW --> CNODISC["**no qoq-discovery** —<br/>*no line of the record describes<br/>a markdown file. the only command<br/>that skips it*"]
+
+    CNODISC --> CFILE["**next file** — one at a time,<br/>never in parallel"]
+    CFILE --> CREAD["read it **whole** first.<br/>*a rule stated in ¶2 and used in ¶9<br/>looks redundant from ¶9*"]
+    CREAD --> CEST{"est. saving<br/>≥ ~15%?"}
+    CEST -->|"no — already tight"| CSKIP["**skip it**, record why.<br/>*churn costs more in review<br/>than thirty words return*"]
+    CSKIP --> CMORE
+
+    CEST -->|"yes"| CWRITE["**compress to a scratch path**,<br/>not over the original —<br/>the check needs both halves"]
+    CWRITE --> CTEST["the one test, per sentence:<br/>**would an agent act differently<br/>if this were gone?**<br/>*reshape to a table before deleting*"]
+    CTEST --> CCHECK["node <skill>/scripts/compress-check.mjs<br/>&lt;original&gt; &lt;scratch&gt;<br/>*compares literals: paths · commands ·<br/>flags · filenames · URLs · fenced lines*"]
+
+    CCHECK -->|"exit 1 — dropped"| CDROP{"redundant,<br/>or lost?"}
+    CDROP -->|"lost"| CWRITE
+    CDROP -->|"redundant — say so<br/>in the report"| CCOLD
+    CCHECK -->|"exit 1 — **invented**"| CINV["*compression never creates a path.<br/>a hit here is a hallucinated<br/>filename* → rewrite"]
+    CINV --> CWRITE
+    CCHECK -->|"exit 0"| CCOLD
+
+    CCOLD["**reread it cold**, as if the original<br/>never existed.<br/>*the script catches lost facts,<br/>never lost meaning*"]
+    CCOLD --> CMOVE["move into place"]
+    CMOVE --> CMORE{"files<br/>left?"}
+    CMORE -->|"yes"| CFILE
+    CMORE -->|"no"| CGATE["**qoq fix**, scoped to the files<br/>changed — *markdown is Prettier's<br/>business; reflowed paragraphs and<br/>re-aligned tables come back unformatted*"]
+
+    CGATE --> CDONE(["**done** — one table:<br/>file · before · after · saved,<br/>from the script's own word counts.<br/>plus every skip, and every dropped<br/>literal judged redundant"])
+
+    classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
+
+    class CGATE skill
+```
+
+**No purple on this one.** `compress` dispatches nothing — it is judgement about
+meaning applied to one file at a time, and two agents rewriting sibling docs are
+how the same fact ends up disagreeing with itself in two places.

@@ -1,6 +1,6 @@
 ---
 name: qoq
-description: QoQ "quality over quantity" toolkit for JavaScript/TypeScript projects — six commands over one shared project discovery. `fix` clears tool findings (Prettier, ESLint, Knip, JSCPD) in a budgeted loop and ends on a PASS/FAIL verdict; `refactor` runs four judgement passes over a scope; `bump` updates npm dependencies one attributable patch at a time; `plan` decomposes a feature into milestone tickets; `execute` delivers an approved plan ticket by ticket under TDD; `test` writes coverage for code that already exists. Use it whenever the user says "is this ready to merge", "fix the lint errors", "clean up / refactor / de-duplicate this", "remove dead code or dead deps", "bump the dependencies", "break this spec into tickets", "what's the implementation plan for X", "execute the plan" or "resume ./plans/<file>", "write tests for this" — and whenever another skill or subagent needs a verdict on whether freshly written code meets the project's standards. Trigger it even when the user never says "qoq" or names a tool.
+description: QoQ "quality over quantity" toolkit for JavaScript/TypeScript projects — seven commands over one shared project discovery. `fix` clears tool findings (Prettier, ESLint, Knip, JSCPD) in a budgeted loop and ends on a PASS/FAIL verdict; `refactor` runs four judgement passes over a scope; `bump` updates npm dependencies one attributable patch at a time; `plan` decomposes a feature into milestone tickets; `execute` delivers an approved plan ticket by ticket under TDD; `test` writes coverage for code that already exists; `compress` strips agent-facing markdown — CLAUDE.md, AGENTS.md, skill and reference docs — down to what an agent actually acts on, cutting the tokens every future run pays for. Use it whenever the user says "is this ready to merge", "fix the lint errors", "clean up / refactor / de-duplicate this", "remove dead code or dead deps", "bump the dependencies", "break this spec into tickets", "what's the implementation plan for X", "execute the plan" or "resume ./plans/<file>", "write tests for this" — and for `compress` specifically, whenever they say "my CLAUDE.md is too long", "trim/shrink/tighten the agent docs", "this doc is burning context", "strip the prose out of X.md", "reduce token usage in the instructions", or ask to make any markdown terser for an LLM to read. Trigger it even when the user never says "qoq" or names a tool.
 allowed-tools:
   - Read
   - Write
@@ -19,6 +19,7 @@ allowed-tools:
   - Bash(npx qoq:*)
   - Bash(node:*)
   - Bash(git status:*)
+  - Bash(git ls-files:*)
   - Bash(git log:*)
   - Bash(git diff:*)
   - Bash(git add:*)
@@ -34,11 +35,11 @@ allowed-tools:
 
 # QoQ — quality over quantity
 
-Six commands, one discovery, five agents. Everything a command needs to know
+Seven commands, one discovery, five agents. Everything a command needs to know
 about the project comes from one cached **record** derived once per top-level run.
 
 **Read only what you need.** This file routes; each command's reference owns its
-rules. Don't read all seven.
+rules. Don't read all eight.
 
 | Command    | Does                                                       | Reference                                        |
 | ---------- | ---------------------------------------------------------- | ------------------------------------------------ |
@@ -48,8 +49,11 @@ rules. Don't read all seven.
 | `plan`     | requirements → an approved plan file under `./plans/`      | [references/plan.md](references/plan.md)         |
 | `execute`  | an approved plan file → delivered milestones               | [references/execute.md](references/execute.md)   |
 | `test`     | unit/integration coverage for code that already exists     | [references/test.md](references/test.md)         |
+| `compress` | strip agent-facing markdown to what an agent acts on       | [references/compress.md](references/compress.md) |
 
-Discovery is shared and runs first, every time: [references/discovery.md](references/discovery.md).
+Discovery is shared and runs first, every time — except for `compress`, which
+edits prose and runs no tool, so no line of the record bears on it:
+[references/discovery.md](references/discovery.md).
 
 ## Usage
 
@@ -67,6 +71,8 @@ nobody has to remember which one took a flag.
 | `/qoq plan <requirements file or description>` | —                                                      |
 | `/qoq execute [plans/<file>.md]`               | omitted → ask, unless exactly one plan is approved     |
 | `/qoq test <what to cover>`                    | —                                                      |
+| `/qoq compress`                                | every `CLAUDE.md` and `AGENTS.md` git tracks           |
+| `/qoq compress docs/ skills/qoq/references`    | those paths only                                       |
 
 `--decisions auto` is the only flag, and it exists for the two callers that
 can't stop to answer questions: `execute`'s milestone gate and `bump`. Details
@@ -74,19 +80,22 @@ in [references/refactor.md](references/refactor.md).
 
 ## Entry
 
+0. **`compress` skips straight to step 4** — it dispatches no discovery, because
+   nothing on the record describes a markdown file. Every other command goes
+   through step 1.
 1. **Dispatch `qoq-discovery`** with the project root and the resolved `skills:`
    line — look `ponytail-review` and `design-pattern-review` up in your own
    available-skills list and hand in the verdicts under the exact names it gives
-   them, plugin prefix and all. That list is in your context and not the agent's,
-   making it the one input it can't derive; left to guess, it searches the
-   filesystem, misses every plugin lens, and `refactor` quietly drops an
-   assessment. Everything else it works out itself. Branch on the one status
-   word it returns — `fresh` / `verified` / `repaired <fields>` /
+   them, plugin prefix and all. That list is in your context and not the agent's
+   — the one input it can't derive. Left to guess, it searches the filesystem,
+   misses every plugin lens, and `refactor` drops an assessment with nothing in
+   the output to say it did. Everything else it works out itself. Branch on
+   the one status word it returns — `fresh` / `verified` / `repaired <fields>` /
    `blocked <question>` — and nothing else. Once per top-level run: a command
    invoked from inside another inherits the record rather than re-dispatching.
 2. **`blocked`** → ask the user, write the answer into the project's own docs, and
    re-dispatch. Details in [references/discovery.md](references/discovery.md).
-3. **No command given** → ask which one. `/qoq` on its own has six plausible
+3. **No command given** → ask which one. `/qoq` on its own has seven plausible
    readings and guessing one is the failure mode the standing rules exist to
    prevent.
 4. **Run the command**, then close the run by reporting anything discovery
@@ -102,7 +111,10 @@ from re-deriving it per command:
   hands back)
 - `refactor` ← `bump` (per patch), `execute` (milestone gate), `test` (final tidy)
 - `execute` ← `plan`, offered at approval and never dispatched from inside it
+- `fix` ← `compress` (the Prettier pass over the markdown it rewrote)
 - `fix` calls nothing but its own checker agent
+- `compress` is called by nobody. It changes what future runs read, never what
+  this one does, so no command should be reaching for it mid-task.
 
 ### The gate runs one thread up
 

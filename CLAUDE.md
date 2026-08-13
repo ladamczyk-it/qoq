@@ -1,32 +1,29 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
-**QoQ (Quality over Quantity)** is a monorepo of npm packages published under `@ladamczyk/qoq-*` that orchestrate Prettier, ESLint, Knip, JSCPD, Stylelint, Structurelint, Skillslint, and npm-outdated checks via a single CLI (the latter two are backed by the separate `@ladamczyk/skillslint` and `@ladamczyk/structurelint` packages, not part of this workspace). Node >=22.15.0 is required.
+**QoQ (Quality over Quantity)** — a monorepo of npm packages published as
+`@ladamczyk/qoq-*`, orchestrating Prettier, ESLint, Knip, JSCPD, Stylelint,
+Structurelint, Skillslint and npm-outdated behind one CLI. Node >=22.15.0.
+
+Structurelint and Skillslint are the separate `@ladamczyk/structurelint` and
+`@ladamczyk/skillslint` packages — not in this workspace.
 
 ## Commands
 
-```bash
-# Install dependencies
-npm install
-
-# Build all packages (via Lerna)
-npm run build
-
-# Run tests (runs config-inspector first, then vitest across all packages)
-npm test
-
-# Quality checks (used in CI and pre-push)
-npm run qoq:check   # full check
-npm run qoq:fix     # auto-fix
-```
+| Command             | Notes                                                   |
+| ------------------- | ------------------------------------------------------- |
+| `npm install`       |                                                         |
+| `npm run build`     | all packages, via Lerna                                 |
+| `npm test`          | config-inspector first, then vitest across all packages |
+| `npm test Name`     | to run specific test                                    |
+| `npm run qoq:check` | full quality check — this is what CI and pre-push run   |
+| `npm run qoq:fix`   | auto-fix                                                |
 
 ## Monorepo Layout
 
 - `packages/cli` — the `qoq` CLI binary; main orchestrator
-- `packages/utils` — shared utilities used across packages
+- `packages/utils` — shared utilities
 - `packages/check-engine` — node version enforcement
 - `packages/eslint-v9-*` — ESLint flat config templates (JS/TS × framework × test runner). Each package exports its own delta layer plus `configs.*` `defineConfig` arrays composed from its ancestry, so ESLint's own per-file cascade does the merging instead of a pre-merge step
 - `packages/prettier[-with-json-sort]` — Prettier config templates
@@ -36,7 +33,7 @@ npm run qoq:fix     # auto-fix
 
 ## Testing
 
-Tests live in `packages/*/src/**/*.spec.{ts,js}` and run with Vitest across all packages.
+`packages/*/src/**/*.spec.{ts,js}`, Vitest across all packages.
 
 `npm run config:diff` compares what ESLint actually resolves (via `calculateConfigForFile`)
 for every `eslint-v9-*` package against a git ref, defaulting to `master` — it checks the ref
@@ -46,21 +43,15 @@ checkout. It's on-demand, not part of the gate: it isn't wired into `qoq:check` 
 
 ## The `qoq` skill and its diagrams
 
-The skill lives at `skills/qoq/` — `SKILL.md` routes, `references/*.md` hold each
-command's rules, `agents/*.md` are the five subagents. Its Mermaid workflow
-diagrams live **outside** the skill, at `docs/qoq-workflows.md`, so an agent
-reading the skill never spends context on a picture it can't act on.
+The skill is `skills/qoq/` — `SKILL.md` routes, `references/*.md` hold each
+command's rules, `agents/*.md` are the five subagents. Its Mermaid diagrams live
+**outside** it, at `docs/qoq-workflows.md`, so an agent reading the skill never
+spends context on a picture it can't act on.
 
-**Changing either one means changing the other, in the same commit.** The diagram
-and the prose are two renderings of one workflow:
+**Both change in the same commit, both directions.** Prose in `skills/qoq/` →
+update the matching diagram in `docs/qoq-workflows.md`. A diagram → update the
+reference file its header table names.
 
-- Edit a command's prose in `skills/qoq/` → update the matching diagram in
-  `docs/qoq-workflows.md`.
-- Edit a diagram → update the reference file it maps to. Its header table says
-  which one.
-
-The prose is what an agent actually executes, so it wins on a disagreement — but
-a stale diagram is worse than no diagram, because it's the thing a person reaches
-for when they want to understand a flow quickly and they have no reason to doubt
-it. Neither direction is "just documentation": a change that only lands on one
-side isn't finished.
+Prose wins on a disagreement. But a stale diagram is worse than none: it's what
+a person reaches for, and they have no reason to doubt it. Landing on one side
+only isn't finished.

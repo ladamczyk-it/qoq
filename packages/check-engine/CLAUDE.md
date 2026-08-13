@@ -1,20 +1,13 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-Consumer-facing context (what the tool checks, monorepo support, Node LTS reference) lives in `AGENTS.md` — that file is shipped with the npm package so any agent in a consumer project can read it from `node_modules/@ladamczyk/check-engine/AGENTS.md`.
+Consumer-facing context (what the tool checks, monorepo support, Node LTS reference) lives in `AGENTS.md`.
 
 ## Commands
 
 ```bash
-# Build (Rolldown → ./bin)
-npm run build
-
-# Build and run locally
-npm run dev
-
-# Run tests
-npm test
+npm run build # Rolldown → ./bin
+npm run dev   # Build and run locally
+npm test      # from the repo root — no per-package test script
 ```
 
 ## Internal architecture

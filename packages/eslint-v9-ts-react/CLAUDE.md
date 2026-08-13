@@ -1,17 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-Consumer-facing context (inheritance, exports) lives in `AGENTS.md` — shipped with the npm package at `node_modules/@ladamczyk/qoq-eslint-v9-ts-react/AGENTS.md`.
+Consumer-facing context (inheritance, exports) lives in `AGENTS.md`.
 
 ## Commands
 
 ```bash
-# Build (Rolldown → ./lib ESM-only + ./bin inspector)
-npm run build
-
-# Run tests
-npm test
+npm run build # Rolldown → ./lib ESM-only + ./bin inspector
+npm test      # from the repo root — no per-package test script
 ```
 
 ## Internal architecture

@@ -1,3 +1,13 @@
+## [5.3.2](https://github.com/ladamczyk-it/qoq/compare/v5.3.1...v5.3.2) (2026-08-13)
+
+
+### Bug Fixes
+
+* bump packages + qoq skill compress command ([009b3fc](https://github.com/ladamczyk-it/qoq/commit/009b3fc4ed4935e6087471db1d7e1188bd925a91))
+* qoq skill adjust ([e5a59f6](https://github.com/ladamczyk-it/qoq/commit/e5a59f653937b90615d7c66528efb1688bd48151))
+* qoq skill v2 ([1e3b7b1](https://github.com/ladamczyk-it/qoq/commit/1e3b7b1fc9d570f44b8617f83beb1b98fbccbf5e))
+* skill linter ([3671953](https://github.com/ladamczyk-it/qoq/commit/367195305667e202297e3313f2f1194b20b25e10))
+
 ## [5.3.1](https://github.com/ladamczyk-it/qoq/compare/v5.3.0...v5.3.1) (2026-08-06)
 
 
