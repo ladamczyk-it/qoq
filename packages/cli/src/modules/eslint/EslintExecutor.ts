@@ -3,7 +3,6 @@ import { relative } from 'path';
 import { pathToFileURL } from 'url';
 
 import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
-import { flattenDeep } from 'es-toolkit/compat';
 import micromatch from 'micromatch';
 
 import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
@@ -250,46 +249,30 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       return ['.'];
     }
 
-    let filteredFiles: string[];
+    let eslintConfig: { default: IModuleEslintConfig[] };
 
     try {
-      const eslintConfig = await import(pathToFileURL(configFilePath).toString());
-      const mapCallback = (entry: string) =>
-        entry.startsWith('**') || entry.startsWith('./') ? entry : `**/${entry}`;
-      const prepareCollection = (patterns: string[] | undefined) => {
-        let collection: string[];
-
-        if (patterns) {
-          collection = Array.isArray(patterns) ? flattenDeep(patterns) : [patterns];
-        } else {
-          collection = [];
-        }
-
-        return collection.map(mapCallback);
+      eslintConfig = (await import(pathToFileURL(configFilePath).toString())) as {
+        default: IModuleEslintConfig[];
       };
+    } catch (cause) {
+      throw new Error(`Failed to import the generated ESLint config at ${configFilePath}`, {
+        cause,
+      });
+    }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const possibleFiles = (eslintConfig.default as IModuleEslintConfig[]).reduce(
-        (acc: { files: string[]; ignores: string[] }[], config) =>
-          acc.concat([
-            {
-              files: prepareCollection(config.files as string[] | undefined),
-              ignores: prepareCollection(config.ignores),
-            },
-          ]),
-        []
+    const possibleFiles = eslintConfig.default.map((config) => ({
+      files: prepareCollection(config.files as string[] | undefined),
+      ignores: prepareCollection(config.ignores),
+    }));
+
+    const shouldLintFile = (file: string) =>
+      possibleFiles.some(
+        ({ files: filesPatterns, ignores: ignoresPatterns }) =>
+          micromatch.isMatch(file, filesPatterns) && !micromatch.isMatch(file, ignoresPatterns)
       );
 
-      const shouldLintFile = (file: string) =>
-        possibleFiles.some(
-          ({ files: filesPatterns, ignores: ignoresPatterns }) =>
-            micromatch.isMatch(file, filesPatterns) && !micromatch.isMatch(file, ignoresPatterns)
-        );
-
-      filteredFiles = files.filter((file) => shouldLintFile(file));
-    } catch {
-      throw new Error();
-    }
+    const filteredFiles = files.filter((file) => shouldLintFile(file));
 
     if (filteredFiles.length === 0) {
       throw new TerminateExecutorGracefully();
@@ -372,3 +355,12 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
 }
 
 const toPosix = (path: string): string => path.replaceAll('\\', '/');
+
+const mapCallback = (entry: string): string =>
+  entry.startsWith('**') || entry.startsWith('./') ? entry : `**/${entry}`;
+
+// `patterns` is genuinely `string[] | undefined` (an entry's `files`/`ignores`
+// may be omitted); the guard keeps the undefined case at `[]` rather than the
+// `[undefined]` a bare `[patterns].flat(Infinity)` would produce.
+const prepareCollection = (patterns: string[] | undefined): string[] =>
+  (patterns ? ([patterns].flat(Infinity) as string[]) : []).map(mapCallback);

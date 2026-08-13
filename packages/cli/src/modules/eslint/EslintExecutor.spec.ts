@@ -48,6 +48,14 @@ vi.mock('fs', async (importOriginal) => ({
   writeFileSync: vi.fn(),
 }));
 
+// Points resolveTargets()'s dynamic import at a path that can never resolve, so
+// the import genuinely fails (a real Node ERR_MODULE_NOT_FOUND, not a mocked
+// rejection) — exercising the same failure the wrapped error is meant to name.
+vi.mock('url', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('url')>()),
+  pathToFileURL: () => new URL('file:///qoq-test-nonexistent-dir/eslint.config.mjs'),
+}));
+
 const baseOptions: IExecutorOptions = {
   output: 'out',
   fix: false,
@@ -193,6 +201,20 @@ describe('EslintExecutor', () => {
       await executor.run(baseOptions);
 
       expect(exitMock).toHaveBeenCalledWith(EExitCode.EXCEPTION);
+    });
+
+    it('should name the config file and surface the original failure as cause when the generated config cannot be imported', async () => {
+      const exitMock = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+      const stderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      const executor = new EslintExecutor(configWithEslint, true, true);
+
+      await executor.run(baseOptions, ['src/index.ts']);
+
+      expect(exitMock).toHaveBeenCalledWith(EExitCode.EXCEPTION);
+      expect(stderrWrite).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to import the generated ESLint config at')
+      );
+      expect(stderrWrite).toHaveBeenCalledWith(expect.stringContaining('Caused by:'));
     });
 
     it('should inject a progress override config and print a done line when not silent', async () => {

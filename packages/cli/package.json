@@ -41,7 +41,6 @@
     "@npmcli/package-json": "7.0.5",
     "cac": "7.0.0",
     "cosmiconfig": "9.0.2",
-    "es-toolkit": "1.50.0",
     "fast-glob": "3.3.3",
     "micromatch": "4.0.8",
     "picocolors": "1.1.1",
