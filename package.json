@@ -16,6 +16,7 @@
     "clean:modules": "rimraf -g '**/node_modules' '**/package-lock.json'",
     "config-inspector": "node ./scripts/config-inspector.js",
     "config-inspector:clean": "rimraf -g ./packages/eslint-v9-*/stats/",
+    "config:diff": "node ./scripts/config-diff.js",
     "husky:pre-push": "run-s build smoke:bins check:engine test qoq:check",
     "pre:test": "npm run config-inspector",
     "prepare": "husky",

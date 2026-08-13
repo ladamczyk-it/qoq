@@ -24,6 +24,9 @@ export default {
       '**/rolldown.config.js',
       'packages/cli/src/types.ts',
       'configs/eslint-v9/rolldown.config.js',
+      // Spawned as a subprocess by scripts/config-diff.js (by path string, and copied into a
+      // temporary worktree to run there), so nothing imports it and knip can't see the use.
+      'scripts/config-diff.resolver.mjs',
     ],
     ignoreDependencies: [
       // build specific

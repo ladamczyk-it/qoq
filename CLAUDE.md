@@ -38,6 +38,12 @@ npm run qoq:fix     # auto-fix
 
 Tests live in `packages/*/src/**/*.spec.{ts,js}` and run with Vitest across all packages.
 
+`npm run config:diff` compares what ESLint actually resolves (via `calculateConfigForFile`)
+for every `eslint-v9-*` package against a git ref, defaulting to `master` — it checks the ref
+out to a temporary worktree, builds it there, and diffs the result against the current
+checkout. It's on-demand, not part of the gate: it isn't wired into `qoq:check` or
+`husky:pre-push` because installing and building a second checkout takes minutes.
+
 ## The `qoq` skill and its diagrams
 
 The skill lives at `skills/qoq/` — `SKILL.md` routes, `references/*.md` hold each
