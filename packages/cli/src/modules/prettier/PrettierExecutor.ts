@@ -5,6 +5,7 @@ import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
+import { toPosix } from '../../helpers/paths.ts';
 import { AbstractApiWithProgressExecutor } from '../abstract/AbstractApiWithProgressExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
@@ -290,8 +291,6 @@ export class PrettierExecutor extends AbstractApiWithProgressExecutor {
 // Prettier's logger prefixes warn/error lines with a coloured `[warn]`/`[error]`.
 const prefix = (level: 'warn' | 'error'): string =>
   `[${(level === 'warn' ? c.yellow : c.red)(level)}]`;
-
-const toPosix = (path: string): string => path.replaceAll('\\', '/');
 
 const statSafe = (path: string): ReturnType<typeof lstatSync> | undefined => {
   try {

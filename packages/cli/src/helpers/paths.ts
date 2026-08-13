@@ -21,3 +21,6 @@ export const resolveCliPackagePath = (path: string): string =>
 
 export const resolveCliRelativePath = (path: string): string =>
   getRelativePath(resolveCliPackagePath(path));
+
+// Normalizes Windows path separators for display.
+export const toPosix = (path: string): string => path.replaceAll('\\', '/');

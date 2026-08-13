@@ -8,7 +8,7 @@ import micromatch from 'micromatch';
 import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { formatCode } from '../../helpers/formatCode.ts';
-import { resolveCliPackagePath, resolveCliRelativePath } from '../../helpers/paths.ts';
+import { resolveCliPackagePath, resolveCliRelativePath, toPosix } from '../../helpers/paths.ts';
 import { EConfigType } from '../../helpers/types.ts';
 import {
   AbstractApiWithProgressExecutor,
@@ -353,8 +353,6 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
     }));
   }
 }
-
-const toPosix = (path: string): string => path.replaceAll('\\', '/');
 
 const mapCallback = (entry: string): string =>
   entry.startsWith('**') || entry.startsWith('./') ? entry : `**/${entry}`;
