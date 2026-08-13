@@ -181,7 +181,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
           return acc;
         }
 
-        imports[this.buildTemplateImportKey(configType, 'configs', `configs${index}`)] =
+        imports[buildTemplateImportKey(configType, 'configs', `configs${index}`)] =
           `@ladamczyk/${template}`;
 
         const usesResolverOverride =
@@ -229,19 +229,6 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
     writeFileSync(configFilePath, formatCode(configType, imports, content, exports));
   }
 
-  // The two destructuring shapes formatCode() expects for a template's named export:
-  // `{ x as y }` renders as `import { x as y } from …` (ESM), `{ x: y }` as
-  // `const { x: y } = require(…)` (CJS).
-  private buildTemplateImportKey(
-    configType: EConfigType,
-    exportedName: string,
-    localAlias: string
-  ): string {
-    return configType === EConfigType.ESM
-      ? `{ ${exportedName} as ${localAlias} }`
-      : `{ ${exportedName}: ${localAlias} }`;
-  }
-
   private async resolveTargets(configFilePath: string, files: string[]): Promise<string[]> {
     // No explicit files: mirror the CLI's no-pattern default of linting the cwd
     // and letting the flat config's own `files`/`ignores` decide the scope.
@@ -262,7 +249,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
     }
 
     const possibleFiles = eslintConfig.default.map((config) => ({
-      files: prepareCollection(config.files as string[] | undefined),
+      files: prepareCollection(config.files),
       ignores: prepareCollection(config.ignores),
     }));
 
@@ -272,7 +259,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
           micromatch.isMatch(file, filesPatterns) && !micromatch.isMatch(file, ignoresPatterns)
       );
 
-    const filteredFiles = files.filter((file) => shouldLintFile(file));
+    const filteredFiles = files.filter(shouldLintFile);
 
     if (filteredFiles.length === 0) {
       throw new TerminateExecutorGracefully();
@@ -357,8 +344,22 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
 const mapCallback = (entry: string): string =>
   entry.startsWith('**') || entry.startsWith('./') ? entry : `**/${entry}`;
 
-// `patterns` is genuinely `string[] | undefined` (an entry's `files`/`ignores`
-// may be omitted); the guard keeps the undefined case at `[]` rather than the
-// `[undefined]` a bare `[patterns].flat(Infinity)` would produce.
-const prepareCollection = (patterns: string[] | undefined): string[] =>
-  (patterns ? ([patterns].flat(Infinity) as string[]) : []).map(mapCallback);
+// A `files` entry may itself be an array — flat config AND-matches a nested
+// group — so flatten before matching; `ignores` is always flat but takes the
+// same path. Either may be omitted, hence the `?? []`. Flattening turns a
+// nested AND-group into ORed patterns, which only ever over-matches: this is a
+// prefilter, and ESLint's own cascade still decides what a target really is.
+const prepareCollection = (patterns: (string | string[])[] | undefined): string[] =>
+  ((patterns ?? []).flat(Infinity) as string[]).map(mapCallback);
+
+// The two destructuring shapes formatCode() expects for a template's named export:
+// `{ x as y }` renders as `import { x as y } from …` (ESM), `{ x: y }` as
+// `const { x: y } = require(…)` (CJS).
+const buildTemplateImportKey = (
+  configType: EConfigType,
+  exportedName: string,
+  localAlias: string
+): string =>
+  configType === EConfigType.ESM
+    ? `{ ${exportedName} as ${localAlias} }`
+    : `{ ${exportedName}: ${localAlias} }`;
