@@ -11,8 +11,7 @@ export class SkillslintExecutor extends AbstractApiExecutor {
     return 'skillslint';
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected prepare(_args: string[], _options: IExecutorOptions): Promise<EExitCode> {
+  protected prepare(): Promise<void> {
     const {
       modules: { skillslint },
     } = this.modulesConfig;
@@ -21,7 +20,7 @@ export class SkillslintExecutor extends AbstractApiExecutor {
       throw new TerminateExecutorGracefully();
     }
 
-    return Promise.resolve(EExitCode.OK);
+    return Promise.resolve();
   }
 
   protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {

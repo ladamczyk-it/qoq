@@ -8,10 +8,11 @@ import { AbstractExecutor } from './AbstractExecutor.ts';
 
 // Base for tools without a JS API (Knip, npm): execute() spawns the tool's
 // binary, passing the args getCommandArgs()/prepare() assembled.
-export abstract class AbstractCommandExecutor extends AbstractExecutor {
+export abstract class AbstractCommandExecutor<TContext = void> extends AbstractExecutor<TContext> {
   protected async execute(
     args: string[],
     options: IExecutorOptions,
+    _context: TContext,
     stdio: CommonSpawnOptions['stdio'] = 'inherit',
     captureOutput: boolean = false
   ): Promise<string | EExitCode> {

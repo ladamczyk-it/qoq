@@ -14,8 +14,7 @@ export class StructurelintExecutor extends AbstractApiExecutor {
     return 'structurelint';
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected prepare(_args: string[], _options: IExecutorOptions): Promise<EExitCode> {
+  protected prepare(): Promise<void> {
     const {
       modules: { structurelint },
     } = this.modulesConfig;
@@ -24,7 +23,7 @@ export class StructurelintExecutor extends AbstractApiExecutor {
       throw new TerminateExecutorGracefully();
     }
 
-    return Promise.resolve(EExitCode.OK);
+    return Promise.resolve();
   }
 
   protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {

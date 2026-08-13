@@ -33,19 +33,29 @@ interface IEslintReportMessage {
 
 type TEslintReport = { filePath: string; messages: IEslintReportMessage[] }[];
 
-export class EslintExecutor extends AbstractApiWithProgressExecutor {
-  static readonly CACHE_PATH = resolveCliRelativePath('/bin/.eslintcache');
+// What prepare() resolves for execute(): eslint runs through its JS API rather
+// than a spawned binary, so there are no CLI args to carry this.
+interface IEslintContext {
+  targets: string[];
+  configFile: string;
+}
 
-  // Resolved in prepare(), consumed in execute() — eslint runs through its JS API
-  // rather than a spawned binary, so there are no CLI args to carry state.
-  private targets: string[] = ['.'];
-  private configFile = '';
+export class EslintExecutor extends AbstractApiWithProgressExecutor<IEslintContext> {
+  static readonly CACHE_PATH = resolveCliRelativePath('/bin/.eslintcache');
 
   protected getCommandName(): string {
     return 'eslint';
   }
 
-  protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
+  protected getCachePath(): string {
+    return EslintExecutor.CACHE_PATH;
+  }
+
+  protected async execute(
+    _args: string[],
+    options: IExecutorOptions,
+    { targets, configFile }: IEslintContext
+  ): Promise<string | EExitCode> {
     // Resolved from the consumer's on-demand install (via the @ladamczyk/qoq-eslint-v9-*
     // templates that bring in `eslint`); kept external in rolldown.config.js.
     const { ESLint } = await import('eslint');
@@ -58,7 +68,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
     const progressedFiles = new Set<string>();
 
     const eslint = new ESLint({
-      overrideConfigFile: this.configFile,
+      overrideConfigFile: configFile,
       cache: !options.disableCache,
       cacheLocation: EslintExecutor.CACHE_PATH,
       cacheStrategy: 'metadata',
@@ -67,7 +77,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
       ...(showProgress ? { overrideConfig: this.getProgressOverrideConfig(progressedFiles) } : {}),
     });
 
-    const results = await eslint.lintFiles(this.targets);
+    const results = await eslint.lintFiles(targets);
 
     if (options.fix) {
       await ESLint.outputFixes(results);
@@ -107,10 +117,10 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
   }
 
   protected async prepare(
-    args: string[],
-    options: IExecutorOptions,
+    _args: string[],
+    _options: IExecutorOptions,
     files: string[] = []
-  ): Promise<EExitCode> {
+  ): Promise<IEslintContext> {
     try {
       const {
         configType,
@@ -122,10 +132,10 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
 
       this.writeGeneratedConfig(configFilePath);
 
-      this.configFile = resolveCwdRelativePath(configPath);
-      this.targets = await this.resolveTargets(configFilePath, files);
-
-      return super.prepare(args, options, files);
+      return {
+        configFile: resolveCwdRelativePath(configPath),
+        targets: await this.resolveTargets(configFilePath, files),
+      };
     } catch (e) {
       return this.handlePrepareError(e);
     }

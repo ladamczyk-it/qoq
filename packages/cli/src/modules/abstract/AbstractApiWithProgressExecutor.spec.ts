@@ -28,6 +28,10 @@ class TestProgressExecutor extends AbstractApiWithProgressExecutor {
     return 'apitool';
   }
 
+  protected prepare(): Promise<void> {
+    return Promise.resolve();
+  }
+
   protected execute(): Promise<string | EExitCode> {
     return Promise.resolve(EExitCode.OK);
   }

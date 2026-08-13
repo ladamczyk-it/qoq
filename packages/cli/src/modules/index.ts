@@ -178,8 +178,8 @@ export const execute = async (
   // Shared gate for tools that only run when their config block is present
   // (`stylelint`, `structurelint`, `skillslint`) — pulled out of the inline
   // if-chain below to keep execute()'s cognitive complexity in check.
-  const runOptional = async (
-    executor: AbstractExecutor,
+  const runOptional = async <TContext>(
+    executor: AbstractExecutor<TContext>,
     moduleKey: keyof IModulesConfig['modules'],
     name: string,
     skip: boolean = false

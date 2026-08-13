@@ -18,10 +18,9 @@ export class BasicExecutor extends AbstractExecutor {
     return [];
   }
 
-  // No external binary and no cache file, so skip AbstractExecutor.prepare (which
-  // would demand a CACHE_PATH).
-  protected prepare(): Promise<EExitCode> {
-    return Promise.resolve(EExitCode.OK);
+  // Nothing to resolve: the self-check reads modulesConfig directly.
+  protected prepare(): Promise<void> {
+    return Promise.resolve();
   }
 
   protected async execute(): Promise<string | EExitCode> {

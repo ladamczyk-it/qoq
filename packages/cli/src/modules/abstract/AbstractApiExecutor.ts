@@ -5,7 +5,7 @@ import { AbstractExecutor } from './AbstractExecutor.ts';
 // Base for tools driven through their JS API (ESLint, Prettier, Stylelint,
 // Skillslint, JSCPD): no binary is spawned, so there are no CLI args, and each
 // subclass implements execute() itself. Shared `--json` report writing lives here.
-export abstract class AbstractApiExecutor extends AbstractExecutor {
+export abstract class AbstractApiExecutor<TContext = void> extends AbstractExecutor<TContext> {
   protected getCommandArgs(): string[] {
     return [];
   }

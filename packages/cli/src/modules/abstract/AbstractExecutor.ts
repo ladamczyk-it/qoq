@@ -19,11 +19,15 @@ interface IExecutor {
 }
 
 // Shared base for every executor: owns construction, the run() orchestration
-// (timing, messaging, prepare → warmup → execute, error handling), the cache
-// args/warmup-clear in prepare(), and the prepare-error handler. The actual
-// execute() — spawning a binary vs. driving a JS API — is left to the two
-// specialisations, AbstractCommandExecutor and AbstractApiExecutor.
-export abstract class AbstractExecutor implements IExecutor {
+// (timing, messaging, cache args → prepare → warmup → execute, error handling)
+// and the prepare-error handler. The actual execute() — spawning a binary vs.
+// driving a JS API — is left to the two specialisations, AbstractCommandExecutor
+// and AbstractApiExecutor.
+//
+// `TContext` is whatever prepare() resolves for execute() to consume; run()
+// carries the value between them. It defaults to `void` for the executors that
+// need nothing — a tool whose whole input is the args array or modulesConfig.
+export abstract class AbstractExecutor<TContext = void> implements IExecutor {
   protected modulesConfig: IModulesConfig;
   protected silent: boolean;
   protected hideTimer: boolean;
@@ -65,13 +69,15 @@ export abstract class AbstractExecutor implements IExecutor {
     const args = [...this.getCommandArgs()];
 
     try {
-      await this.prepare(args, options, files);
+      this.applyCacheArgs(args, options);
+
+      const context = await this.prepare(args, options, files);
 
       if (options.warmup) {
         return EExitCode.OK;
       }
 
-      return await this.execute(args, options, stdio, captureOutput);
+      return await this.execute(args, options, context, stdio, captureOutput);
     } catch (e) {
       if (!(e instanceof TerminateExecutorGracefully)) {
         process.stderr.write('Unknown error!\n');
@@ -89,28 +95,40 @@ export abstract class AbstractExecutor implements IExecutor {
     }
   }
 
-  protected async prepare(
-    args: string[],
-    options: IExecutorOptions,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    files: string[] = []
-  ): Promise<EExitCode> {
-    if (!options.disableCache) {
-      const cachePath = (this.constructor as { CACHE_PATH?: string }).CACHE_PATH;
+  // Where this executor's cache file lives, or undefined for a tool that has no
+  // cache of its own (npm, Prettier, the self-check). Declaring the absence is
+  // what lets those executors keep the shared prepare() step instead of
+  // overriding it wholesale to dodge a cache they never had.
+  protected getCachePath(): string | undefined {
+    return undefined;
+  }
 
-      if (!cachePath) {
-        throw new Error('No cache path for executor defined!');
-      }
+  // Invariant part of run(), not a subclass hook: every cached tool takes the
+  // same two CLI args and the same warmup clear. Runs before prepare() so a
+  // warmed-up executor regenerates its config against an already-cleared cache.
+  private applyCacheArgs(args: string[], options: IExecutorOptions): void {
+    const cachePath = this.getCachePath();
 
-      args.push('--cache', '--cache-location', cachePath);
-
-      if (options.warmup && existsSync(cachePath)) {
-        rmSync(cachePath, { recursive: true, force: true });
-      }
+    if (options.disableCache || !cachePath) {
+      return;
     }
 
-    return Promise.resolve(EExitCode.OK);
+    args.push('--cache', '--cache-location', cachePath);
+
+    if (options.warmup && existsSync(cachePath)) {
+      rmSync(cachePath, { recursive: true, force: true });
+    }
   }
+
+  // Resolves whatever execute() needs and, for spawned tools, pushes the tool's
+  // own args onto `args`. Its return value is handed to execute() by run() —
+  // state shared through an instance field instead would make an executor
+  // single-use by convention with nothing enforcing it.
+  protected abstract prepare(
+    args: string[],
+    options: IExecutorOptions,
+    files?: string[]
+  ): Promise<TContext>;
 
   protected handlePrepareError(error: unknown): never {
     if (error instanceof TerminateExecutorGracefully) {
@@ -133,6 +151,7 @@ export abstract class AbstractExecutor implements IExecutor {
   protected abstract execute(
     args: string[],
     options: IExecutorOptions,
+    context: TContext,
     stdio?: CommonSpawnOptions['stdio'],
     captureOutput?: boolean
   ): Promise<string | EExitCode>;

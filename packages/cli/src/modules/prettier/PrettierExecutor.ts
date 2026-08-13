@@ -17,35 +17,39 @@ const IGNORED_DIRECTORIES = ['.git', '.sl', '.svn', '.hg', '.jj', 'node_modules'
 // Ignore files prettier respects by default (the CLI's `--ignore-path` default).
 const IGNORE_FILES = ['.gitignore', '.prettierignore'];
 
-export class PrettierExecutor extends AbstractApiWithProgressExecutor {
-  // Set in prepare(), consumed in execute(): the explicit patterns to format.
-  private patterns: string[] = [];
+// What prepare() resolves for execute(): the explicit patterns to format.
+interface IPrettierContext {
+  patterns: string[];
+}
 
+export class PrettierExecutor extends AbstractApiWithProgressExecutor<IPrettierContext> {
   protected getCommandName(): string {
     return 'prettier';
   }
 
-  // No cache file of its own, so skip AbstractExecutor.prepare (which would
-  // demand a CACHE_PATH).
   protected prepare(
     _args: string[],
     _options: IExecutorOptions,
     files: string[] = []
-  ): Promise<EExitCode> {
+  ): Promise<IPrettierContext> {
     const { srcPath, modules } = this.modulesConfig;
 
-    this.patterns = files.length > 0 ? files : (modules?.prettier?.sources ?? [srcPath]);
-
-    return Promise.resolve(EExitCode.OK);
+    return Promise.resolve({
+      patterns: files.length > 0 ? files : (modules?.prettier?.sources ?? [srcPath]),
+    });
   }
 
-  protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
+  protected async execute(
+    _args: string[],
+    options: IExecutorOptions,
+    { patterns }: IPrettierContext
+  ): Promise<string | EExitCode> {
     // Resolved from the consumer's on-demand install (via the @ladamczyk/qoq-prettier*
     // templates); kept external in rolldown.config.js.
     const prettier = await import('prettier');
 
     const configPath = resolveCwdRelativePath(this.modulesConfig.configPaths.prettier);
-    const targets = await this.resolveTargets(prettier);
+    const targets = await this.resolveTargets(prettier, patterns);
 
     if (targets.length === 0) {
       // Nothing to format (e.g. every caller-supplied file is ignored): match the
@@ -234,10 +238,13 @@ export class PrettierExecutor extends AbstractApiWithProgressExecutor {
   // Expands the patterns to concrete files and drops the ones prettier would not
   // format: those matched by .gitignore/.prettierignore and those whose parser
   // cannot be inferred (the CLI's `--ignore-unknown` behaviour).
-  private async resolveTargets(prettier: typeof import('prettier')): Promise<string[]> {
+  private async resolveTargets(
+    prettier: typeof import('prettier'),
+    patterns: string[]
+  ): Promise<string[]> {
     const targets: string[] = [];
 
-    for (const file of await this.expandPatterns()) {
+    for (const file of await expandPatterns(patterns)) {
       const { ignored, inferredParser } = await prettier.getFileInfo(file, {
         ignorePath: IGNORE_FILES,
         withNodeModules: false,
@@ -251,42 +258,42 @@ export class PrettierExecutor extends AbstractApiWithProgressExecutor {
 
     return targets;
   }
-
-  // Mirrors prettier's CLI pattern expansion: explicit files pass through, a
-  // directory expands to `<dir>/**/*`, and anything else is treated as a glob.
-  private async expandPatterns(): Promise<string[]> {
-    const { default: fastGlob } = await import('fast-glob');
-
-    const cwd = process.cwd();
-    const files: string[] = [];
-    const globs: string[] = [];
-
-    for (const pattern of this.patterns) {
-      const stat = statSafe(resolve(cwd, pattern));
-
-      if (stat?.isFile()) {
-        files.push(pattern);
-      } else if (stat?.isDirectory()) {
-        const prefixPath = relative(cwd, resolve(cwd, pattern)) || '.';
-        globs.push(`${prefixPath}/**/*`);
-      } else if (!pattern.startsWith('!')) {
-        globs.push(pattern);
-      }
-    }
-
-    const matched = globs.length
-      ? await fastGlob(globs, {
-          cwd,
-          dot: true,
-          onlyFiles: true,
-          followSymbolicLinks: false,
-          ignore: IGNORED_DIRECTORIES.map((directory) => `**/${directory}`),
-        })
-      : [];
-
-    return [...new Set([...files, ...matched])].sort((a, b) => a.localeCompare(b));
-  }
 }
+
+// Mirrors prettier's CLI pattern expansion: explicit files pass through, a
+// directory expands to `<dir>/**/*`, and anything else is treated as a glob.
+const expandPatterns = async (patterns: string[]): Promise<string[]> => {
+  const { default: fastGlob } = await import('fast-glob');
+
+  const cwd = process.cwd();
+  const files: string[] = [];
+  const globs: string[] = [];
+
+  for (const pattern of patterns) {
+    const stat = statSafe(resolve(cwd, pattern));
+
+    if (stat?.isFile()) {
+      files.push(pattern);
+    } else if (stat?.isDirectory()) {
+      const prefixPath = relative(cwd, resolve(cwd, pattern)) || '.';
+      globs.push(`${prefixPath}/**/*`);
+    } else if (!pattern.startsWith('!')) {
+      globs.push(pattern);
+    }
+  }
+
+  const matched = globs.length
+    ? await fastGlob(globs, {
+        cwd,
+        dot: true,
+        onlyFiles: true,
+        followSymbolicLinks: false,
+        ignore: IGNORED_DIRECTORIES.map((directory) => `**/${directory}`),
+      })
+    : [];
+
+  return [...new Set([...files, ...matched])].sort((a, b) => a.localeCompare(b));
+};
 
 // Prettier's logger prefixes warn/error lines with a coloured `[warn]`/`[error]`.
 const prefix = (level: 'warn' | 'error'): string =>

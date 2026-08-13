@@ -23,6 +23,14 @@ class TestExecutor extends AbstractCommandExecutor {
   protected getCommandArgs(): string[] {
     return ['--foo'];
   }
+
+  protected getCachePath(): string {
+    return TestExecutor.CACHE_PATH;
+  }
+
+  protected prepare(): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 const baseOptions: IExecutorOptions = {
@@ -112,7 +120,10 @@ describe('AbstractCommandExecutor', () => {
       expect(exitMock).toHaveBeenCalledWith(EExitCode.EXCEPTION);
     });
 
-    it('should throw when caching is enabled but no cache path is defined', async () => {
+    it('should run without cache args when the executor declares no cache path', async () => {
+      // getCachePath() defaulting to undefined *is* the declaration that this
+      // tool has no cache — so caching being enabled is simply not applicable,
+      // rather than the error the removed CACHE_PATH reflection made it.
       class NoCacheExecutor extends AbstractCommandExecutor {
         protected getCommandName(): string {
           return 'nocache';
@@ -121,14 +132,20 @@ describe('AbstractCommandExecutor', () => {
         protected getCommandArgs(): string[] {
           return [];
         }
+
+        protected prepare(): Promise<void> {
+          return Promise.resolve();
+        }
       }
 
       const exitMock = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
       const executor = new NoCacheExecutor(dummyModulesConfig, true, true);
 
-      await executor.run({ ...baseOptions, disableCache: false });
+      const result = await executor.run({ ...baseOptions, disableCache: false });
 
-      expect(exitMock).toHaveBeenCalledWith(EExitCode.EXCEPTION);
+      expect(executeCommand).toHaveBeenCalledWith('nocache', [], 'inherit', false);
+      expect(exitMock).not.toHaveBeenCalled();
+      expect(result).toBe(EExitCode.OK);
     });
   });
 });

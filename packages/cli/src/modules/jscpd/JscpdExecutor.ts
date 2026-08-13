@@ -22,13 +22,12 @@ export class JscpdExecutor extends AbstractApiExecutor {
     return 'jscpd';
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected prepare(_args: string[], _options: IExecutorOptions): Promise<EExitCode> {
+  protected prepare(): Promise<void> {
     if (!this.modulesConfig.modules.jscpd) {
       throw new TerminateExecutorGracefully();
     }
 
-    return Promise.resolve(EExitCode.OK);
+    return Promise.resolve();
   }
 
   protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {

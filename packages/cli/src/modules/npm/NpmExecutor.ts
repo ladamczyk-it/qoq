@@ -164,7 +164,10 @@ export class NpmExecutor extends AbstractCommandExecutor {
     return ['outdated', '--json'];
   }
 
-  protected async prepare(args: string[], options: IExecutorOptions): Promise<EExitCode> {
-    return super.prepare(args, { ...options, disableCache: true });
+  // npm outdated has no cache of its own — getCachePath() staying undefined is
+  // what says so. This used to be a prepare() override forcing disableCache,
+  // because the base threw on a missing CACHE_PATH.
+  protected prepare(): Promise<void> {
+    return Promise.resolve();
   }
 }

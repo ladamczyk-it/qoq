@@ -20,7 +20,9 @@ const clearLine = '\r\x1b[K';
 // whatever hook they can get: Prettier already loops over files itself;
 // ESLint/Stylelint inject a rule that runs once per file with no visitor/report
 // of its own, purely to observe the filename as it's processed.
-export abstract class AbstractApiWithProgressExecutor extends AbstractApiExecutor {
+export abstract class AbstractApiWithProgressExecutor<
+  TContext = void,
+> extends AbstractApiExecutor<TContext> {
   // Progress is decorative: skip it under --silent/--warmup (this.silent) and
   // --json, so it never mixes into machine-readable output.
   protected showProgress(options: IExecutorOptions): boolean {

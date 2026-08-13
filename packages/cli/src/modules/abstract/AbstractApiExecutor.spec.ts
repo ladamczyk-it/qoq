@@ -29,6 +29,10 @@ class TestApiExecutor extends AbstractApiExecutor {
     return 'apitool';
   }
 
+  protected prepare(): Promise<void> {
+    return Promise.resolve();
+  }
+
   // Drives a "JS API" instead of spawning a binary, and uses the shared report
   // writer under --json.
   protected execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {

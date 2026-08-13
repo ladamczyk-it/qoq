@@ -23,7 +23,11 @@ export class KnipExecutor extends AbstractCommandExecutor {
     return ['--exclude', 'enumMembers'];
   }
 
-  protected async prepare(args: string[], options: IExecutorOptions): Promise<EExitCode> {
+  protected getCachePath(): string {
+    return KnipExecutor.CACHE_PATH;
+  }
+
+  protected prepare(args: string[], options: IExecutorOptions): Promise<void> {
     try {
       const {
         srcPath,
@@ -104,7 +108,7 @@ export class KnipExecutor extends AbstractCommandExecutor {
         args.push(`--reporter json > "${options.output}/knip-report.json"`);
       }
 
-      return super.prepare(args, options);
+      return Promise.resolve();
     } catch {
       process.stderr.write(c.red(`Can't load ${this.getName()} package config!\n`));
 

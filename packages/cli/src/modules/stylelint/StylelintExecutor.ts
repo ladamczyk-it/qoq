@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import { writeFileSync } from 'fs';
 import { relative } from 'path';
 import { pathToFileURL } from 'url';
@@ -41,39 +40,47 @@ interface IStylelintReportWarning {
 
 type TStylelintReport = { source: string | undefined; warnings: IStylelintReportWarning[] }[];
 
-export class StylelintExecutor extends AbstractApiWithProgressExecutor {
-  static readonly CACHE_PATH = resolveCliRelativePath('/bin/.stylelintcache');
+// What prepare() resolves for execute(): stylelint runs through its JS API
+// rather than a spawned binary, so there are no CLI args to carry this.
+interface IStylelintContext {
+  targets: string[];
+  strict: boolean;
+  configFile: string;
+}
 
-  // Resolved in prepare(), consumed in execute() — stylelint runs through its JS
-  // API rather than a spawned binary, so there are no CLI args to carry state.
-  private targets: string[] = [];
-  private strict = false;
-  private configFile = '';
+export class StylelintExecutor extends AbstractApiWithProgressExecutor<IStylelintContext> {
+  static readonly CACHE_PATH = resolveCliRelativePath('/bin/.stylelintcache');
 
   protected getCommandName(): string {
     return 'stylelint';
   }
 
-  protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
+  protected getCachePath(): string {
+    return StylelintExecutor.CACHE_PATH;
+  }
+
+  protected async execute(
+    _args: string[],
+    options: IExecutorOptions,
+    { targets, strict, configFile }: IStylelintContext
+  ): Promise<string | EExitCode> {
     const { default: stylelint } = await import('stylelint');
 
     const showProgress = this.showProgress(options);
 
     const result = await stylelint.lint({
-      files: this.targets,
+      files: targets,
       // stylelint's `config` fully replaces `configFile` rather than merging
       // with it, so the progress plugin can only be added by loading the
       // generated config and appending to it — never both together.
-      ...(showProgress
-        ? { config: await this.getProgressConfig() }
-        : { configFile: this.configFile }),
+      ...(showProgress ? { config: await this.getProgressConfig(configFile) } : { configFile }),
       fix: options.fix,
       cache: !options.disableCache,
       cacheLocation: StylelintExecutor.CACHE_PATH,
       cacheStrategy: 'metadata',
       formatter: 'string',
       allowEmptyInput: true,
-      ...(this.strict ? { maxWarnings: 0 } : {}),
+      ...(strict ? { maxWarnings: 0 } : {}),
     });
 
     if (showProgress) {
@@ -90,10 +97,10 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor {
   }
 
   protected async prepare(
-    args: string[],
-    options: IExecutorOptions,
+    _args: string[],
+    _options: IExecutorOptions,
     files: string[] = []
-  ): Promise<EExitCode> {
+  ): Promise<IStylelintContext> {
     const {
       srcPath,
       configType,
@@ -106,7 +113,6 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor {
     }
 
     const { strict } = stylelint;
-    this.strict = !!strict;
 
     let rest: StylelintConfig;
     let glob: string;
@@ -151,29 +157,11 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor {
 
       writeFileSync(configFilePath, formatCode(configType, imports, content, exports));
 
-      this.configFile = resolveCwdRelativePath(configPath);
-
-      if (files.length > 0) {
-        let filteredFiles: string[];
-
-        try {
-          const ignores = await readIgnorePatterns(GITIGNORE_FILE_PATH);
-
-          filteredFiles = files.filter((file) => !micromatch.isMatch(file, ignores));
-        } catch {
-          throw new Error();
-        }
-
-        if (filteredFiles.length === 0) {
-          throw new TerminateExecutorGracefully();
-        }
-
-        this.targets = filteredFiles;
-      } else {
-        this.targets = [glob];
-      }
-
-      return super.prepare(args, options, files);
+      return {
+        strict: !!strict,
+        configFile: resolveCwdRelativePath(configPath),
+        targets: files.length > 0 ? await filterIgnored(files) : [glob],
+      };
     } catch (e) {
       return this.handlePrepareError(e);
     }
@@ -184,8 +172,8 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor {
   // reports anything) is the only hook available. Loads the generated config
   // (rather than passing `configFile`, which `config` would otherwise
   // override wholesale) and appends the progress plugin to it.
-  private async getProgressConfig(): Promise<TStylelintApiConfig> {
-    const { default: baseConfig } = (await import(pathToFileURL(this.configFile).toString())) as {
+  private async getProgressConfig(configFile: string): Promise<TStylelintApiConfig> {
+    const { default: baseConfig } = (await import(pathToFileURL(configFile).toString())) as {
       default: TStylelintApiConfig;
     };
 
@@ -233,3 +221,24 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor {
     }));
   }
 }
+
+// Drops caller-supplied files that .gitignore covers. An unreadable ignore file
+// is thrown bare so prepare()'s catch reports it as a config-load failure; every
+// file being ignored is a graceful no-op, not an error.
+const filterIgnored = async (files: string[]): Promise<string[]> => {
+  let filteredFiles: string[];
+
+  try {
+    const ignores = await readIgnorePatterns(GITIGNORE_FILE_PATH);
+
+    filteredFiles = files.filter((file) => !micromatch.isMatch(file, ignores));
+  } catch {
+    throw new Error();
+  }
+
+  if (filteredFiles.length === 0) {
+    throw new TerminateExecutorGracefully();
+  }
+
+  return filteredFiles;
+};
