@@ -1,7 +1,7 @@
 // Proves that what ESLint actually resolves for each eslint-v9-* package hasn't changed,
 // across any config change, by regenerating a baseline from a git ref on demand instead of
-// trusting a frozen snapshot (that's what scripts/config-baseline.js did, and why it can
-// never be regenerated once the legacy exports it read were deleted — see Ticket 5.7).
+// trusting a frozen snapshot. The migration-era oracle this replaces froze one, and could
+// never regenerate it once the legacy exports it read were deleted — see Ticket 5.7.
 //
 // It checks the ref out to a temporary `git worktree` (the only git write command this
 // script uses — it never touches the current working tree), installs and builds it there,
@@ -55,9 +55,9 @@ const FIXTURES = [
 // pre-migration export merges the TS base on top of the React base, so a plain-tuple JS-base
 // rule overwrites the React layer's option overrides on exactly these two rules. Against a
 // pre-migration ref this shows up as a real, sanctioned options-only difference — severity
-// is unchanged on both sides. Keyed by package *and* rule id, same waiver as
-// scripts/config-baseline.js's (now-retired) SANCTIONED_OPTION_DELTAS. Do not extend this
-// for any other package or rule.
+// is unchanged on both sides. Keyed by package *and* rule id, carried over from the
+// retired migration oracle's allow-list of the same name. Do not extend this for any other
+// package or rule.
 const SANCTIONED_OPTION_DELTAS = {
   'eslint-v9-ts-react': {
     'import-x/order': 'react* path group',
