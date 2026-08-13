@@ -115,168 +115,187 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor {
     try {
       const {
         configType,
-        modules,
-        workspaces,
         configPaths: { eslint: configPath },
       } = this.modulesConfig;
       const configFilePath = resolveCliPackagePath(
         `/bin/eslint.config.${configType === EConfigType.ESM ? 'm' : 'c'}js`
       );
 
-      const imports: Record<string, string> = {
-        '{ defineConfig }': 'eslint/config',
-        '{ includeIgnoreFile }': '@eslint/compat',
-      };
-
-      // The templates default `import-x/no-cycle` to `ignoreExternal: true` (skips
-      // ~98% of its cost — see benchmark). But "external" is resolved per-package
-      // (nearest package.json), so in a monorepo a sibling workspace package looks
-      // just as external as a real node_modules dependency, and cross-package
-      // cycles would go undetected. Restore full cycle detection whenever the
-      // consumer's package.json declares workspaces; an explicit user override in
-      // qoq.config.js's `rules` still wins, since the user's block is the config
-      // object doing the extending and defineConfig places it after everything it
-      // extends.
-      const monorepoNoCycleOverride = JSON.stringify({
-        rules: { 'import-x/no-cycle': [1, { ignoreExternal: false }] },
-      });
-
-      // Every qoq-eslint-v9-ts* template calls createTypeScriptImportResolver() with no
-      // `project` option, so it falls back to `<root>/tsconfig.json` — and unlike tsc, it
-      // never walks up from the linted file to find a nearer one. In a monorepo, per-package
-      // path aliases (declared in each package's own tsconfig.json `paths`) are therefore
-      // invisible to it, and imports using them misreport as import-x/no-unresolved even
-      // though tsc resolves them fine. Point the resolver at every workspace's tsconfig (plus
-      // the root, for any TS file living outside a workspace package) whenever the consumer's
-      // package.json declares workspaces; an explicit user override in qoq.config.js's
-      // `rules`/`settings` still wins, since it applies last (see above). Passing >1 project path is
-      // deliberate here, so suppress the resolver's own "Multiple projects found" warning —
-      // it only knows the single-project-with-references case is fast, not that this one is fine.
-      const monorepoResolverOverride = (consumerWorkspaces: string[]): string =>
-        `{ settings: { 'import-x/resolver-next': [createTypeScriptImportResolver({ project: ${JSON.stringify(
-          [...consumerWorkspaces.map((workspace) => `${workspace}/tsconfig.json`), 'tsconfig.json']
-        )}, noWarnOnMultipleProjects: true }), createNodeResolver()] } }`;
-
-      const content = (modules?.eslint ?? []).reduce(
-        (acc: string[], current: IModuleEslintConfig, index) => {
-          const { template, ...rest } = current;
-
-          if (!Object.values(EModulesEslint).includes(template as EModulesEslint)) {
-            acc.push(`const config${index} = [${JSON.stringify(rest)}]`);
-
-            return acc;
-          }
-
-          if (configType === EConfigType.ESM) {
-            imports[`{ configs as configs${index} }`] = `@ladamczyk/${template}`;
-          } else {
-            imports[`{ configs: configs${index} }`] = `@ladamczyk/${template}`;
-          }
-
-          const usesResolverOverride =
-            Boolean(workspaces?.length) && (template?.startsWith('qoq-eslint-v9-ts') ?? false);
-
-          if (usesResolverOverride) {
-            // Through the TS base config, which every qoq-eslint-v9-ts* template inherits
-            // from and which declares the resolvers. Importing them directly would make the
-            // generated config depend on packages the consumer never declares, so it breaks
-            // as soon as npm nests them instead of hoisting.
-            imports['{ createTypeScriptImportResolver, createNodeResolver }'] =
-              `@ladamczyk/${EModulesEslint.ESLINT_V9_TS}`;
-          }
-
-          // The template's `configs.base` is a flat-config array, so it's extended rather
-          // than pre-merged: defineConfig expands the `extends` list in order, scopes every
-          // extended entry to the user block's `files`/`ignores`, and appends the user block
-          // itself last — same precedence the objectMergeRight chain used to produce
-          // (base < no-cycle override < resolver override < user's qoq.config.js block).
-          const extendsArgs = [
-            `configs${index}.base`,
-            ...(workspaces?.length ? [monorepoNoCycleOverride] : []),
-            ...(usesResolverOverride ? [monorepoResolverOverride(workspaces as string[])] : []),
-          ];
-
-          acc.push(
-            `const config${index} = defineConfig({ extends: [${extendsArgs.join(
-              ', '
-            )}], ...${JSON.stringify(rest)} })`
-          );
-
-          return acc;
-        },
-        []
-      );
-
-      const mergeConfigsInitialArray = existsSync(GITIGNORE_FILE_PATH)
-        ? `[includeIgnoreFile('${GITIGNORE_FILE_PATH.replaceAll('\\', '\\\\')}')]`
-        : '[]';
-
-      const exports = `${mergeConfigsInitialArray}${(modules?.eslint ?? [])
-        .map((_, index) => `.concat(config${index})`)
-        .join('')}`;
-
-      writeFileSync(configFilePath, formatCode(configType, imports, content, exports));
+      this.writeGeneratedConfig(configFilePath);
 
       this.configFile = resolveCwdRelativePath(configPath);
-
-      // No explicit files: mirror the CLI's no-pattern default of linting the cwd
-      // and letting the flat config's own `files`/`ignores` decide the scope.
-      this.targets = ['.'];
-
-      if (files.length > 0) {
-        let filteredFiles = [...files];
-
-        try {
-          const eslintConfig = await import(pathToFileURL(configFilePath).toString());
-          const mapCallback = (entry: string) =>
-            entry.startsWith('**') || entry.startsWith('./') ? entry : `**/${entry}`;
-          const prepareCollection = (patterns: string[] | undefined) => {
-            let collection: string[];
-
-            if (patterns) {
-              collection = Array.isArray(patterns) ? flattenDeep(patterns) : [patterns];
-            } else {
-              collection = [];
-            }
-
-            return collection.map(mapCallback);
-          };
-
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          const possibleFiles = (eslintConfig.default as IModuleEslintConfig[]).reduce(
-            (acc: { files: string[]; ignores: string[] }[], config) =>
-              acc.concat([
-                {
-                  files: prepareCollection(config.files as string[] | undefined),
-                  ignores: prepareCollection(config.ignores),
-                },
-              ]),
-            []
-          );
-
-          const shouldLintFile = (file: string) =>
-            possibleFiles.some(
-              ({ files: filesPatterns, ignores: ignoresPatterns }) =>
-                micromatch.isMatch(file, filesPatterns) &&
-                !micromatch.isMatch(file, ignoresPatterns)
-            );
-
-          filteredFiles = files.filter((file) => shouldLintFile(file));
-        } catch {
-          throw new Error();
-        }
-
-        if (filteredFiles.length === 0) {
-          throw new TerminateExecutorGracefully();
-        }
-
-        this.targets = filteredFiles;
-      }
+      this.targets = await this.resolveTargets(configFilePath, files);
 
       return super.prepare(args, options, files);
     } catch (e) {
       return this.handlePrepareError(e);
     }
+  }
+
+  // Renders the consumer's eslint.config.{mjs,cjs} as generated source text (an
+  // `imports` record, a `content` array of `const config<N> = [...]` lines, and an
+  // `exports` expression) and writes it via formatCode().
+  private writeGeneratedConfig(configFilePath: string): void {
+    const { configType, modules, workspaces } = this.modulesConfig;
+
+    const imports: Record<string, string> = {
+      '{ defineConfig }': 'eslint/config',
+      '{ includeIgnoreFile }': '@eslint/compat',
+    };
+
+    // The templates default `import-x/no-cycle` to `ignoreExternal: true` (skips
+    // ~98% of its cost — see benchmark). But "external" is resolved per-package
+    // (nearest package.json), so in a monorepo a sibling workspace package looks
+    // just as external as a real node_modules dependency, and cross-package
+    // cycles would go undetected. Restore full cycle detection whenever the
+    // consumer's package.json declares workspaces; an explicit user override in
+    // qoq.config.js's `rules` still wins, since the user's block is the config
+    // object doing the extending and defineConfig places it after everything it
+    // extends.
+    const monorepoNoCycleOverride = JSON.stringify({
+      rules: { 'import-x/no-cycle': [1, { ignoreExternal: false }] },
+    });
+
+    // Every qoq-eslint-v9-ts* template calls createTypeScriptImportResolver() with no
+    // `project` option, so it falls back to `<root>/tsconfig.json` — and unlike tsc, it
+    // never walks up from the linted file to find a nearer one. In a monorepo, per-package
+    // path aliases (declared in each package's own tsconfig.json `paths`) are therefore
+    // invisible to it, and imports using them misreport as import-x/no-unresolved even
+    // though tsc resolves them fine. Point the resolver at every workspace's tsconfig (plus
+    // the root, for any TS file living outside a workspace package) whenever the consumer's
+    // package.json declares workspaces; an explicit user override in qoq.config.js's
+    // `rules`/`settings` still wins, since it applies last (see above). Passing >1 project path is
+    // deliberate here, so suppress the resolver's own "Multiple projects found" warning —
+    // it only knows the single-project-with-references case is fast, not that this one is fine.
+    const monorepoResolverOverride = (consumerWorkspaces: string[]): string =>
+      `{ settings: { 'import-x/resolver-next': [createTypeScriptImportResolver({ project: ${JSON.stringify(
+        [...consumerWorkspaces.map((workspace) => `${workspace}/tsconfig.json`), 'tsconfig.json']
+      )}, noWarnOnMultipleProjects: true }), createNodeResolver()] } }`;
+
+    const content = (modules?.eslint ?? []).reduce(
+      (acc: string[], current: IModuleEslintConfig, index) => {
+        const { template, ...rest } = current;
+
+        if (!Object.values(EModulesEslint).includes(template as EModulesEslint)) {
+          acc.push(`const config${index} = [${JSON.stringify(rest)}]`);
+
+          return acc;
+        }
+
+        imports[this.buildTemplateImportKey(configType, 'configs', `configs${index}`)] =
+          `@ladamczyk/${template}`;
+
+        const usesResolverOverride =
+          Boolean(workspaces?.length) && (template?.startsWith('qoq-eslint-v9-ts') ?? false);
+
+        if (usesResolverOverride) {
+          // Through the TS base config, which every qoq-eslint-v9-ts* template inherits
+          // from and which declares the resolvers. Importing them directly would make the
+          // generated config depend on packages the consumer never declares, so it breaks
+          // as soon as npm nests them instead of hoisting.
+          imports['{ createTypeScriptImportResolver, createNodeResolver }'] =
+            `@ladamczyk/${EModulesEslint.ESLINT_V9_TS}`;
+        }
+
+        // The template's `configs.base` is a flat-config array, so it's extended rather
+        // than pre-merged: defineConfig expands the `extends` list in order, scopes every
+        // extended entry to the user block's `files`/`ignores`, and appends the user block
+        // itself last — same precedence the objectMergeRight chain used to produce
+        // (base < no-cycle override < resolver override < user's qoq.config.js block).
+        const extendsArgs = [
+          `configs${index}.base`,
+          ...(workspaces?.length ? [monorepoNoCycleOverride] : []),
+          ...(usesResolverOverride ? [monorepoResolverOverride(workspaces as string[])] : []),
+        ];
+
+        acc.push(
+          `const config${index} = defineConfig({ extends: [${extendsArgs.join(
+            ', '
+          )}], ...${JSON.stringify(rest)} })`
+        );
+
+        return acc;
+      },
+      []
+    );
+
+    const mergeConfigsInitialArray = existsSync(GITIGNORE_FILE_PATH)
+      ? `[includeIgnoreFile('${GITIGNORE_FILE_PATH.replaceAll('\\', '\\\\')}')]`
+      : '[]';
+
+    const exports = `${mergeConfigsInitialArray}${(modules?.eslint ?? [])
+      .map((_, index) => `.concat(config${index})`)
+      .join('')}`;
+
+    writeFileSync(configFilePath, formatCode(configType, imports, content, exports));
+  }
+
+  // The two destructuring shapes formatCode() expects for a template's named export:
+  // `{ x as y }` renders as `import { x as y } from …` (ESM), `{ x: y }` as
+  // `const { x: y } = require(…)` (CJS).
+  private buildTemplateImportKey(
+    configType: EConfigType,
+    exportedName: string,
+    localAlias: string
+  ): string {
+    return configType === EConfigType.ESM
+      ? `{ ${exportedName} as ${localAlias} }`
+      : `{ ${exportedName}: ${localAlias} }`;
+  }
+
+  private async resolveTargets(configFilePath: string, files: string[]): Promise<string[]> {
+    // No explicit files: mirror the CLI's no-pattern default of linting the cwd
+    // and letting the flat config's own `files`/`ignores` decide the scope.
+    if (files.length === 0) {
+      return ['.'];
+    }
+
+    let filteredFiles: string[];
+
+    try {
+      const eslintConfig = await import(pathToFileURL(configFilePath).toString());
+      const mapCallback = (entry: string) =>
+        entry.startsWith('**') || entry.startsWith('./') ? entry : `**/${entry}`;
+      const prepareCollection = (patterns: string[] | undefined) => {
+        let collection: string[];
+
+        if (patterns) {
+          collection = Array.isArray(patterns) ? flattenDeep(patterns) : [patterns];
+        } else {
+          collection = [];
+        }
+
+        return collection.map(mapCallback);
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const possibleFiles = (eslintConfig.default as IModuleEslintConfig[]).reduce(
+        (acc: { files: string[]; ignores: string[] }[], config) =>
+          acc.concat([
+            {
+              files: prepareCollection(config.files as string[] | undefined),
+              ignores: prepareCollection(config.ignores),
+            },
+          ]),
+        []
+      );
+
+      const shouldLintFile = (file: string) =>
+        possibleFiles.some(
+          ({ files: filesPatterns, ignores: ignoresPatterns }) =>
+            micromatch.isMatch(file, filesPatterns) && !micromatch.isMatch(file, ignoresPatterns)
+        );
+
+      filteredFiles = files.filter((file) => shouldLintFile(file));
+    } catch {
+      throw new Error();
+    }
+
+    if (filteredFiles.length === 0) {
+      throw new TerminateExecutorGracefully();
+    }
+
+    return filteredFiles;
   }
 
   // Cache hits skip rule execution (including the progress rule) for unchanged
