@@ -117,16 +117,10 @@ export abstract class AbstractExecutor implements IExecutor {
       throw error;
     }
 
-    // Both sides are `unknown`, so neither can be interpolated directly — a plain
-    // object would render as "[object Object]", which is the uninformative output
-    // this reporting exists to replace.
-    const describe = (value: unknown): string =>
-      value instanceof Error ? `${value.name}: ${value.message}` : JSON.stringify(value);
-
-    const message = error instanceof Error ? error.message : describe(error);
+    const message = error instanceof Error ? error.message : describeValue(error);
     const cause =
       error instanceof Error && error.cause !== undefined
-        ? ` Caused by: ${describe(error.cause)}`
+        ? ` Caused by: ${describeValue(error.cause)}`
         : '';
 
     process.stderr.write(
@@ -146,3 +140,9 @@ export abstract class AbstractExecutor implements IExecutor {
   protected abstract getCommandName(): string;
   protected abstract getCommandArgs(): string[];
 }
+
+// An error and its `cause` are both `unknown`, so neither can be interpolated
+// directly — a plain object would render as "[object Object]", which is the
+// uninformative output handlePrepareError's reporting exists to replace.
+const describeValue = (value: unknown): string =>
+  value instanceof Error ? `${value.name}: ${value.message}` : JSON.stringify(value);
