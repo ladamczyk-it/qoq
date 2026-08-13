@@ -1,17 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-Consumer-facing context (exported functions and their signatures) lives in `AGENTS.md` — shipped with the npm package at `node_modules/@ladamczyk/qoq-utils/AGENTS.md`.
+Consumer-facing context (exported functions and their signatures) lives in `AGENTS.md`.
 
 ## Commands
 
 ```bash
-# Build (Rolldown → ./lib, outputs CJS + ESM)
-npm run build
-
-# Run tests
-npm test
+npm run build # Rolldown → ./lib, outputs CJS + ESM
+npm test      # from the repo root — no per-package test script
 ```
 
 ## Internal architecture

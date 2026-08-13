@@ -209,6 +209,31 @@
         "The ticket is never narrowed and no acceptance criterion is dropped to get past it",
         "A blocked ticket does not stop the milestone's remaining independent tickets"
       ]
+    },
+    {
+      "id": 12,
+      "name": "compress-default-scope-and-literal-check",
+      "prompt": "My CLAUDE.md and the AGENTS.md files have gotten really wordy and they're eating my context on every single run. Can you trim them down to just what an agent actually needs?",
+      "expected_output": "Skips qoq-discovery entirely (nothing on the record describes a markdown file) and says so rather than dispatching it. Resolves the default scope with `git ls-files '*CLAUDE.md' '*AGENTS.md'` and lists what matched before editing anything. Works one file at a time, never in parallel, reading each file whole before cutting. Writes each compressed version to a scratch path first, runs `node <skill>/scripts/compress-check.mjs <original> <scratch>`, and treats a dropped literal as something to restore or justify and an invented one as a hallucinated path to rewrite — never as an automatic revert. Skips files that would save under ~15%. Ends by dispatching `qoq fix` over exactly the changed files so Prettier reformats the markdown, then reports one table of before/after word counts taken from the script's own output, naming every skipped file and every dropped literal it judged redundant.",
+      "files": [],
+      "assertions": [
+        "Does not dispatch qoq-discovery, and states that compress needs no record",
+        "Resolves the default scope with git ls-files over *CLAUDE.md and *AGENTS.md",
+        "Lists the matched files before editing any of them",
+        "Compresses one file at a time, never dispatching parallel agents",
+        "Reads each file whole before cutting anything from it",
+        "Writes the compressed version to a scratch path rather than over the original",
+        "Runs compress-check.mjs with both the original and the scratch path",
+        "Treats a dropped literal as restore-or-justify, not as an automatic revert",
+        "Treats an invented literal as a hallucinated path and rewrites",
+        "Skips a file whose estimated saving is under roughly 15%, and says why",
+        "Keeps every path, command, flag and filename present in the original",
+        "Keeps headings stable, or fixes what links to them in the same change",
+        "Keeps a rationale clause that prevents a wrong action; cuts one that only justifies a right one",
+        "Dispatches qoq fix over exactly the files it changed",
+        "Reports a before/after word-count table using the script's own numbers",
+        "Edits only markdown — no code, config, or test file is touched"
+      ]
     }
   ]
 }

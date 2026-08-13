@@ -1,17 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-Consumer-facing context (exports, plugins, key rules) lives in `AGENTS.md` — shipped with the npm package at `node_modules/@ladamczyk/qoq-eslint-v9-js/AGENTS.md`.
+Consumer-facing context (exports, plugins, key rules) lives in `AGENTS.md`.
 
 ## Commands
 
 ```bash
-# Build (Rolldown → ./lib CJS+ESM + ./bin inspector)
-npm run build
-
-# Run tests
-npm test
+npm run build # Rolldown → ./lib CJS+ESM + ./bin inspector
+npm test      # from the repo root — no per-package test script
 ```
 
 ## Internal architecture
