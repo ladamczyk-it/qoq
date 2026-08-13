@@ -58,8 +58,9 @@ flowchart TD
         DOCS --> D1["**1. qoq installed?**<br/>@ladamczyk/qoq-cli + qoq.config.js<br/>→ **no = the run stops**,<br/>with the install command"]
         D1 --> D2["**2. the two lenses**<br/>*copy the dispatched skills: line<br/>verbatim — never search the<br/>filesystem for a lens; a plugin<br/>one is invisible there*"]
         D2 --> D3["**3. project commands?**<br/>test — full suite · test — single file · build<br/>*the project's own scripts —<br/>npx is qoq's alone*"]
-        D3 --> D4["**4. test conventions?**<br/>runner · globals on or off ·<br/>React? · a testing-gate.md<br/>at the root"]
-        D4 --> REC["write record →<br/>node_modules/@ladamczyk/qoq-cli/bin/<br/>qoq-skill-discovery.md<br/>(docs: ../AGENTS.md)"]
+        D3 --> D3B["**3b. the check flags** — read the CLI's<br/>own AGENTS.md **once, here**<br/>→ `check: --check --json`<br/>*the only agent that opens it;<br/>thousands of tokens, one line of answer*"]
+        D3B --> D4["**4. test conventions?**<br/>runner · globals on or off ·<br/>React? · a testing-gate.md<br/>at the root"]
+        D4 --> REC["write record →<br/>node_modules/@ladamczyk/qoq-cli/bin/<br/>qoq-skill-discovery.md"]
 
         BLOCK(["**agent stops**<br/>reports the open question,<br/>writes nothing"])
         D1 -.->|anything unclear| BLOCK
@@ -114,9 +115,9 @@ flowchart TD
 
     subgraph CHECKER["qoq-checker flow *(everything the agent does)*"]
         direction TB
-        C0["**read the record** — `run:` and<br/>`docs:`. *first move, before<br/>it looks at anything else*"]
+        C0["**read the record** — `run:` and<br/>`check:`. *one read, first move —<br/>discovery already distilled the<br/>CLI's AGENTS.md into that line*"]
         C0 --> S{"run `reports-current.mjs<br/>&lt;report dir&gt; &lt;scope&gt;`<br/>exit 0 or 1?"}
-        S -->|"1 — stale or missing"| RUN["the check: `&lt;run:&gt; --check --json`<br/>*--json is what writes the<br/>reports at all*"]
+        S -->|"1 — stale or missing"| RUN["the check: `&lt;run:&gt; &lt;check:&gt;`<br/>*--json is what writes the<br/>reports at all*"]
         S -->|"0 — current"| DIG
         RUN --> DIG["the digest: `node &lt;summarize path&gt;<br/>&lt;report dir&gt;` — both script<br/>paths and the report dir<br/>are handed in at dispatch"]
         DIG --> SUM["return the **digest**<br/>tool → rule → files<br/>(never the raw reports)"]

@@ -33,11 +33,13 @@ safe to call five times in a row without five full tool runs. A stale digest rea
 as current would make this command declare PASS over code nothing checked, which
 is why it's a script rather than a judgement call.
 
-**The check is `<run:> --check --json`.** `--json` is not an optimisation — it is
-what writes the reports at all, and without it the checker has nothing to
+**The check is `<run:> <check:>`** — two record lines concatenated, both written
+by `qoq-discovery`, which is the only agent that opens the CLI's shipped
+`AGENTS.md`. `check:` carries `--json`, and `--json` is not an optimisation — it
+is what writes the reports at all, and without it the checker has nothing to
 summarise. Reports land in the CLI's default output directory, next to the record
-and with the same lifetime; `AGENTS.md` names it. Don't pass `--output`: one less
-path to agree on and get wrong, and `npm install` wipes both together.
+and with the same lifetime. Don't pass `--output`: one less path to agree on and
+get wrong, and `npm install` wipes both together.
 
 **The dispatch hands the checker three things it cannot derive**: the absolute
 paths to `scripts/reports-current.mjs` and `scripts/summarize.mjs` in this skill,
