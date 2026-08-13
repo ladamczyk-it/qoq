@@ -139,7 +139,6 @@ export const tsLayer: EslintConfig = {
       1,
       { allowNumber: true, allowBoolean: true, allowNullish: true },
     ],
-    '@typescript-eslint/switch-exhaustiveness-check': 1,
     '@typescript-eslint/no-import-type-side-effects': 1,
     // type-aware deprecation detection; sonarjs/deprecation is off in the JS base for
     // performance (no type info there to make the check cheap) — this package already

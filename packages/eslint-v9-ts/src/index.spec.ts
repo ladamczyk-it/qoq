@@ -16,6 +16,12 @@ describe('eslint config deprecation guard', () => {
   it('does not enable any deprecated rules', () => {
     expect(getEnabledDeprecatedRules(configs.base, STATS_DIR)).toStrictEqual([]);
   });
+
+  it('does not enable @typescript-eslint/switch-exhaustiveness-check (accidental merge artifact, not part of this migration)', () => {
+    expect(getEnabledRuleNames(configs.base)).not.toContain(
+      '@typescript-eslint/switch-exhaustiveness-check'
+    );
+  });
 });
 
 describe('layer composition order', () => {
