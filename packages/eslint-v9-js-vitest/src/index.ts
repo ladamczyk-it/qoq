@@ -1,7 +1,8 @@
 import {
   EslintConfig,
+  EslintLayer,
   TEST_ONLY_SONARJS_RULES,
-  baseConfig as jsBaseConfig,
+  jsLayer,
   restoreSonarjsRules,
 } from '@ladamczyk/qoq-eslint-v9-js';
 import vitestPlugin from '@vitest/eslint-plugin';
@@ -9,7 +10,7 @@ import { defineConfig } from 'eslint/config';
 
 import type { Linter } from 'eslint';
 
-export const disabledRules: EslintConfig['rules'] = {
+const disabledRules: EslintConfig['rules'] = {
   'sonarjs/no-duplicate-string': 0,
   // Duplicates of vitest's own recommended rules - same violation would be reported
   // twice under two rule IDs. `no-skipped-tests` is also strictly narrower than
@@ -65,7 +66,7 @@ const restoredTestRules = restoreSonarjsRules(TEST_ONLY_SONARJS_RULES);
  * (eslint-v9-ts-vitest appends it to its own chain), so JS-only overrides stay
  * out of it — `jsOnlyDisabledRules` above is composed in separately below.
  */
-export const vitestLayer: EslintConfig = {
+export const vitestLayer: EslintLayer = {
   name: 'qoq-eslint-v9-js-vitest',
   languageOptions: {
     globals: {
@@ -88,7 +89,7 @@ export const vitestLayer: EslintConfig = {
  * relaxations, merged per file by ESLint's own cascade.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(jsBaseConfig, vitestLayer, {
+  base: defineConfig(jsLayer, vitestLayer, {
     name: 'qoq-eslint-v9-js-vitest-js-only',
     rules: jsOnlyDisabledRules,
   }),

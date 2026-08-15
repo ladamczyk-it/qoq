@@ -1,4 +1,4 @@
-import { baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { EslintLayer, jsLayer } from '@ladamczyk/qoq-eslint-v9-js';
 import { vitestLayer } from '@ladamczyk/qoq-eslint-v9-js-vitest';
 import { rtlLayer } from '@ladamczyk/qoq-eslint-v9-js-vitest-rtl';
 import { testLayer, tsLayer } from '@ladamczyk/qoq-eslint-v9-ts';
@@ -12,7 +12,7 @@ import type { Linter } from 'eslint';
  * testing-library's `prefer-screen-queries` staying off already covers the
  * delta, so there's nothing left to add here beyond naming the config.
  */
-export const tsVitestRtlLayer: Linter.Config = {
+export const tsVitestRtlLayer: EslintLayer = {
   name: 'qoq-eslint-v9-ts-vitest-rtl',
 };
 
@@ -27,7 +27,7 @@ export const tsVitestRtlLayer: Linter.Config = {
  */
 export const configs: Record<'base', Linter.Config[]> = {
   base: defineConfig(
-    jsBaseConfig,
+    jsLayer,
     vitestLayer,
     rtlLayer,
     tsLayer,

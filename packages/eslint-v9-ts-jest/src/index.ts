@@ -1,4 +1,4 @@
-import { baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { EslintLayer, jsLayer } from '@ladamczyk/qoq-eslint-v9-js';
 import { jestLayer } from '@ladamczyk/qoq-eslint-v9-js-jest';
 import { testLayer, tsLayer } from '@ladamczyk/qoq-eslint-v9-ts';
 import { defineConfig } from 'eslint/config';
@@ -12,7 +12,7 @@ import type { Linter } from 'eslint';
  * restorations (already baked into `jestLayer`) are never clobbered and nothing
  * is left for this package to re-add.
  */
-export const tsJestLayer: Linter.Config = {
+export const tsJestLayer: EslintLayer = {
   name: 'qoq-eslint-v9-ts-jest',
 };
 
@@ -25,5 +25,5 @@ export const tsJestLayer: Linter.Config = {
  * has type information, so that rule stays enabled.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(jsBaseConfig, jestLayer, tsLayer, testLayer, tsJestLayer),
+  base: defineConfig(jsLayer, jestLayer, tsLayer, testLayer, tsJestLayer),
 };

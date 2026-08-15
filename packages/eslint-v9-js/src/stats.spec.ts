@@ -4,13 +4,13 @@ import { describe, it, expect } from 'vitest';
 
 import { getEnabledDeprecatedRules, getEnabledRuleNames } from './stats';
 
-import { baseConfig } from './index';
+import { jsLayer } from './index';
 
 const STATS_DIR = resolve(__dirname, '..', 'stats');
 
 describe('getEnabledRuleNames', () => {
   it('accepts a single config object, same as before this ticket', () => {
-    expect(getEnabledRuleNames(baseConfig)).toStrictEqual(getEnabledRuleNames([baseConfig]));
+    expect(getEnabledRuleNames(jsLayer)).toStrictEqual(getEnabledRuleNames([jsLayer]));
   });
 
   it('does not include a rule turned off by a later array entry', () => {
@@ -32,8 +32,8 @@ describe('getEnabledRuleNames', () => {
 
 describe('getEnabledDeprecatedRules', () => {
   it('accepts an array of configs and folds them before checking deprecation', () => {
-    expect(getEnabledDeprecatedRules([baseConfig], STATS_DIR)).toStrictEqual(
-      getEnabledDeprecatedRules(baseConfig, STATS_DIR)
+    expect(getEnabledDeprecatedRules([jsLayer], STATS_DIR)).toStrictEqual(
+      getEnabledDeprecatedRules(jsLayer, STATS_DIR)
     );
   });
 });

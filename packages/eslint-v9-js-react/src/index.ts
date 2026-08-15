@@ -2,8 +2,9 @@ import reactPlugin from '@eslint-react/eslint-plugin';
 import {
   ESLINT_CONFIG_PRETTIER_RULES,
   EslintConfig,
+  EslintLayer,
   REACT_ONLY_SONARJS_RULES,
-  baseConfig as jsBaseConfig,
+  jsLayer,
   getNoRestrictedImportsRule,
   restoreSonarjsRules,
 } from '@ladamczyk/qoq-eslint-v9-js';
@@ -43,7 +44,7 @@ const noRestrictedImportsRule: EslintConfig['rules'][0] = getNoRestrictedImports
   },
 ]);
 
-const baseImportOrder = jsBaseConfig.rules['import-x/order'] as [
+const baseImportOrder = jsLayer.rules?.['import-x/order'] as [
   Linter.RuleSeverity,
   Record<string, unknown>,
 ];
@@ -63,7 +64,7 @@ const importOrderRule: EslintConfig['rules'][0] = [
   },
 ];
 
-export const disabledRules: EslintConfig['rules'] = {
+const disabledRules: EslintConfig['rules'] = {
   'sonarjs/function-return-type': 0,
   // Not part of eslint-config-prettier's list below — pure whitespace formatting
   // that Prettier already normalizes, just not one it accounts for.
@@ -88,7 +89,7 @@ const restoredReactRules = restoreSonarjsRules(REACT_ONLY_SONARJS_RULES, [
  * flat-config layer for `defineConfig` composition. Shared by the TS variant
  * (eslint-v9-ts-react appends it to its own chain), so it holds nothing JS-only.
  */
-export const reactLayer: EslintConfig = {
+export const reactLayer: EslintLayer = {
   name: 'qoq-eslint-v9-js-react',
   languageOptions: {
     // Merged on top of the JS base's node globals. Without these, `no-undef`
@@ -136,5 +137,5 @@ export const reactLayer: EslintConfig = {
  * ESLint's own cascade instead of being pre-merged.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(jsBaseConfig, reactLayer),
+  base: defineConfig(jsLayer, reactLayer),
 };

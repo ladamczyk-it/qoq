@@ -1,7 +1,8 @@
 import {
   EslintConfig,
+  EslintLayer,
   TEST_ONLY_SONARJS_RULES,
-  baseConfig as jsBaseConfig,
+  jsLayer,
   restoreSonarjsRules,
 } from '@ladamczyk/qoq-eslint-v9-js';
 import { defineConfig } from 'eslint/config';
@@ -10,7 +11,7 @@ import globals from 'globals';
 
 import type { Linter } from 'eslint';
 
-export const disabledRules: EslintConfig['rules'] = {
+const disabledRules: EslintConfig['rules'] = {
   'sonarjs/no-duplicate-string': 0,
   // Duplicates of rules eslint-plugin-jest's own `recommended` config already enables
   // (registered below, and applied by eslint-v9-ts-jest which appends this package's jestLayer) —
@@ -64,7 +65,7 @@ const restoredTestRules = restoreSonarjsRules(TEST_ONLY_SONARJS_RULES);
  * (eslint-v9-ts-jest appends it to its own chain), so JS-only overrides stay
  * out of it — `jsOnlyDisabledRules` above is composed in separately below.
  */
-export const jestLayer: EslintConfig = {
+export const jestLayer: EslintLayer = {
   name: 'qoq-eslint-v9-js-jest',
   languageOptions: {
     globals: {
@@ -79,7 +80,7 @@ export const jestLayer: EslintConfig = {
     ...restoredTestRules,
     ...additionalJestRules,
     ...disabledRules,
-  } as EslintConfig['rules'],
+  },
 };
 
 /**
@@ -88,7 +89,7 @@ export const jestLayer: EslintConfig = {
  * pre-merged.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(jsBaseConfig, jestLayer, {
+  base: defineConfig(jsLayer, jestLayer, {
     name: 'qoq-eslint-v9-js-jest-js-only',
     rules: jsOnlyDisabledRules,
   }),

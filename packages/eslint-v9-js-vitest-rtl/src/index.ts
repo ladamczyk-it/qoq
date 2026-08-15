@@ -1,11 +1,11 @@
-import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { EslintConfig, EslintLayer, jsLayer } from '@ladamczyk/qoq-eslint-v9-js';
 import { vitestLayer } from '@ladamczyk/qoq-eslint-v9-js-vitest';
 import { defineConfig } from 'eslint/config';
 import testingLibrary from 'eslint-plugin-testing-library';
 
 import type { Linter } from 'eslint';
 
-export const disabledRules: EslintConfig['rules'] = {
+const disabledRules: EslintConfig['rules'] = {
   'testing-library/prefer-screen-queries': 0,
 };
 
@@ -27,7 +27,7 @@ const jsOnlyDisabledRules: EslintConfig['rules'] = {
  * flat-config layer for `defineConfig` composition. Contains only RTL concerns — no
  * vitest- or JS-specific overrides — so `eslint-v9-ts-vitest-rtl` can consume it directly.
  */
-export const rtlLayer: EslintConfig = {
+export const rtlLayer: EslintLayer = {
   name: 'qoq-eslint-v9-js-vitest-rtl',
   plugins: testingLibrary.configs['flat/react'].plugins ?? {},
   rules: {
@@ -46,7 +46,7 @@ export const rtlLayer: EslintConfig = {
  * which would re-apply the JS base mid-chain and clobber the vitest layer's rule restorations.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(jsBaseConfig, vitestLayer, rtlLayer, {
+  base: defineConfig(jsLayer, vitestLayer, rtlLayer, {
     name: 'qoq-eslint-v9-js-vitest-rtl-js-only',
     rules: jsOnlyDisabledRules,
   }),

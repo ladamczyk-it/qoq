@@ -1,4 +1,4 @@
-import { baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { EslintLayer, jsLayer } from '@ladamczyk/qoq-eslint-v9-js';
 import { vitestLayer } from '@ladamczyk/qoq-eslint-v9-js-vitest';
 import { testLayer, tsLayer } from '@ladamczyk/qoq-eslint-v9-ts';
 import { defineConfig } from 'eslint/config';
@@ -11,7 +11,7 @@ import type { Linter } from 'eslint';
  * never carry the JS base's disabled test rules, so the vitest layer's restorations
  * are never clobbered and only the vitest typecheck setting is left to add.
  */
-export const tsVitestLayer: Linter.Config = {
+export const tsVitestLayer: EslintLayer = {
   name: 'qoq-eslint-v9-ts-vitest',
   settings: {
     vitest: {
@@ -28,5 +28,5 @@ export const tsVitestLayer: Linter.Config = {
  * under typed linting.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(jsBaseConfig, vitestLayer, tsLayer, testLayer, tsVitestLayer),
+  base: defineConfig(jsLayer, vitestLayer, tsLayer, testLayer, tsVitestLayer),
 };

@@ -4,9 +4,10 @@ Base ESLint flat config template for vanilla JavaScript projects. All other `@la
 
 ## Exports
 
-- `baseConfig` — the root delta layer of the qoq ESLint configuration chain, as a plain flat-config object. Every downstream `@ladamczyk/qoq-eslint-v9-*` package consumes it directly in its own `configs.*` chain; prefer `configs.base` below for your own composition
-- `configs.base` — `baseConfig` wrapped in a `defineConfig` array, for ESLint-native composition (`defineConfig({ files: [...], extends: [configs.base] })`)
-- `EslintConfig` / `EslintConfigPlugin` — TypeScript types for config objects
+- `jsLayer` — the root delta layer of the qoq ESLint configuration chain, as a plain flat-config object. Every downstream `@ladamczyk/qoq-eslint-v9-*` package consumes it directly in its own `configs.*` chain; prefer `configs.base` below for your own composition
+- `configs.base` — `jsLayer` wrapped in a `defineConfig` array, for ESLint-native composition (`defineConfig({ files: [...], extends: [configs.base] })`)
+- `EslintLayer` — the type every `eslint-v9-*` package's delta layer is declared with
+- `EslintConfig` / `EslintConfigPlugin` — TypeScript types for config objects and plugins
 - `getNoRestrictedImportsPaths(extra?)` — returns `no-restricted-imports` paths array; auto-detects lodash and es-toolkit in the consumer project and adds usage guidance
 - `getNoRestrictedImportsRule(extraPaths?)` — the full `no-restricted-imports` rule entry (paths above + the one-level-back relative-import pattern), so extending packages can add paths without re-assembling the tuple
 - `restoreSonarjsRules(names, excluded?)` — rule entries re-enabling a disabled sonarjs group (`TEST_ONLY_SONARJS_RULES` / `REACT_ONLY_SONARJS_RULES`) at sonarjs's own recommended severity

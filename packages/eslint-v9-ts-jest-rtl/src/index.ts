@@ -1,4 +1,4 @@
-import { baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { EslintLayer, jsLayer } from '@ladamczyk/qoq-eslint-v9-js';
 import { jestLayer } from '@ladamczyk/qoq-eslint-v9-js-jest';
 import { rtlLayer } from '@ladamczyk/qoq-eslint-v9-js-jest-rtl';
 import { testLayer, tsLayer } from '@ladamczyk/qoq-eslint-v9-ts';
@@ -13,7 +13,7 @@ import type { Linter } from 'eslint';
  * the JS base's disabled rules, so its `disabledRules` restoration is never clobbered
  * and nothing is left for this package to re-add.
  */
-export const tsJestRtlLayer: Linter.Config = {
+export const tsJestRtlLayer: EslintLayer = {
   name: 'qoq-eslint-v9-ts-jest-rtl',
 };
 
@@ -29,13 +29,5 @@ export const tsJestRtlLayer: Linter.Config = {
  * package has type information, so that rule stays enabled.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(
-    jsBaseConfig,
-    jestLayer,
-    rtlLayer,
-    tsLayer,
-    testLayer,
-    tsJestLayer,
-    tsJestRtlLayer
-  ),
+  base: defineConfig(jsLayer, jestLayer, rtlLayer, tsLayer, testLayer, tsJestLayer, tsJestRtlLayer),
 };

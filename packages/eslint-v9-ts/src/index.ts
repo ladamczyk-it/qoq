@@ -1,6 +1,7 @@
 import {
   EslintConfig,
-  baseConfig as jsBaseConfig,
+  EslintLayer,
+  jsLayer,
   importPlugin,
   createNodeResolver,
 } from '@ladamczyk/qoq-eslint-v9-js';
@@ -31,7 +32,7 @@ const TS_RECOMMENDED_RULES: EslintConfig['rules'] = {
  * Everything this package adds or changes on top of the JS base, as a single
  * flat-config layer for `defineConfig` composition (see `configs` below).
  */
-export const tsLayer: EslintConfig = {
+export const tsLayer: EslintLayer = {
   name: 'qoq-eslint-v9-ts',
   languageOptions: {
     parser: tseslint.parser,
@@ -155,7 +156,7 @@ export const tsLayer: EslintConfig = {
 };
 
 /** Test-file relaxations as a delta layer — only the rules that change. */
-export const testLayer: EslintConfig = {
+export const testLayer: EslintLayer = {
   name: 'qoq-eslint-v9-ts-test',
   rules: {
     // `no-unsafe-assignment` needs no entry here — tsLayer already disables it.
@@ -171,7 +172,7 @@ export const testLayer: EslintConfig = {
  * All net-new enables (none is in the recommended presets `tsLayer` spreads), at warn
  * like every other hand-picked rule.
  */
-export const strictLayer: EslintConfig = {
+export const strictLayer: EslintLayer = {
   name: 'qoq-eslint-v9-ts-strict',
   rules: {
     '@typescript-eslint/no-non-null-assertion': 1,
@@ -187,7 +188,7 @@ export const strictLayer: EslintConfig = {
  * further with `defineConfig({ files: [...], extends: [configs.base] })`.
  */
 export const configs: Record<'base' | 'test' | 'strict', Linter.Config[]> = {
-  base: defineConfig(jsBaseConfig, tsLayer),
-  test: defineConfig(jsBaseConfig, tsLayer, testLayer),
-  strict: defineConfig(jsBaseConfig, tsLayer, strictLayer),
+  base: defineConfig(jsLayer, tsLayer),
+  test: defineConfig(jsLayer, tsLayer, testLayer),
+  strict: defineConfig(jsLayer, tsLayer, strictLayer),
 };

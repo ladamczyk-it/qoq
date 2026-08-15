@@ -1,5 +1,5 @@
 import reactPlugin from '@eslint-react/eslint-plugin';
-import { baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { EslintLayer, jsLayer } from '@ladamczyk/qoq-eslint-v9-js';
 import { reactLayer } from '@ladamczyk/qoq-eslint-v9-js-react';
 import { tsLayer } from '@ladamczyk/qoq-eslint-v9-ts';
 import { defineConfig } from 'eslint/config';
@@ -13,7 +13,7 @@ import type { Linter } from 'eslint';
  * enable) are never clobbered — neither needs to be re-applied here. Only the
  * `recommended-typescript` rules are genuinely this package's own.
  */
-export const tsReactLayer: Linter.Config = {
+export const tsReactLayer: EslintLayer = {
   name: 'qoq-eslint-v9-ts-react',
   // `?? {}` because upstream types `rules` as optional; `Linter.Config` accepts the
   // resulting `Partial<Linter.RulesRecord>` as-is, so no cast is needed here.
@@ -29,5 +29,5 @@ export const tsReactLayer: Linter.Config = {
  * base delta chain only, not the test-file relaxations.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(jsBaseConfig, reactLayer, tsLayer, tsReactLayer),
+  base: defineConfig(jsLayer, reactLayer, tsLayer, tsReactLayer),
 };

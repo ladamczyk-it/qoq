@@ -6,7 +6,6 @@ ESLint flat config template for JavaScript test files using Vitest. Extends `@la
 
 - `vitestLayer` — only this package's delta on the JS base, as a flat-config layer for `defineConfig` composition (shared with `eslint-v9-ts-vitest`; deliberately excludes the JS-only relaxations)
 - `configs.base` — the `defineConfig` array form: JS base → `vitestLayer` → JS-only relaxations, merged per file by ESLint's cascade
-- `disabledRules` — rules disabled for test files (re-exported for TS-Vitest to reuse)
 
 ## Usage
 

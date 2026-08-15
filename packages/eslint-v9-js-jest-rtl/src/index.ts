@@ -1,11 +1,11 @@
-import { EslintConfig, baseConfig as jsBaseConfig } from '@ladamczyk/qoq-eslint-v9-js';
+import { EslintConfig, EslintLayer, jsLayer } from '@ladamczyk/qoq-eslint-v9-js';
 import { jestLayer } from '@ladamczyk/qoq-eslint-v9-js-jest';
 import { defineConfig } from 'eslint/config';
 import testingLibrary from 'eslint-plugin-testing-library';
 
 import type { Linter } from 'eslint';
 
-export const disabledRules: EslintConfig['rules'] = {
+const disabledRules: EslintConfig['rules'] = {
   'testing-library/prefer-screen-queries': 0,
 };
 
@@ -27,7 +27,7 @@ const jsOnlyDisabledRules: EslintConfig['rules'] = {
  * flat-config layer for `defineConfig` composition. Contains only RTL concerns — no
  * jest- or JS-specific overrides — so `eslint-v9-ts-jest-rtl` can consume it directly.
  */
-export const rtlLayer: EslintConfig = {
+export const rtlLayer: EslintLayer = {
   name: 'qoq-eslint-v9-js-jest-rtl',
   plugins: testingLibrary.configs['flat/react'].plugins ?? {},
   rules: {
@@ -47,7 +47,7 @@ export const rtlLayer: EslintConfig = {
  * layer's rule restorations.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(jsBaseConfig, jestLayer, rtlLayer, {
+  base: defineConfig(jsLayer, jestLayer, rtlLayer, {
     name: 'qoq-eslint-v9-js-jest-rtl-js-only',
     rules: jsOnlyDisabledRules,
   }),

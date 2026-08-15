@@ -18,6 +18,13 @@ export interface EslintConfig extends Linter.Config {
   rules: Linter.RulesRecord;
 }
 
+// The type of a delta layer — what every qoq-eslint-v9-* package exports and
+// composes with `defineConfig`. A layer may legitimately carry no `rules` at all
+// (see eslint-v9-ts-jest), which is why this is `Linter.Config` and not
+// `EslintConfig`; the latter stays for rule records (`EslintConfig['rules']`).
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export type EslintLayer = Linter.Config;
+
 // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-empty-object-type
 export interface EslintConfigPlugin extends ESLint.Plugin {
   // just re-export
@@ -222,7 +229,7 @@ export const getNoRestrictedImportsRule = (paths: IPath[] = []): Linter.RuleEntr
  * directly. When using `defineConfig` for composition, use `configs.base` (the flat-
  * config array form) instead.
  */
-export const baseConfig: EslintConfig = {
+export const jsLayer: EslintLayer = {
   name: 'qoq-eslint-v9-js',
   linterOptions: {
     reportUnusedDisableDirectives: true,
@@ -361,11 +368,11 @@ export const baseConfig: EslintConfig = {
 };
 
 /**
- * Flat-config array form of `baseConfig` for use with `defineConfig` and
+ * Flat-config array form of `jsLayer` for use with `defineConfig` and
  * composition chains. `configs.base` is the wrapped version of the root delta
  * layer; downstream packages extend this same root via their own chains and rely
  * on ESLint's cascade to merge them per-file, rather than pre-merging.
  */
 export const configs: Record<'base', Linter.Config[]> = {
-  base: defineConfig(baseConfig),
+  base: defineConfig(jsLayer),
 };

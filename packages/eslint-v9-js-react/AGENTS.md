@@ -5,7 +5,6 @@ ESLint flat config template for JavaScript + React projects. Extends `@ladamczyk
 ## Exports
 
 - `reactLayer` — only this package's delta on the JS base (React/JSX plugins, browser globals, restored React-only sonarjs rules, adjusted import-order/no-restricted-imports rules), as a flat-config layer for `defineConfig` composition (shared with `eslint-v9-ts-react`)
-- `disabledRules` — stylistic rules disabled for React (re-exported for TS-React to reuse)
 - `configs.base` — the `defineConfig` array form: JS base → `reactLayer`, merged per file by ESLint's cascade
 - `noMultiCompRule` / `NO_MULTI_COMP_RULE_NAME` — the custom `no-multi-comp` rule (re-exported for TS-React to reuse)
 

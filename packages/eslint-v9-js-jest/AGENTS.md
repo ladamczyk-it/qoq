@@ -5,7 +5,6 @@ ESLint flat config template for JavaScript test files using Jest. Extends `@lada
 ## Exports
 
 - `jestLayer` — only this package's delta on the JS base (Jest plugin + globals, restored test-lifecycle sonarjs rules, jest-specific extras), as a flat-config layer for `defineConfig` composition (shared with `eslint-v9-ts-jest`; deliberately excludes the JS-only relaxations)
-- `disabledRules` — rules disabled for test files (re-exported for TS-Jest to reuse)
 - `configs.base` — the `defineConfig` array form: JS base → `jestLayer` → JS-only relaxations, merged per file by ESLint's cascade
 
 ## Usage
