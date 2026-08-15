@@ -72,11 +72,45 @@ describe('NpmExecutor', () => {
       expect(result).toBe(EExitCode.OK);
     });
 
+    it('should honour checkOutdatedEvery when deciding the lock file is stale', async () => {
+      // Five days old, against a seven-day schedule: still fresh, so no check.
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(statSync).mockReturnValue({
+        birthtime: new Date(Date.now() - 5 * 86400000),
+      } as never);
+      const executor = new NpmExecutor(
+        { ...dummyModulesConfig, modules: { npm: { checkOutdatedEvery: 7 } } },
+        true,
+        true
+      );
+
+      const result = await executor.run(baseOptions);
+
+      expect(executeCommand).not.toHaveBeenCalled();
+      expect(result).toBe(EExitCode.OK);
+    });
+
+    it('should run the check once the lock file is older than checkOutdatedEvery', async () => {
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(statSync).mockReturnValue({
+        birthtime: new Date(Date.now() - 8 * 86400000),
+      } as never);
+      const executor = new NpmExecutor(
+        { ...dummyModulesConfig, modules: { npm: { checkOutdatedEvery: 7 } } },
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(executeCommand).toHaveBeenCalled();
+    });
+
     it('should report a major update and write the lock file', async () => {
       vi.mocked(executeCommand).mockResolvedValue(
         JSON.stringify({ pkg: { current: '1.0.0', latest: '2.0.0' } })
       );
-      const executor = new NpmExecutor(dummyModulesConfig, true, true);
+      const executor = new NpmExecutor(dummyModulesConfig, false, true);
 
       const result = await executor.run(baseOptions);
 
@@ -121,11 +155,23 @@ describe('NpmExecutor', () => {
 
     it('should report when all dependencies are up to date', async () => {
       vi.mocked(executeCommand).mockResolvedValue('{}');
-      const executor = new NpmExecutor(dummyModulesConfig, true, true);
+      const executor = new NpmExecutor(dummyModulesConfig, false, true);
 
       await executor.run(baseOptions);
 
       expect(stdoutMock).toHaveBeenCalledWith(expect.stringContaining('latest version'));
+    });
+
+    it('should print nothing when silenced, and still write the lock file', async () => {
+      vi.mocked(executeCommand).mockResolvedValue(
+        JSON.stringify({ pkg: { current: '1.0.0', latest: '2.0.0' } })
+      );
+      const executor = new NpmExecutor(dummyModulesConfig, true, true);
+
+      await executor.run(baseOptions);
+
+      expect(stdoutMock).not.toHaveBeenCalled();
+      expect(writeFileSync).toHaveBeenCalledWith(NpmExecutor.LOCK_PATH, '');
     });
   });
 });

@@ -26,7 +26,7 @@ export class StructurelintConfigHandler extends AbstractConfigHandler {
     ]);
 
     if (!structurelint) {
-      return super.getPrompts();
+      return;
     }
 
     const {
@@ -45,8 +45,6 @@ export class StructurelintConfigHandler extends AbstractConfigHandler {
     this.modulesConfig.modules.structurelint = {
       structureRoot: structurelintRoot,
     };
-
-    return super.getPrompts();
   }
 
   getConfigFromModules(): QoqConfig {

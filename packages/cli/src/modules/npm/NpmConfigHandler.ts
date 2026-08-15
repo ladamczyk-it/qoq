@@ -27,8 +27,6 @@ export class NpmConfigHandler extends AbstractConfigHandler {
     this.modulesConfig.modules.npm = {
       checkOutdatedEvery: npmSchedule,
     };
-
-    return super.getPrompts();
   }
 
   getConfigFromModules(): QoqConfig {

@@ -56,8 +56,6 @@ export class PrettierConfigHandler extends AbstractConfigHandler {
     this.modulesConfig.modules.prettier = {
       sources: prettierSources ? prettierSources.filter((entry) => !!entry) : [srcPath],
     };
-
-    return super.getPrompts();
   }
 
   getConfigFromModules(): QoqConfig {

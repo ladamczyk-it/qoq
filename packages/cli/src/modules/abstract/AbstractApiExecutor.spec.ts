@@ -1,5 +1,3 @@
-import { writeFileSync } from 'fs';
-
 import { EExitCode, executeCommand } from '@ladamczyk/qoq-utils';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 
@@ -12,11 +10,6 @@ import { AbstractApiExecutor } from './AbstractApiExecutor.ts';
 vi.mock('@ladamczyk/qoq-utils', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@ladamczyk/qoq-utils')>()),
   executeCommand: vi.fn(),
-}));
-
-vi.mock('fs', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('fs')>()),
-  writeFileSync: vi.fn(),
 }));
 
 class TestApiExecutor extends AbstractApiExecutor {
@@ -33,13 +26,8 @@ class TestApiExecutor extends AbstractApiExecutor {
     return Promise.resolve();
   }
 
-  // Drives a "JS API" instead of spawning a binary, and uses the shared report
-  // writer under --json.
-  protected execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
-    if (options.json) {
-      this.writeReport({ ok: true }, options.output);
-    }
-
+  // Drives a "JS API" instead of spawning a binary.
+  protected execute(): Promise<string | EExitCode> {
     return Promise.resolve(EExitCode.OK);
   }
 }
@@ -62,7 +50,6 @@ describe('AbstractApiExecutor', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.mocked(executeCommand).mockReset();
-    vi.mocked(writeFileSync).mockReset();
   });
 
   describe('getCommandArgs', () => {
@@ -81,19 +68,6 @@ describe('AbstractApiExecutor', () => {
 
       expect(executeCommand).not.toHaveBeenCalled();
       expect(result).toBe(EExitCode.OK);
-    });
-  });
-
-  describe('writeReport', () => {
-    it('should write the lean JSON report to <output>/<tool>-report.json', async () => {
-      const executor = new TestApiExecutor(dummyModulesConfig, true, true);
-
-      await executor.run({ ...baseOptions, json: 'true' });
-
-      expect(writeFileSync).toHaveBeenCalledWith(
-        'report-out/apitool-report.json',
-        JSON.stringify({ ok: true })
-      );
     });
   });
 });

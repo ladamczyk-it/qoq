@@ -29,7 +29,7 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
     ]);
 
     if (!stylelint) {
-      return super.getPrompts();
+      return;
     }
 
     this.warnIfConfigFileExists();
@@ -75,8 +75,6 @@ export class StylelintConfigHandler extends AbstractConfigHandler {
       strict: stylelintStrict,
       template: stylelintPackage,
     };
-
-    return super.getPrompts();
   }
 
   getConfigFromModules(): QoqConfig {

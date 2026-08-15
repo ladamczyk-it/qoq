@@ -26,7 +26,7 @@ export class SkillslintConfigHandler extends AbstractConfigHandler {
     ]);
 
     if (!skillslint) {
-      return super.getPrompts();
+      return;
     }
 
     const {
@@ -45,8 +45,6 @@ export class SkillslintConfigHandler extends AbstractConfigHandler {
     this.modulesConfig.modules.skillslint = {
       path: skillslintPath,
     };
-
-    return super.getPrompts();
   }
 
   getConfigFromModules(): QoqConfig {

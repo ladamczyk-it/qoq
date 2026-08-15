@@ -1,5 +1,5 @@
 import { CommonSpawnOptions } from 'child_process';
-import { existsSync, rmSync } from 'fs';
+import { existsSync, rmSync, writeFileSync } from 'fs';
 
 import { EExitCode } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
@@ -93,6 +93,14 @@ export abstract class AbstractExecutor<TContext = void> implements IExecutor {
         );
       }
     }
+  }
+
+  // Writes the tool's lean `--json` report to <output>/<tool>-report.json. Lives
+  // here rather than on AbstractApiExecutor because `--json` is every executor's
+  // concern — the filename convention is what skills/qoq/scripts/summarize.mjs
+  // parses, so it is owned in one place.
+  protected writeReport(report: unknown, output: string): void {
+    writeFileSync(`${output}/${this.getCommandName()}-report.json`, JSON.stringify(report));
   }
 
   // Where this executor's cache file lives, or undefined for a tool that has no

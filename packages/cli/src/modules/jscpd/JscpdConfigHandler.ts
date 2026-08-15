@@ -50,8 +50,6 @@ export class JscpdConfigHandler extends AbstractConfigHandler {
       format: jscpdFormat.filter((entry) => !!entry),
       ignore: jscpdIgnore.filter((entry) => !!entry),
     };
-
-    return super.getPrompts();
   }
 
   getConfigFromModules(): QoqConfig {

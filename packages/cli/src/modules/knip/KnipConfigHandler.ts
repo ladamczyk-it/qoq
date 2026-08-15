@@ -113,8 +113,6 @@ export class KnipConfigHandler extends AbstractConfigHandler {
       ignoreMembers: knipIgnoreMembers.filter((entry) => !!entry),
       ignoreUnresolved: knipIgnoreUnresolved.filter((entry) => !!entry),
     };
-
-    return super.getPrompts();
   }
 
   getConfigFromModules(): QoqConfig {

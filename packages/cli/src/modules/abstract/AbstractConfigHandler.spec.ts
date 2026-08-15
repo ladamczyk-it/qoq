@@ -12,6 +12,10 @@ class StubHandler extends AbstractConfigHandler {
     super(modulesConfig, config);
     this.packages = packages;
   }
+
+  getPrompts(): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 const makeModulesConfig = (srcPath: string): IModulesConfig => ({
@@ -20,7 +24,7 @@ const makeModulesConfig = (srcPath: string): IModulesConfig => ({
 });
 
 describe('AbstractConfigHandler', () => {
-  describe('without a next handler', () => {
+  describe('a single handler', () => {
     const modulesConfig = makeModulesConfig('first');
     const config: QoqConfig = { srcPath: 'first' };
     const handler = new StubHandler(modulesConfig, config, ['@pkg/a']);
@@ -36,36 +40,31 @@ describe('AbstractConfigHandler', () => {
     it('getPackages should return its own packages', () => {
       expect(handler.getPackages()).toStrictEqual(['@pkg/a']);
     });
-
-    it('getPrompts should resolve', async () => {
-      await expect(handler.getPrompts()).resolves.toBeUndefined();
-    });
   });
 
-  describe('with a chained handler', () => {
-    const firstModules = makeModulesConfig('first');
-    const lastModules = makeModulesConfig('last');
-    const firstConfig: QoqConfig = { srcPath: 'first' };
-    const lastConfig: QoqConfig = { srcPath: 'last' };
+  // Handlers no longer delegate to a successor: the caller runs an ordered array
+  // of them, and they all read and write the one shared pair of objects.
+  describe('a sequence of handlers', () => {
+    const modulesConfig = makeModulesConfig('shared');
+    const config: QoqConfig = { srcPath: 'shared' };
 
-    const first = new StubHandler(firstModules, firstConfig, ['@pkg/a']);
-    const last = new StubHandler(lastModules, lastConfig, ['@pkg/b']);
-    const returned = first.setNext(last);
+    const handlers = [
+      new StubHandler(modulesConfig, config, ['@pkg/a']),
+      new StubHandler(modulesConfig, config, ['@pkg/b']),
+    ];
 
-    it('setNext should return the passed handler', () => {
-      expect(returned).toBe(last);
+    it('every handler should return the same shared objects', () => {
+      handlers.forEach((handler) => {
+        expect(handler.getConfigFromModules()).toBe(config);
+        expect(handler.getModulesFromConfig()).toBe(modulesConfig);
+      });
     });
 
-    it('getConfigFromModules should delegate to the last handler', () => {
-      expect(first.getConfigFromModules()).toBe(lastConfig);
-    });
-
-    it('getModulesFromConfig should delegate to the last handler', () => {
-      expect(first.getModulesFromConfig()).toBe(lastModules);
-    });
-
-    it('getPackages should aggregate packages across the chain', () => {
-      expect(first.getPackages()).toStrictEqual(['@pkg/a', '@pkg/b']);
+    it('getPackages should aggregate across the sequence when flattened by the caller', () => {
+      expect(handlers.flatMap((handler) => handler.getPackages())).toStrictEqual([
+        '@pkg/a',
+        '@pkg/b',
+      ]);
     });
   });
 });

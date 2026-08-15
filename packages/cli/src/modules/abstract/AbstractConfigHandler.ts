@@ -10,52 +10,34 @@ interface IConfigHandler {
   getConfigFromModules: () => QoqConfig;
   getModulesFromConfig: () => IModulesConfig;
 }
+// Every handler reads and writes the same `modulesConfig` / `config` pair it was
+// constructed with; running them all is the caller's job (see
+// getHandlersBySequence() in ../index.ts), which is why nothing here delegates
+// onward. Each method returns the shared object so a subclass can end on
+// `super.getX()` without caring where it sits in the sequence.
 export abstract class AbstractConfigHandler implements IConfigHandler {
   protected modulesConfig: IModulesConfig;
   protected config: QoqConfig;
   protected packages: string[] = [];
-  private nextHandler: AbstractConfigHandler;
 
   constructor(modulesConfig: IModulesConfig, config: QoqConfig) {
     this.modulesConfig = modulesConfig;
     this.config = config;
   }
 
-  async getPrompts(): Promise<void> {
-    if (this.nextHandler) {
-      return this.nextHandler.getPrompts();
-    }
-
-    return Promise.resolve();
-  }
+  // Every handler asks the wizard something; there is no sensible default and
+  // nothing to hand back, so the base declares it rather than implementing it.
+  abstract getPrompts(): Promise<void>;
 
   getConfigFromModules(): QoqConfig {
-    if (this.nextHandler) {
-      return this.nextHandler.getConfigFromModules();
-    }
-
     return this.config;
   }
 
   getModulesFromConfig(): IModulesConfig {
-    if (this.nextHandler) {
-      return this.nextHandler.getModulesFromConfig();
-    }
-
     return this.modulesConfig;
   }
 
-  setNext(handler: AbstractConfigHandler): AbstractConfigHandler {
-    this.nextHandler = handler;
-
-    return handler;
-  }
-
   getPackages(): string[] {
-    if (this.nextHandler) {
-      return [...this.packages, ...this.nextHandler.getPackages()];
-    }
-
     return this.packages;
   }
 

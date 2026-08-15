@@ -201,8 +201,6 @@ export class EslintConfigHandler extends AbstractConfigHandler {
         'config'
       )
     );
-
-    return super.getPrompts();
   }
 
   getConfigFromModules(): QoqConfig {

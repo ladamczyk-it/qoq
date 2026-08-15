@@ -131,7 +131,7 @@ describe('execute', () => {
     await execute(configWithLinters, baseOptions, files);
 
     expect(executors.eslint.run).toHaveBeenCalledWith(baseOptions, files);
-    expect(executors.npm.run).toHaveBeenCalledWith(baseOptions, files, 'pipe');
+    expect(executors.npm.run).toHaveBeenCalledWith(baseOptions, files);
   });
 
   it('should flag a non-OK exit code and report it on stderr', async () => {

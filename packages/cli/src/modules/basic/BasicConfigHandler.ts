@@ -35,8 +35,6 @@ export class BasicConfigHandler extends AbstractConfigHandler {
 
     this.modulesConfig.srcPath = srcPath;
     this.modulesConfig.configType = configType;
-
-    return super.getPrompts();
   }
 
   getConfigFromModules(): QoqConfig {

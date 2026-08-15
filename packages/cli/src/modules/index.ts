@@ -11,7 +11,6 @@ import { installPackages } from '../helpers/packages.ts';
 import { QoqConfig } from '../helpers/types.ts';
 
 import { AbstractConfigHandler } from './abstract/AbstractConfigHandler.ts';
-import { AbstractExecutor } from './abstract/AbstractExecutor.ts';
 import { BasicConfigHandler } from './basic/BasicConfigHandler.ts';
 import { BasicExecutor } from './basic/BasicExecutor.ts';
 import { EslintConfigHandler } from './eslint/EslintConfigHandler.ts';
@@ -32,6 +31,18 @@ import { StylelintConfigHandler } from './stylelint/StylelintConfigHandler.ts';
 import { StylelintExecutor } from './stylelint/StylelintExecutor.ts';
 import { IExecutorOptions, IModulesConfig } from './types.ts';
 
+// Only the public half of AbstractExecutor, so one array can hold executors whose
+// prepare()/execute() contexts are all different types.
+interface IExecutorEntry {
+  name: string;
+  executor: {
+    getName: () => string;
+    run: (options: IExecutorOptions, files?: string[]) => Promise<EExitCode>;
+  };
+  skip?: boolean | undefined;
+  moduleKey?: keyof IModulesConfig['modules'];
+}
+
 const moduleName = 'qoq';
 const searchPlaces = [
   `${moduleName}.config.ts`,
@@ -40,45 +51,37 @@ const searchPlaces = [
   `${moduleName}.config.mjs`,
 ];
 
-const getHandlerBySequence = (
+// Every handler writes into the same `modulesConfig` / `config` pair it is
+// handed; the order below is the order those writes happen in, and the array is
+// built once per flow so a handler's state survives across the three passes.
+const getHandlersBySequence = (
   modulesConfig: IModulesConfig,
   config: QoqConfig
-): AbstractConfigHandler => {
-  const basicConfigHandler = new BasicConfigHandler(modulesConfig, config);
-  const npmConfigHandler = new NpmConfigHandler(modulesConfig, config);
-  const prettierConfigHandler = new PrettierConfigHandler(modulesConfig, config);
-  const eslintConfigHandler = new EslintConfigHandler(modulesConfig, config);
-  const jscpdConfigHandler = new JscpdConfigHandler(modulesConfig, config);
-  const knipConfigHandler = new KnipConfigHandler(modulesConfig, config);
-  const stylelintConfigHandler = new StylelintConfigHandler(modulesConfig, config);
-  const structurelintConfigHandler = new StructurelintConfigHandler(modulesConfig, config);
-  const skillslintConfigHandler = new SkillslintConfigHandler(modulesConfig, config);
-
-  basicConfigHandler
-    .setNext(npmConfigHandler)
-    .setNext(knipConfigHandler)
-    .setNext(prettierConfigHandler)
-    .setNext(eslintConfigHandler)
-    .setNext(jscpdConfigHandler)
-    .setNext(stylelintConfigHandler)
-    .setNext(structurelintConfigHandler)
-    .setNext(skillslintConfigHandler);
-
-  return basicConfigHandler;
-};
+): AbstractConfigHandler[] => [
+  new BasicConfigHandler(modulesConfig, config),
+  new NpmConfigHandler(modulesConfig, config),
+  new KnipConfigHandler(modulesConfig, config),
+  new PrettierConfigHandler(modulesConfig, config),
+  new EslintConfigHandler(modulesConfig, config),
+  new JscpdConfigHandler(modulesConfig, config),
+  new StylelintConfigHandler(modulesConfig, config),
+  new StructurelintConfigHandler(modulesConfig, config),
+  new SkillslintConfigHandler(modulesConfig, config),
+];
 
 const getModulesFromConfig = (
   config: QoqConfig,
   workspaces: IModulesConfig['workspaces']
 ): IModulesConfig => {
   const modulesConfig = { modules: {}, workspaces } as IModulesConfig;
-  const resolved = getHandlerBySequence(modulesConfig, config).getModulesFromConfig();
+
+  getHandlersBySequence(modulesConfig, config).forEach((handler) => handler.getModulesFromConfig());
 
   // Keep the raw user config around so the BasicExecutor health check can compare
   // it against the defaults the handlers just merged in.
-  resolved.rawConfig = config;
+  modulesConfig.rawConfig = config;
 
-  return resolved;
+  return modulesConfig;
 };
 
 export const initConfig = async (
@@ -87,8 +90,11 @@ export const initConfig = async (
 ): Promise<IModulesConfig> => {
   const modulesConfig = { modules: {}, workspaces } as IModulesConfig;
   const config = {} as QoqConfig;
+  const handlers = getHandlersBySequence(modulesConfig, config);
 
-  await getHandlerBySequence(modulesConfig, config).getPrompts();
+  for (const handler of handlers) {
+    await handler.getPrompts();
+  }
 
   searchPlaces.forEach((filename) => {
     const filepath = resolveCwdRelativePath(`/${filename}`);
@@ -97,16 +103,14 @@ export const initConfig = async (
     }
   });
 
-  const configFromModules = getHandlerBySequence(modulesConfig, config).getConfigFromModules();
+  handlers.forEach((handler) => handler.getConfigFromModules());
 
   writeFileSync(
     resolveCwdRelativePath(`/${moduleName}.config.js`),
-    formatCode(modulesConfig.configType, {}, [], JSON.stringify(configFromModules))
+    formatCode(modulesConfig.configType, {}, [], JSON.stringify(config))
   );
 
-  const packages = getHandlerBySequence(modulesConfig, config).getPackages();
-
-  await installPackages(packages);
+  await installPackages(handlers.flatMap((handler) => handler.getPackages()));
 
   if (!skipWarmup) {
     await executeCommand('qoq', ['--warmup']);
@@ -175,87 +179,54 @@ export const execute = async (
   const hideMessages = !!silent || !!warmup;
   const shouldRun = (name: string) => !tools || tools.includes(name);
 
-  // Shared gate for tools that only run when their config block is present
-  // (`stylelint`, `structurelint`, `skillslint`) — pulled out of the inline
-  // if-chain below to keep execute()'s cognitive complexity in check.
-  const runOptional = async <TContext>(
-    executor: AbstractExecutor<TContext>,
-    moduleKey: keyof IModulesConfig['modules'],
-    name: string,
-    skip: boolean = false
-  ): Promise<EExitCode> => {
-    if (skip || !modulesConfig.modules[moduleKey] || !shouldRun(name)) {
-      return EExitCode.OK;
-    }
-
-    return executor.run(options, files);
-  };
-
   const consoleTimeName = `Total execution time:`;
   const startTime = performance.now();
 
-  const npmExecutor = new NpmExecutor(modulesConfig, true);
-  const knipExecutor = new KnipExecutor(modulesConfig, hideMessages);
-  const prettierExecutor = new PrettierExecutor(modulesConfig, hideMessages);
-  const jscpdExecutor = new JscpdExecutor(modulesConfig, hideMessages);
-  const eslintExecutor = new EslintExecutor(modulesConfig, hideMessages);
-  const stylelintExecutor = new StylelintExecutor(modulesConfig, hideMessages);
-  const structurelintExecutor = new StructurelintExecutor(modulesConfig, hideMessages);
-  const skillslintExecutor = new SkillslintExecutor(modulesConfig, hideMessages);
+  // One row per tool, in run order. `moduleKey` marks the tools that additionally
+  // need their config block present (stylelint, structurelint, skillslint) —
+  // that gate is the only real difference between the rows.
+  const registry: IExecutorEntry[] = [
+    { name: 'npm', executor: new NpmExecutor(modulesConfig, hideMessages), skip: skipNpm },
+    { name: 'knip', executor: new KnipExecutor(modulesConfig, hideMessages), skip: skipKnip },
+    {
+      name: 'prettier',
+      executor: new PrettierExecutor(modulesConfig, hideMessages),
+      skip: skipPrettier,
+    },
+    { name: 'jscpd', executor: new JscpdExecutor(modulesConfig, hideMessages), skip: skipJscpd },
+    { name: 'eslint', executor: new EslintExecutor(modulesConfig, hideMessages), skip: skipEslint },
+    {
+      name: 'stylelint',
+      executor: new StylelintExecutor(modulesConfig, hideMessages),
+      skip: skipStylelint,
+      moduleKey: 'stylelint',
+    },
+    {
+      name: 'structurelint',
+      executor: new StructurelintExecutor(modulesConfig, hideMessages),
+      skip: skipStructurelint,
+      moduleKey: 'structurelint',
+    },
+    {
+      name: 'skillslint',
+      executor: new SkillslintExecutor(modulesConfig, hideMessages),
+      skip: skipSkillslint,
+      moduleKey: 'skillslint',
+    },
+  ];
+
+  const responses: Record<string, EExitCode> = {};
+
+  for (const { name, executor, skip, moduleKey } of registry) {
+    if (skip || !shouldRun(name) || (moduleKey && !modulesConfig.modules[moduleKey])) {
+      continue;
+    }
+
+    responses[executor.getName()] = await executor.run(options, files);
+  }
+
+  // Not a tool: the self-check runs unconditionally, after everything it reports on.
   const basicExecutor = new BasicExecutor(modulesConfig, hideMessages);
-
-  const responses: Record<string, EExitCode> = {
-    [npmExecutor.getName()]: EExitCode.OK,
-    [knipExecutor.getName()]: EExitCode.OK,
-    [prettierExecutor.getName()]: EExitCode.OK,
-    [jscpdExecutor.getName()]: EExitCode.OK,
-    [eslintExecutor.getName()]: EExitCode.OK,
-    [stylelintExecutor.getName()]: EExitCode.OK,
-    [structurelintExecutor.getName()]: EExitCode.OK,
-    [skillslintExecutor.getName()]: EExitCode.OK,
-    [basicExecutor.getName()]: EExitCode.OK,
-  };
-
-  if (!skipNpm && shouldRun('npm')) {
-    responses[npmExecutor.getName()] = await npmExecutor.run(options, files, 'pipe');
-  }
-
-  if (!skipKnip && shouldRun('knip')) {
-    responses[knipExecutor.getName()] = await knipExecutor.run(options, files);
-  }
-
-  if (!skipPrettier && shouldRun('prettier')) {
-    responses[prettierExecutor.getName()] = await prettierExecutor.run(options, files);
-  }
-
-  if (!skipJscpd && shouldRun('jscpd')) {
-    responses[jscpdExecutor.getName()] = await jscpdExecutor.run(options, files);
-  }
-
-  if (!skipEslint && shouldRun('eslint')) {
-    responses[eslintExecutor.getName()] = await eslintExecutor.run(options, files);
-  }
-
-  responses[stylelintExecutor.getName()] = await runOptional(
-    stylelintExecutor,
-    'stylelint',
-    'stylelint',
-    skipStylelint
-  );
-
-  responses[structurelintExecutor.getName()] = await runOptional(
-    structurelintExecutor,
-    'structurelint',
-    'structurelint',
-    skipStructurelint
-  );
-
-  responses[skillslintExecutor.getName()] = await runOptional(
-    skillslintExecutor,
-    'skillslint',
-    'skillslint',
-    skipSkillslint
-  );
 
   responses[basicExecutor.getName()] = await basicExecutor.run(options, files);
 

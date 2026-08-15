@@ -1,17 +1,11 @@
-import { writeFileSync } from 'fs';
-
 import { AbstractExecutor } from './AbstractExecutor.ts';
 
 // Base for tools driven through their JS API (ESLint, Prettier, Stylelint,
 // Skillslint, JSCPD): no binary is spawned, so there are no CLI args, and each
-// subclass implements execute() itself. Shared `--json` report writing lives here.
+// subclass implements execute() itself. `--json` report writing is shared by
+// every executor, so it lives on AbstractExecutor.
 export abstract class AbstractApiExecutor<TContext = void> extends AbstractExecutor<TContext> {
   protected getCommandArgs(): string[] {
     return [];
-  }
-
-  // Writes the tool's lean `--json` report to <output>/<tool>-report.json.
-  protected writeReport(report: unknown, output: string): void {
-    writeFileSync(`${output}/${this.getCommandName()}-report.json`, JSON.stringify(report));
   }
 }
