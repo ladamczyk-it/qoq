@@ -1,3 +1,171 @@
+# [6.0.0](https://github.com/ladamczyk-it/qoq/compare/v5.3.2...v6.0.0) (2026-08-15)
+
+
+* feat!: compose configs.base in eslint-v9-ts-jest-rtl (plan 2.4) ([589e13c](https://github.com/ladamczyk-it/qoq/commit/589e13c0b5188dede0a104f54eb0281647fb5d0a))
+* feat!: compose configs.base in eslint-v9-ts-react (plan 2.2) ([cb5b358](https://github.com/ladamczyk-it/qoq/commit/cb5b35853e195f0b1049326f07add9b8c77233eb))
+* feat!: compose configs.base in eslint-v9-ts-vitest-rtl (plan 2.3) ([ffd65aa](https://github.com/ladamczyk-it/qoq/commit/ffd65aa20914831d46a275eefe931c67cce40de3))
+* feat!: compose generated eslint config with defineConfig (plan 3.2) ([ed1a587](https://github.com/ladamczyk-it/qoq/commit/ed1a587c1f38fc17c88ac11cd34995a846778b4b))
+* feat!: delete the pre-merged baseConfig export from eslint-v9-js-jest (plan 4.2) ([3735fe4](https://github.com/ladamczyk-it/qoq/commit/3735fe49f318dc1da1122a176335c42691a1f631))
+* feat!: delete the pre-merged baseConfig export from eslint-v9-js-jest-rtl (plan 4.3) ([7bcc1de](https://github.com/ladamczyk-it/qoq/commit/7bcc1de15a1666fc4be0456f1c968a0af9fe8c02))
+* feat!: delete the pre-merged baseConfig export from eslint-v9-js-react (plan 4.4) ([dd23120](https://github.com/ladamczyk-it/qoq/commit/dd231205dbdc57b19b293f929dd61ab8cd251138))
+* feat!: delete the pre-merged baseConfig export from eslint-v9-js-vitest (plan 4.5) ([dd550e8](https://github.com/ladamczyk-it/qoq/commit/dd550e815eea10aa95a81acd64567153a3b38df3))
+* feat!: delete the pre-merged baseConfig export from eslint-v9-js-vitest-rtl (plan 4.6) ([0199e96](https://github.com/ladamczyk-it/qoq/commit/0199e964f7fb8db1e8fc241c19f1534acacba787))
+* feat!: delete the pre-merged baseConfig export from eslint-v9-ts-jest (plan 4.8) ([577915c](https://github.com/ladamczyk-it/qoq/commit/577915c9f635430ea0723f633347c4402b644f69))
+* feat!: delete the pre-merged baseConfig export from eslint-v9-ts-jest-rtl (plan 4.9) ([165a36c](https://github.com/ladamczyk-it/qoq/commit/165a36cfc2cffdcc879dfc81a253d151306aa0f4))
+* feat!: delete the pre-merged baseConfig export from eslint-v9-ts-react (plan 4.10) ([c1eb700](https://github.com/ladamczyk-it/qoq/commit/c1eb70035e0ef976b3a2df3b8faaa061d00e1bc6))
+* feat!: delete the pre-merged baseConfig export from eslint-v9-ts-vitest (plan 4.11) ([f2ec46a](https://github.com/ladamczyk-it/qoq/commit/f2ec46a4818beb6968ccd2602e549dfaeeb586ef))
+* feat!: delete the pre-merged baseConfig export from eslint-v9-ts-vitest-rtl (plan 4.12) ([88f9031](https://github.com/ladamczyk-it/qoq/commit/88f90313a62fe9c7d93b01a428c8384a43fbf9e3))
+* feat!: delete the pre-merged baseConfig, testConfig and strictConfig exports from eslint-v9-ts (plan 4.7) ([0f69a9e](https://github.com/ladamczyk-it/qoq/commit/0f69a9ee4a8d888b0e46f85d727c148f0a7e9671))
+* feat!: restore upstream testing-library rules in eslint-v9-js-jest-rtl (plan 1.5) ([55fe1c3](https://github.com/ladamczyk-it/qoq/commit/55fe1c3bfd2a86c077db0d65a95458dc3d26caba))
+* feat!: restore upstream testing-library rules in eslint-v9-js-vitest-rtl (plan 1.4) ([f3bb62e](https://github.com/ladamczyk-it/qoq/commit/f3bb62e1981c058ca1c872421a798dd69add9252))
+* refactor!: rename baseConfig to jsLayer and unify the layer type ([d8ff6ef](https://github.com/ladamczyk-it/qoq/commit/d8ff6ef1971ecc6a3edfd643073a651f88c47cfe))
+
+
+### Bug Fixes
+
+* bump packages ([5c999de](https://github.com/ladamczyk-it/qoq/commit/5c999de99b77739434e29a9efe2b950bc1f1b10a))
+* cleanup ([a9b414f](https://github.com/ladamczyk-it/qoq/commit/a9b414f4afd4b35803009deed82f3bc2978de66c))
+* deprecate objectMergeRight ([1afac02](https://github.com/ladamczyk-it/qoq/commit/1afac02d0aa20c51f60aa5b86a6eec148ec4f8a1))
+* drop switch-exhaustiveness-check to restore master parity (plan 5.8) ([ca8a2e6](https://github.com/ladamczyk-it/qoq/commit/ca8a2e652eea714cb9dcf936aa5c6cd2d54fd7dc))
+* qoq skill adjust ([9290b99](https://github.com/ladamczyk-it/qoq/commit/9290b9985ca91eb167702e8e065550ab9079fc64))
+* surface prepare-time errors and simplify the eslint glob filtering (plan 6.2) ([585b561](https://github.com/ladamczyk-it/qoq/commit/585b5612550771c4ef5b0708415b6eb2d64ecd8d))
+
+
+### Features
+
+* accept flat-config arrays in stats helpers (plan 3.1) ([1358b46](https://github.com/ladamczyk-it/qoq/commit/1358b46b72fae98c9e80af553184a6e38414a8b2))
+* add usage statistics ([d19c36a](https://github.com/ladamczyk-it/qoq/commit/d19c36a4232f1803ef1e7f005bb3083867152854))
+* compose configs.base from delta layers in eslint-v9-ts-jest (plan 2.1) ([8f6b859](https://github.com/ladamczyk-it/qoq/commit/8f6b859429af3d91993c0e3d30da290413cecf4f))
+* draft defineConfig layer composition for the js/ts/vitest eslint chain ([0b27242](https://github.com/ladamczyk-it/qoq/commit/0b2724227d148ab6f7672dbdcc6bf6edffd3c5dd))
+* extract jestLayer and configs.base in eslint-v9-js-jest (plan 1.2) ([33891d1](https://github.com/ladamczyk-it/qoq/commit/33891d16fb1f56d8d75f6c0db42eb689a3a815fa))
+* extract reactLayer and configs.base in eslint-v9-js-react (plan 1.3) ([87537c6](https://github.com/ladamczyk-it/qoq/commit/87537c68ab2d1326ed145a0d628ab9f629644028))
+
+
+### BREAKING CHANGES
+
+* some interfaces changed, one deprecation added
+* `baseConfig` is renamed to `jsLayer` in
+@ladamczyk/qoq-eslint-v9-js, and `disabledRules` is no longer exported from
+qoq-eslint-v9-js-{jest,jest-rtl,vitest,vitest-rtl,react}.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01A3QPd3n6kE3TuSXCDrLm4W
+* `baseConfig` is no longer exported from
+@ladamczyk/qoq-eslint-v9-ts-vitest-rtl. Use `configs.base`, an ESLint flat-config
+array, via `defineConfig({ files: [...], extends: [configs.base] })`.
+* `baseConfig` is no longer exported from
+@ladamczyk/qoq-eslint-v9-ts-vitest. Use `configs.base`, an ESLint flat-config
+array, via `defineConfig({ files: [...], extends: [configs.base] })`.
+* `baseConfig` is no longer exported from
+@ladamczyk/qoq-eslint-v9-ts-react. Use `configs.base`, an ESLint flat-config
+array, via `defineConfig({ files: [...], extends: [configs.base] })`.
+* `baseConfig` is no longer exported from
+@ladamczyk/qoq-eslint-v9-ts-jest-rtl. Use `configs.base`, an ESLint flat-config
+array, via `defineConfig({ files: [...], extends: [configs.base] })`.
+* `baseConfig` is no longer exported from
+@ladamczyk/qoq-eslint-v9-ts-jest. Use `configs.base`, an ESLint flat-config
+array, via `defineConfig({ files: [...], extends: [configs.base] })`.
+* `baseConfig`, `testConfig` and `strictConfig` are no longer
+exported from @ladamczyk/qoq-eslint-v9-ts. Use `configs.base`, `configs.test`
+and `configs.strict` — ESLint flat-config arrays — via
+`defineConfig({ files: [...], extends: [configs.base] })`.
+* `baseConfig` is no longer exported from
+@ladamczyk/qoq-eslint-v9-js-vitest-rtl. Use `configs.base`, an ESLint flat-config
+array, via `defineConfig({ files: [...], extends: [configs.base] })`.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01C5PqJM7GcARsLB7KY8L6hq
+* `baseConfig` is no longer exported from
+@ladamczyk/qoq-eslint-v9-js-vitest. Use `configs.base`, an ESLint flat-config
+array, via `defineConfig({ files: [...], extends: [configs.base] })`.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01C5PqJM7GcARsLB7KY8L6hq
+* `baseConfig` is no longer exported from
+@ladamczyk/qoq-eslint-v9-js-react. Use `configs.base`, an ESLint flat-config
+array, via `defineConfig({ files: [...], extends: [configs.base] })`.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01C5PqJM7GcARsLB7KY8L6hq
+* `baseConfig` is no longer exported from
+@ladamczyk/qoq-eslint-v9-js-jest-rtl. Use `configs.base`, an ESLint flat-config
+array, via `defineConfig({ files: [...], extends: [configs.base] })`.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01C5PqJM7GcARsLB7KY8L6hq
+* `baseConfig` is no longer exported from
+@ladamczyk/qoq-eslint-v9-js-jest. Use `configs.base`, an ESLint flat-config
+array, via `defineConfig({ files: [...], extends: [configs.base] })`.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01C5PqJM7GcARsLB7KY8L6hq
+* the generated ESLint config now requires the
+@ladamczyk/qoq-eslint-v9-* templates to export `configs.base`; templates that
+only export `baseConfig` no longer work with this CLI.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Jdsj5hAzX6GLH53kkDrPJw
+* `configs.base` keeps two `reactLayer` rule options that the
+legacy merged `baseConfig` silently dropped, so code that passed before can
+now fail. `import-x/order` gains `pathGroups: [{ pattern: 'react*', group:
+'builtin', position: 'before' }]` and `pathGroupsExcludedImportTypes:
+['react*']`, so React imports must now be ordered first. `no-restricted-imports`
+gains `lodash/debounce` and `lodash/fp/debounce`, so importing either is now
+reported. Both are severity 1, but the qoq CLI fails on warnings as well as
+errors — a consumer's build can break on upgrade.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Jdsj5hAzX6GLH53kkDrPJw
+* consumers of this package's flat-config array now
+inherit 21 previously-inert testing-library/* rules via rtlLayer: at
+error - await-async-events, await-async-queries, await-async-utils,
+no-await-sync-events, no-await-sync-queries, no-container,
+no-dom-import, no-global-regexp-flag-in-query, no-manual-cleanup,
+no-node-access, no-promise-in-fire-event, no-render-in-lifecycle,
+no-unnecessary-act, no-wait-for-multiple-assertions,
+no-wait-for-side-effects, no-wait-for-snapshot, prefer-find-by,
+prefer-presence-queries, prefer-query-by-disappearance,
+render-result-naming-convention; at warn - no-debugging-utils.
+prefer-screen-queries stays disabled (0).
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MEYpMdMkkhTejsmZNrsa73
+* consumers of this package's flat-config array now
+inherit 21 previously-inert `testing-library/*` rules via `rtlLayer`
+(fixed upstream in eslint-v9-js-vitest-rtl / plan 1.x): at error —
+await-async-events, await-async-queries, await-async-utils,
+no-await-sync-events, no-await-sync-queries, no-container,
+no-dom-import, no-global-regexp-flag-in-query, no-manual-cleanup,
+no-node-access, no-promise-in-fire-event, no-render-in-lifecycle,
+no-unnecessary-act, no-wait-for-multiple-assertions,
+no-wait-for-side-effects, no-wait-for-snapshot, prefer-find-by,
+prefer-presence-queries, prefer-query-by-disappearance,
+render-result-naming-convention; at warn — no-debugging-utils.
+prefer-screen-queries stays disabled (0).
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MEYpMdMkkhTejsmZNrsa73
+* 21 eslint-plugin-testing-library rules are now active that were
+previously registered but never enabled: await-async-events, await-async-queries,
+await-async-utils, no-await-sync-events, no-await-sync-queries, no-container,
+no-debugging-utils (warn), no-dom-import, no-global-regexp-flag-in-query,
+no-manual-cleanup, no-node-access, no-promise-in-fire-event, no-render-in-lifecycle,
+no-unnecessary-act, no-wait-for-multiple-assertions, no-wait-for-side-effects,
+no-wait-for-snapshot, prefer-find-by, prefer-presence-queries,
+prefer-query-by-disappearance, render-result-naming-convention. The qoq CLI fails on
+warnings as well as errors, so consumers may see build failures until they fix or
+override these.
+* 21 eslint-plugin-testing-library rules are now active that were
+previously registered but never enabled: await-async-events, await-async-queries,
+await-async-utils, no-await-sync-events, no-await-sync-queries, no-container,
+no-debugging-utils (warn), no-dom-import, no-global-regexp-flag-in-query,
+no-manual-cleanup, no-node-access, no-promise-in-fire-event, no-render-in-lifecycle,
+no-unnecessary-act, no-wait-for-multiple-assertions, no-wait-for-side-effects,
+no-wait-for-snapshot, prefer-find-by, prefer-presence-queries,
+prefer-query-by-disappearance, render-result-naming-convention. The qoq CLI fails on
+warnings as well as errors, so consumers may see build failures until they fix or
+override these.
+
 ## [5.3.2](https://github.com/ladamczyk-it/qoq/compare/v5.3.1...v5.3.2) (2026-08-13)
 
 
