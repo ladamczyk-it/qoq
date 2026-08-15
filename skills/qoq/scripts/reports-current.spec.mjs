@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/reports-current.test.mjs
+// node --test skills/qoq/scripts/reports-current.spec.mjs
 //
 // The contract is the exit code, so the test drives the script the way
 // qoq-checker does: as a subprocess, reading the code and nothing else.

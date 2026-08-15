@@ -1,0 +1,156 @@
+#!/usr/bin/env node
+// Anonymous usage stats for the skill, mirroring what the CLI does in
+// `src/helpers/stats.ts` — one count of "the skill ran, and which command".
+//
+// It's a script rather than prose for the skill to carry out because consent is
+// the kind of thing that must not drift: three call sites reading a config by
+// eye would each invent their own idea of what "asked already" means, and the
+// failure mode is asking someone who already said no.
+//
+// Consent is resolved in one order, most specific first:
+//   1. the project's own `qoq.config.*` — `stats: true|false`, the same key the
+//      CLI writes, so one answer covers both
+//   2. ~/.claude/qoq/consent.md — the fallback for projects with no config, and
+//      the reason a decline doesn't get re-asked in every new checkout
+// Neither present means nobody has been asked, which only the caller can fix.
+//
+// Usage:   node stats.mjs <command> [--consent yes|no] [--project <dir>]
+//   <command>   the qoq command that ran: fix, refactor, bump, plan, execute,
+//               test, compress. It is the entire payload beyond the tool name.
+//   --consent   record the user's answer first, then act on it
+//   --project   where to look for qoq.config.* (default: cwd)
+//
+// Exit code: 0 handled (sent, or declined and nothing to do), 1 nobody has been
+// asked yet — ask the user and call again with --consent, 2 usage error.
+// Branch on the code; stdout says which of the two 0 cases it was, for a human
+// reading a log.
+
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+
+const STATS_URL = 'https://stats.adamczyk.ovh';
+const STATS_TIMEOUT_MS = 2000;
+
+const CONSENT_FILE = join(homedir(), '.claude', 'qoq', 'consent.md');
+const CONFIG_FILES = ['qoq.config.ts', 'qoq.config.js', 'qoq.config.cjs', 'qoq.config.mjs'];
+
+const COMMANDS = ['fix', 'refactor', 'bump', 'plan', 'execute', 'test', 'compress'];
+
+const args = process.argv.slice(2);
+const [command] = args;
+const flag = (name) => {
+  const index = args.indexOf(`--${name}`);
+  return index === -1 ? undefined : args[index + 1];
+};
+
+const consentArg = flag('consent');
+const projectDir = flag('project') ?? process.cwd();
+
+if (!COMMANDS.includes(command) || (consentArg && !['yes', 'no'].includes(consentArg))) {
+  process.stderr.write(
+    `usage: stats.mjs <${COMMANDS.join('|')}> [--consent yes|no] [--project <dir>]\n`
+  );
+  process.exit(2);
+}
+
+const findConfig = () =>
+  CONFIG_FILES.map((name) => join(projectDir, name)).find((path) => existsSync(path));
+
+// Read and write the config as source text, never as a parsed object: these
+// files import workspace packages and carry the user's comments, so evaluating
+// one is expensive and re-serializing it would throw their formatting away.
+// `stats` is the only key in the schema by that name, so a bare match is safe.
+const readConfigConsent = (path) => {
+  const match = /\bstats\s*:\s*(true|false)\b/.exec(readFileSync(path, 'utf8'));
+  return match ? match[1] === 'true' : undefined;
+};
+
+const writeConfigConsent = (path, stats) => {
+  const source = readFileSync(path, 'utf8');
+  const patched = source.replace(
+    /((?:module\.exports\s*=|export\s+default)\s*\{)/,
+    `$1 stats: ${stats},`
+  );
+
+  if (patched === source) {
+    return false;
+  }
+
+  writeFileSync(path, patched);
+
+  return true;
+};
+
+const readFileConsent = () => {
+  if (!existsSync(CONSENT_FILE)) {
+    return undefined;
+  }
+
+  const match = /\bstats\s*:\s*(true|false)\b/.exec(readFileSync(CONSENT_FILE, 'utf8'));
+
+  return match ? match[1] === 'true' : undefined;
+};
+
+const writeFileConsent = (stats) => {
+  mkdirSync(join(homedir(), '.claude', 'qoq'), { recursive: true });
+  writeFileSync(
+    CONSENT_FILE,
+    [
+      '---',
+      `stats: ${stats}`,
+      '---',
+      '',
+      `Recorded ${new Date().toISOString().slice(0, 10)} by the qoq skill.`,
+      'Delete this file to be asked again.',
+      '',
+    ].join('\n')
+  );
+};
+
+// Fire-and-forget, like the CLI's: a dead or slow endpoint must never surface as
+// an error or hold a run up, hence the swallowed catch and the 2s cap.
+const send = async () => {
+  try {
+    await fetch(STATS_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ tool: 'qoq-skill', options: [command] }),
+      signal: AbortSignal.timeout(STATS_TIMEOUT_MS),
+    });
+  } catch {
+    // Stats are best-effort; a failed send is not the user's problem.
+  }
+};
+
+const report = async (stats) => {
+  if (stats) {
+    await send();
+  }
+
+  process.stdout.write(stats ? 'sent\n' : 'declined\n');
+  process.exit(0);
+};
+
+const configPath = findConfig();
+
+if (consentArg) {
+  const stats = consentArg === 'yes';
+
+  // The config is where the CLI looks too, so recording there means the user is
+  // asked once by either entry point rather than once by each.
+  if (!configPath || !writeConfigConsent(configPath, stats)) {
+    writeFileConsent(stats);
+  }
+
+  await report(stats);
+}
+
+const consent = (configPath ? readConfigConsent(configPath) : undefined) ?? readFileConsent();
+
+if (consent === undefined) {
+  process.stdout.write('ask: no consent on record\n');
+  process.exit(1);
+}
+
+await report(consent);

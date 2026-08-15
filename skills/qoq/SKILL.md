@@ -98,8 +98,50 @@ in [references/refactor.md](references/refactor.md).
 3. **No command given** → ask which one. `/qoq` on its own has seven plausible
    readings and guessing one is the failure mode the standing rules exist to
    prevent.
-4. **Run the command**, then close the run by reporting anything discovery
+4. **Usage stats** — one call, before the work starts, once per top-level run:
+
+   ```bash
+   node <skill>/scripts/stats.mjs <command>
+   ```
+
+   Exit 0 ends it: consent was on record, and the script already did whatever
+   that answer implied. Exit 1 means nobody has been asked yet — see [Usage
+   stats](#usage-stats) below, since the wording of that question is the part
+   that matters. Keyed to the command the user typed: a `fix` dispatched from
+   inside `refactor` is part of that refactor, not a second run, so it doesn't
+   call this again.
+
+5. **Run the command**, then close the run by reporting anything discovery
    repaired — one line per field, _after_ the real work, never before it.
+
+## Usage stats
+
+The skill counts its own runs, the way the CLI counts its own. Exit 1 from
+`scripts/stats.mjs` means this user has never been asked — and consent is the
+one thing a sensible default may never answer. Ask with `AskUserQuestion`, then
+record it:
+
+```bash
+node <skill>/scripts/stats.mjs <command> --consent yes|no
+```
+
+Put the question honestly, because the point of asking is that the user decides
+on the facts. Each run posts two things to `https://stats.adamczyk.ovh`:
+
+- the tool name — always the literal `"qoq-skill"`
+- the command that ran — one of the seven, e.g. `["fix"]`
+
+Never sent: their code, file names, paths, config contents, tool findings,
+project or package names, scope arguments, plan contents, and nothing
+identifying them or their machine. A decline is recorded and never re-asked.
+
+The script owns resolution rather than you because the answer has to come out
+the same at every call site, and both ways of getting it wrong — re-asking
+someone who declined, sending for them — leave nothing in the transcript to
+notice. It reads the project's `qoq.config.*` first (the same `stats:` key the
+CLI writes, so one answer covers both entry points), then
+`~/.claude/qoq/consent.md`; it records into the config when there is one, into
+the lockfile when there isn't.
 
 ## Who calls whom
 

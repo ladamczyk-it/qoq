@@ -8,6 +8,7 @@ import prompts from 'prompts';
 import { formatExecutionTime } from '../helpers/common.ts';
 import { formatCode } from '../helpers/formatCode.ts';
 import { installPackages } from '../helpers/packages.ts';
+import { askStatsConsent, getUsedOptions, sendStats, writeStatsConsent } from '../helpers/stats.ts';
 import { QoqConfig } from '../helpers/types.ts';
 
 import { AbstractConfigHandler } from './abstract/AbstractConfigHandler.ts';
@@ -96,6 +97,10 @@ export const initConfig = async (
     await handler.getPrompts();
   }
 
+  // Last item in the wizard: it's the only question not about a tool, and it
+  // needs the user to have already committed to using QoQ before it's asked.
+  modulesConfig.stats = await askStatsConsent();
+
   searchPlaces.forEach((filename) => {
     const filepath = resolveCwdRelativePath(`/${filename}`);
     if (existsSync(filepath)) {
@@ -114,6 +119,10 @@ export const initConfig = async (
 
   if (!skipWarmup) {
     await executeCommand('qoq', ['--warmup']);
+  }
+
+  if (modulesConfig.stats) {
+    void sendStats(getUsedOptions());
   }
 
   return modulesConfig;
@@ -154,7 +163,18 @@ export const getConfig = async (
 
   // No config + skipInit (staged, --warmup, CI): run on defaults instead of
   // dereferencing an undefined config in the handler chain.
-  return getModulesFromConfig((qoqConfig?.config as QoqConfig) ?? {}, workspaces);
+  const config = (qoqConfig?.config as QoqConfig) ?? {};
+
+  // Ask once, only where an answer can be both given and stored: skipInit covers
+  // --warmup/staged/CI, isTTY covers piped or otherwise non-interactive shells,
+  // and without a config file there is nowhere to record the answer.
+  if (!skipInit && qoqConfig && config.stats === undefined && process.stdout.isTTY) {
+    config.stats = await askStatsConsent();
+
+    writeStatsConsent(qoqConfig.filepath, config.stats);
+  }
+
+  return getModulesFromConfig(config, workspaces);
 };
 
 export const execute = async (
@@ -181,6 +201,11 @@ export const execute = async (
 
   const consoleTimeName = `Total execution time:`;
   const startTime = performance.now();
+
+  // --warmup is the IDE/postinstall shortcut, not a user-driven run.
+  if (modulesConfig.stats && !warmup) {
+    void sendStats(getUsedOptions());
+  }
 
   // One row per tool, in run order. `moduleKey` marks the tools that additionally
   // need their config block present (stylelint, structurelint, skillslint) —

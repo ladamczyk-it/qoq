@@ -41,7 +41,7 @@ anywhere else in a label are fine, so lead with a word: `X["run \`test:one\` on 
 ```mermaid
 flowchart TD
     Q["/qoq [command]"] --> ISC{"command =<br/>compress?"}
-    ISC -->|"yes"| RCOMP["**qoq compress**<br/>*no discovery — no line of the<br/>record describes a markdown file*"]
+    ISC -->|"yes"| STATS
     ISC -->|"no"| DISP
 
     DISP["dispatch **qoq-discovery**<br/>(Haiku, one per top-level run)<br/>caller passes the project root<br/>**+ the resolved skills: line**<br/>*the available-skills list is the<br/>caller's context, not the agent's*"]
@@ -81,12 +81,19 @@ flowchart TD
     OPT{"which<br/>command?"}
     OPT -->|"none given"| OASK(["**ASK THE USER**<br/>which command?"])
     OASK -.-> OPT
-    OPT -->|fix| RFIX["**qoq fix**<br/>the check/fix loop"]
-    OPT -->|refactor| RREF["**qoq refactor**<br/>green base, four assessments"]
-    OPT -->|bump| RBUMP["**qoq bump**<br/>analyse, choose, apply"]
-    OPT -->|plan| RPLAN["**qoq plan**<br/>requirements → approved plan file"]
-    OPT -->|execute| REXEC["**qoq execute**<br/>approved plan file → delivered"]
-    OPT -->|test| RTEST["**qoq test**<br/>coverage for code that exists"]
+    OPT -->|"a command"| STATS
+
+    STATS["**usage stats** — once per top-level run<br/>`node scripts/stats.mjs &lt;command&gt;`<br/>reads qoq.config `stats:`, then<br/>~/.claude/qoq/consent.md<br/>*payload is the tool name +<br/>the command, nothing else*"]
+    STATS -.->|"exit 1 — never asked"| SASK(["**ASK THE USER**<br/>send anonymous usage stats?<br/>*consent is never defaulted*"])
+    SASK -.->|"`--consent yes/no` — recorded in<br/>qoq.config, or the lockfile<br/>if there is no config"| STATS
+
+    STATS -->|fix| RFIX["**qoq fix**<br/>the check/fix loop"]
+    STATS -->|refactor| RREF["**qoq refactor**<br/>green base, four assessments"]
+    STATS -->|bump| RBUMP["**qoq bump**<br/>analyse, choose, apply"]
+    STATS -->|plan| RPLAN["**qoq plan**<br/>requirements → approved plan file"]
+    STATS -->|execute| REXEC["**qoq execute**<br/>approved plan file → delivered"]
+    STATS -->|test| RTEST["**qoq test**<br/>coverage for code that exists"]
+    STATS -->|compress| RCOMP["**qoq compress**<br/>*no discovery — no line of the<br/>record describes a markdown file*"]
 
     RFIX --> NOTE
     RREF --> NOTE
@@ -102,7 +109,7 @@ flowchart TD
 
     class DISCO agent
     class RFIX,RREF,RBUMP,RPLAN,REXEC,RTEST,RCOMP command
-    class ASK,OASK,NOTE user
+    class ASK,OASK,SASK,NOTE user
 ```
 
 ---

@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/summarize.test.mjs
+// node --test skills/qoq/scripts/summarize.spec.mjs
 //
 // The contract is what reaches the digest, so the test drives the script the way
 // qoq-checker does: as a subprocess over a report dir, reading stdout.

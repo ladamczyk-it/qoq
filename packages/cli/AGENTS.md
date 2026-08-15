@@ -65,6 +65,15 @@ export default {
   // "type" field. Not offered by `qoq --init`; add it by hand if needed.
   configType: 'ESM', // or 'CJS'
 
+  // Anonymous usage stats consent. Asked once — as the last question of
+  // `qoq --init`, or on the first interactive run of a project that has a config
+  // without this key — and written back here. When true, each run POSTs
+  // `{ tool: 'qoq', options: [...] }` to https://stats.adamczyk.ovh, where
+  // `options` holds only the value-less flags typed on that run (`--check`,
+  // `--fix`, …). Never sent: code, file names, paths, config contents, findings,
+  // project names, or anything identifying the user or machine.
+  stats: false,
+
   configPaths: {
     // override locations of generated IDE config files
     eslint: '/eslint.config.js',

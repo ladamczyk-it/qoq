@@ -10,11 +10,9 @@ const rules = {
 };
 
 export default {
+  stats: true,
   prettier: {
     sources: ['.'],
-  },
-  jscpd: {
-    threshold: 3,
   },
   knip: {
     entry: './src/index.{js,ts}',

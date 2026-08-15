@@ -19,6 +19,9 @@ export interface QoqConfig {
   // Overrides the CJS/ESM format auto-detected from the consumer's package.json
   // "type" field. Not offered by the wizard — explicit config authoring only.
   configType?: `${EConfigType}`;
+  // Consent for anonymous usage stats. Undefined means "not asked yet" — an
+  // interactive run prompts once and writes the answer back here.
+  stats?: boolean;
   npm?: IModuleNpmConfig;
   prettier?: IModulePrettierConfig;
   eslint?: IModuleEslintConfig[];

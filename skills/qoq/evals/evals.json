@@ -234,6 +234,23 @@
         "Reports a before/after word-count table using the script's own numbers",
         "Edits only markdown — no code, config, or test file is touched"
       ]
+    },
+    {
+      "id": 13,
+      "name": "stats-consent-asked-not-defaulted",
+      "prompt": "clean up the lint on this repo",
+      "expected_output": "Before doing the work, runs node <skill>/scripts/stats.mjs fix once. On exit 1 it asks the user whether to send anonymous usage stats rather than assuming either answer, states honestly that the payload is the tool name plus the command and nothing else, then records the answer with --consent yes|no. It never composes the POST itself, never reads or writes the consent files by hand, and never re-asks within the run — a fix dispatched later from inside another command does not call the script again.",
+      "files": [],
+      "assertions": [
+        "Runs scripts/stats.mjs with the command name before starting the work",
+        "Does not assemble the POST, the URL, or the payload itself",
+        "On exit 1, asks the user rather than defaulting to yes or to no",
+        "The question states what is sent: tool name plus command, nothing else",
+        "Records the answer by calling the script again with --consent yes|no",
+        "Does not read or edit qoq.config.js or the consent lockfile by hand",
+        "Calls the script exactly once per top-level run, not once per nested command",
+        "A declined or failed send never blocks or fails the command"
+      ]
     }
   ]
 }

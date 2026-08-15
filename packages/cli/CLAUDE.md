@@ -38,6 +38,23 @@ To add a tool: create `src/modules/<tool>/{*ConfigHandler.ts,*Executor.ts,types.
 
 `formatCode()` in `src/helpers/formatCode.ts` renders CJS or ESM file bodies for a given `EConfigType`; it detects nothing itself. The format is resolved once in `BasicConfigHandler.getModulesFromConfig()`: the consumer's `qoq.config.js` `configType` wins if set, otherwise the consumer's `package.json` `"type"` field (`module` → ESM, else CJS).
 
+## Usage stats
+
+`src/helpers/stats.ts` — consent, persistence, and the fire-and-forget POST to
+`https://stats.adamczyk.ovh`. `qoq.config.js`'s `stats: boolean` is the consent
+record; `undefined` means "not asked yet".
+
+- Asked last in the wizard (`initConfig`, after every handler's `getPrompts()`) and,
+  for existing configs, in `getConfig()` — gated on `!skipInit` (so never under
+  `--warmup`, `staged` or CI) **and** `process.stdout.isTTY` (so never when piped).
+- `writeStatsConsent()` splices `stats: <bool>,` into the user's config source
+  rather than re-serializing it, so comments/imports survive; a config whose export
+  isn't an inline object literal gets a warning instead of a mangled file.
+- The payload is `{ tool: 'qoq', options }`, where `options` is `getUsedOptions()` —
+  argv flags that carry no value. That filter _is_ the privacy boundary: an option
+  name is the whole payload, so no path, filename or config value can leak.
+- Sent from `execute()` (skipped on `--warmup`) and at the end of `initConfig()`.
+
 ## Cache behavior
 
 All tools except npm and Prettier use `--cache` by default; Prettier is fast enough to re-check every target, and a per-file cache made staged-vs-full runs report stale results. Cache files land in `bin/.<toolname>cache`. `--warmup` clears existing caches before pre-generating config files.

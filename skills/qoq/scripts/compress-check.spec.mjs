@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/compress-check.test.mjs
+// node --test skills/qoq/scripts/compress-check.spec.mjs
 //
 // The contract is the exit code plus the two lists, so the test drives the
 // script as a subprocess the way `qoq compress` does, and reads stdout only to

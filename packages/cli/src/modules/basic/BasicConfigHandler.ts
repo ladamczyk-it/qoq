@@ -47,6 +47,12 @@ export class BasicConfigHandler extends AbstractConfigHandler {
       this.config.srcPath = srcPath;
     }
 
+    // No default: `false` has to be written too, or the consent prompt returns
+    // on the next run.
+    if (this.modulesConfig.stats !== undefined) {
+      this.config.stats = this.modulesConfig.stats;
+    }
+
     this.config.configPaths = {};
 
     if (eslint !== EslintConfigHandler.CONFIG_FILE_PATH) {
@@ -70,6 +76,13 @@ export class BasicConfigHandler extends AbstractConfigHandler {
 
   getModulesFromConfig(): IModulesConfig {
     this.modulesConfig.srcPath = this.config.srcPath ?? DEFAULT_SRC;
+
+    // Only when answered: an `undefined` assignment would still create the key,
+    // and "not asked yet" has to stay distinguishable from "declined".
+    if (this.config.stats !== undefined) {
+      this.modulesConfig.stats = this.config.stats;
+    }
+
     this.modulesConfig.configPaths = {
       eslint: this.config.configPaths?.eslint ?? EslintConfigHandler.CONFIG_FILE_PATH,
       prettier: this.config.configPaths?.prettier ?? PrettierConfigHandler.CONFIG_FILE_PATH,
