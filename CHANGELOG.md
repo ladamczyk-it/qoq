@@ -1,3 +1,10 @@
+## [6.0.1](https://github.com/ladamczyk-it/qoq/compare/v6.0.0...v6.0.1) (2026-08-16)
+
+
+### Bug Fixes
+
+* utilize new options for skillslint and structurelint ([2f96f88](https://github.com/ladamczyk-it/qoq/commit/2f96f88cfec91511f69605c70406338916245cdd))
+
 # [6.0.0](https://github.com/ladamczyk-it/qoq/compare/v5.3.2...v6.0.0) (2026-08-15)
 
 
