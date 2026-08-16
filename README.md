@@ -70,3 +70,9 @@ Join us in making QoQ even better! Read our [Contributing Guidelines](https://gi
 💡 **QoQ: Focus on writing great code, we handle the rest.**
 
 _Feel free to join us, please read [Contributing Guidelines](https://github.com/ladamczyk-it/qoq/blob/master/.github/CONTRIBUTING.md)_
+
+## Monthly usage statistics
+
+![Monthly usage statistics CLI](https://adamczyk.ovh/img/stats/qoq.png)
+
+![Monthly usage statistics skills](https://adamczyk.ovh/img/stats/qoq-skills.png)

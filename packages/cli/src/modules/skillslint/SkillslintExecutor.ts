@@ -34,7 +34,13 @@ export class SkillslintExecutor extends AbstractApiExecutor {
     }
 
     const { lint, format } = await import('@ladamczyk/skillslint');
-    const result = await lint({ path: skillslint.path, fix: options.fix });
+    // Skillslint's API takes no consent of its own and never prompts: it counts
+    // a run only if we hand it one, so QoQ's own answer is what decides.
+    const result = await lint({
+      path: skillslint.path,
+      fix: options.fix,
+      stats: !!this.modulesConfig.stats,
+    });
 
     if (options.json) {
       this.writeReport(this.buildReport(result), options.output);

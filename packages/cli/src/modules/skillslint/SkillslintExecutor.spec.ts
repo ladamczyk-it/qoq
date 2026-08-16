@@ -78,7 +78,7 @@ describe('SkillslintExecutor', () => {
 
       await executor.run(baseOptions);
 
-      expect(lint).toHaveBeenCalledWith({ path: 'skills', fix: false });
+      expect(lint).toHaveBeenCalledWith({ path: 'skills', fix: false, stats: false });
     });
 
     it('should request a fix when fixing is enabled', async () => {
@@ -86,7 +86,7 @@ describe('SkillslintExecutor', () => {
 
       await executor.run({ ...baseOptions, fix: true });
 
-      expect(lint).toHaveBeenCalledWith({ path: 'skills', fix: true });
+      expect(lint).toHaveBeenCalledWith({ path: 'skills', fix: true, stats: false });
     });
 
     it('should return ERROR when the result does not pass', async () => {

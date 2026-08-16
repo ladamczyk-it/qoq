@@ -1,4 +1,4 @@
-import { statSync, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 
 import { EExitCode } from '@ladamczyk/qoq-utils';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
@@ -9,18 +9,19 @@ import { IExecutorOptions } from '../types.ts';
 
 import { StructurelintExecutor } from './StructurelintExecutor.ts';
 
-const { validate, format } = vi.hoisted(() => ({
-  validate: vi.fn(),
+const { lint, format } = vi.hoisted(() => ({
+  lint: vi.fn(),
   format: vi.fn(() => ''),
 }));
 
-vi.mock('@ladamczyk/structurelint', () => ({ validate, format }));
+vi.mock('@ladamczyk/structurelint', () => ({ lint, format }));
 
 vi.mock('fs', async (importOriginal) => ({
   ...(await importOriginal<typeof import('fs')>()),
-  statSync: vi.fn(),
   writeFileSync: vi.fn(),
 }));
+
+const passingResult = { root: 'src', passed: true, violations: [] };
 
 const baseOptions: IExecutorOptions = {
   output: 'report-out',
@@ -42,17 +43,15 @@ describe('StructurelintExecutor', () => {
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     vi.spyOn(console, 'time').mockImplementation(() => undefined);
     vi.spyOn(console, 'timeEnd').mockImplementation(() => undefined);
-    validate.mockReturnValue([]);
+    lint.mockResolvedValue(passingResult);
     format.mockReturnValue('');
-    vi.mocked(statSync).mockReturnValue({ isDirectory: () => true } as ReturnType<typeof statSync>);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    validate.mockReset();
+    lint.mockReset();
     format.mockReset();
     vi.mocked(writeFileSync).mockReset();
-    vi.mocked(statSync).mockReset();
   });
 
   describe('getName', () => {
@@ -69,24 +68,40 @@ describe('StructurelintExecutor', () => {
 
       const result = await executor.run(baseOptions);
 
-      expect(validate).not.toHaveBeenCalled();
+      expect(lint).not.toHaveBeenCalled();
       expect(result).toBe(EExitCode.OK);
     });
 
-    it('should validate the configured structureRoot against the inline structure', async () => {
+    it('should lint the inline structure without consenting to stats on its own', async () => {
       const executor = new StructurelintExecutor(configWithStructurelint, true, true);
 
       const result = await executor.run(baseOptions);
 
-      expect(validate).toHaveBeenCalledWith(expect.stringContaining('src'), {
-        structureRoot: 'src',
-        structure,
+      expect(lint).toHaveBeenCalledWith({
+        config: { structureRoot: 'src', structure },
+        stats: false,
       });
       expect(result).toBe(EExitCode.OK);
     });
 
+    it("should pass the user's stats consent through to structurelint", async () => {
+      const executor = new StructurelintExecutor(
+        { ...configWithStructurelint, stats: true },
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(lint).toHaveBeenCalledWith(expect.objectContaining({ stats: true }));
+    });
+
     it('should return ERROR when validation finds violations', async () => {
-      validate.mockReturnValue([{ path: 'src/Foo.ts', type: 'unexpected', message: 'nope' }]);
+      lint.mockResolvedValue({
+        root: 'src',
+        passed: false,
+        violations: [{ path: 'src/Foo.ts', type: 'unexpected', message: 'nope' }],
+      });
       const executor = new StructurelintExecutor(configWithStructurelint, true, true);
 
       const result = await executor.run(baseOptions);
@@ -115,13 +130,11 @@ describe('StructurelintExecutor', () => {
 
       await executor.run(baseOptions);
 
-      expect(validate).toHaveBeenCalledWith(expect.stringMatching(/.*/), { structure });
+      expect(lint).toHaveBeenCalledWith({ config: { structure }, stats: false });
     });
 
     it('should print the real error and exit with an exception when the configured root does not exist', async () => {
-      vi.mocked(statSync).mockImplementation(() => {
-        throw new Error('ENOENT');
-      });
+      lint.mockRejectedValue(new Error('Structure root "src" does not exist or is not a folder.'));
       const exitMock = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
       const stderrMock = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
       const executor = new StructurelintExecutor(configWithStructurelint, true, true);
@@ -132,7 +145,6 @@ describe('StructurelintExecutor', () => {
         expect.stringContaining('Structure root "src" does not exist or is not a folder.')
       );
       expect(exitMock).toHaveBeenCalledWith(EExitCode.EXCEPTION);
-      expect(validate).not.toHaveBeenCalled();
     });
 
     it('should print the real error and exit with an exception when no structure is provided', async () => {
@@ -150,7 +162,7 @@ describe('StructurelintExecutor', () => {
         expect.stringContaining('Structurelint is enabled but no `structure` was provided.')
       );
       expect(exitMock).toHaveBeenCalledWith(EExitCode.EXCEPTION);
-      expect(validate).not.toHaveBeenCalled();
+      expect(lint).not.toHaveBeenCalled();
     });
   });
 });
