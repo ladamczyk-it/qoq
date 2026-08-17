@@ -285,12 +285,18 @@ flowchart TD
     PSCOPE -->|yes| PSPLIT(["**say so** — separate plans,<br/>one each. never one plan<br/>with both"])
     PSCOPE -->|no| PDEC["**decompose** — per ticket:<br/>size XS/S/M *(never bigger)*<br/>complexity → agent tier, nothing else<br/>Context that stands alone<br/>**criteria written as assertions**"]
 
-    PDEC --> PXL{"a milestone<br/>coming out XL?"}
+    PDEC --> PTAG["**tag the ticket** — mechanical ·<br/>architectural · pattern-repeat<br/>*(multiple, extensible)*<br/>+ the stack it lands in"]
+    PTAG --> PEST["**scripts/estimate.mjs** — *size + tier is<br/>one decision*, counted per tier from<br/>this repo's `.claude/qoq-estimator.json`.<br/>a **miss** = not delivered inside<br/>the three-attempt budget"]
+    PEST -->|"2 — split: tickets of this shape<br/>keep ending up **blocked**<br/>*(not a model problem)*"| PDEC
+    PEST -->|"1 — escalate: most of this<br/>bucket missed at this tier"| PBUMP["take the **dearer tier** *(one rung up —<br/>far cheaper than three failed attempts)*.<br/>**never down** — saving a rung isn't worth<br/>an experiment on the user's ticket"]
+    PEST -->|"0 — the pick stands"| PXL{"a milestone<br/>coming out XL?"}
+    PBUMP --> PFLAG["flag the moved tier<br/>for approval"]
+    PFLAG --> PXL
     PXL -->|yes| PSPLIT
     PXL -->|no| PREV["**self-review** — requirement coverage ·<br/>no placeholders · cross-ticket interfaces ·<br/>Depends on that's real ·<br/>**every criterion a spec can assert**"]
 
     PREV --> PSAVE["save → ./plans/YYYY-MM-DD-[feature].md"]
-    PSAVE --> PAPPR(["**ASK THE USER** — approve.<br/>surfaced here: new deps<br/>and the model ceiling"])
+    PSAVE --> PAPPR(["**ASK THE USER** — approve.<br/>surfaced here: new deps,<br/>the model ceiling, and every<br/>tier the estimator moved"])
     PAPPR -.->|"changes"| PDEC
     PAPPR -.->|"approved"| PMARK["**Plan status: approved**<br/>+ Commands header,<br/>copied from the record"]
     PMARK --> PHAND["offer **qoq execute** —<br/>run it on a yes,<br/>dispatch nothing from here"]
@@ -344,8 +350,9 @@ flowchart TD
     THAND --> EESC{"a tier<br/>above?"}
     EESC -->|"yes — re-dispatch with<br/>the report pasted in"| EDISP
     EESC -->|"no — top rung already"| EBLOCK(["**Status: blocked** — bring the<br/>user the report: bad ticket,<br/>or session model too small"])
-    EDONE --> EMORE{"tickets left in<br/>the milestone?"}
-    EBLOCK --> EMORE
+    EDONE -->|"**success** — even after three<br/>rounds and an escalation"| EREC["**estimate.mjs --record** — against the tags<br/>and **the tier the plan assigned**, never the one<br/>that finally delivered it. attempts spent, plus<br/>**your attribution**: estimation-miss *(the pick was<br/>wrong)* vs scope-expansion *(a different ticket got<br/>built)* — only a miss reaches a verdict"]
+    EBLOCK -->|"**failure** — nothing delivered it<br/>*(the only thing that earns a split)*"| EREC
+    EREC --> EMORE{"tickets left in<br/>the milestone?"}
     EMORE -->|yes| EWAVE
     EMORE -->|no| EMGATE["**refactor** — the third TDD beat, delegated:<br/>**qoq refactor --decisions auto** over every<br/>file the milestone's tickets touched,<br/>then the full test suite + build"]
     EMGATE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]

@@ -100,7 +100,7 @@
       "id": 6,
       "name": "plan-criteria-as-assertions",
       "prompt": "Here's what we need: users should be able to schedule a report to run daily/weekly, get it emailed as a PDF, and manage their schedules from the settings page. Also rate-limit the schedule creation endpoint. Can you work out how we'd build this?",
-      "expected_output": "Produces a plan file under ./plans/ following the plan template. Every acceptance criterion is written as an observable assertion a spec could be written from today (\"a 6th request inside 60s returns 429\"), never as a task (\"add rate limiting\"). Tickets stop at size M, complexity rates only the model tier (no delivery routing, no per-ticket standards pass), and there are no test-only tickets for feature work. Dispatches Explore for repo patterns but takes build/test commands from the discovery record, not from Explore. Ends at approval and offers qoq execute rather than dispatching any ticket.",
+      "expected_output": "Produces a plan file under ./plans/ following the plan template. Every acceptance criterion is written as an observable assertion a spec could be written from today (\"a 6th request inside 60s returns 429\"), never as a task (\"add rate limiting\"). Tickets stop at size M, complexity rates only the model tier (no delivery routing, no per-ticket standards pass), and there are no test-only tickets for feature work. Each ticket is tagged and its baseline size+tier pick checked against scripts/estimate.mjs, whose exit code it branches on rather than re-deriving the thresholds — taking the tier the script returns in either direction, up on 1 and down on 5; the tags, stack and verdict land in the ticket's Estimate field. Dispatches Explore for repo patterns but takes build/test commands from the discovery record, not from Explore. Ends at approval and offers qoq execute rather than dispatching any ticket.",
       "files": [],
       "assertions": [
         "Writes a plan file under ./plans/ named YYYY-MM-DD-<feature>.md",
@@ -108,11 +108,17 @@
         "Every acceptance criterion is an observable assertion, never a task description",
         "No ticket is sized above M",
         "Complexity rates the agent tier only — no delivery routing, no per-ticket standards pass",
+        "Tags each ticket with the multi-tag taxonomy plus the stack it lands in, rather than a single label",
+        "Calls scripts/estimate.mjs per ticket with its own baseline size and tier as the input",
+        "Branches on the script's exit code instead of recomputing the counts or thresholds itself",
+        "Writes the tags, stack and verdict into the ticket's Estimate field",
+        "Takes the tier the script returns on exit 1, rather than working the adjustment out itself",
+        "Sends a ticket back to decomposition on exit 2 rather than saving the estimate as-is",
         "No test-only tickets for feature work",
         "Dispatches Explore for repo patterns",
         "Takes build and test commands from the discovery record, not from Explore",
         "Saves with Plan status: draft and asks for approval",
-        "Surfaces new dependencies and any ticket rated above the session's own model at approval",
+        "Surfaces new dependencies, any ticket rated above the session's own model, and every tier the estimator moved at approval",
         "Offers qoq execute rather than dispatching any ticket itself"
       ]
     },
@@ -120,7 +126,7 @@
       "id": 7,
       "name": "execute-sequential-tdd-milestone-refactor",
       "prompt": "the plan in ./plans/ is signed off — go ahead and build it",
-      "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order — no waves, no parallelism flag, no run id — handing it the record's path, the test-conventions.md path, and the ticket's tier explicitly. The developer writes assertions transcribed from the acceptance criteria, implements, raises those assertions to test-conventions.md itself (no `qoq test` dispatch — a subagent can't dispatch), proves the work runs with the project's own test:one and build, and hands back the changed-file list. It never invokes the qoq CLI. THE ORCHESTRATOR then dispatches `qoq fix` scoped to that list — the gate — and commits exactly that ticket's files on PASS; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread.",
+      "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order — no waves, no parallelism flag, no run id — handing it the record's path, the test-conventions.md path, and the ticket's tier explicitly. The developer writes assertions transcribed from the acceptance criteria, implements, raises those assertions to test-conventions.md itself (no `qoq test` dispatch — a subagent can't dispatch), proves the work runs with the project's own test:one and build, and hands back the changed-file list. It never invokes the qoq CLI. THE ORCHESTRATOR then dispatches `qoq fix` scoped to that list — the gate — and commits exactly that ticket's files on PASS; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread. Once each ticket reaches done or blocked it reports the outcome back with scripts/estimate.mjs --record, using the ticket's own tags, stack and the tier the plan assigned (not the tier that finally delivered it), the attempts actually spent, and its own attribution call — estimation-miss when the ticket was what the plan said it was, scope-expansion when the developer found work nobody knew was there. A ticket that landed after an escalation is still reported as success — the attempt count already says the tier was mis-picked; only a ticket left blocked is reported as failure.",
       "files": [],
       "assertions": [
         "Loads the plan fresh from disk rather than reusing an in-session copy",
@@ -141,7 +147,13 @@
         "The refactor beat runs at the milestone over the union of its files, not per ticket",
         "The milestone gate also runs the project's full build and test suite",
         "Escalates one tier when the budget is spent, recording the escalation on the ticket",
-        "The orchestrating thread never implements anything itself"
+        "The orchestrating thread never implements anything itself",
+        "Reports every resolved ticket back with scripts/estimate.mjs --record, done and blocked alike",
+        "Reports against the tags, stack and assigned tier from the ticket's Estimate field, not values it re-derives",
+        "Passes the attempts actually spent, counting re-dispatches after a failed gate",
+        "Attributes work the developer discovered mid-flight as scope-expansion, not estimation-miss",
+        "Reports a ticket that landed only after escalating as success, not failure",
+        "Reports only a blocked ticket as failure"
       ]
     },
     {
@@ -170,12 +182,12 @@
       "id": 9,
       "name": "bare-invocation-asks-which-command",
       "prompt": "/qoq",
-      "expected_output": "Six commands are six different jobs and a bare invocation names none of them, so the skill asks which one rather than picking the most likely. Discovery may run first, but no command's work starts before the answer.",
+      "expected_output": "Seven commands are seven different jobs and a bare invocation names none of them, so the skill asks which one rather than picking the most likely. Discovery may run first, but no command's work starts before the answer.",
       "files": [],
       "assertions": [
         "Asks the user which command to run rather than guessing one",
-        "Offers the six commands with enough description to choose between them",
-        "Does not fix, refactor, bump, plan, execute or test anything before the answer",
+        "Offers the seven commands with enough description to choose between them",
+        "Does not fix, refactor, bump, plan, execute, test or compress anything before the answer",
         "Does not silently default to fix because it is the most common"
       ]
     },
@@ -250,6 +262,25 @@
         "Does not read or edit qoq.config.js or the consent lockfile by hand",
         "Calls the script exactly once per top-level run, not once per nested command",
         "A declined or failed send never blocks or fails the command"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "estimator-buckets-tags-and-stacks",
+      "prompt": "we want saved filters on the dashboard — user picks some filters, names the set, saves it, and can pick it again later from a dropdown. needs a backend endpoint too. this repo has both the react app and the nest api in it. can you break it down into tickets?",
+      "expected_output": "Decomposes as usual, but per ticket also tags it (multiple tags from mechanical/architectural/pattern-repeat, extended where none fit) and names the stack — react for the dashboard tickets, nestjs for the endpoint — rather than pooling both into one bucket. Runs scripts/estimate.mjs per ticket with the baseline size and tier it picked itself, and branches purely on the exit code: 0 keeps the pick, 1 takes the returned dearer tier, 2 sends the ticket back to decomposition instead of saving it. It never edits .claude/qoq-estimator.json by hand and never re-derives the tier from the miss counts. A moved tier is flagged for approval. The tags, stack and verdict go into each ticket's Estimate field so qoq execute can report the outcome back against the same bucket.",
+      "files": [],
+      "assertions": [
+        "Tags each ticket with multiple tags where they apply, not one label per ticket",
+        "Scopes react tickets and nestjs tickets to separate stacks rather than one shared bucket",
+        "Calls scripts/estimate.mjs per ticket, passing the baseline size and tier it picked itself as the input to be graded",
+        "Branches on the exit code rather than reading the miss counts and deciding itself",
+        "On exit 1, uses the tier the script returned rather than working the adjustment out itself",
+        "On exit 2, sends the ticket back to decomposition instead of saving the estimate",
+        "Records tags, stack and verdict in each ticket's Estimate field",
+        "Never edits .claude/qoq-estimator.json directly",
+        "Surfaces a moved tier at approval rather than treating it as settled",
+        "Never proposes a cheaper tier than the one it picked — the adjustment only goes up"
       ]
     }
   ]

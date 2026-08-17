@@ -45,6 +45,10 @@ shippable/testable>
 - **Complexity:** trivial | mechanical | moderate | judgment-heavy
 - **Agent tier:** `haiku` | `sonnet` | <the session's own model ID, for
   judgment-heavy> — every ticket is delegated; the tier is passed explicitly
+- **Estimate:** `<tags>` · stack `<stack>` · <baseline | confident | escalate |
+  split> <misses>/<attempts> <· tier haiku→sonnet> — from
+  `scripts/estimate.mjs`; `qoq execute` reports the outcome back against exactly
+  these tags and the **Agent tier** above
 - **Escalation:** none | <failed tier> ×<attempts> → re-dispatched at <tier>
 - **Depends on:** none | Ticket <id>
 - **Needs approval:** none | <new dependency and why it's needed>
@@ -138,6 +142,14 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
   identical steps; an inflated rating costs a bigger model and no extra passes.
 - **Plan status** tracks the whole plan; **Ticket status** tracks one ticket.
   A plan can be `in-progress` while individual tickets are still `todo`.
+- **Estimate** is the calibration bucket this ticket's size and tier were drawn
+  from, and it has to survive into execution: `qoq execute` reports the outcome
+  back against these exact tags, this stack and the **Agent tier** above, and an
+  outcome filed against anything else grades a decision nobody made. The target
+  is 90–100%; below it the tier has already been bumped a rung, above it the
+  estimator is proposing one rung down to check the work isn't being
+  over-served. Either move is surfaced at approval, because whether this ticket
+  really is the same shape as the ones behind that number is the user's call.
 - **Escalation** stays `none` unless a dispatch actually handed the ticket back
   and it was re-dispatched a rung up. Fill it in even when the escalated run then
   passes — it's how a resume knows not to retry the tier that already failed, and

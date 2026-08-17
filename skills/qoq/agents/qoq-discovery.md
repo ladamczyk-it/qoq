@@ -144,7 +144,7 @@ runner: vitest
 globals: yes
 react: yes
 conventions: ./testing-gate.md
-skills: ponytail-review=yes design-pattern-review=no
+skills: ponytail:ponytail-review=yes design-pattern-review=no
 ```
 
 `check:` is the flags alone, appended to `run:` by whoever runs the check —

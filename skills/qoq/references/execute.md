@@ -91,6 +91,60 @@ and unnecessary: `qoq test` earns its subagent by _slicing_ a scope nobody has
 read yet, and a ticket arrives pre-sliced with its implementation already in the
 writer's context.
 
+## Report the outcome back, once per ticket
+
+The moment a ticket reaches `done` or `blocked`, tell the estimator how its call
+turned out — this is the only place in the system that knows, and a plan
+approved next week is estimated from it:
+
+```bash
+node <skill>/scripts/estimate.mjs --record --tags <the ticket's tags> \
+  --stack <the ticket's stack> --tier <the tier the plan assigned> \
+  --outcome success|failure --attempts <n> \
+  --attribution estimation-miss|scope-expansion --summary "<the ticket title>"
+```
+
+Tags and stack come from the ticket's **Estimate** field verbatim, the tier from
+its **Agent tier** — the
+estimate being graded is _this much work at that tier_, so an outcome filed
+under a different tier grades a decision nobody made. When a ticket escalated,
+that still means the tier the **plan** assigned, not the one that finally
+delivered it: the rung that was picked is the thing that turned out to be wrong,
+and the record is what stops the next plan picking it again.
+
+`--attempts` is the count actually spent, including a re-dispatch after a failed
+gate and including the attempts that ran at the escalated tier.
+
+**`--outcome` is about delivery, not about how hard it was**, and the two verdicts
+it feeds are different questions:
+
+- `success` — the ticket is `done`. Still `success` if it took three rounds and an
+  escalation to get there; the attempt count already says the tier was
+  mis-picked, and that's a tier problem with a tier-shaped fix.
+- `failure` — the ticket ended `blocked`. Nothing delivered it, at any tier the
+  ladder could reach. That's the ticket being wrong rather than the model, and
+  it's the only thing that makes the estimator recommend a split.
+
+Filing a hard-won `done` as a failure is the mistake to avoid: it tells the next
+plan to decompose a ticket that was fine, instead of telling it to spend a bigger
+model.
+
+**The attribution is yours to judge, and it's the whole reason this signal is
+worth anything.** Two very different things make a ticket take three attempts:
+
+- `estimation-miss` — the ticket was what the plan said it was, and it still
+  took more than it was rated for. That's the sizing being wrong, and it belongs
+  in the record.
+- `scope-expansion` — the developer found work nobody knew was there: a
+  migration nothing mentioned, a broken assumption upstream. The ticket that got
+  built isn't the ticket that got estimated, so grading the estimate on it
+  teaches the next plan a lie. It's counted separately and never touches the
+  mean.
+
+When it's genuinely both, call it `scope-expansion`. A false miss quietly
+degrades every future estimate for that combination; a missed one costs a single
+data point.
+
 ## Escalation
 
 Three attempts spent — whether the agent handed back itself or the gate failed
