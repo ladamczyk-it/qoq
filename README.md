@@ -75,4 +75,4 @@ _Feel free to join us, please read [Contributing Guidelines](https://github.com/
 
 ![Monthly usage statistics CLI](https://adamczyk.ovh/img/stats/qoq.png)
 
-![Monthly usage statistics skills](https://adamczyk.ovh/img/stats/qoq-skills.png)
+![Monthly usage statistics skill](https://adamczyk.ovh/img/stats/qoq-skill.png)
