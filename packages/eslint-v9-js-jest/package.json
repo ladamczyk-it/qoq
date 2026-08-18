@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-js-jest",
-  "version": "6.0.1",
+  "version": "6.1.0",
   "description": "Eslint flat config template for JS + Jest",
   "keywords": [
     "eslint JavaScript + Jest template",
@@ -44,8 +44,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ladamczyk/qoq-eslint-v9-js": "^6.0.1",
-    "@ladamczyk/qoq-utils": "^6.0.1",
+    "@ladamczyk/qoq-eslint-v9-js": "^6.1.0",
+    "@ladamczyk/qoq-utils": "^6.1.0",
     "eslint-plugin-jest": "29.16.1",
     "globals": "17.11.0"
   },

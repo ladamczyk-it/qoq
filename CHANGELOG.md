@@ -1,3 +1,16 @@
+# [6.1.0](https://github.com/ladamczyk-it/qoq/compare/v6.0.1...v6.1.0) (2026-08-18)
+
+
+### Bug Fixes
+
+* add self-learning estimate to qoq plan skill ([2d56439](https://github.com/ladamczyk-it/qoq/commit/2d56439038ef83ce0e7760c92fe4e27be7123f75))
+* bump packages ([cae5406](https://github.com/ladamczyk-it/qoq/commit/cae5406106d491cc0fba96839c000ecb37e72f16))
+
+
+### Features
+
+* add custom agent for design patterns suggestions + skill optimalizations and version sync ([ce44fff](https://github.com/ladamczyk-it/qoq/commit/ce44fff2e3bd054465c465685147e003069d7e8e))
+
 ## [6.0.1](https://github.com/ladamczyk-it/qoq/compare/v6.0.0...v6.0.1) (2026-08-16)
 
 
