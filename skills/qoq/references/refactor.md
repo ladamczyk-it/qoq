@@ -12,16 +12,54 @@ tools are quiet, one assessment at a time.
 
 Positional, like `fix` — the same concept spelled the same way in both commands.
 
-The default comes from `qoq.config.js`'s `srcPath` — the project already declared
-what its source is, and every other qoq tool respects it. Re-deriving it, or
-defaulting to the repo root and dragging in `dist/` and fixtures, would be a
-second answer to a settled question.
+The default comes from `qoq.config.js`'s `srcPath`. Don't re-derive it and don't
+fall back to the repo root — that drags in `dist/` and fixtures.
 
 Given paths, it runs on **those only**. Four assessments over a large repo is a
 lot of reading, and most refactoring intent is local: one module, one directory,
 the thing you just touched. It's also what makes `bump`'s per-patch call
 practical — it passes the patch's changed files, so each assessment reads a
 handful of files instead of a project.
+
+## The one external lens — checked before anything runs
+
+Assessment 3 is `ponytail-review`, the only assessment this skill doesn't own,
+and the record's `skills` field says whether it's installed. Read that field
+**before dispatching the green base.** A `null` there means a quarter of the run
+is about to be silently downgraded, and one of the two answers is "let me install
+it and start over" — so ask while a re-run is still free. Asking when assessment
+3 comes up, after a green base and two assessments and a re-green, spends the
+user's time and then throws it away.
+
+Installed → say nothing, proceed. `null` → ask once:
+
+> `ponytail-review` isn't installed, so assessment 3 (what can we delete?) can't
+> run. Assessments 1, 2 and 4 are unaffected.
+>
+> - **Install and re-run** _(recommended)_ — from
+>   <https://github.com/DietrichGebert/ponytail>, as two separate prompts:
+>   `/plugin marketplace add DietrichGebert/ponytail`, then
+>   `/plugin install ponytail@ponytail`. Then `/qoq refactor <scope>` again.
+> - **Proceed without it** — you get 3 of 4 assessments. Nothing else asks what
+>   to delete: assessment 4 proposes structure, and runs unopposed without this.
+
+That last clause is the one worth saying out loud. The four assessments are
+deliberately in tension — 3 argues for less code and 4 argues for shape — and
+dropping 3 doesn't just remove a pass, it removes the counterweight to the one
+that follows it.
+
+**Recommended is not a veto.** Proceed-without is a real option; take it at the
+user's word, run the remaining assessments in full, and report the skipped one in
+the final summary so it's on the record rather than only in a message they
+scrolled past.
+
+A fresh install doesn't invalidate the record — no lens is a hashed file. Tell
+them to delete
+`node_modules/@ladamczyk/qoq-cli/bin/qoq-skill-discovery.json` before re-running,
+or the next run reads the same `null` and asks the same question.
+
+Under `--decisions auto` there is nobody to ask: skip the assessment, run the
+rest, and return the gap as an advisory with the others.
 
 ## Green base first
 
@@ -45,15 +83,14 @@ question.
 | 1   | **JSCPD, honestly**                | the duplication report                   |
 | 2   | **this project's own conventions** | how the surrounding code already does it |
 | 3   | **ponytail**                       | the `ponytail-review` lens               |
-| 4   | **design-pattern-review**          | the `design-pattern-review` lens         |
+| 4   | **design**                         | `qoq-designer` — smells, then patterns   |
 
 **Sequentially, never in parallel.** They overlap by design — duplication is
 often a missing pattern, and ponytail's answer to a pattern is often "delete it".
 Run together they write conflicting patches into the same files. Each one reads
 the tree the previous one left.
 
-The order is cheapest-and-most-mechanical first, so the judgement-heavy passes at
-the end look at a smaller, already-deduplicated tree.
+Run them in the order given: cheapest and most mechanical first.
 
 **"Honest" JSCPD** is the whole point of the word: the report lies in both
 directions. It hides real duplication under the configured threshold, and it
@@ -64,12 +101,54 @@ number goes down.
 **Assessment 2 is consistency, not catalogue.** It asks whether the code does
 things the way the rest of _this_ codebase already does them: naming, module
 shape, where errors are handled, how config is threaded through. Assessment 4
-asks the different question of whether it's the right pattern at all — code can
-be consistently wrong, or textbook and unlike everything around it.
+asks the different question of whether it's the right shape at all — code can be
+consistently wrong, or textbook and unlike everything around it.
 
-Assessments 3 and 4 dispatch the lens skills named on the record's `skills:`
-line. If one isn't available, say so and skip it — a missing lens is a reported
-gap, not a reason to improvise a substitute pass.
+**Assessment 3 dispatches `ponytail-review` under the exact string the record's
+`skills` field maps it to** — that value is the invocation, and the bare and
+prefixed forms don't resolve interchangeably. A missing lens is a reported gap,
+not a reason to improvise a substitute pass.
+
+## Assessment 4 — `qoq-designer`, and the file it hands back
+
+Dispatch `qoq-designer` over the same scope. It works out which stack the scope
+is actually written in, reads `assets/patterns/index.md` — the smell→pattern
+routing table — plus the per-stack table that scope needs (`react/index.md`
+today), hunts smells in the code, and returns the stack it detected followed by
+each smell with the pattern that resolves it and **the asset file holding that
+pattern's write-up**. It never opens that file, and it never edits.
+
+The stack comes from the scope's files, not from `package.json`: a scope of
+server modules in a React project is not a React scope. Take the line it opens
+with at face value unless the paths in front of you say otherwise — it's the
+cheapest place to catch a scan read against the wrong table.
+
+**Then you read the file it named**, and only that one. This split is the whole
+design:
+
+- The write-ups are long, stack-specific, and there are twenty-one of them
+  across the base catalogue and React's. Loading the catalogue to find out that
+  nothing in the scope needs a pattern is the cost this avoids.
+- Pattern documentation argues for its pattern. An agent that reads Observer's
+  write-up before scanning finds Observer. Smell first, catalogue second, is the
+  order that finds real problems instead of confirming ones you went looking for.
+- The refactoring itself needs the depth — the stack-idiomatic shape, the worked
+  before/after, and the "when it's the wrong call" section — and it needs it in
+  the thread that talks to the user and applies the change. That's you.
+
+Each write-up leads with the **cheaper thing the language or framework already
+offers**: a function parameter, a discriminated union, a `Record` of handlers, a
+module — or, for most of the React rows, passing `children` instead of the data a
+subtree needs. Take that answer when it holds. A pattern that buys nothing over
+a union type is ceremony proposed to a codebase that just finished assessment 3,
+and the user will be right to decline it.
+
+Present findings with the code in front of them, per the approval rules below —
+the pattern's name is not the argument, the cost it removes is.
+
+Never substitute a general-purpose design-pattern reviewer for it. They teach the
+Java-shaped GoF forms, and a TypeScript codebase reaching for `AbstractFactory`
+where a discriminated union does the job is worse than no assessment at all.
 
 ## After each: approve, apply, re-green
 

@@ -1,6 +1,7 @@
 ---
 name: qoq
-description: QoQ "quality over quantity" toolkit for JavaScript/TypeScript projects — seven commands over one shared project discovery: `fix` (Prettier/ESLint/Knip/JSCPD findings to a PASS/FAIL verdict), `refactor`, `bump`, `plan`, `execute`, `test`, and `compress` (strips agent-facing markdown to what an agent acts on). Use it whenever the user says "is this ready to merge", "fix the lint errors", "clean up / refactor / de-duplicate this", "remove dead code or dead deps", "bump the dependencies", "break this spec into tickets", "what's the implementation plan for X", "execute the plan" or "resume ./plans/<file>", "write tests for this" — and for `compress`, "my CLAUDE.md is too long", "trim/shrink/tighten the agent docs", "this doc is burning context", "strip the prose out of X.md", "reduce token usage in the instructions", or any ask to make markdown terser for an LLM to read. Trigger it even when the user never says "qoq" or names a tool.
+description: Quality toolkit for JavaScript/TypeScript repos — seven commands over one shared project discovery: `fix` (Prettier/ESLint/Knip/JSCPD findings to a PASS/FAIL verdict), `refactor`, `bump`, `plan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an approved plan executed or resumed, tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
+argument-hint: '[fix|refactor|bump|plan|execute|test|compress] [scope]'
 allowed-tools:
   - Read
   - Write
@@ -34,11 +35,10 @@ allowed-tools:
 
 # QoQ — quality over quantity
 
-Seven commands, one discovery, five agents. Everything a command needs to know
-about the project comes from one cached **record** derived once per top-level run.
+Seven commands, one shared discovery record, six agents.
 
-**Read only what you need.** This file routes; each command's reference owns its
-rules. Read the one you need, not all of them.
+**This file routes.** Each command's reference owns its rules — read the one you
+need, not all of them.
 
 | Command    | Does                                                       | Reference                                        |
 | ---------- | ---------------------------------------------------------- | ------------------------------------------------ |
@@ -50,8 +50,8 @@ rules. Read the one you need, not all of them.
 | `test`     | unit/integration coverage for code that already exists     | [references/test.md](references/test.md)         |
 | `compress` | strip agent-facing markdown to what an agent acts on       | [references/compress.md](references/compress.md) |
 
-Discovery is shared and runs first, every time — except for `compress`, which
-edits prose and runs no tool, so no line of the record bears on it:
+Everything a command knows about the project comes from one cached record,
+derived once per top-level run:
 [references/discovery.md](references/discovery.md).
 
 ## Usage
@@ -79,71 +79,128 @@ in [references/refactor.md](references/refactor.md).
 
 ## Entry
 
-0. **`compress` skips straight to step 4** — it dispatches no discovery, because
-   nothing on the record describes a markdown file. Every other command goes
-   through step 1.
-1. **Dispatch `qoq-discovery`** with the project root and the resolved `skills:`
-   line — look `ponytail-review` and `design-pattern-review` up in your own
-   available-skills list and hand in the verdicts under the exact names it gives
-   them, plugin prefix and all. That list is in your context and not the agent's
-   — the one input it can't derive. Left to guess, it searches the filesystem,
-   misses every plugin lens, and `refactor` drops an assessment with nothing in
-   the output to say it did. Everything else it works out itself. Branch on
-   the one status word it returns — `fresh` / `verified` / `repaired <fields>` /
-   `blocked <question>` — and nothing else. Once per top-level run: a command
-   invoked from inside another inherits the record rather than re-dispatching.
-2. **`blocked`** → ask the user, write the answer into the project's own docs, and
-   re-dispatch. Details in [references/discovery.md](references/discovery.md).
-3. **No command given** → ask which one. `/qoq` on its own has seven plausible
-   readings and guessing one is the failure mode the standing rules exist to
-   prevent.
-4. **Usage stats** — one call, before the work starts, once per top-level run:
+1. **Discovery** — every command except `compress`, which edits prose, runs no
+   tool, and skips to step 2 because no line of the record bears on it.
 
    ```bash
-   node <skill>/scripts/stats.mjs <command>
+   node <skill>/scripts/discovery-check.mjs --project <root>
    ```
 
-   Exit 0 ends it: consent was on record and the script already acted on it.
-   Exit 1 means nobody has been asked yet — ask with `AskUserQuestion`, then
-   record the answer:
+   | Exit | Means                                                        | Do                               |
+   | ---- | ------------------------------------------------------------ | -------------------------------- |
+   | 0    | current — the record is on stdout                            | use it, dispatch nothing         |
+   | 1    | missing or stale — stdout is the hash the new record carries | dispatch `qoq-discovery` with it |
+
+   The dispatch carries the project root, that hash, and **the resolved `skills`
+   field** — the one input the agent cannot derive, because the available-skills
+   list is in your context and not in its. Look `ponytail-review` up in that
+   list, **project scope before plugin scope**: a bare `ponytail-review` wins
+   over `ponytail:ponytail-review`, and the winning name is what you hand in,
+   because the recorded name _is_ the invocation. In neither scope is `null`.
+
+   Branch on the one status word it returns and nothing else: `fresh` /
+   `verified` → carry on; `repaired <fields>` → carry on and report the fields
+   at the end of the run; `blocked <question>` → ask the user, write the answer
+   into the project's own docs, re-dispatch
+   ([references/discovery.md](references/discovery.md) has the wording).
+
+   Once per **top-level** run — a command invoked from inside another inherits
+   the record rather than re-dispatching. The hash covers only files on disk, so
+   an installed or moved lens leaves a stale `skills` field this step can't see;
+   `references/discovery.md` has what the hash covers and what to tell the user
+   when that bites.
+
+2. **Usage stats** — one call, before the work starts, once per top-level run:
 
    ```bash
+   node <skill>/scripts/stats.mjs <command>                    # 0 handled, 1 not asked yet
    node <skill>/scripts/stats.mjs <command> --consent yes|no
    ```
 
-   Put the question honestly, because the point of asking is that the user
-   decides on the facts. Each run posts two things to
-   `https://stats.adamczyk.ovh`: the tool name, always the literal
-   `"qoq-skill"`, and the command that ran, one of the seven, e.g. `["fix"]`.
-   Never sent: their code, file names, paths, config contents, tool findings,
-   project or package names, scope arguments, plan contents, and nothing
-   identifying them or their machine. A decline is recorded and never re-asked.
+   Exit 1 means nobody has been asked — ask with `AskUserQuestion`, then record
+   the answer. The script owns where consent lives and whether it was already
+   given, because both ways of getting that wrong — re-asking someone who
+   declined, sending for them — leave nothing in the transcript to notice.
 
-   The script resolves consent itself — the project's `qoq.config.*` first, the
-   same `stats:` key the CLI writes, then `~/.claude/qoq/consent.md` — because
-   both ways of getting it wrong, re-asking someone who declined and sending for
-   them, leave nothing in the transcript to notice.
+   Put the question honestly, on the facts. Each run posts two things to
+   `https://stats.adamczyk.ovh`: the literal tool name `"qoq-skill"`, and which
+   of the seven commands ran, e.g. `["fix"]`. Never sent: their code, file
+   names, paths, config contents, tool findings, project or package names, scope
+   arguments, plan contents, or anything identifying them or their machine.
 
    Keyed to the command the user typed: a `fix` dispatched from inside
-   `refactor` is part of that refactor, not a second run, so it doesn't call
-   this again.
+   `refactor` is part of that refactor, not a second run.
 
-5. **Run the command**, then close the run by reporting anything discovery
+3. **No command given** → ask which one. Never guess.
+
+4. **Run the command**, then close the run by reporting anything discovery
    repaired — one line per field, _after_ the real work, never before it.
 
 ## Who calls whom
 
 Commands compose, but **only on the main thread**.
 
-- `fix` ← `refactor` (green base and re-green), `execute` (the per-ticket gate,
-  after its developer hands back), `test` (the per-slice gate, after its writer
-  hands back)
-- `refactor` ← `bump` (per patch), `execute` (milestone gate), `test` (final tidy)
-- `execute` ← `plan`, offered at approval and never dispatched from inside it
-- `fix` ← `compress` (the Prettier pass over the markdown it rewrote)
-- `fix` calls nothing but its own checker agent
-- `compress` is called by nobody. It changes what future runs read, never what
-  this one does, so no command should be reaching for it mid-task.
+| Command    | Calls                  | Called by                                                     |
+| ---------- | ---------------------- | ------------------------------------------------------------- |
+| `fix`      | its own `qoq-checker`  | `refactor`, `execute`, `test`, `compress`                     |
+| `refactor` | `fix`                  | `bump`, `execute`, `test`                                     |
+| `bump`     | `refactor` (per patch) | —                                                             |
+| `plan`     | —                      | —                                                             |
+| `execute`  | `fix`, `refactor`      | `plan` — offered at approval, never dispatched from inside it |
+| `test`     | `fix`, `refactor`      | —                                                             |
+| `compress` | `fix`                  | nobody                                                        |
+
+`compress` changes what future runs read, never what this one does, so no
+command should be reaching for it mid-task.
+
+`refactor`'s assessment 3 invokes `ponytail-review` under the exact name the
+record's `skills` field carries. That name _is_ the invocation, and the bare and
+prefixed forms do not resolve interchangeably. Assessment 4 is `qoq-designer`,
+which ships with this skill and needs no lookup.
+
+## Standing rules
+
+These hold in every command. Each command's reference assumes them rather than
+restating them.
+
+**Never assume a default.** Anything unclear is a question for the user, not a
+sensible guess with a note afterwards — a guess that looks plausible is worse
+than a stop, because nobody notices it. Subagents can't ask, so an agent on any
+doubt **writes nothing and returns the question**: a half-written artifact is
+indistinguishable from a stale one on the next run. The caller asks and
+re-dispatches with the answer.
+
+**`npx` is for `qoq` and nothing else.** Every other command is the project's own
+script, verbatim — `npm test`, `npm run build`, `npm run test:execute -- {file}`.
+Never compose `npx vitest …` or `npx tsc …` out of a dependency spotted in
+`package.json`: that invocation skips the project's config, flags, and setup
+files, and it is plausible enough that nobody notices it was invented. A project
+with no script for something is a project that has to be asked.
+
+**Nothing runs in parallel.** Not tickets, not test slices, not assessments, not
+patches. Every check that matters is an attribution question — "did _this_
+change break it?" — which a second agent writing concurrently makes
+unanswerable.
+
+**An agent that reports never fixes.** `qoq-checker`, `qoq-bumper` and
+`qoq-designer` return findings and edit nothing. An agent permitted to do both will quietly do both,
+and the finding disappears into the diff instead of reaching the user.
+
+**Never buy green.** No `.skip`, no loosened assertion, no narrowed ticket, no
+weakened gate. If the bar can't be met, that's a report, not something to route
+around.
+
+**The qoq CLI belongs to `fix`.** Every other command and every agent gets its
+verdict by **dispatching `qoq fix`** and reading the PASS/FAIL line; nobody
+assembles `npx qoq …` for themselves. One owner keeps the flags, the scoping,
+the report location, and the digest a single answer instead of six that drift.
+The project's own scripts — `test`, `test:one`, `build` — are a different matter
+and anyone may run them.
+
+**Read the digest, never a raw report.** An ESLint or JSCPD report on a real
+codebase runs to tens of thousands of lines and is almost all repetition;
+`scripts/summarize.mjs` collapses it. Open a raw report only when one specific
+finding needs a line number, and read only that slice.
 
 ### The gate runs one thread up
 
@@ -156,105 +213,9 @@ re-dispatches on a FAIL, with the digest pasted in. Same gate, same scope, one
 thread up — and the retry budget moves with it, so an attempt is one
 dispatch-and-gate round rather than a loop inside the agent.
 
-The two external review lenses — `ponytail-review` and `design-pattern-review` —
-are called only by `refactor`'s assessments 3 and 4, under the exact names the
-available-skills list gives them (a plugin skill carries a `plugin:skill`
-prefix, and the bare name won't resolve).
-
-## Standing rules
-
-These hold in every command. Each command's reference assumes them rather than
-restating them.
-
-**Never assume a default.** Anything unclear is a question for the user, not a
-sensible guess with a note afterwards. A guess that looks plausible is worse than
-a stop, because nobody notices it. Subagents can't ask, so an agent on any doubt
-**writes nothing and returns the question** — a half-written artifact is
-indistinguishable from a stale one on the next run. The caller asks and
-re-dispatches with the answer.
-
-**`npx` is for `qoq` and nothing else.** Every other command is the project's own
-script, verbatim — `npm test`, `npm run build`, `npm run test:execute -- {file}`.
-Never compose `npx vitest …` or `npx tsc …` out of a dependency spotted in
-`package.json`: that invocation skips the project's config, flags, and setup
-files, and it is plausible enough that nobody notices it was invented. A project
-with no script for something is a project that has to be asked.
-
-**Nothing runs in parallel.** Not tickets, not test slices, not assessments, not
-patches. Everything here shares one working tree, and every check that matters is
-an attribution question — "did _this_ change break it?" — which a second agent
-writing concurrently makes unanswerable. Sequential also means each step starts
-from a tree the previous one left green.
-
-**An agent that reports never fixes.** `qoq-checker` and `qoq-bumper` return
-findings and edit nothing. An agent permitted to do both will quietly do both,
-and the finding disappears into the diff instead of reaching the user.
-
-**Never buy green.** No `.skip`, no loosened assertion, no narrowed ticket, no
-weakened gate. If the bar can't be met, that's a report, not something to route
-around.
-
-**The qoq CLI belongs to `fix` and to nothing else.** `fix` runs it, through its
-own `qoq-checker`. Every other command and every agent gets its verdict by
-**dispatching `qoq fix`** and reading the PASS/FAIL line; nobody assembles `npx
-qoq …` for themselves. One command owning the invocation keeps the flags, the
-scoping, the report location, and the digest a single answer instead of six that
-drift. The project's own scripts — `test`, `test:one`, `build` — are a different
-matter and anyone may run them.
-
-**Read the digest, not the raw reports.** An ESLint or JSCPD report on a real
-codebase runs to tens of thousands of lines and is almost all repetition. So
-`qoq-checker`'s whole job is three commands, two of them scripts in this skill:
-
-```bash
-node <skill>/scripts/reports-current.mjs <report dir> <scope>   # 0 reuse, 1 re-run
-<run:> <check:>                # both from the record; --json is what writes the reports at all
-node <skill>/scripts/summarize.mjs <report dir>
-```
-
-A subagent can't guess where this skill lives, and neither script defaults its
-arguments, so the **dispatch hands in both script paths and the report
-directory**. `--output` is never passed: the CLI's default is where reports land
-(`bin/report` inside the CLI package), and that default _is_ the `<report dir>`
-argument.
-
-Open a raw report only when one specific finding needs a line number, and read
-only that slice.
-
-## The record
-
-Every command starts from one file, written by `qoq-discovery`, and dying with
-`npm install` — the right lifetime, since its answers are only valid for the
-dependency tree currently installed:
-
-```
-node_modules/@ladamczyk/qoq-cli/bin/qoq-skill-discovery.md
-```
-
-```
-run: npx qoq
-check: --check --json
-test: npm test
-test:one: npm run test -- {file}
-build: npm run build
-runner: vitest
-globals: yes
-react: yes
-conventions: ./testing-gate.md
-skills: ponytail:ponytail-review=yes design-pattern-review=no
-```
-
-Every boolean is `yes`/`no` — one encoding in a file five agents parse by hand.
-A full check is `<run:> <check:>`, the two lines concatenated. Answers the user
-gave by hand live in the project's own docs instead, and outlive the record.
-
-Which command needs which lines, what each one means, and how the record is
-derived, verified, and repaired:
-[references/discovery.md](references/discovery.md).
-
 ## Agents
 
-Five, in `agents/`. Everything is pinned except `qoq-developer`, whose tier is a
+Six, in `agents/`. Everything is pinned except `qoq-developer`, whose tier is a
 property of the ticket and is passed at dispatch.
 
 | Agent           | Model      | Job                                                      |
@@ -264,6 +225,16 @@ property of the ticket and is passed at dispatch.
 | `qoq-bumper`    | sonnet     | read a changelog, find what lands here — one per package |
 | `qoq-developer` | _dispatch_ | one ticket, TDD — one per ticket                         |
 | `qoq-tester`    | sonnet     | write the specs for one slice — one per slice            |
+| `qoq-designer`  | sonnet     | stack → smells → patterns — `refactor`'s assessment 4    |
+
+Discovery installs them into the project's `.claude/agents/` on its way past
+(`scripts/sync-agents.mjs`), because an agent file inside a skill is registered
+by nothing. Claude Code picks that directory up on its own a moment later, so the
+dispatches right after a first install are the fallback below and the ones after
+that aren't. Ahead of `fix`, `test` and `execute` — the three that dispatch
+inside that window — discovery's report of an install is a question for the user
+(carry on, or exit and re-run with them registered); elsewhere it's a line in the
+end-of-run notice.
 
 If an agent isn't registered under `.claude/agents/`, dispatch `general-purpose`
 with the agent file's body pasted in, **plus the tier and the prohibitions
@@ -274,10 +245,8 @@ forbids.
 
 ## Test conventions
 
-`references/test-conventions.md` holds the house rules for writing specs —
-coverage philosophy, when to mock, React Testing Library and MSW conventions, and
-the lint rules that make a spec clean by construction. Whoever writes a test in
-this project reads it rather than reinventing a style. Where it conflicts with
-the project's own `testing-gate.md` (named on the record's `conventions:` line),
-**the project's file wins** — it's human-written and knows things this skill
-can't infer.
+[references/test-conventions.md](references/test-conventions.md) holds the house
+rules for writing specs. Whoever writes a test in this project reads it rather
+than reinventing a style. Where it conflicts with the project's own file — named
+on the record's `conventions` field — **the project's file wins**: it's
+human-written and knows things this skill can't infer.

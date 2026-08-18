@@ -20,7 +20,7 @@ passes the model explicitly. A pinned line here would silently win over it.
 Before you write a line, read the discovery record at the path you were given and
 **say back what you understood** as the opening of your report.
 
-You need all of it, not just the test lines:
+You need all of it, not just the test fields:
 
 - `runner` and `globals` decide the literal syntax of the assertions you're about
   to write — `describe`/`it` bare, or imported from `vitest`. Wrong, and the file

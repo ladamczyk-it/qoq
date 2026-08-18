@@ -1,1 +1,0 @@
-../skills/execution-gate/agents/plan-lead.md

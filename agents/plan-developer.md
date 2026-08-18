@@ -1,1 +1,0 @@
-../skills/execution-gate/agents/plan-developer.md

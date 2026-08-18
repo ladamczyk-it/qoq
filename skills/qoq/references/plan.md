@@ -92,6 +92,10 @@ node <skill>/scripts/estimate.mjs --tags architectural,mechanical \
   --stack react --size S --tier haiku
 ```
 
+A project that has never run `execute` has no store yet; the script exits `0`
+with `"verdict": "baseline"` and your own pick stands. That's the normal first
+run, not a failure.
+
 `--tier` is your baseline pick and takes the literal `session` for
 judgment-heavy work — the script has no way to know the session's model ID, and
 the ticket records it, not this call. Branch on the exit code:

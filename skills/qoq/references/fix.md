@@ -16,9 +16,8 @@ because of who asks: `execute` needs to know whether _this ticket_ is clean and
 `test` whether _this slice_ is, not whether the repo is.
 
 Both of those callers dispatch a subagent to do the writing, so the gate runs one
-thread up — see **The gate runs one thread up** in `SKILL.md`. The scope and the
-retry budget both survive the move intact, which is the only property that
-mattered.
+thread up (`SKILL.md`). The scope and the retry budget both survive the move
+intact, which is the only property that mattered.
 
 ## The checker
 
@@ -27,19 +26,16 @@ this command's job, and an agent that can both report and fix will do both, whic
 loses the audit trail of what changed and why.
 
 **Reports are reused only when they're demonstrably current**, and
-`scripts/reports-current.mjs` is what decides — exit 0 reuse, exit 1 re-run. It's
-an mtime comparison, far cheaper than the tools, and it's what makes the loop head
-safe to call five times in a row without five full tool runs. A stale digest read
-as current would make this command declare PASS over code nothing checked, which
-is why it's a script rather than a judgement call.
+`scripts/reports-current.mjs` is what decides — exit 0 reuse, exit 1 re-run.
+Never decide it by eye: a stale digest read as current makes this command declare
+PASS over code nothing checked.
 
-**The check is `<run:> <check:>`** — two record lines concatenated, both written
-by `qoq-discovery`, which is the only agent that opens the CLI's shipped
-`AGENTS.md`. `check:` carries `--json`, and `--json` is not an optimisation — it
-is what writes the reports at all, and without it the checker has nothing to
-summarise. Reports land in the CLI's default output directory, next to the record
-and with the same lifetime. Don't pass `--output`: one less path to agree on and
-get wrong, and `npm install` wipes both together.
+**The check is `<run> <check>`** — two record lines concatenated. `check` carries
+`--json`, which is not an optimisation: it is what writes the reports at all,
+and without it the checker has nothing to summarise. Don't pass `--output` —
+reports belong in the CLI's default directory, next to the record and with the
+same lifetime, so `npm install` wipes both together and nobody has a second path
+to agree on.
 
 **The dispatch hands the checker three things it cannot derive**: the absolute
 paths to `scripts/reports-current.mjs` and `scripts/summarize.mjs` in this skill,
@@ -72,9 +68,8 @@ test, and burns the budget on a known dead end.
 
 ## Why it loops
 
-Fixes cascade. Prettier reformats a file and ESLint now has an opinion about it;
-a Knip-driven deletion makes another export unused. One pass is not enough, and
-pretending it is means handing back a "fixed" tree that fails the next check.
+Fixes cascade — a Prettier rewrite reopens an ESLint rule, a Knip-driven
+deletion makes another export unused. One pass is never the answer.
 
 **Progress is announced, continuation is asked.** One line per loop:
 
@@ -113,10 +108,8 @@ caller has to parse a digest to learn whether it can carry on.
 
 ## What `fix` doesn't do
 
-It doesn't delegate the fixing. `qoq-checker` reports; this command edits. A lint
-fix is a mechanical single-file edit that has to be attributed to the tool that
-reported it — dispatching an agent per finding costs more than the fix and blurs
-that attribution.
+It doesn't delegate the fixing. `qoq-checker` reports; this command edits. Never
+dispatch an agent per finding.
 
 It also doesn't ask before applying. A lint rule is not a matter of taste, which
 is exactly what separates this command from `refactor`.

@@ -102,9 +102,7 @@ fails is carried as unbumpable with the failure named; re-reading the same
 changelog to get the same answer is a loop, not a retry.
 
 Re-cutting never needs re-approval. It changes how the approved bumps are sliced,
-not which ones were approved. The cost is many more validate cycles than one
-grouped patch, which is the trade: the alternative is skipping fourteen good
-bumps because a fifteenth was bad.
+not which ones were approved.
 
 ## One major step per package, per round
 

@@ -13,6 +13,9 @@ the diagram is the same lie pointed the other way. The prose still wins on a
 disagreement, so a change that starts here isn't finished until it's argued out
 in the reference file too.
 
+Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
+— also outside the skill, and for the same reason these diagrams are.
+
 | Diagram                                     | Prose it reflects                                                                      |
 | ------------------------------------------- | -------------------------------------------------------------------------------------- |
 | [Entry and discovery](#entry-and-discovery) | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md) |
@@ -42,25 +45,29 @@ anywhere else in a label are fine, so lead with a word: `X["run \`test:one\` on 
 flowchart TD
     Q["/qoq [command]"] --> ISC{"command =<br/>compress?"}
     ISC -->|"yes"| STATS
-    ISC -->|"no"| DISP
+    ISC -->|"no"| CHECK
 
-    DISP["dispatch **qoq-discovery**<br/>(Haiku, one per top-level run)<br/>caller passes the project root<br/>**+ the resolved skills: line**<br/>*the available-skills list is the<br/>caller's context, not the agent's*"]
+    CHECK["**scripts/discovery-check.mjs** —<br/>hash package.json + the lockfile +<br/>the skill's agent files,<br/>compare it to the record's hash field<br/>*package.json too: a renamed script<br/>moves no lockfile, and every command<br/>field on the record quotes one*<br/>*the agents too: an upgraded skill<br/>moves nothing in the project, and<br/>discovery is what installs them*"]
+    CHECK -->|"exit 0 — record on stdout"| USE["**use the record as-is**,<br/>dispatch nothing<br/>*the common case,<br/>and the reason it exists*"]
+    CHECK -->|"exit 1 — missing, or the<br/>project moved. stdout = the<br/>hash the record must carry"| DISP
+
+    DISP["dispatch **qoq-discovery**<br/>(Haiku, one per top-level run)<br/>caller passes the project root,<br/>**the hash**, and **the resolved skills field**<br/>*the available-skills list is the<br/>caller's context, not the agent's*<br/>*each lens resolved on its own,*<br/>*project scope first, plugin second:*<br/>*a bare name beats a prefixed one*"]
 
     subgraph DISCO["qoq-discovery flow *(everything the agent does)*"]
         direction TB
-        HAS{"record<br/>exists?"}
-        HAS -->|yes| VER{"verify it<br/>still holds"}
-        VER -->|valid| DONE["return record<br/>unchanged"]
-        VER -->|stale| D0["re-derive the<br/>failed lines only"]
+        HAS{"a stale record<br/>to repair?"}
+        HAS -->|yes| VER{"verify it<br/>field by field"}
+        VER -->|"all hold"| DONE["re-stamp the hash,<br/>change nothing else<br/>*(a bump that moved no script)*"]
+        VER -->|stale| D0["re-derive the<br/>failed fields only"]
         HAS -->|no| D0
 
         D0 --> DOCS["**read the project's docs first** —<br/>CLAUDE.md / AGENTS.md / README.md.<br/>*a written answer outranks a guess*"]
         DOCS --> D1["**1. qoq installed?**<br/>@ladamczyk/qoq-cli + qoq.config.js<br/>→ **no = the run stops**,<br/>with the install command"]
-        D1 --> D2["**2. the two lenses**<br/>*copy the dispatched skills: line<br/>verbatim — never search the<br/>filesystem for a lens; a plugin<br/>one is invisible there*"]
+        D1 --> D2["**2. the lens**<br/>*copy the dispatched skills: map<br/>verbatim — ponytail-review → the<br/>string that invokes it, or null.<br/>Never search the filesystem for it;<br/>a plugin lens is invisible there*"]
         D2 --> D3["**3. project commands?**<br/>test — full suite · test — single file · build<br/>*the project's own scripts —<br/>npx is qoq's alone*"]
-        D3 --> D3B["**3b. the check flags** — read the CLI's<br/>own AGENTS.md **once, here**<br/>→ `check: --check --json`<br/>*the only agent that opens it;<br/>thousands of tokens, one line of answer*"]
+        D3 --> D3B["**3b. the check flags** — read the CLI's<br/>own AGENTS.md **once, here**<br/>→ `check` = `--check --json`<br/>*the only agent that opens it;<br/>thousands of tokens, one line of answer*"]
         D3B --> D4["**4. test conventions?**<br/>runner · globals on or off ·<br/>React? · a testing-gate.md<br/>at the root"]
-        D4 --> REC["write record →<br/>node_modules/@ladamczyk/qoq-cli/bin/<br/>qoq-skill-discovery.md"]
+        D4 --> REC["write the record — **JSON**,<br/>hash included →<br/>node_modules/@ladamczyk/qoq-cli/bin/<br/>qoq-skill-discovery.json"]
 
         BLOCK(["**agent stops**<br/>reports the open question,<br/>writes nothing"])
         D1 -.->|anything unclear| BLOCK
@@ -75,8 +82,14 @@ flowchart TD
     ASK -.-> WRITE["**write the answer into the<br/>project's docs** — CLAUDE.md /<br/>AGENTS.md / README.md.<br/>*survives the next reinstall*"]
     WRITE -.-> DISP
 
-    REC --> OPT
-    DONE --> OPT
+    REC --> SYNC
+    DONE --> SYNC
+    SYNC["**scripts/sync-agents.mjs** —<br/>copy the skill's agent files into<br/>&lt;root&gt;/.claude/agents<br/>*an agent inside a skill is registered<br/>by nothing; symlinked ones are left alone*<br/>*Claude Code registers them on its own<br/>a moment later — dispatches before<br/>that fall back to general-purpose*"]
+    SYNC -->|"nothing installed,<br/>or plan / bump / refactor —<br/>notice at the end of the run"| OPT
+    SYNC -.->|"installed, and the command<br/>is fix / test / execute"| AASK
+    AASK(["**caller ASKS THE USER**<br/>agents were installed — continue now on<br/>the general-purpose fallback, or exit<br/>and re-run with them registered?<br/>*those three dispatch a pinned agent<br/>inside the pickup window — and for<br/>qoq-tester the fallback is its<br/>restriction gone*"])
+    AASK -.->|"continue"| OPT
+    USE --> OPT
 
     OPT{"which<br/>command?"}
     OPT -->|"none given"| OASK(["**ASK THE USER**<br/>which command?"])
@@ -85,7 +98,7 @@ flowchart TD
 
     STATS["**usage stats** — once per top-level run<br/>`node scripts/stats.mjs &lt;command&gt;`<br/>reads qoq.config `stats:`, then<br/>~/.claude/qoq/consent.md<br/>*payload is the tool name +<br/>the command, nothing else*"]
     STATS -.->|"exit 1 — never asked"| SASK(["**ASK THE USER**<br/>send anonymous usage stats?<br/>*consent is never defaulted*"])
-    SASK -.->|"`--consent yes/no` — recorded in<br/>qoq.config, or the lockfile<br/>if there is no config"| STATS
+    SASK -.->|"answer recorded — `--consent yes/no`<br/>into qoq.config `stats:`, or<br/>~/.claude/qoq/consent.md if there<br/>is no config"| STATS
 
     STATS -->|fix| RFIX["**qoq fix**<br/>the check/fix loop"]
     STATS -->|refactor| RREF["**qoq refactor**<br/>green base, four assessments"]
@@ -101,7 +114,7 @@ flowchart TD
     RPLAN --> NOTE
     REXEC --> NOTE
     RTEST --> NOTE
-    NOTE(["**end of run: notice to user**<br/>what discovery repaired,<br/>one line each"])
+    NOTE(["**end of run: notice to user**<br/>what discovery repaired, one line each,<br/>plus any agents it installed.<br/>*a lens is in none of the hashed inputs,<br/>so edit the skills field or delete the record*"])
 
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
     classDef command fill:#f59e0b1a,stroke:#f59e0b,stroke-width:2px,stroke-dasharray:4 3
@@ -109,7 +122,7 @@ flowchart TD
 
     class DISCO agent
     class RFIX,RREF,RBUMP,RPLAN,REXEC,RTEST,RCOMP command
-    class ASK,OASK,SASK,NOTE user
+    class ASK,OASK,SASK,AASK,NOTE user
 ```
 
 ---
@@ -122,7 +135,7 @@ flowchart TD
 
     subgraph CHECKER["qoq-checker flow *(everything the agent does)*"]
         direction TB
-        C0["**read the record** — `run:` and<br/>`check:`. *one read, first move —<br/>discovery already distilled the<br/>CLI's AGENTS.md into that line*"]
+        C0["**read the record** — `run` and<br/>`check`. *one read, first move —<br/>discovery already distilled the<br/>CLI's AGENTS.md into that line*"]
         C0 --> S{"run `reports-current.mjs<br/>&lt;report dir&gt; &lt;scope&gt;`<br/>exit 0 or 1?"}
         S -->|"1 — stale or missing"| RUN["the check: `&lt;run:&gt; &lt;check:&gt;`<br/>*--json is what writes the<br/>reports at all*"]
         S -->|"0 — current"| DIG
@@ -181,16 +194,34 @@ flowchart TD
 ```mermaid
 flowchart TD
     SCOPE["**scope** = positional paths,<br/>else `qoq.config`'s `srcPath`"]
-    SCOPE --> GB
+    SCOPE --> LENSQ
+    LENSQ{"record's `skills`:<br/>**ponytail-review** installed?"}
+    LENSQ -->|yes| GB
+    LENSQ -->|null| LENSASK(["**ASK THE USER** — before the<br/>green base, while a re-run is free.<br/>install &amp; re-run *(recommended)*,<br/>or proceed on 3 of 4 — assessment 4<br/>then runs with no counterweight"])
+    LENSASK -.->|install| LENSSTOP(["**stop** — install, delete the<br/>discovery record, re-run"])
+    LENSASK -.->|proceed| GB
     GB["dispatch **qoq fix** —<br/>establish a green base"]
     GB --> GBQ{"green?"}
     GBQ -->|no| GBSTOP(["**stop** — nothing to refactor<br/>against a red base"])
     GBQ -->|yes| SEQ
 
-    SEQ["**one at a time, in order**<br/>1. JSCPD — honest read<br/>2. this project's own conventions<br/>3. ponytail<br/>4. design-pattern-review"]
+    SEQ["**one at a time, in order**<br/>1. JSCPD — honest read<br/>2. this project's own conventions<br/>3. ponytail<br/>4. design — **qoq-designer**"]
     SEQ --> ASSESS["run assessment *N*"]
-    ASSESS -.->|"3 and 4 only"| LENS["dispatch the lens skill —<br/>**ponytail-review** /<br/>**design-pattern-review**"]
+    ASSESS -.->|"3 only"| LENS["dispatch **ponytail-review** under the<br/>string the record's skills map gives it —<br/>bare (project) or **plugin:** prefixed.<br/>declined above = skipped, and named<br/>in the final summary"]
     LENS -.-> AQ
+    ASSESS -.->|"4 only"| DSGN["dispatch **qoq-designer** (Sonnet)<br/>*(scope, project root)*"]
+
+    subgraph DESIGNER["qoq-designer flow"]
+        direction TB
+        DSTACK["identify the **stack** from the<br/>scope's own files — .tsx/.jsx or an<br/>import from react — *not package.json*<br/>*(a server module in a React project<br/>is not a React scope)*"]
+        DSTACK --> DIDX["read **assets/patterns/index.md**<br/>the smell→pattern routing table,<br/>plus **react/index.md** when the stack<br/>matched — additively, never instead<br/>*(never the per-pattern files —<br/>a catalogue read first is a<br/>pattern hunt, not a smell hunt)*"]
+        DIDX --> DSMELL["hunt smells in the scope:<br/>name the cost each imposes **today**,<br/>check the cheaper native answer<br/>*(union, Record of fns, module —<br/>or pass children, for most React rows)*"]
+        DSMELL --> DOUT["return: **the stack detected**, then<br/>per smell: where · cost · candidate<br/>pattern · **asset file** ·<br/>cheaper alternative · confidence<br/>+ smells found and **rejected**"]
+    end
+
+    DSGN --> DSTACK
+    DOUT --> DREAD["**caller** opens only the asset files<br/>named — the deep stack-idiomatic write-up,<br/>before/after, and when it's wrong"]
+    DREAD -.-> AQ
     ASSESS --> AQ{"findings?"}
     AQ -->|none| NEXT
     AQ -->|yes| APPR(["**ASK THE USER**<br/>apply these?"])
@@ -203,9 +234,11 @@ flowchart TD
 
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
+    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
 
-    class APPR user
+    class APPR,LENSASK user
     class GB,REGREEN,LENS skill
+    class DSGN agent
 ```
 
 ---
@@ -377,7 +410,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    TARG["a path, or a behaviour to cover<br/>*(from the user, or from an<br/>execute ticket)*"]
+    TARG["a path, or a behaviour to cover<br/>*(from the user — the only caller.<br/>a ticket raises its own assertions<br/>inside qoq-developer)*"]
     TARG --> TD1
     TD1["**read the record** — runner · globals ·<br/>React? · conventions file · commands.<br/>*nothing rediscovered here*"]
     TD1 --> TSCOPE["**infer the scope** — one piece → unit,<br/>a flow across pieces → integration.<br/>state it back, don't ask"]

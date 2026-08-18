@@ -1,13 +1,16 @@
 # `qoq test` — coverage for code that already exists
 
-Unit and integration tests on Vitest or Jest. The record's `runner:` line already
+Unit and integration tests on Vitest or Jest. The record's `runner` field already
 says which of the two this project is, and a project with neither never got past
 discovery — so there's no detection phase here.
 
-Two callers, one expectation: a person asking for coverage, and `qoq-developer`
-asking for its ticket's hand-written assertions to be brought up to standard.
-Both arrive **after** the code exists, which is what keeps this command to a
-single success condition — green, gated, tidy.
+One caller: a person asking for coverage over code that already exists. That's
+what keeps this command to a single success condition — green, gated, tidy.
+
+A ticket's own assertions are not this command's work. `qoq-developer` raises
+them to `test-conventions.md` itself, in the thread that wrote the
+implementation — it can't dispatch a subagent anyway, and a ticket arrives
+pre-sliced, which is the one thing this command's slicing exists to do.
 
 Browser-driving suites are a different discipline whose conventions don't
 transfer. If one ever needs a command, it's a different command.
@@ -55,8 +58,7 @@ the skill lives), the **slice** stated as narrowly as you can state it, the
 slice — a ticket's own hand-written assertions get rewritten to standard, not
 duplicated by a second file asserting the same thing.
 
-The cost is honest: N slices is N full-suite runs. Same trade `bump` makes one
-patch at a time, for the same reason.
+N slices is N full-suite runs. That cost is the design, not an oversight.
 
 ## Two checks per slice, one refactor at the end
 
@@ -99,15 +101,11 @@ usually the point rather than a defect.
 
 ## A red result rewrites, it doesn't patch
 
-When a slice comes back red, the spec gets **rewritten against what the run
-actually reported**, not amended in place. A spec patched to get past one
-assertion accumulates scaffolding that has nothing to do with the behaviour under
-test, and each amendment is judged against a file the previous amendment already
-reshaped. Rewriting is both shorter and more honest, and costs nothing that
-wasn't going to be re-run anyway.
-
-A gate `FAIL` lands in the same place, for the same reason — whatever `fix`
-couldn't resolve is a property of the file, and the file is cheap.
+A slice that comes back red gets **rewritten against what the run actually
+reported**, not amended in place — the reasoning is in `agents/qoq-tester.md`,
+which is where the rewriting happens. A gate `FAIL` lands in the same place, for
+the same reason: whatever `fix` couldn't resolve is a property of the file, and
+the file is cheap.
 
 **Three rewrites, then the agent hands back and the caller asks.** Running out
 isn't a report-and-stop; it's a question. Three attempts at one slice that all
@@ -122,5 +120,5 @@ half-written left behind.
 [test-conventions.md](test-conventions.md) is the house rulebook — coverage
 philosophy, mocking, React Testing Library, MSW, and the lint rules that make a
 spec clean by construction. The project's own file, named on the record's
-`conventions:` line, wins wherever the two conflict: it's human-written and knows
+`conventions` field, wins wherever the two conflict: it's human-written and knows
 things this skill can't infer.

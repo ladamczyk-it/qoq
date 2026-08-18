@@ -26,12 +26,10 @@ run produces a commit per ticket, and that's not something to discover on
 Tickets go out singly, in dependency order then plan order — the first whose
 dependencies are all `done`.
 
-No parallel mode exists, and no flag for one. Waves buy wall-clock time and cost
-a class of failure no gate catches: two subagents committing into one index, one
-ticket's half-written file failing another's validation, a history that has to be
-untangled by hand. Because only one ticket is ever in flight, there's also no
-disjoint-**Files** constraint to maintain and no per-ticket scratch directory to
-isolate.
+No parallel mode exists, and no flag for one: two subagents committing into one
+index is a failure no gate catches. Because only one ticket is ever in flight,
+there's also no disjoint-**Files** constraint to maintain and no per-ticket
+scratch directory to isolate.
 
 ## The dispatch
 
@@ -59,9 +57,9 @@ milestone's tickets touched, which is the first moment those tickets exist as on
 piece of code and therefore the first moment "is this the right shape" is
 answerable at all. Per ticket the scope is too small to see anything.
 
-That's why there's no per-ticket standards pass and no complexity-driven routing
-table: a `trivial` ticket and a `judgment-heavy` one run identical steps at
-different tiers.
+There is no per-ticket standards pass and no complexity-driven routing table: a
+`trivial` ticket and a `judgment-heavy` one run identical steps at different
+tiers.
 
 **The per-ticket gate is `qoq fix`, scoped** to exactly the files the ticket
 changed — spec and source both. Scoped, because the verdict has to be about this
@@ -73,9 +71,8 @@ ticket and nothing else.
 that list and commits on a `PASS`. A `FAIL` re-dispatches the developer with the
 digest pasted in, and that round is one of its three attempts.
 
-Committing after the gate rather than inside the agent falls out of the same
-move, and is the better place for it anyway: nothing reaches history until it has
-passed, and "one ticket, one commit" stops depending on an agent's discipline.
+The commit happens here too, after the gate — nothing reaches history until it
+has passed.
 
 **The whole test cycle is the developer's own.** It writes the failing
 assertions, one per acceptance criterion — a criterion the plan already stated as
@@ -86,9 +83,9 @@ it raises those same assertions to the project's bar itself, against
 a judgement best made over code that exists, which is why it comes after green
 rather than before.
 
-It doesn't hand that step to `qoq test` — that dispatch is unavailable to it too,
-and unnecessary: `qoq test` earns its subagent by _slicing_ a scope nobody has
-read yet, and a ticket arrives pre-sliced with its implementation already in the
+It doesn't hand that step to `qoq test` — that dispatch is unavailable to it, and
+unnecessary: `qoq test` earns its subagent by _slicing_ a scope nobody has read
+yet, and a ticket arrives pre-sliced with its implementation already in the
 writer's context.
 
 ## Report the outcome back, once per ticket
@@ -105,12 +102,10 @@ node <skill>/scripts/estimate.mjs --record --tags <the ticket's tags> \
 ```
 
 Tags and stack come from the ticket's **Estimate** field verbatim, the tier from
-its **Agent tier** — the
-estimate being graded is _this much work at that tier_, so an outcome filed
-under a different tier grades a decision nobody made. When a ticket escalated,
-that still means the tier the **plan** assigned, not the one that finally
-delivered it: the rung that was picked is the thing that turned out to be wrong,
-and the record is what stops the next plan picking it again.
+its **Agent tier**. The estimate being graded is _this much work at that tier_,
+and an outcome filed under a different tier grades a decision nobody made. On an
+escalated ticket that still means the tier the **plan** assigned: the rung that
+was picked is the thing that turned out to be wrong.
 
 `--attempts` is the count actually spent, including a re-dispatch after a failed
 gate and including the attempts that ran at the escalated tier.
@@ -173,10 +168,10 @@ other. Don't patch it on this thread; the lead doesn't implement.
 
 Green → **archive**. Move the milestone's full text to
 `<plan-name>.completed.md`, leave the summary block under `## Completed`, and
-update downstream tickets' **Context** with anything this milestone actually
-established — _before_ the text moves, while it's still in front of you.
-Advisories from the gate go into the milestone's summary; an advisory that
-evaporates on archive is worse than one never looked for.
+update downstream tickets' **Context** with anything this milestone established
+— _before_ the text moves, while it's still in front of you. Gate advisories go
+into the milestone's summary; one that evaporates on archive is worse than one
+never looked for.
 
 ## Setup
 

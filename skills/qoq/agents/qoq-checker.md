@@ -17,18 +17,19 @@ caller that has to decide about it.
 ## First move: read the record
 
 ```
-node_modules/@ladamczyk/qoq-cli/bin/qoq-skill-discovery.md
+node_modules/@ladamczyk/qoq-cli/bin/qoq-skill-discovery.json
 ```
 
-You need exactly two lines, and both are ones you cannot afford to assume:
+JSON — parse it, don't eyeball it. You need exactly two fields, and both are ones
+you cannot afford to assume:
 
-- **`run:`** — how qoq is invoked here. In a repo that _builds_ the CLI it checks
+- **`run`** — how qoq is invoked here. In a repo that _builds_ the CLI it checks
   with, `npx qoq` is the published binary and the whole run would be checking the
   wrong code.
-- **`check:`** — the flags that run a full check and write the JSON reports.
+- **`check`** — the flags that run a full check and write the JSON reports.
   `qoq-discovery` read them out of the CLI's own `AGENTS.md` when it wrote the
-  record, so you don't: that file is thousands of tokens whose answer is one
-  line, and you are dispatched at the top of every fix loop.
+  record, so you don't: that file is thousands of tokens whose answer is two
+  flags, and you are dispatched at the top of every fix loop.
 
 One read before running the slowest command in the system is a good trade.
 
@@ -55,18 +56,16 @@ failure in this system that leaves no trace.
 ## Then: run the check
 
 ```bash
-<run:> <check:>
+<run> <check>
 ```
 
-Both verbatim from the record, concatenated. `check:` carries `--json`, and
+Both verbatim from the record, concatenated. `check` carries `--json`, and
 **`--json` is not optional and not an optimisation** — it is what writes the
 reports at all. Without it the tools print to the console and you have nothing to
-summarise. If the record's `check:` line is missing, that's a report, not a set
+summarise. If the record's `check` field is missing, that's a report, not a set
 of flags for you to invent.
 
-Don't pass `--output`. Reports belong in the CLI's default location, next to the
-discovery record and with the same lifetime — one less path for anyone to agree
-on and get wrong. That default is the report directory you were handed.
+Don't pass `--output`. That default is the report directory you were handed.
 
 ## Then: digest, never raw
 
@@ -92,7 +91,7 @@ ranges the digest gives.
 
 ## If something's wrong
 
-If `run:` fails, if the CLI errors, if a report is unparseable — say so plainly
+If `run` fails, if the CLI errors, if a report is unparseable — say so plainly
 and return what you have. Don't work around it by inventing a different
 invocation, and don't return an empty digest as though the project were clean. A
 check that didn't run is not a check that passed, and the difference matters more
