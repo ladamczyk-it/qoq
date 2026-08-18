@@ -71,8 +71,8 @@ Join us in making QoQ even better! Read our [Contributing Guidelines](https://gi
 
 _Feel free to join us, please read [Contributing Guidelines](https://github.com/ladamczyk-it/qoq/blob/master/.github/CONTRIBUTING.md)_
 
-## Monthly usage statistics
+## Last 12 months usage statistics (>=6.0.0)
 
-![Monthly usage statistics CLI](https://adamczyk.ovh/img/stats/qoq.png)
+![Last 12 months usage statistics](https://adamczyk.ovh/img/stats/qoq.png)
 
-![Monthly usage statistics skill](https://adamczyk.ovh/img/stats/qoq-skill.png)
+![Last 12 months usage statistics](https://adamczyk.ovh/img/stats/qoq-skill.png)
