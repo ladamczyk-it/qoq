@@ -41,7 +41,7 @@ To add a tool: create `src/modules/<tool>/{*ConfigHandler.ts,*Executor.ts,types.
 ## Usage stats
 
 `src/helpers/stats.ts` — consent, persistence, and the fire-and-forget POST to
-`https://stats.adamczyk.ovh`. `qoq.config.js`'s `stats: boolean` is the consent
+`https://adamczyk.ovh/stats`. `qoq.config.js`'s `stats: boolean` is the consent
 record; `undefined` means "not asked yet".
 
 - Asked last in the wizard (`initConfig`, after every handler's `getPrompts()`) and,

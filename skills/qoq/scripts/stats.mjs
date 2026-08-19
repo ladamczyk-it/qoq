@@ -37,7 +37,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-const STATS_URL = 'https://stats.adamczyk.ovh';
+const STATS_URL = 'https://adamczyk.ovh/stats';
 const STATS_TIMEOUT_MS = 2000;
 
 const CONSENT_FILE = join(homedir(), '.claude', 'qoq', 'consent.md');

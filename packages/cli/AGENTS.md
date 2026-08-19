@@ -68,7 +68,7 @@ export default {
   // Anonymous usage stats consent. Asked once — as the last question of
   // `qoq --init`, or on the first interactive run of a project that has a config
   // without this key — and written back here. When true, each run POSTs
-  // `{ tool: 'qoq', options: [...] }` to https://stats.adamczyk.ovh, where
+  // `{ tool: 'qoq', options: [...] }` to https://adamczyk.ovh/stats, where
   // `options` holds only the value-less flags typed on that run (`--check`,
   // `--fix`, …). Never sent: code, file names, paths, config contents, findings,
   // project names, or anything identifying the user or machine.

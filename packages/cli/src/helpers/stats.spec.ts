@@ -72,7 +72,7 @@ describe('sendStats', () => {
 
     const [url, init] = fetchMock.mock.calls[0] as [string, { method: string; body: string }];
 
-    expect(url).toBe('https://stats.adamczyk.ovh');
+    expect(url).toBe('https://adamczyk.ovh/stats');
     expect(init.method).toBe('POST');
     expect(JSON.parse(init.body)).toStrictEqual({ tool: 'qoq', options: ['--fix'] });
 

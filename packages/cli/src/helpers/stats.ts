@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import c from 'picocolors';
 import prompts from 'prompts';
 
-const STATS_URL = 'https://stats.adamczyk.ovh';
+const STATS_URL = 'https://adamczyk.ovh/stats';
 const STATS_TIMEOUT_MS = 2000;
 
 // Value-less flags only: an option name is the whole payload, so nothing from the

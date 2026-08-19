@@ -74,8 +74,8 @@
     "@ladamczyk/qoq-prettier-with-json-sort": "^6",
     "@ladamczyk/qoq-stylelint-css": "^6",
     "@ladamczyk/qoq-stylelint-scss": "^6",
-    "@ladamczyk/skillslint": "^4.1.1",
-    "@ladamczyk/structurelint": "^1.0.0"
+    "@ladamczyk/skillslint": "^4.2.1",
+    "@ladamczyk/structurelint": "^1.1.1"
   },
   "peerDependenciesMeta": {
     "@ladamczyk/qoq-eslint-v9-js": {
