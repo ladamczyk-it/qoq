@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-stylelint-scss",
-  "version": "6.1.1",
+  "version": "6.1.2",
   "description": "Stylelint config template for SCSS",
   "keywords": [
     "stylelint SCSS template",
@@ -37,7 +37,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ladamczyk/qoq-stylelint-css": "^6.1.1",
+    "@ladamczyk/qoq-stylelint-css": "^6.1.2",
     "stylelint-config-standard-scss": "17.0.0"
   },
   "devDependencies": {
