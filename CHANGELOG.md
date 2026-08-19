@@ -1,3 +1,10 @@
+## [6.1.1](https://github.com/ladamczyk-it/qoq/compare/v6.1.0...v6.1.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* eslint rules changes for RTL + skill hash and agents install change ([011f2ce](https://github.com/ladamczyk-it/qoq/commit/011f2cecbbad685a0cf01e8b894a0a2e47db6c6a))
+
 # [6.1.0](https://github.com/ladamczyk-it/qoq/compare/v6.0.1...v6.1.0) (2026-08-18)
 
 
