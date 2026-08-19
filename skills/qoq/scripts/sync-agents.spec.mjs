@@ -46,6 +46,9 @@ test("a project with no agents gets every one of the skill's, then reports nothi
   assert.deepEqual(run(dir), { status: 0, stdout: 'agents current' });
 });
 
+// An install predating the manifest is every existing project's first run after
+// the upgrade that shipped it. Protecting those would freeze them all on the
+// bodies they already had.
 test('a copy left over from an older skill version is refreshed', () => {
   const dir = project();
   const [agent] = agentsIn(SOURCE);
@@ -57,6 +60,27 @@ test('a copy left over from an older skill version is refreshed', () => {
     readFileSync(join(dir, '.claude', 'agents', agent), 'utf8'),
     readFileSync(join(SOURCE, agent), 'utf8')
   );
+});
+
+// This writes into the user's own repo, usually into a tracked directory.
+// Reverting somebody's customisation on a routine run is the one thing it must
+// never do, so once a file is tracked, a body that isn't the one we wrote is
+// theirs.
+test('an agent edited after being installed is kept, not overwritten', () => {
+  const dir = project();
+  const [agent] = agentsIn(SOURCE);
+  run(dir);
+
+  const edited = `${readFileSync(join(SOURCE, agent), 'utf8')}\n<!-- local tweak -->\n`;
+  writeFileSync(join(dir, '.claude', 'agents', agent), edited);
+
+  const { stdout } = run(dir);
+  assert.match(stdout, new RegExp(`agents kept \\(edited here[^\\n]*${agent.replace('.md', '')}`));
+  assert.equal(readFileSync(join(dir, '.claude', 'agents', agent), 'utf8'), edited);
+
+  // And it stays kept — a report every run, never a one-time notice that scrolls
+  // past and then silently reverts on the next one.
+  assert.match(run(dir).stdout, /agents kept \(edited here/);
 });
 
 // A checkout that symlinks the agents is working on them; a copy would freeze

@@ -41,21 +41,111 @@ failing.
 **Why JSON rather than prose lines.** Five agents read it and none of them
 should be parsing anything by eye.
 
-**Why the skill's agent files are in the hash.** Discovery is what installs them
-into the project (its step 5), and a skill upgrade that ships a changed agent
-touches nothing in the project. Hashing them makes an upgraded skill exactly as
-stale as a moved dependency, which costs one Haiku run and is the only thing
-that would notice.
+**Why the hash is a projection, not the files.** Hashing `package.json` and the
+lockfile whole made the gate fire on inputs the record has no stake in: `version`
+moves on every release commit, and a lockfile moves whenever any transitive
+dependency does. Each of those dispatched a Haiku run to re-confirm answers
+nothing had touched — the exact cost the gate exists to avoid. So the digest
+takes the `scripts` block and the four dependency names the other fields are read
+off, and skips their versions too: `runner` is `vitest` at any version, and a qoq
+CLI upgrade deletes the record outright, since the record lives inside that
+package. Over-matching a neighbour (`@vitest/coverage-v8`) is the safe direction —
+one wasted re-derive, against a field silently describing a project that's gone.
 
-**Why `skills` holds one key and not two.** `refactor`'s fourth assessment is
-`qoq-designer`, this skill's own agent, which ships with the skill and so is
-never absent. Only the ponytail lens is somebody else's.
+**Why the skill's agent files are _not_ in the hash.** They were, for exactly one
+reason: discovery installed them, and a skill upgrade that ships a changed agent
+touches nothing in the project, so nothing else would notice. But that answered a
+question about the skill with a gate built to answer a question about the
+project, and the two go stale independently. Every upgrade then read as a moved
+dependency and bought a Haiku run to re-confirm project answers nobody had
+touched — and every user gets upgrades. Splitting them costs one extra script
+exec per run: `sync-agents.mjs` moves to the head of entry, compares six small
+files, and prints its own verdict. Cheaper than what it replaced, and it lands
+sooner, since a shipped agent change now reaches the project on the next command
+rather than whenever the project next happens to move.
 
-**Why the lens list isn't re-checked per command.** It can't be hashed — it
-lives in the caller's context, not in any file — so keeping it current would
-mean dispatching the agent on every run, which is the entire cost the record
-exists to remove. Deleting the record is the escape hatch, and it costs one
-discovery run.
+**Why a refresh is announced like a first install.** The user is being told one
+thing — the agent bodies on disk are not the ones Claude Code has registered —
+and that is equally true whether the file is new or newly changed. Distinguishing
+them would suggest a difference in what to do about it, and there isn't one: the
+same pickup window, the same `general-purpose` fallback inside it, the same
+question ahead of `fix`, `test` and `execute`. So `sync-agents.mjs` emits one
+line for both cases, and the skill has one rule instead of two.
+
+**Why the record holds no lens list at all.** It held one: `skills`, mapping
+`ponytail-review` to the string that invokes it. The field was unhashable in
+principle — a lens lives in the caller's available-skills list and in no file the
+digest could cover — so installing one, or moving it between project and plugin
+scope, left the hash matching and the field wrong. Silently: `refactor` would
+skip assessment 3, or dispatch a name resolving to nothing, and the documented
+fix was to hand-edit JSON inside `node_modules`.
+
+Nothing needed it cached. `refactor` runs on the main thread, so the list is
+already in the context of the one thread that consults the lens — free to read
+and never out of date. The cache was buying a staleness class in exchange for a
+lookup that cost nothing. The tell was in the prose: one rule — _the recorded
+value is the invocation, and bare and prefixed forms do not resolve
+interchangeably_ — had been restated in five files, which is what a design that
+wants changing looks like from the documentation side.
+
+What it cost to delete: the lens check is now visible only inside `refactor`
+rather than on a record anyone can read. Judged the cheaper side, because a
+record that describes the lens wrongly is worse than one that doesn't describe
+it.
+
+**Why the mechanical half of derivation moved into the check script.** The agent
+derived ten fields from scratch on every stale record, and most of them were
+reading rather than judgement: which scripts exist, which test stack is
+installed, whether the CLI resolves to a workspace link. `discovery-check.mjs`
+was already parsing `package.json` to compute the hash, so the same read was
+being implemented twice — once to hash, once to derive — which is precisely how
+two answers to one question appear.
+
+Now the check emits `proposed` and `unresolved` on the stale path, and the agent
+checks a filled-in record instead of building one. The derivation runs only
+after the hash has already failed, so the common path — a current record, which
+is nearly every run — pays none of it. `test:one` stays unresolved every time:
+both runners take a path positionally, so a default is easy to write and easy to
+be wrong about, and a project with its own single-file script wants that one.
+
+The same script now exits 3 when the qoq CLI is absent. That was an agent
+dispatch whose entire finding was a missing directory.
+
+**Why `entry.mjs` exists.** Three scripts already owned the three head-of-run
+answers, and `SKILL.md` carried the sequencing: two exit-code tables, a consent
+procedure, and the rule about which commands ask after a fresh agent install.
+That file is loaded on every run of every command, so all of it was paid whether
+the run branched on it or not — and `compress`, which reads none of the record,
+paid the most for the least.
+
+Worse, two of those rules had been stated in more than one prose file and had
+already drifted: `SKILL.md` said the agent-install question fires ahead of `fix`,
+`test` and `execute`, and since `refactor` opens with a `fix`, a thread reading
+`SKILL.md` and `refactor.md` would ask — while `discovery.md`, which
+`refactor.md` never links, recorded the exception saying it shouldn't. A rule
+that lives in two files is a rule that will eventually disagree with itself, and
+this one already had. Both rules are now branches in `entry.mjs`, with a spec
+each.
+
+It composes and decides nothing the three children decide; each keeps its own
+contract and its own spec.
+
+**Why the stats disclosure is printed by the script.** It was prose in
+`SKILL.md`, describing the request body. Two problems: every run paid for text
+that matters on the one run in a user's life where somebody is actually asked,
+and a description of a payload can come to promise less than the payload sends.
+`stats.mjs` now builds the disclosure from the same object it posts, and quotes
+it literally. A spec asserts the two stay the same object.
+
+**Why `sync-agents.mjs` tracks what it wrote.** It copies into the user's own
+repo, usually into a tracked directory, and it could not tell its own last copy
+from a file the user had edited — comparing against the current source doesn't
+answer it, because a skill upgrade makes an untouched copy differ too. So each
+install records a digest in `.qoq-agents.json`, and a body that isn't the one it
+wrote is the user's and is kept. The one exception is a directory with no
+manifest at all: that's every existing project on the first run after the upgrade
+that shipped this, and protecting those would freeze them all on the agent bodies
+they already had.
 
 **Why derivation lives in the agent and not in the reference.** Two copies of
 "how the test command is derived" is the same duplication the record itself

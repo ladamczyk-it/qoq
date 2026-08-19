@@ -7,6 +7,9 @@ import type { Linter } from 'eslint';
 
 const disabledRules: EslintConfig['rules'] = {
   'testing-library/prefer-screen-queries': 0,
+  'testing-library/prefer-presence-queries': 0,
+  'testing-library/no-container': 0,
+  'testing-library/no-node-access': 0,
 };
 
 // Not part of `flat/react` recommended. Pushes toward accessible queries (role/label/text)

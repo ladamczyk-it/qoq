@@ -43,15 +43,38 @@ anywhere else in a label are fine, so lead with a word: `X["run \`test:one\` on 
 
 ```mermaid
 flowchart TD
-    Q["/qoq [command]"] --> ISC{"command =<br/>compress?"}
-    ISC -->|"yes"| STATS
-    ISC -->|"no"| CHECK
+    Q["/qoq [command]"] --> ENTRY
 
-    CHECK["**scripts/discovery-check.mjs** —<br/>hash package.json + the lockfile +<br/>the skill's agent files,<br/>compare it to the record's hash field<br/>*package.json too: a renamed script<br/>moves no lockfile, and every command<br/>field on the record quotes one*<br/>*the agents too: an upgraded skill<br/>moves nothing in the project, and<br/>discovery is what installs them*"]
-    CHECK -->|"exit 0 — record on stdout"| USE["**use the record as-is**,<br/>dispatch nothing<br/>*the common case,<br/>and the reason it exists*"]
-    CHECK -->|"exit 1 — missing, or the<br/>project moved. stdout = the<br/>hash the record must carry"| DISP
+    ENTRY["**scripts/entry.mjs --project --command**<br/>one call at the head of every top-level run.<br/>Composes the three head-of-run checks and<br/>prints a section each, with what to do<br/>*the sequencing rules live here rather than<br/>in SKILL.md, which every run of every<br/>command loads whether it needs them or not*"]
 
-    DISP["dispatch **qoq-discovery**<br/>(Haiku, one per top-level run)<br/>caller passes the project root,<br/>**the hash**, and **the resolved skills field**<br/>*the available-skills list is the<br/>caller's context, not the agent's*<br/>*each lens resolved on its own,*<br/>*project scope first, plugin second:*<br/>*a bare name beats a prefixed one*"]
+    ENTRY --> SYNC
+
+    subgraph HEAD["what entry.mjs runs, in order"]
+        direction TB
+        SYNC["**1. sync-agents.mjs** —<br/>copy the skill's agent files into<br/>&lt;root&gt;/.claude/agents<br/>*an agent inside a skill is registered<br/>by nothing; symlinked ones are left alone*<br/>*did the SKILL move? — a separate<br/>question from the hash's did the<br/>PROJECT move, so it gets its own check*<br/>*tracks what it wrote in .qoq-agents.json:<br/>a body that isn't the one it installed is<br/>the user's, and is kept, never reverted*"]
+        SYNC --> CISC{"command =<br/>compress?"}
+        CISC -->|"yes — edits prose, runs no tool,<br/>dispatches no agent"| STATSN
+        CISC -->|"no"| CHECK
+
+        CHECK["**2. discovery-check.mjs** —<br/>hash the package.json scripts block +<br/>the watched deps (qoq CLI, vitest/jest,<br/>@testing-library/react) named in<br/>package.json and the lockfile,<br/>compare it to the record's hash field<br/>*the scripts too: a renamed script<br/>moves no lockfile, and every command<br/>field on the record quotes one*<br/>*those parts only: a version bump or an<br/>unrelated transitive dependency changes<br/>no word of the record*"]
+        CHECK --> STATSN
+        STATSN["**3. stats.mjs &lt;command&gt;** —<br/>reads qoq.config `stats:`, then<br/>~/.claude/qoq/consent.md<br/>*on exit 1 it prints the disclosure itself,<br/>quoting the literal request body — so it<br/>cannot drift from what is sent, and every<br/>run that isn't asking stops paying for it*"]
+    end
+
+    HEAD --> SECT["**stdout: one section per check**"]
+
+    SECT -.->|"no qoq CLI — exit 3"| STOP(["**the run stops**<br/>every command's spine is that binary<br/>*caught before any agent is dispatched:<br/>one existsSync already knew*"])
+
+    SECT -.->|"line is `agents installed:` **and**<br/>the command is fix / test / execute"| AASK
+    AASK(["**caller ASKS THE USER**<br/>continue now on the general-purpose<br/>fallback, or exit and re-run with them<br/>registered?<br/>*those three dispatch a pinned agent<br/>inside the pickup window — and for<br/>qoq-tester the fallback is its<br/>restriction gone*<br/>*refactor is the exception: it opens with<br/>a fix, but a question in front of another<br/>command's question is the noise this<br/>narrowing exists to remove*"])
+
+    SECT -.->|"stats never asked"| SASK(["**ASK THE USER**<br/>send anonymous usage stats?<br/>*consent is never defaulted*"])
+    SASK -.->|"record it: `stats.mjs &lt;command&gt;<br/>--consent yes/no`"| SECT
+
+    SECT -->|"discovery current —<br/>the record is in the section"| USE["**use the record as-is**,<br/>dispatch nothing<br/>*the common case,<br/>and the reason it exists*"]
+    SECT -->|"discovery stale — the section<br/>carries hash + proposed + unresolved"| DISP
+
+    DISP["dispatch **qoq-discovery**<br/>(Haiku, one per top-level run)<br/>*proposed = the half that was only ever<br/>reading, already derived by the check.<br/>unresolved = the half that needed a<br/>reader. Deriving both in the agent meant<br/>two implementations of the same read*"]
 
     subgraph DISCO["qoq-discovery flow *(everything the agent does)*"]
         direction TB
@@ -62,16 +85,13 @@ flowchart TD
         HAS -->|no| D0
 
         D0 --> DOCS["**read the project's docs first** —<br/>CLAUDE.md / AGENTS.md / README.md.<br/>*a written answer outranks a guess*"]
-        DOCS --> D1["**1. qoq installed?**<br/>@ladamczyk/qoq-cli + qoq.config.js<br/>→ **no = the run stops**,<br/>with the install command"]
-        D1 --> D2["**2. the lens**<br/>*copy the dispatched skills: map<br/>verbatim — ponytail-review → the<br/>string that invokes it, or null.<br/>Never search the filesystem for it;<br/>a plugin lens is invisible there*"]
-        D2 --> D3["**3. project commands?**<br/>test — full suite · test — single file · build<br/>*the project's own scripts —<br/>npx is qoq's alone*"]
-        D3 --> D3B["**3b. the check flags** — read the CLI's<br/>own AGENTS.md **once, here**<br/>→ `check` = `--check --json`<br/>*the only agent that opens it;<br/>thousands of tokens, one line of answer*"]
-        D3B --> D4["**4. test conventions?**<br/>runner · globals on or off ·<br/>React? · a testing-gate.md<br/>at the root"]
+        DOCS --> D1["**check `proposed`**<br/>*a starting point with a stale record's<br/>standing: usually right, worth a glance,<br/>yours to overrule when the docs say so*"]
+        D1 --> D3["**1. project commands**, unresolved only<br/>test — full suite · test — single file · build<br/>*the project's own scripts —<br/>npx is qoq's alone*<br/>*test:one is always here: both runners take<br/>a path positionally, so a default is easy to<br/>write and easy to be wrong about*"]
+        D3 --> D3B["**2. the check flags**, when unresolved —<br/>read the CLI's own AGENTS.md **once, here**<br/>→ `check` = `--check --json`<br/>*the only agent that opens it;<br/>thousands of tokens, one line of answer*"]
+        D3B --> D4["**3. test conventions**, unresolved only<br/>runner · globals on or off ·<br/>React? · a testing-gate.md<br/>at the root"]
         D4 --> REC["write the record — **JSON**,<br/>hash included →<br/>node_modules/@ladamczyk/qoq-cli/bin/<br/>qoq-skill-discovery.json"]
 
         BLOCK(["**agent stops**<br/>reports the open question,<br/>writes nothing"])
-        D1 -.->|anything unclear| BLOCK
-        D2 -.->|anything unclear| BLOCK
         D3 -.->|anything unclear| BLOCK
         D4 -.->|anything unclear| BLOCK
     end
@@ -82,31 +102,21 @@ flowchart TD
     ASK -.-> WRITE["**write the answer into the<br/>project's docs** — CLAUDE.md /<br/>AGENTS.md / README.md.<br/>*survives the next reinstall*"]
     WRITE -.-> DISP
 
-    REC --> SYNC
-    DONE --> SYNC
-    SYNC["**scripts/sync-agents.mjs** —<br/>copy the skill's agent files into<br/>&lt;root&gt;/.claude/agents<br/>*an agent inside a skill is registered<br/>by nothing; symlinked ones are left alone*<br/>*Claude Code registers them on its own<br/>a moment later — dispatches before<br/>that fall back to general-purpose*"]
-    SYNC -->|"nothing installed,<br/>or plan / bump / refactor —<br/>notice at the end of the run"| OPT
-    SYNC -.->|"installed, and the command<br/>is fix / test / execute"| AASK
-    AASK(["**caller ASKS THE USER**<br/>agents were installed — continue now on<br/>the general-purpose fallback, or exit<br/>and re-run with them registered?<br/>*those three dispatch a pinned agent<br/>inside the pickup window — and for<br/>qoq-tester the fallback is its<br/>restriction gone*"])
-    AASK -.->|"continue"| OPT
+    REC --> OPT
+    DONE --> OPT
     USE --> OPT
 
     OPT{"which<br/>command?"}
     OPT -->|"none given"| OASK(["**ASK THE USER**<br/>which command?"])
     OASK -.-> OPT
-    OPT -->|"a command"| STATS
 
-    STATS["**usage stats** — once per top-level run<br/>`node scripts/stats.mjs &lt;command&gt;`<br/>reads qoq.config `stats:`, then<br/>~/.claude/qoq/consent.md<br/>*payload is the tool name +<br/>the command, nothing else*"]
-    STATS -.->|"exit 1 — never asked"| SASK(["**ASK THE USER**<br/>send anonymous usage stats?<br/>*consent is never defaulted*"])
-    SASK -.->|"answer recorded — `--consent yes/no`<br/>into qoq.config `stats:`, or<br/>~/.claude/qoq/consent.md if there<br/>is no config"| STATS
-
-    STATS -->|fix| RFIX["**qoq fix**<br/>the check/fix loop"]
-    STATS -->|refactor| RREF["**qoq refactor**<br/>green base, four assessments"]
-    STATS -->|bump| RBUMP["**qoq bump**<br/>analyse, choose, apply"]
-    STATS -->|plan| RPLAN["**qoq plan**<br/>requirements → approved plan file"]
-    STATS -->|execute| REXEC["**qoq execute**<br/>approved plan file → delivered"]
-    STATS -->|test| RTEST["**qoq test**<br/>coverage for code that exists"]
-    STATS -->|compress| RCOMP["**qoq compress**<br/>*no discovery — no line of the<br/>record describes a markdown file*"]
+    OPT -->|fix| RFIX["**qoq fix**<br/>the check/fix loop"]
+    OPT -->|refactor| RREF["**qoq refactor**<br/>green base, four assessments"]
+    OPT -->|bump| RBUMP["**qoq bump**<br/>analyse, choose, apply"]
+    OPT -->|plan| RPLAN["**qoq plan**<br/>requirements → approved plan file"]
+    OPT -->|execute| REXEC["**qoq execute**<br/>approved plan file → delivered"]
+    OPT -->|test| RTEST["**qoq test**<br/>coverage for code that exists"]
+    OPT -->|compress| RCOMP["**qoq compress**<br/>*no discovery — no line of the<br/>record describes a markdown file*"]
 
     RFIX --> NOTE
     RREF --> NOTE
@@ -114,7 +124,8 @@ flowchart TD
     RPLAN --> NOTE
     REXEC --> NOTE
     RTEST --> NOTE
-    NOTE(["**end of run: notice to user**<br/>what discovery repaired, one line each,<br/>plus any agents it installed.<br/>*a lens is in none of the hashed inputs,<br/>so edit the skills field or delete the record*"])
+    RCOMP --> NOTE
+    NOTE(["**end of run: notice to user**<br/>what discovery repaired, one line each,<br/>plus any agents entry installed<br/>or kept because they were edited here"])
 
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
     classDef command fill:#f59e0b1a,stroke:#f59e0b,stroke-width:2px,stroke-dasharray:4 3
@@ -122,7 +133,7 @@ flowchart TD
 
     class DISCO agent
     class RFIX,RREF,RBUMP,RPLAN,REXEC,RTEST,RCOMP command
-    class ASK,OASK,SASK,AASK,NOTE user
+    class ASK,OASK,SASK,AASK,NOTE,STOP user
 ```
 
 ---
@@ -195,10 +206,10 @@ flowchart TD
 flowchart TD
     SCOPE["**scope** = positional paths,<br/>else `qoq.config`'s `srcPath`"]
     SCOPE --> LENSQ
-    LENSQ{"record's `skills`:<br/>**ponytail-review** installed?"}
+    LENSQ{"**ponytail-review** in your own<br/>available-skills list?<br/>*read at the moment it is needed —<br/>already in context, never out of date.<br/>Cached at discovery time it went stale<br/>the moment somebody installed a lens,<br/>and it went stale silently*"}
     LENSQ -->|yes| GB
-    LENSQ -->|null| LENSASK(["**ASK THE USER** — before the<br/>green base, while a re-run is free.<br/>install &amp; re-run *(recommended)*,<br/>or proceed on 3 of 4 — assessment 4<br/>then runs with no counterweight"])
-    LENSASK -.->|install| LENSSTOP(["**stop** — install, delete the<br/>discovery record, re-run"])
+    LENSQ -->|missing| LENSASK(["**ASK THE USER** — before the<br/>green base, while a re-run is free.<br/>install &amp; re-run *(recommended)*,<br/>or proceed on 3 of 4 — assessment 4<br/>then runs with no counterweight"])
+    LENSASK -.->|install| LENSSTOP(["**stop** — install, re-run.<br/>*nothing to clean up first*"])
     LENSASK -.->|proceed| GB
     GB["dispatch **qoq fix** —<br/>establish a green base"]
     GB --> GBQ{"green?"}
@@ -207,7 +218,7 @@ flowchart TD
 
     SEQ["**one at a time, in order**<br/>1. JSCPD — honest read<br/>2. this project's own conventions<br/>3. ponytail<br/>4. design — **qoq-designer**"]
     SEQ --> ASSESS["run assessment *N*"]
-    ASSESS -.->|"3 only"| LENS["dispatch **ponytail-review** under the<br/>string the record's skills map gives it —<br/>bare (project) or **plugin:** prefixed.<br/>declined above = skipped, and named<br/>in the final summary"]
+    ASSESS -.->|"3 only"| LENS["dispatch **ponytail-review** under the<br/>name the list gave it, verbatim — bare<br/>(project) or **plugin:** prefixed, which<br/>do not resolve interchangeably.<br/>declined above = skipped, and named<br/>in the final summary"]
     LENS -.-> AQ
     ASSESS -.->|"4 only"| DSGN["dispatch **qoq-designer** (Sonnet)<br/>*(scope, project root)*"]
 

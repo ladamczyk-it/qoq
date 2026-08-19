@@ -23,15 +23,24 @@ handful of files instead of a project.
 
 ## The one external lens — checked before anything runs
 
-Assessment 3 is `ponytail-review`, the only assessment this skill doesn't own,
-and the record's `skills` field says whether it's installed. Read that field
-**before dispatching the green base.** A `null` there means a quarter of the run
-is about to be silently downgraded, and one of the two answers is "let me install
-it and start over" — so ask while a re-run is still free. Asking when assessment
-3 comes up, after a green base and two assessments and a re-green, spends the
-user's time and then throws it away.
+Assessment 3 is `ponytail-review`, the only assessment this skill doesn't own.
+Look for it in **your own available-skills list** — it's already in this thread's
+context, it's what the invocation resolves against, and it is never out of date.
+Nothing about it is cached: an answer cached at discovery time goes stale the
+moment somebody installs a lens, and it goes stale silently, which is the worst
+way for the fact that decides a quarter of this run to be wrong.
 
-Installed → say nothing, proceed. `null` → ask once:
+Check it **before dispatching the green base.** Missing means a quarter of the
+run is about to be silently downgraded, and one of the two answers is "let me
+install it and start over" — so ask while a re-run is still free. Asking when
+assessment 3 comes up, after a green base and two assessments and a re-green,
+spends the user's time and then throws it away.
+
+Whatever name the list gives it is the invocation, verbatim — a bare
+`ponytail-review` and a `ponytail:ponytail-review` do not resolve
+interchangeably, so don't add or strip the prefix to make it look tidier.
+
+Installed → say nothing, proceed. Missing → ask once:
 
 > `ponytail-review` isn't installed, so assessment 3 (what can we delete?) can't
 > run. Assessments 1, 2 and 4 are unaffected.
@@ -53,10 +62,8 @@ user's word, run the remaining assessments in full, and report the skipped one i
 the final summary so it's on the record rather than only in a message they
 scrolled past.
 
-A fresh install doesn't invalidate the record — no lens is a hashed file. Tell
-them to delete
-`node_modules/@ladamczyk/qoq-cli/bin/qoq-skill-discovery.json` before re-running,
-or the next run reads the same `null` and asks the same question.
+A re-run after installing needs nothing cleaned up first — the next run reads the
+available-skills list afresh and finds it.
 
 Under `--decisions auto` there is nobody to ask: skip the assessment, run the
 rest, and return the gap as an advisory with the others.
@@ -104,10 +111,8 @@ shape, where errors are handled, how config is threaded through. Assessment 4
 asks the different question of whether it's the right shape at all — code can be
 consistently wrong, or textbook and unlike everything around it.
 
-**Assessment 3 dispatches `ponytail-review` under the exact string the record's
-`skills` field maps it to** — that value is the invocation, and the bare and
-prefixed forms don't resolve interchangeably. A missing lens is a reported gap,
-not a reason to improvise a substitute pass.
+**A missing lens is a reported gap**, not a reason to improvise a substitute
+pass.
 
 ## Assessment 4 — `qoq-designer`, and the file it hands back
 

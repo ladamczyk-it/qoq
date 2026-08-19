@@ -1,6 +1,6 @@
 ---
 name: qoq
-description: Quality toolkit for JavaScript/TypeScript repos — seven commands over one shared project discovery: `fix` (Prettier/ESLint/Knip/JSCPD findings to a PASS/FAIL verdict), `refactor`, `bump`, `plan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an approved plan executed or resumed, tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
+description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an approved plan executed or resumed, tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
 argument-hint: '[fix|refactor|bump|plan|execute|test|compress] [scope]'
 allowed-tools:
   - Read
@@ -79,57 +79,28 @@ in [references/refactor.md](references/refactor.md).
 
 ## Entry
 
-1. **Discovery** — every command except `compress`, which edits prose, runs no
-   tool, and skips to step 2 because no line of the record bears on it.
+1. **One call, at the head of every top-level run:**
 
    ```bash
-   node <skill>/scripts/discovery-check.mjs --project <root>
+   node <skill>/scripts/entry.mjs --project <root> --command <command>
    ```
 
-   | Exit | Means                                                        | Do                               |
-   | ---- | ------------------------------------------------------------ | -------------------------------- |
-   | 0    | current — the record is on stdout                            | use it, dispatch nothing         |
-   | 1    | missing or stale — stdout is the hash the new record carries | dispatch `qoq-discovery` with it |
+   It runs the three head-of-run checks — the agents, the discovery record, the
+   usage stats — and prints a section per check with what to do about each. Do
+   what the sections say. Exit 3 stops the run before any work: the qoq CLI
+   isn't installed, and every command's spine is that binary.
 
-   The dispatch carries the project root, that hash, and **the resolved `skills`
-   field** — the one input the agent cannot derive, because the available-skills
-   list is in your context and not in its. Look `ponytail-review` up in that
-   list, **project scope before plugin scope**: a bare `ponytail-review` wins
-   over `ponytail:ponytail-review`, and the winning name is what you hand in,
-   because the recorded name _is_ the invocation. In neither scope is `null`.
-
-   Branch on the one status word it returns and nothing else: `fresh` /
-   `verified` → carry on; `repaired <fields>` → carry on and report the fields
-   at the end of the run; `blocked <question>` → ask the user, write the answer
-   into the project's own docs, re-dispatch
-   ([references/discovery.md](references/discovery.md) has the wording).
-
-   Once per **top-level** run — a command invoked from inside another inherits
-   the record rather than re-dispatching. The hash covers only files on disk, so
-   an installed or moved lens leaves a stale `skills` field this step can't see;
-   `references/discovery.md` has what the hash covers and what to tell the user
-   when that bites.
-
-2. **Usage stats** — one call, before the work starts, once per top-level run:
-
-   ```bash
-   node <skill>/scripts/stats.mjs <command>                    # 0 handled, 1 not asked yet
-   node <skill>/scripts/stats.mjs <command> --consent yes|no
-   ```
-
-   Exit 1 means nobody has been asked — ask with `AskUserQuestion`, then record
-   the answer. The script owns where consent lives and whether it was already
-   given, because both ways of getting that wrong — re-asking someone who
-   declined, sending for them — leave nothing in the transcript to notice.
-
-   Put the question honestly, on the facts. Each run posts two things to
-   `https://stats.adamczyk.ovh`: the literal tool name `"qoq-skill"`, and which
-   of the seven commands ran, e.g. `["fix"]`. Never sent: their code, file
-   names, paths, config contents, tool findings, project or package names, scope
-   arguments, plan contents, or anything identifying them or their machine.
-
-   Keyed to the command the user typed: a `fix` dispatched from inside
+   Once per **top-level** run, keyed to the command the user typed. A command
+   invoked from inside another inherits everything the outer run already
+   established rather than re-checking — a `fix` dispatched from inside
    `refactor` is part of that refactor, not a second run.
+
+2. **If it asks you to dispatch `qoq-discovery`**, hand over the payload it
+   printed and branch on the one status word that comes back, nothing else:
+   `fresh` / `verified` → carry on; `repaired <fields>` → carry on and report
+   the fields at the end of the run; `blocked <question>` → ask the user, write
+   the answer into the project's own docs, re-dispatch
+   ([references/discovery.md](references/discovery.md) has the wording).
 
 3. **No command given** → ask which one. Never guess.
 
@@ -153,10 +124,10 @@ Commands compose, but **only on the main thread**.
 `compress` changes what future runs read, never what this one does, so no
 command should be reaching for it mid-task.
 
-`refactor`'s assessment 3 invokes `ponytail-review` under the exact name the
-record's `skills` field carries. That name _is_ the invocation, and the bare and
-prefixed forms do not resolve interchangeably. Assessment 4 is `qoq-designer`,
-which ships with this skill and needs no lookup.
+`refactor`'s assessment 3 is `ponytail-review`, the one lens this skill doesn't
+own — it looks the name up in its own available-skills list when it gets there,
+because that list is already in the thread's context and is never out of date.
+Assessment 4 is `qoq-designer`, which ships here.
 
 ## Standing rules
 
@@ -227,14 +198,11 @@ property of the ticket and is passed at dispatch.
 | `qoq-tester`    | sonnet     | write the specs for one slice — one per slice            |
 | `qoq-designer`  | sonnet     | stack → smells → patterns — `refactor`'s assessment 4    |
 
-Discovery installs them into the project's `.claude/agents/` on its way past
-(`scripts/sync-agents.mjs`), because an agent file inside a skill is registered
-by nothing. Claude Code picks that directory up on its own a moment later, so the
-dispatches right after a first install are the fallback below and the ones after
-that aren't. Ahead of `fix`, `test` and `execute` — the three that dispatch
-inside that window — discovery's report of an install is a question for the user
-(carry on, or exit and re-run with them registered); elsewhere it's a line in the
-end-of-run notice.
+Entry copies them into the project's `.claude/agents/`, because an agent file
+inside a skill is registered by nothing, and Claude Code picks that directory up
+on its own a moment later. Whether a fresh install is a question for the user or
+a line in the end-of-run notice depends on the command, and `entry.mjs` decides
+it — do what its **agents** section says.
 
 If an agent isn't registered under `.claude/agents/`, dispatch `general-purpose`
 with the agent file's body pasted in, **plus the tier and the prohibitions
@@ -242,6 +210,9 @@ restated** — `general-purpose` inherits the session's model and gets every too
 so an unregistered `qoq-checker` runs at the caller's tier and an unregistered
 `qoq-tester` gains exactly the ability to edit production source its contract
 forbids.
+
+An agent reported as `kept (edited here)` is the user's own version and stays
+that way. Dispatch it like any other; it's registered.
 
 ## Test conventions
 

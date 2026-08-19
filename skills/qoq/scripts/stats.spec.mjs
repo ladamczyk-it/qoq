@@ -47,6 +47,17 @@ test('a config with no stats key still exits 1 — absent is not a decline', () 
   assert.equal(run(project(NO_STATS), home(), 'fix').status, 1);
 });
 
+// The disclosure quotes the request body rather than describing it, so it cannot
+// come to promise less than what is sent. That only holds while it is generated
+// from the same object, which is what this asserts.
+test('the ask quotes the literal payload for the command that ran', () => {
+  const { stdout } = run(project(), home(), 'bump');
+
+  assert.match(stdout, /^ask: no consent on record$/m);
+  assert.ok(stdout.includes(JSON.stringify({ tool: 'qoq-skill', options: ['bump'] })));
+  assert.ok(stdout.includes('stats.adamczyk.ovh'));
+});
+
 test('stats: false in the project config resolves to declined without asking', () => {
   const config = "export default { stats: false, prettier: { sources: ['.'] } };\n";
   const result = run(project(config), home(), 'fix');

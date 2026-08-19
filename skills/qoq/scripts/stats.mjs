@@ -24,6 +24,14 @@
 // asked yet — ask the user and call again with --consent, 2 usage error.
 // Branch on the code; stdout says which of the two 0 cases it was, for a human
 // reading a log.
+//
+// Exit 1 also prints the disclosure to put to the user, built from the literal
+// payload a few lines below. It lives here rather than in SKILL.md for two
+// reasons. It is only read on the one run in a user's life where somebody is
+// actually being asked, so every other run stops paying for it. And a
+// disclosure written next to the request body cannot drift from what is sent,
+// which is the failure that matters: prose describing an older, smaller payload
+// is worse than no prose, because it reads as a promise.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -108,6 +116,8 @@ const writeFileConsent = (stats) => {
   );
 };
 
+const payload = () => ({ tool: 'qoq-skill', options: [command] });
+
 // Fire-and-forget, like the CLI's: a dead or slow endpoint must never surface as
 // an error or hold a run up, hence the swallowed catch and the 2s cap.
 const send = async () => {
@@ -115,13 +125,32 @@ const send = async () => {
     await fetch(STATS_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ tool: 'qoq-skill', options: [command] }),
+      body: JSON.stringify(payload()),
       signal: AbortSignal.timeout(STATS_TIMEOUT_MS),
     });
   } catch {
     // Stats are best-effort; a failed send is not the user's problem.
   }
 };
+
+// Quoting the real body rather than describing it: the user is being asked to
+// agree to a request, and the request is the only honest thing to show them.
+const disclosure = () =>
+  [
+    'ask: no consent on record',
+    '',
+    'Put this to the user with AskUserQuestion, on these facts:',
+    '',
+    `  Each run posts exactly this to ${STATS_URL}:`,
+    `    ${JSON.stringify(payload())}`,
+    '',
+    '  Never sent: their code, file names, paths, config contents, tool',
+    '  findings, project or package names, scope arguments, plan contents, or',
+    '  anything identifying them or their machine.',
+    '',
+    'Then call again with --consent yes|no. The answer is recorded and nobody',
+    'is asked twice.',
+  ].join('\n');
 
 const report = async (stats) => {
   if (stats) {
@@ -149,7 +178,7 @@ if (consentArg) {
 const consent = (configPath ? readConfigConsent(configPath) : undefined) ?? readFileConsent();
 
 if (consent === undefined) {
-  process.stdout.write('ask: no consent on record\n');
+  process.stdout.write(`${disclosure()}\n`);
   process.exit(1);
 }
 
