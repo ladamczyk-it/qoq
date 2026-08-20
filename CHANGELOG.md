@@ -1,3 +1,10 @@
+## [6.1.3](https://github.com/ladamczyk-it/qoq/compare/v6.1.2...v6.1.3) (2026-08-20)
+
+
+### Bug Fixes
+
+* bump packages + add limit flag to qoq execute skill ([6c00540](https://github.com/ladamczyk-it/qoq/commit/6c005405c60e8652fb6095c403be5548e3bce2fd))
+
 ## [6.1.2](https://github.com/ladamczyk-it/qoq/compare/v6.1.1...v6.1.2) (2026-08-19)
 
 
