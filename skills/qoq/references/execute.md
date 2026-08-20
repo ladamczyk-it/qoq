@@ -31,6 +31,46 @@ index is a failure no gate catches. Because only one ticket is ever in flight,
 there's also no disjoint-**Files** constraint to maintain and no per-ticket
 scratch directory to isolate.
 
+## Spending limits, when the user asks for them
+
+`--session-limit <pct>` and `--weekly-limit <pct>` cap how much of the account's
+5-hour and 7-day limits this run may consume. Either flag arms the gate; the one
+not given defaults to 100, so `--session-limit 60` means "stop at 60% of the
+session, and only an exhausted week stops the run".
+
+**Neither flag given, no gate** — no check, no number printed, nothing fetched.
+The default is the behaviour that existed before the flags did: a plan run left
+alone finishes. Someone who wants a ceiling says so, and only they pay for the
+per-ticket call.
+
+Armed, run this **before dispatching each ticket** — the answer moves while the
+run does, so one check at the start would be a number about a plan that hadn't
+started yet:
+
+```bash
+node <skill>/scripts/usage-check.mjs --session-limit <pct> --weekly-limit <pct>
+```
+
+Pass both, always: the script's own defaults fill in whichever flag the user
+left out. Show its stdout to the user verbatim before the dispatch — the
+headroom line is what they asked for by setting a limit, and a run that
+silently swallows it gives them a gate they can't see working.
+
+Branch on the exit code:
+
+- **0** — dispatch the ticket.
+- **1** — a limit is reached. Stop and ask whether to carry on anyway, saying in
+  the question that a yes disarms the gate for the rest of this run: the number
+  only climbs from here, so re-asking before every remaining ticket is the same
+  question over and over. A **no** ends the run cleanly — leave the ticket at
+  its current status and tell the user `qoq execute <plan>` resumes it once the
+  window rolls over. It is **not** `blocked`, and it files **no** estimate
+  outcome: nothing was dispatched, so there's no call to grade.
+- **stdout starts with `usage unavailable`** (still exit 0) — the endpoint
+  couldn't be reached. Say so in one line and carry on; an outage is not a
+  reason to wedge a plan, and the account's real limits enforce themselves
+  whether or not this check ran.
+
 ## The dispatch
 
 Every dispatch carries, verbatim:

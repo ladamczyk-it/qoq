@@ -221,6 +221,22 @@ a `judgment-heavy` one run identical steps at different tiers. The third TDD
 beat belongs to the milestone instead — per ticket the scope is too small to see
 anything.
 
+**Why the usage gate is opt-in and per ticket.** A ceiling nobody asked for is
+a stop nobody expected, and the check costs an authenticated round trip per
+ticket, so a bare `qoq execute` fetches nothing at all — `--session-limit` /
+`--weekly-limit` are what arms it. It runs before every ticket rather than once
+at the start because the number it reports is about the run in progress, and a
+reading taken before the first dispatch describes a plan that hadn't spent
+anything yet. A yes at the ceiling disarms it for the rest of the run: usage
+only climbs, so the alternative is the identical question before every remaining
+ticket, which trains the user to answer without reading it.
+
+**Why declining is a pause and not `blocked`.** `blocked` means the ticket
+couldn't be delivered at any tier, and it files a `failure` the estimator uses
+to recommend splitting the ticket. A ticket that was never dispatched has
+nothing to grade — filing it would teach the next plan to decompose work that
+was fine.
+
 **Why the commit happens after the gate rather than inside the agent.** It falls
 out of the gate running one thread up, and it's the better place regardless:
 nothing reaches history until it has passed, and "one ticket, one commit" stops

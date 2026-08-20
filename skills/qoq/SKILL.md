@@ -69,13 +69,18 @@ nobody has to remember which one took a flag.
 | `/qoq bump`                                    | every outdated dependency                              |
 | `/qoq plan <requirements file or description>` | —                                                      |
 | `/qoq execute [plans/<file>.md]`               | omitted → ask, unless exactly one plan is approved     |
+| `/qoq execute <plan> --session-limit 60`       | stop before spending past 60% of the 5-hour limit      |
+| `/qoq execute <plan> --weekly-limit 80`        | same for the 7-day limit; both default to 100          |
 | `/qoq test <what to cover>`                    | —                                                      |
 | `/qoq compress`                                | every `CLAUDE.md` and `AGENTS.md` git tracks           |
 | `/qoq compress docs/ skills/qoq/references`    | those paths only                                       |
 
-`--decisions auto` is the only flag, and it exists for the two callers that
-can't stop to answer questions: `execute`'s milestone gate and `bump`. Details
-in [references/refactor.md](references/refactor.md).
+Three flags exist. `--decisions auto` is for the two callers that can't stop to
+answer questions — `execute`'s milestone gate and `bump`
+([references/refactor.md](references/refactor.md)). `--session-limit` and
+`--weekly-limit` cap what a plan run may spend of the account's 5-hour and 7-day
+limits; give neither and no usage check runs at all
+([references/execute.md](references/execute.md)).
 
 ## Entry
 

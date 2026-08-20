@@ -371,7 +371,14 @@ flowchart TD
     EBRANCH -->|no| EWAVE
 
     EWAVE["**next ticket** — the first whose<br/>deps are all done, in plan order"]
-    EWAVE --> EDISP["dispatch **one qoq-developer** —<br/>model = the ticket's tier,<br/>*(the plan already assigned it)*"]
+    EWAVE --> ELIM{"--session-limit or<br/>--weekly-limit given?"}
+    ELIM -->|"neither — no gate,<br/>nothing fetched"| EDISP
+    ELIM -->|"either — the other<br/>defaults to 100"| EUSE["**usage-check.mjs** — before *each*<br/>ticket, headroom shown to the user<br/>verbatim. *`usage unavailable`<br/>→ say so and carry on*"]
+    EUSE -->|"exit 0 — under both"| EDISP
+    EUSE -->|"exit 1 — limit reached"| EPERM(["**ASK THE USER**<br/>dispatch anyway? a yes disarms<br/>the gate for the rest of the run —<br/>the number only climbs"])
+    EPERM -->|yes| EDISP
+    EPERM -->|no| EPAUSE(["**pause, not blocked** — ticket status<br/>untouched, **no estimate filed**<br/>*(nothing was dispatched to grade)*.<br/>qoq execute [plan] resumes it"])
+    EDISP["dispatch **one qoq-developer** —<br/>model = the ticket's tier,<br/>*(the plan already assigned it)*"]
 
     subgraph EDEV["qoq-developer flow — TDD *(everything the agent does)*"]
         direction TB
@@ -411,7 +418,7 @@ flowchart TD
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
 
     class EDEV agent
-    class EASK user
+    class EASK,EPERM user
     class EBACK,EMGATE,EGATE skill
 ```
 
