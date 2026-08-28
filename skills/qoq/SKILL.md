@@ -1,7 +1,7 @@
 ---
 name: qoq
-description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
-argument-hint: '[fix|refactor|bump|plan|execute|test|compress] [scope]'
+description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
+argument-hint: '[fix|refactor|bump|plan|replan|execute|test|compress] [scope]'
 allowed-tools:
   - Read
   - Write
@@ -35,7 +35,7 @@ allowed-tools:
 
 # QoQ — quality over quantity
 
-Seven commands, one shared discovery record, five agents.
+Eight commands, one shared discovery record, seven agents.
 
 **This file routes.** Each command's reference owns its rules — read the one you
 need, not all of them.
@@ -46,6 +46,7 @@ need, not all of them.
 | `refactor` | green base, then four judgement assessments over a scope   | [references/refactor.md](references/refactor.md) |
 | `bump`     | analyse dependencies, pick, then apply one patch at a time | [references/bump.md](references/bump.md)         |
 | `plan`     | requirements → an approved plan file under `./plans/`      | [references/plan.md](references/plan.md)         |
+| `replan`   | an existing plan, reshaped — delivered work stays frozen   | [references/replan.md](references/replan.md)     |
 | `execute`  | an approved plan, local or imported → delivered milestones | [references/execute.md](references/execute.md)   |
 | `test`     | unit/integration coverage for code that already exists     | [references/test.md](references/test.md)         |
 | `compress` | strip agent-facing markdown to what an agent acts on       | [references/compress.md](references/compress.md) |
@@ -60,7 +61,7 @@ file states neither, so there is one copy of each to go stale.
 
 ## Usage
 
-**Scope is positional, everywhere.** One spelling across all seven commands, so
+**Scope is positional, everywhere.** One spelling across all eight commands, so
 nobody has to remember which one took a flag.
 
 | Invocation                                     | Scope                                                  |
@@ -73,6 +74,7 @@ nobody has to remember which one took a flag.
 | `/qoq bump`                                    | every outdated dependency                              |
 | `/qoq plan <requirements file or description>` | —                                                      |
 | `/qoq plan <requirements> --tool jira`         | also raise the tickets there; default `local`          |
+| `/qoq replan plans/<file>.md`                  | that plan only — refuses on uncommitted changes        |
 | `/qoq execute [plans/<file>.md]`               | omitted → ask, unless exactly one plan is approved     |
 | `/qoq execute --source jira`                   | ask which epic/milestone/list, import it, then run it  |
 | `/qoq execute <plan> --session-limit 60`       | stop before spending past 60% of the 5-hour limit      |
@@ -133,6 +135,7 @@ Commands compose, but **only on the main thread**.
 | `refactor` | `fix`                  | `bump`, `execute`, `test`                                     |
 | `bump`     | `refactor` (per patch) | —                                                             |
 | `plan`     | `grilling` (external)  | —                                                             |
+| `replan`   | `grilling` (external)  | —                                                             |
 | `execute`  | `fix`, `refactor`      | `plan` — offered at approval, never dispatched from inside it |
 | `test`     | `fix`, `refactor`      | —                                                             |
 | `compress` | `fix`                  | nobody                                                        |
@@ -172,9 +175,10 @@ patches. Every check that matters is an attribution question — "did _this_
 change break it?" — which a second agent writing concurrently makes
 unanswerable.
 
-**An agent that reports never fixes.** `qoq-checker`, `qoq-bumper` and
-`qoq-designer` return findings and edit nothing. An agent permitted to do both will quietly do both,
-and the finding disappears into the diff instead of reaching the user.
+**An agent that reports never fixes.** `qoq-checker`, `qoq-bumper`,
+`qoq-designer`, `qoq-architect` and `qoq-test-reviewer` return findings and edit
+nothing. An agent permitted to do both will quietly do both, and the finding
+disappears into the diff instead of reaching the user.
 
 **Never buy green.** No `.skip`, no loosened assertion, no narrowed ticket, no
 weakened gate. If the bar can't be met, that's a report, not something to route
@@ -188,16 +192,20 @@ read.
 
 ## Agents
 
-Five, in `agents/`. Everything is pinned except `qoq-developer`, whose tier is a
-property of the ticket and is passed at dispatch.
+Seven, in `agents/`. Everything is pinned except two: `qoq-developer`, whose tier
+is a property of the ticket and is passed at dispatch, and `qoq-architect`, which
+inherits the session's model because a design error propagates into every ticket
+that inherits the contract.
 
-| Agent           | Model      | Job                                                      |
-| --------------- | ---------- | -------------------------------------------------------- |
-| `qoq-checker`   | haiku      | run the tools, return the digest — one per `fix` loop    |
-| `qoq-bumper`    | sonnet     | read a changelog, find what lands here — one per package |
-| `qoq-developer` | _dispatch_ | one ticket, TDD — one per ticket                         |
-| `qoq-tester`    | sonnet     | write the specs for one slice — one per slice            |
-| `qoq-designer`  | sonnet     | stack → smells → patterns — `refactor`'s assessment 4    |
+| Agent               | Model      | Job                                                         |
+| ------------------- | ---------- | ----------------------------------------------------------- |
+| `qoq-checker`       | haiku      | run the tools, return the digest — one per `fix` loop       |
+| `qoq-bumper`        | sonnet     | read a changelog, find what lands here — one per package    |
+| `qoq-architect`     | _session_  | contracts · surface · risks · unknowns — one per plan       |
+| `qoq-developer`     | _dispatch_ | one ticket, red-green-refactor — one per ticket             |
+| `qoq-test-reviewer` | sonnet     | do the specs test the criteria — one per ticket, pre-commit |
+| `qoq-tester`        | sonnet     | write the specs for one slice — one per slice               |
+| `qoq-designer`      | sonnet     | stack → smells → patterns — `refactor`'s assessment 4       |
 
 Entry copies them into the project's `.claude/agents/`, because an agent file
 inside a skill is registered by nothing, and Claude Code picks that directory up

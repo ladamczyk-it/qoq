@@ -27,7 +27,7 @@ Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 | [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                              |
 | [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                      |
 
-**Legend, shared by all eight.** Purple = a subagent and everything it does.
+**Legend, shared by all nine.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
 invoked from inside another.
 
@@ -316,32 +316,60 @@ flowchart TD
     REQ["requirements — spec, PRD,<br/>or a rough description<br/>*(read the file itself, never a paraphrase)*"]
     REQ --> EXIST{"already a plan<br/>under ./plans/?"}
     EXIST -->|"yes — resume / execute"| EG2["hand to **qoq execute**<br/>*(not this command's job)*"]
-    EXIST -->|no| SMALL{"one ticket's<br/>worth of work?"}
-    SMALL -->|yes| PSTOP(["**stop** — no plan file.<br/>straight to the code —<br/>the gate alone is the bar"])
-    SMALL -->|no| GRILLQ{"is `grilling` in your own<br/>**available-skills list**?<br/>*never cached — that list is<br/>already in this thread's context*<br/>*look for `grilling`, NOT `grill-me`:<br/>grill-me is disable-model-invocation<br/>and its whole body forwards here*"}
+    EXIST -->|"yes — but the shape is wrong"| ERP["hand to **qoq replan**<br/>*(delivered work stays frozen)*"]
+    EXIST -->|no| SMALL
 
-    GRILLQ -->|missing| GASK(["**ASK ONCE** — install<br/>`/plugin install mattpocock-skills`<br/>and re-run *(recommended)*,<br/>or proceed and ask the gaps one<br/>at a time, mid-decomposition"])
-    GASK -.->|"proceed without"| PEXP
-    GRILLQ -->|installed| GRILL["invoke **grilling** with the requirements<br/>**plus what's already settled**, so its<br/>frontier opens on the gaps rather than<br/>re-asking what the spec answers"]
-    GRILL --> GCAP["**it is stateless** — no files, no record.<br/>everything it settled lives only in this<br/>thread, so it has to land in the plan:<br/>Architecture · a ticket's Context ·<br/>a criterion that only got sharp<br/>because a question was asked"]
-    GCAP --> PEXP["dispatch **Explore**<br/>deps · existing patterns · test conventions<br/>*(paths only, no edits)*"]
+    subgraph P1["Phase 1 — Scope"]
+        direction TB
+        SMALL{"one ticket's<br/>worth of work?"}
+        SMALL -->|yes| PSTOP(["**stop** — no plan file.<br/>straight to the code —<br/>the gate alone is the bar"])
+        SMALL -->|no| GRILLQ{"is `grilling` in your own<br/>**available-skills list**?<br/>*never cached — that list is<br/>already in this thread's context*<br/>*look for `grilling`, NOT `grill-me`:<br/>grill-me is disable-model-invocation<br/>and its whole body forwards here*"}
+        GRILLQ -->|missing| GASK(["**ASK ONCE** — install<br/>`/plugin install mattpocock-skills`<br/>and re-run *(recommended)*,<br/>or proceed and ask the gaps one<br/>at a time, mid-decomposition"])
+        GASK -.->|"proceed without"| PSCEN
+        GRILLQ -->|installed| GRILL["invoke **grilling** with the requirements<br/>**plus what's already settled**, so its<br/>frontier opens on the gaps rather than<br/>re-asking what the spec answers"]
+        GRILL --> GCAP["**it is stateless** — no files, no record.<br/>everything it settled lives only in this<br/>thread, so it has to land in the plan:<br/>Architecture · a ticket's Context ·<br/>a criterion that only got sharp<br/>because a question was asked"]
+        GCAP --> PSCEN["**emit the Scenarios** — *Given / When / Then*<br/>prose per milestone, in the user's language,<br/>**from what the grill settled**.<br/>*a journey spanning tickets, not a ticket's<br/>assertion — nothing else in the plan holds<br/>one. more than ~6 and the milestone is too big*"]
+    end
 
-    PEXP --> PSCOPE{"independent<br/>subsystems?"}
-    PSCOPE -->|yes| PSPLIT(["**say so** — separate plans,<br/>one each. never one plan<br/>with both"])
-    PSCOPE -->|no| PDEC["**decompose** — per ticket:<br/>size XS/S/M *(never bigger)*<br/>complexity → agent tier, nothing else<br/>Context that stands alone<br/>**criteria written as assertions**"]
+    PSCEN --> PEXP
 
-    PDEC --> PTAG["**tag the ticket** — mechanical ·<br/>architectural · pattern-repeat<br/>*(multiple, extensible)*<br/>+ the stack it lands in"]
-    PTAG --> PEST["**scripts/estimate.mjs** — *size + tier is<br/>one decision*, counted per tier from<br/>this repo's `.claude/qoq-estimator.json`.<br/>a **miss** = not delivered inside<br/>the three-attempt budget"]
-    PEST -->|"2 — split: tickets of this shape<br/>keep ending up **blocked**<br/>*(not a model problem)*"| PDEC
-    PEST -->|"1 — escalate: most of this<br/>bucket missed at this tier"| PBUMP["take the **dearer tier** *(one rung up —<br/>far cheaper than three failed attempts)*.<br/>**never down** — saving a rung isn't worth<br/>an experiment on the user's ticket"]
-    PEST -->|"0 — the pick stands"| PXL{"a milestone<br/>coming out XL?"}
-    PBUMP --> PFLAG["flag the moved tier<br/>for approval"]
-    PFLAG --> PXL
-    PXL -->|yes| PSPLIT
-    PXL -->|no| PREV["**self-review** — requirement coverage ·<br/>no placeholders · cross-ticket interfaces ·<br/>Depends on that's real ·<br/>**every criterion a spec can assert**"]
+    subgraph P2["Phase 2 — Design"]
+        direction TB
+        PEXP["dispatch **Explore** — *locate*:<br/>deps · existing patterns · test conventions<br/>*(reads excerpts, not whole files —<br/>it locates, it does not audit)*"]
+        PEXP --> PSKIP{"single existing module **and**<br/>no new data shape, payload<br/>or persisted field **and**<br/>no new dependency?"}
+        PSKIP -->|yes| PNONE["**Contracts: none** — nothing to design.<br/>*say so at approval: it is the other thing<br/>the user cannot see from the plan file*"]
+        PSKIP -->|"no, or any doubt"| PARCH["dispatch **qoq-architect** — *audit*: read<br/>deep in what Explore located, **carrying<br/>the Scenarios**. *a journey constrains a<br/>contract: journeys are what, contracts<br/>are how, and that is the order*"]
+        PARCH --> PIDX["**indexes only while scanning** —<br/>patterns/index.md + the stack index for<br/>the **scope's own files**, never package.json.<br/>*a write-up read before the scan is<br/>persuasive by construction, and at design<br/>time there is no code to falsify it against*"]
+        PIDX --> PSMELL["a named pattern needs a **cited file:line<br/>smell in code that already exists**.<br/>otherwise the ponytail ladder stands —<br/>a new dependency is **flagged, never chosen**"]
+        PSMELL --> PWRITE["**then** open that one write-up and check<br/>it fits — one per named pattern, never<br/>before. *the citation is already fixed, so<br/>reading can falsify the candidate,<br/>not widen it. say so when it does not fit*"]
+        PWRITE --> PRET["returns: **Contracts** · **Integration surface**<br/>· **Risks** · **Unknowns**. never edits"]
+        PRET --> PUNK{"Unknowns<br/>returned?"}
+        PUNK -->|yes| PDASK(["**ASK THE USER** — a subagent cannot ask.<br/>the architect never guesses a contract:<br/>an invented one reads exactly like<br/>a real one on the page"])
+        PDASK -.-> PLAND
+        PUNK -->|no| PLAND["**Contracts** → the milestone field<br/>**Integration surface + Risks** → ticket Context<br/>*this is the anti-scope-expansion payload*"]
+    end
+
+    PNONE --> PSCOPE
+    PLAND --> PSCOPE
+
+    subgraph P3["Phase 3 — Breakdown"]
+        direction TB
+        PSCOPE{"independent<br/>subsystems?"}
+        PSCOPE -->|yes| PSPLIT(["**say so** — separate plans,<br/>one each. never one plan<br/>with both"])
+        PSCOPE -->|no| PDEC["**decompose** — per ticket:<br/>size XS/S/M *(never bigger)*<br/>complexity → agent tier, nothing else<br/>Context that stands alone<br/>**criteria written as assertions,<br/>derived from the Scenarios** — so each<br/>has a parent rather than an author<br/>*Risks feed sizing*"]
+        PDEC --> PTAG["**tag the ticket** — mechanical ·<br/>architectural · pattern-repeat<br/>*(multiple, extensible)*<br/>+ the stack it lands in"]
+        PTAG --> PEST["**scripts/estimate.mjs** — *size + tier is<br/>one decision*, counted per tier from<br/>this repo's `.claude/qoq-estimator.json`.<br/>a **miss** = not delivered inside<br/>the three-attempt budget"]
+        PEST -->|"2 — split: tickets of this shape<br/>keep ending up **blocked**<br/>*(not a model problem)*"| PDEC
+        PEST -->|"1 — escalate: most of this<br/>bucket missed at this tier"| PBUMP["take the **dearer tier** *(one rung up —<br/>far cheaper than three failed attempts)*.<br/>**never down** — saving a rung isn't worth<br/>an experiment on the user's ticket"]
+        PEST -->|"0 — the pick stands"| PXL{"a milestone<br/>coming out XL?"}
+        PBUMP --> PFLAG["flag the moved tier<br/>for approval"]
+        PFLAG --> PXL
+        PXL -->|yes| PSPLIT
+        PXL -->|no| PREV["**self-review — the definition-of-ready gate**:<br/>requirement + scenario coverage · no<br/>placeholders · **exact Files** · cross-ticket<br/>interfaces · Depends on that's real ·<br/>**every criterion a spec can assert**<br/>*against the Contracts, before any code*"]
+    end
 
     PREV --> PSAVE["save → ./plans/YYYY-MM-DD-[feature].md"]
-    PSAVE --> PAPPR(["**ASK THE USER** — approve.<br/>surfaced here: new deps,<br/>the model ceiling, and every<br/>tier the estimator moved"])
+    PSAVE --> PAPPR(["**ASK THE USER** — approve.<br/>surfaced here: new deps *(incl. any the<br/>architect flagged)*, the model ceiling,<br/>every tier the estimator moved, and<br/>**what was skipped** — the grill,<br/>the architect, or both"])
     PAPPR -.->|"changes"| PDEC
     PAPPR -.->|"approved"| PMARK["**Plan status: approved**<br/>+ Commands header,<br/>copied from the record"]
     PMARK --> PTOOL{"which `--tool`?"}
@@ -359,9 +387,45 @@ flowchart TD
 
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
+    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
 
-    class PAPPR,GASK,PXOFF,PXWHERE,PXSTOP user
-    class EG2,PHAND,GRILL skill
+    class PAPPR,GASK,PXOFF,PXWHERE,PXSTOP,PDASK user
+    class EG2,ERP,PHAND,GRILL skill
+    class P2 agent
+```
+
+---
+
+## `replan`
+
+```mermaid
+flowchart TD
+    R0["**qoq replan** plans/[file].md"]
+    R0 --> RGIT{"the plan file has<br/>uncommitted changes?"}
+    RGIT -->|yes| RSTOP(["**REFUSE** — commit or stash first.<br/>replan overwrites in place so the path<br/>stays stable *(External keys, the<br/>.completed.md archive and any resume all<br/>reference it by name)*. git is the history"])
+    RGIT -->|no| RSIZE{"one milestone<br/>from done?"}
+    RSIZE -->|yes| RFIN(["**say so** — finishing is<br/>cheaper than reshaping"])
+    RSIZE -->|no| RNEW{"nothing delivered **and** the<br/>requirements changed substantially?"}
+    RNEW -->|yes| RFRESH(["**not a replan** — archive it<br/>and run qoq plan"])
+    RNEW -->|no| RSPLIT["**split the file**"]
+
+    RSPLIT --> FROZEN["**FROZEN** — delivered milestones · done<br/>tickets · the archive · commits.<br/>*read-only input, never material: a done<br/>ticket re-decomposed loses its commit link<br/>and the history stops meaning anything.*<br/>**backfill only** — missing Log from git,<br/>missing Estimate from estimate.mjs"]
+    RSPLIT --> LIVE["**LIVE** — todo · in-progress · blocked<br/>tickets and undelivered milestones.<br/>*the only thing replan may rewrite*"]
+
+    FROZEN --> GRILL
+    LIVE --> GRILL["**Phase 1 over the live part** — hand the grill<br/>the old plan, the original Requirements source<br/>if it still resolves, **and what went wrong**:<br/>blocked tickets, escalations, scope-expansion<br/>attributions. *nothing else in the system reads<br/>these at plan time, and they are the strongest<br/>evidence the old decomposition was wrong*"]
+    GRILL --> GNOTE["*self-limiting — handed everything already<br/>settled plus milestones that demonstrably<br/>work, the frontier is nearly closed.<br/>no skip mode needed*"]
+    GNOTE --> PH23["**Phases 2 and 3**, live tickets only —<br/>architect, then decompose"]
+    PH23 --> ORPH{"did any live ticket<br/>carry an **External** key?"}
+    ORPH -->|yes| ORPT(["**report the orphans at approval** — a<br/>re-decomposed ticket loses its External and<br/>the tracker item it was is now dangling.<br/>*replan never syncs: the export writes once<br/>and never syncs back, and syncing is the<br/>problem this skill refuses to own*"])
+    ORPT -.-> WRITE
+    ORPH -->|no| WRITE["**overwrite in place**.<br/>*the calibration store is untouched — a<br/>recorded outcome means 'this shape of work<br/>at that tier went this way', which stays<br/>true however the plan is now shaped*"]
+
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
+
+    class RSTOP,RFIN,RFRESH,ORPT user
+    class GRILL,PH23 skill
 ```
 
 ---
@@ -400,40 +464,52 @@ flowchart TD
     EUSE -->|"exit 1 — limit reached"| EPERM(["**ASK THE USER**<br/>dispatch anyway? a yes disarms<br/>the gate for the rest of the run —<br/>the number only climbs"])
     EPERM -->|yes| EDISP
     EPERM -->|no| EPAUSE(["**pause, not blocked** — ticket status<br/>untouched, **no estimate filed**<br/>*(nothing was dispatched to grade)*.<br/>qoq execute [plan] resumes it"])
-    EDISP["dispatch **one qoq-developer** —<br/>model = the ticket's tier,<br/>*(the plan already assigned it)*"]
+    EDISP["dispatch **one qoq-developer** — model = the<br/>ticket's tier. carries **verbatim**: id · Context ·<br/>Files · Acceptance criteria · **the milestone's<br/>Contracts** · the record's path ·<br/>test-conventions.md's path.<br/>*not the Scenarios — journey-level context<br/>a single ticket cannot act on*"]
 
-    subgraph EDEV["qoq-developer flow — TDD *(everything the agent does)*"]
+    subgraph EDEV["qoq-developer — red · green · refactor"]
         direction TB
         T0["**read the record** — runner · globals ·<br/>React? · conventions file · commands ·<br/>how to invoke qoq. *first move*"]
-        T0 --> T1["**red** — write plain assertions<br/>straight from the acceptance criteria,<br/>**in the project's dialect**"]
-        T1 --> T2["**green** — implement the ticket<br/>until those assertions pass"]
-        T2 --> TRAISE["**raise them to the bar itself** —<br/>test-conventions.md: mocking,<br/>the edge cases a first pass skips.<br/>*no dispatch — a subagent<br/>can't spawn one*"]
-        TRAISE --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`, then<br/>`npx qoq staged` over its files<br/>*scoped and report-less: the<br/>digest and the gate stay<br/>with the caller*"]
-        T4 -->|"red"| T5{"3 attempts<br/>spent?"}
-        T5 -->|no| T2
-        T5 -->|"yes"| THAND(["**handoff report** —<br/>never narrow the ticket,<br/>never weaken the gate"])
-        T4 -->|"green"| TRET["hand back: **every file changed**,<br/>what the specs cover, advisories"]
+        T0 --> T1["**RED** — transcribe **every** criterion into<br/>an assertion **against the Contract**, in the<br/>project's dialect. **one run**: each must<br/>fail, and for the right reason.<br/>*the runner names every failing test — that<br/>is the isolation a per-criterion cycle<br/>would have bought. the reviewer cannot run<br/>anything, so this is the empirical half*"]
+        T1 --> T2["**GREEN** — one criterion at a time, the<br/>minimum that turns that one assertion.<br/>*re-run a single one when you want to<br/>check it — permitted, never required*"]
+        T2 --> TREF["**REFACTOR** — tidy inside the ticket's own<br/>**Files**, while green, no interface change,<br/>re-run after. *not the milestone refactor*"]
+        TREF --> TADD["may **add** cases per test-conventions.md.<br/>**never change what a green assertion<br/>expects on your own judgment** — that is a<br/>hand-back with the criterion quoted.<br/>*a Gate 2 rejection is the one exception,<br/>and only for the assertions it cites*"]
+        TADD --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`, then<br/>`npx qoq staged` over its files<br/>*scoped and report-less: the<br/>digest and the gate stay<br/>with the caller*"]
+        T4 -->|"red, budget left"| T2
+        T4 -->|"red, budget spent"| THAND(["**handoff report** —<br/>never narrow the ticket,<br/>never weaken the gate"])
+        T4 -->|"green"| TRET["hand back **every file changed**,<br/>spec and source both"]
     end
 
+    CONTRA(["**a Contract that turns out wrong is a<br/>HAND-BACK, not an edit** — widening a<br/>payload to make your own test pass is<br/>the failure this rule exists for"])
+    T1 -.-> CONTRA
+
     EDISP --> T0
-    TRET --> EGATE["**qoq fix**, scoped to the<br/>files it returned"]
-    EGATE -->|FAIL| T5
-    EGATE -->|PASS| TCOM["commit exactly<br/>this ticket's files"]
-    TCOM --> EDONE["**Status: done**<br/>+ commit hash, advisories"]
+    TRET --> EGATE["**GATE 1 — qoq fix**, scoped to<br/>exactly the files it returned"]
+    EGATE -->|FAIL| EATT
+    EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the spec files.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
+    EGATE2 -->|"REJECTED — file:line per defect"| EATT
+    EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof<br/>its tests are real*"]
+
+    EATT{"**3 attempts spent?**<br/>*shared across BOTH gates —<br/>an attempt is an attempt*"}
+    EATT -->|"no — re-dispatch with the<br/>digest or the verdict **verbatim**"| EDISP
+    EATT -->|yes| EESC
     THAND --> EESC{"a tier<br/>above?"}
     EESC -->|"yes — re-dispatch with<br/>the report pasted in"| EDISP
     EESC -->|"no — top rung already"| EBLOCK(["**Status: blocked** — bring the<br/>user the report: bad ticket,<br/>or session model too small"])
-    EDONE --> EXBACK
-    EBLOCK --> EXBACK
+
+    TCOM --> EDONE["**Status: done** + commit hash, advisories.<br/>**tick each acceptance criterion and write<br/>its evidence pointer** from the reviewer's<br/>mapping — *never from your own reading<br/>of the diff*"]
+    EDONE --> ELOG["**Log** — one line per transition:<br/>dispatch, each gate verdict,<br/>re-dispatch, done/blocked + hash"]
+    EBLOCK --> ELOG
+    ELOG --> EXBACK
     EXBACK["**imported plan only** — write the status<br/>**label** and the commit back to the item's<br/>**External** key. *the one state qoq writes:<br/>a run knows the transition as it happens,<br/>an export sets one and walks away.<br/>never the workflow column, never a list move.<br/>a rejected write is a report line, not a stop*"]
     EDONE -->|"**success** — even after three<br/>rounds and an escalation"| EREC["**estimate.mjs --record** — against the tags<br/>and **the tier the plan assigned**, never the one<br/>that finally delivered it. attempts spent, plus<br/>**your attribution**: estimation-miss *(the pick was<br/>wrong)* vs scope-expansion *(a different ticket got<br/>built)* — only a miss reaches a verdict"]
     EBLOCK -->|"**failure** — nothing delivered it<br/>*(the only thing that earns a split)*"| EREC
     EREC --> EMORE{"tickets left in<br/>the milestone?"}
     EMORE -->|yes| EWAVE
-    EMORE -->|no| EMGATE["**refactor** — the third TDD beat, delegated:<br/>**qoq refactor --decisions auto** over every<br/>file the milestone's tickets touched,<br/>then the full test suite + build"]
-    EMGATE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
+    EMORE -->|no| EMGATE["**milestone 1 — qoq refactor --decisions auto**<br/>over the union of every ticket's files.<br/>*the specs are in that union, so cross-ticket<br/>setup duplication and one boundary mocked<br/>three ways are already JSCPD's job —<br/>no third gate is needed here*"]
+    EMGATE --> EMSUITE["**milestone 2 — the project's<br/>full build + full test suite**"]
+    EMSUITE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
     ENEW --> EWAVE
-    EMGATE -->|green| EARCH["**archive** — milestone text to<br/>.completed.md, summary stays,<br/>downstream Context updated first"]
+    EMSUITE -->|green| EARCH["**archive with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Completed summary, not just 'green'.<br/>milestone text to .completed.md, summary<br/>stays, downstream Context updated first"]
     EARCH --> EMS{"milestones<br/>left?"}
     EMS -->|yes| EWAVE
     EMS -->|no| EFIN(["**done** — plan delivered"])
@@ -441,10 +517,12 @@ flowchart TD
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
+    classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
 
-    class EDEV agent
+    class EDEV,EGATE2 agent
     class EASK,EPERM,EIMP,ECASK user
     class EBACK,EMGATE,EGATE skill
+    class CONTRA note
 ```
 
 ---

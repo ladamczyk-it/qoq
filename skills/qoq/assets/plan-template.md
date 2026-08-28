@@ -30,6 +30,8 @@ board; omit the whole field on a local plan>
 
 **Delivered:** <one sentence: what exists now that didn't before>
 **Tickets:** <id> <title> `<commit>` · <id> <title> `<commit>`
+**Gate evidence:** refactor `<the verdict — clean, or what it found and what was
+done>` · suite `<the full build + suite result, as reported>`
 **Decisions that outlive this milestone:** none | <what later work is built on>
 **Open advisories:** none | <non-blocking findings still true>
 **Full detail:** [<plan-name>.completed.md](<plan-name>.completed.md)
@@ -42,6 +44,17 @@ board; omit the whole field on a local plan>
 **Goal:** <what this milestone delivers on its own — should be independently
 shippable/testable>
 **Depends on:** none | Milestone <N>
+**Contracts:** none | <the interface this milestone's tickets share — inline when
+small (a type, a payload shape, an error shape), or a path when the project
+already keeps `openapi.yaml` / `.proto` / a zod schema>
+**Scenarios:**
+
+<!-- Journeys, in the user's language, written in Phase 1 from what the grill
+     settled. Not assertions — see the field note. -->
+
+- **Given** <the state the user is in> **When** <what they do> **Then** <what
+  they observe>
+
 **External:** <added by the export beat only — the epic/milestone/list it was
 raised as; absent otherwise>
 
@@ -72,22 +85,38 @@ ticket exists. No "similar to Ticket 1.3" — restate what's needed.
 
 <!-- Written as assertions, not tasks. `qoq execute` opens this ticket by
      transcribing each one into a failing spec before any implementation, so
-     each must describe observable behaviour a spec can assert today. -->
+     each must describe observable behaviour a spec can assert today. Each box is
+     ticked at `done` and gains its evidence pointer — see the field note. -->
 
-- [ ] <a 6th request inside 60s returns 429>
-- [ ] <an expired token yields 401 with code TOKEN_EXPIRED>
+- [ ] <a 6th request inside 60s returns 429> — `<spec/file.ts::test name>`
+- [ ] <an expired token yields 401 with code TOKEN_EXPIRED> —
+      `<spec/file.ts::test name>`
 
 **Definition of done:** <!-- the orchestrator's checklist, not the developer's;
-     the dispatch carries Context, Files and Acceptance criteria only -->
+     the dispatch carries Context, Files, Acceptance criteria and the milestone's
+     Contracts only -->
 
-- [ ] Acceptance criteria met, each with the spec that asserts it, raised to
-      `test-conventions.md` by the developer itself
-- [ ] `qoq fix <files above>` → PASS — run from the orchestrating thread, since
-      the developer can't dispatch it
-- [ ] Change committed after that PASS; hash recorded in **Commit** below
+- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread,
+      since the developer can't dispatch it
+- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2, after Gate 1
+      because `qoq fix` rewrites formatting. No ticket is `done` without it: a
+      ticket whose tests assert nothing files a `success` with the estimator and
+      leaves downstream work built on a behaviour nothing pins
+- [ ] Every acceptance criterion ticked with its evidence pointer, taken from the
+      reviewer's criterion → assertion mapping
+- [ ] Change committed after both gates; hash recorded in **Commit** below
 - [ ] Status set to `done`; advisories (if any) noted below
 
-**Advisories:** <filled in after the gate runs, or "none">
+**Advisories:** <filled in after the gates run, or "none">
+
+- **Log:**
+  <!-- Orchestrator-written, append-only. One line per transition; no schema
+       beyond a timestamp and what happened. -->
+  - `<YYYY-MM-DD HH:MM>` dispatched @ <tier> (attempt <n>)
+  - `<YYYY-MM-DD HH:MM>` qoq fix FAIL — <what>
+  - `<YYYY-MM-DD HH:MM>` re-dispatched (attempt <n>)
+  - `<YYYY-MM-DD HH:MM>` qoq fix PASS · tests approved
+  - `<YYYY-MM-DD HH:MM>` done `<hash>`
 
 **Commit:** <filled in after commit — short hash, or a link if the remote is a
 known host; "none" until then>
@@ -107,6 +136,8 @@ ticket was raised as; absent otherwise>
       explicitly; bare, it widens to the whole project
 - [ ] Project's full build + full test suite green (the Commands header above,
       not the scoped variants a ticket gate uses)
+- [ ] Both results written into the summary block's **Gate evidence** — what the
+      refactor found and what the suite reported, not "green"
 - [ ] Milestone archived: full text moved to `<plan-name>.completed.md`, summary
       block left under `## Completed`, downstream tickets' **Context** updated
       with anything this milestone actually established
@@ -143,7 +174,38 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
   title, not a criterion — it leaves the red beat with nothing to transcribe and
   the agent ends up inventing the assertion it should have been handed. If a
   criterion can't be asserted before the implementation exists, the ticket isn't
-  decomposed yet.
+  decomposed yet. Each one is derived from a **Scenario** — a criterion with no
+  parent journey is one somebody invented.
+- **Evidence pointer** is the `spec/file.ts::test name` written beside a
+  criterion when the ticket reaches `done`, and it comes from
+  `qoq-test-reviewer`'s mapping — never from the orchestrator's own reading of
+  the diff, which is the reading the gate exists to replace. Without it a
+  delivered plan reads identically to an undelivered one, and "criteria met" is a
+  claim nobody can check without re-opening the diff.
+- **Contracts** sits on the **milestone**, not the ticket: its tickets share one
+  interface — one implements it, another asserts it — and milestone 3's schema
+  has no business in milestone 1's dispatch context. It's written in Phase 2 from
+  `qoq-architect`'s output, and `qoq execute` passes it verbatim into every
+  dispatch. `none` is a normal, common value; say it out loud rather than
+  inventing a schema section, which is what a mandatory field otherwise grows.
+  The one rule on the content: it has to be something a spec can assert against,
+  the same test acceptance criteria already pass.
+- **Scenarios** are journeys, and a journey is not an acceptance criterion. A
+  criterion is one ticket's assertion — "a 6th request inside 60s returns 429".
+  A scenario spans tickets — "**Given** a signed-in user who has just hit the
+  limit, **When** they retry after the window, **Then** the request succeeds and
+  the counter has reset". Nothing else in the plan holds the second, and a
+  milestone's whole claim is that it's independently shippable, which is a
+  statement about journeys rather than about assertions. Structured prose, not
+  Gherkin: the intended consumer is a model and needs no formal grammar, while
+  real Gherkin invites someone to point Cucumber at it and then wants step
+  definitions nobody asked for. More than about six means the milestone is too
+  big — the same test the `XL` rule applies, reached from the other direction.
+- **Log** is orchestrator-written and append-only — one line per transition, a
+  timestamp and what happened, no schema beyond that. It exists because `Status`
+  says where a ticket is and nothing says how it got there: two gate rejections
+  and an escalation are invisible in a `done` ticket otherwise, and they're what
+  a resume, and the user, read a plan's history from.
 - **Commands** are the project's _full_ build and test commands, copied from the
   discovery record at approval. The milestone gate runs them, possibly days later
   in a session with no memory of this one. There's no fallback to reading

@@ -93,60 +93,122 @@ Every dispatch carries, verbatim:
 
 - the ticket's **id**, **Context**, **Files**, and **Acceptance criteria** —
   never "see the plan", which resolves to nothing on the other side
+- the **milestone's `Contracts`**, verbatim — the shape its specs assert against.
+  `none` is a normal value and is worth passing as such.
 - the **record's path**, so the agent reads it rather than trusting a pasted copy
 - the **path to `references/test-conventions.md`** in this skill — a subagent has
   no way to work out where the skill lives
 - the **model** for the ticket's tier, passed explicitly
 - the three-attempt budget, with explicit permission to hand the ticket back
   rather than narrow it
-- on a re-dispatch after a failed gate: the **digest verbatim**, plus which
-  attempt this is
+- on a re-dispatch after a failed gate: the **digest or the verdict verbatim**,
+  plus which attempt this is
 
-## The ticket is a TDD cycle, and the cycle is bigger than the ticket
+**Not the milestone's `Scenarios`.** Those are journey-level and a ticket is not
+— they'd be context the developer can't act on, and the one thing worse than
+missing context is context that invites work outside the `Files` list.
 
-**Red and green belong to the ticket.** Specs first, transcribed from the
-acceptance criteria and failing because nothing implements them yet; then the
-implementation that makes them pass.
+Write the ticket's **`Log`** at each transition — dispatch, each gate verdict,
+each re-dispatch, `done` or `blocked` with the hash. It's orchestrator-written
+because only this thread sees the transitions: `Status` says where a ticket
+ended, and the `Log` is the only thing that says how it got there.
 
-**The third beat belongs to the milestone.** `refactor` runs over every file the
-milestone's tickets touched, which is the first moment those tickets exist as one
-piece of code and therefore the first moment "is this the right shape" is
-answerable at all. Per ticket the scope is too small to see anything.
+## The ticket is a full TDD cycle — and there are two refactor beats
+
+**Red, green and refactor all belong to the ticket.** Specs first, every
+criterion transcribed and failing in one run because nothing implements them yet;
+then green, one criterion at a time; then a tidy of what was just written, inside
+the ticket's own **Files**, while green, with no interface change.
+
+**A second refactor beat belongs to the milestone, and it is a different
+question.** `qoq refactor --decisions auto` runs over every file the milestone's
+tickets touched, which is the first moment those tickets exist as one piece of
+code — and cross-ticket findings are only visible there: duplication across four
+tickets, a now-dead export, three tickets that each picked a different shape. Per
+ticket that scope sees none of it.
+
+So: **ticket-level tidy is about this diff; milestone-level shape is about the
+milestone.** Neither substitutes for the other, and a ticket that skips its own
+tidy hands the milestone gate a mess it was never meant to sort.
 
 There is no per-ticket standards pass and no complexity-driven routing table: a
 `trivial` ticket and a `judgment-heavy` one run identical steps at different
 tiers.
 
-**The per-ticket gate is `qoq fix`, scoped** to exactly the files the ticket
-changed — spec and source both. Scoped, because the verdict has to be about this
-ticket and nothing else.
+### Two gates per ticket, in this order
 
-**It runs here, not inside the developer.** The developer proves its own work —
-the project's `test:one` and `build`, then the CLI's `scoped` form over the files
-it touched — and hands back that list; this thread dispatches `qoq fix` over it and
-commits on a `PASS`. A `FAIL` re-dispatches the developer with the digest pasted
-in, and that round is one of its three attempts.
+```
+developer hands back → qoq fix (scoped) → qoq-test-reviewer → commit
+```
 
-The developer's own scoped run doesn't make the gate redundant: it writes no
+**Gate 1 — `qoq fix`, scoped** to exactly the files the ticket changed, spec and
+source both. Scoped, because the verdict has to be about this ticket and nothing
+else.
+
+**Gate 2 — `qoq-test-reviewer`**, read-only, over the spec files. Its dispatch
+carries those files, the ticket's acceptance criteria, the milestone's
+`Contracts`, and the path to `references/test-conventions.md`.
+
+**`qoq fix` runs first because it rewrites formatting**, and there's no point
+spending a semantic read on text that's about to change.
+
+**Gate 2 sits before the commit, and that is the whole argument for its cost.** A
+ticket marked `done` whose tests assert nothing isn't a deferred problem — it's a
+false statement this file then propagates: a `success` filed with the estimator,
+downstream tickets built on a behaviour nothing pins, and an archive entry
+claiming delivery. Catching it a milestone later means unwinding all three. No
+ticket is finished without proof its tests are real.
+
+It's a separate cold agent rather than a read on this thread for two reasons: the
+reading volume is what dispatching exists to keep out of the orchestrating
+context, and this thread is holding the developer's own report, which primes it to
+accept. A cold reader isn't primed.
+
+**Both gates run here, not inside the developer.** The developer proves its own
+work — the project's `test:one` and `build`, then the CLI's `scoped` form over
+the files it touched — and hands back that list. A `FAIL` or a `REJECTED`
+re-dispatches it, and the commit happens here after both gates pass, so nothing
+reaches history unproven.
+
+A `REJECTED` verdict is re-dispatched **verbatim, never summarised.** The
+developer is forbidden from editing a green assertion on its own judgment, and
+this verdict is its single exception — scoped to exactly the assertions the
+verdict cites. Summarise it and you've either widened that licence or destroyed
+it.
+
+The developer's own scoped run doesn't make Gate 1 redundant: it writes no
 reports, so the digest and the retry budget that acts on it both live here. What
 it does is stop a whole dispatch-and-gate round being spent on a formatting
 finding.
 
-The commit happens here too, after the gate — nothing reaches history until it
-has passed.
+**The attempt budget is three, shared across both gates.** An attempt is an
+attempt whichever gate consumed it. Three rounds of feedback and still not right
+means the ticket is mis-rated — which is exactly what the escalation ladder acts
+on — and separate counters would allow six rounds before the tier moved, double
+the worst-case spend on a ticket whose first three rounds already said so. The
+estimator also takes one number.
 
-**The whole test cycle is the developer's own.** It writes the failing
-assertions, one per acceptance criterion — a criterion the plan already stated as
-an assertion needs transcribing, not authoring, and dispatching an agent to write
-`expect(res.status).toBe(429)` costs more than writing it. Once the code is in,
-it raises those same assertions to the project's bar itself, against
-`test-conventions.md`: what's worth mocking, the cases a first pass skips. That's
-a judgement best made over code that exists, which is why it comes after green
-rather than before.
+### On `done`: tick the criteria with their evidence
 
-It doesn't hand that step to `qoq test` — that dispatch is unavailable to it, and
-unnecessary: `qoq test` earns its subagent by _slicing_ a scope nobody has read
-yet, and a ticket arrives pre-sliced with its implementation already in the
+Gate 2's `APPROVED` comes back with the **criterion → assertion mapping** it had
+to build to reach that verdict. Tick each acceptance criterion in the plan and
+write its `spec/file.ts::test name` beside it, **from that mapping** — never from
+your own reading of the diff, which is the reading the gate exists to replace.
+
+Without it a delivered plan reads identically to an undelivered one.
+
+### The test cycle stays the developer's own
+
+It writes the failing assertions, one per acceptance criterion — a criterion the
+plan already stated as an assertion needs transcribing, not authoring, and
+dispatching an agent to write `expect(res.status).toBe(429)` costs more than
+writing it. After green it may **add** cases against `test-conventions.md`, and
+may never change what a green assertion expects on its own judgment; Gate 2 is
+what independently checks the result.
+
+It doesn't hand any of that to `qoq test` — that dispatch is unavailable to it,
+and unnecessary: `qoq test` earns its subagent by _slicing_ a scope nobody has
+read yet, and a ticket arrives pre-sliced with its implementation already in the
 writer's context.
 
 ## Report the outcome back, once per ticket
@@ -206,9 +268,10 @@ data point.
 
 ## Escalation
 
-Three attempts spent — whether the agent handed back itself or the gate failed
-three rounds — exhausts the ticket at that tier. Re-dispatch one tier up with the
-last report and digest pasted into the new prompt — it's the most useful context the
+Three attempts spent — whether the agent handed back itself, or either gate
+rejected it, in any combination — exhausts the ticket at that tier. Re-dispatch
+one tier up with the last report and the digest or verdict pasted into the new
+prompt — it's the most useful context the
 next attempt can have. Record the escalation on the ticket even when the
 escalated run then passes: it's how a resume knows not to retry the tier that
 already failed, and how the user sees which tickets were mis-rated.
@@ -223,7 +286,10 @@ When every ticket in a milestone is `done` or `blocked`:
 
 1. `qoq refactor --decisions auto <union of every ticket's files>`.
    `--decisions auto` because nobody is watching — the safe tier is applied and
-   everything shape-changing comes back as an advisory.
+   everything shape-changing comes back as an advisory. The specs are in that
+   union, so cross-ticket spec problems — duplicated setup across four tickets,
+   one boundary mocked three ways — are already assessment 1's job. No third gate
+   is needed here.
 2. The project's **full** build and test suite from the record — not the scoped
    variants a ticket gate uses.
 
@@ -237,12 +303,20 @@ update downstream tickets' **Context** with anything this milestone established
 into the milestone's summary; one that evaporates on archive is worse than one
 never looked for.
 
+**Record what the gates proved, not that they ran.** The summary block's **Gate
+evidence** field takes the refactor's verdict and the suite's result as reported.
+"Green" is a claim; "refactor clean, 412 passed / 0 failed" is evidence, and a
+`## Completed` block is read by people who can no longer see the run.
+
 ## Setup
 
-One check: is `qoq-developer` registered under `.claude/agents/`? If not,
-dispatch `general-purpose` with `agents/qoq-developer.md`'s body pasted in and
-the tier passed explicitly — `general-purpose` otherwise inherits the session's
-model and quietly overrides the rating the plan made.
+Two checks: are `qoq-developer` and `qoq-test-reviewer` registered under
+`.claude/agents/`? If either isn't, dispatch `general-purpose` with that agent
+file's body pasted in — for the developer, with the tier passed explicitly, since
+`general-purpose` otherwise inherits the session's model and quietly overrides
+the rating the plan made; for the reviewer, with its read-only prohibition
+restated, since `general-purpose` gets every tool and would arrive holding the
+ability to fix what it was dispatched to report.
 
 Commands come from the record. The plan's **Commands** header is a convenience
 copy for a session that has one and not the other — there's no `package.json`

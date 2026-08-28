@@ -9,23 +9,31 @@ Copy it structurally, don't improvise sections — an orchestrator resuming a pl
 across sessions relies on "Status" and "Definition of done" meaning the same
 thing in every ticket it's ever handed.
 
-## Read the requirements, not a summary of them
+**Three phases, in order.** Scope settles _what_, design settles _how_, breakdown
+settles _who does which piece_. Each one's output is the next one's input, and
+running them out of order is how a plan ends up with acceptance criteria nobody
+can trace to a requirement.
+
+## Phase 1 — Scope
+
+### Read the requirements, not a summary of them
 
 If the requirements are a file, read the file. A paraphrase in the conversation
 has already lost the detail that turns into an acceptance criterion, and that
 loss is invisible until a ticket is being implemented.
 
-## When not to write a plan
+### When not to write a plan
 
 One ticket's worth of work doesn't get a plan file. Go straight to the code; the
 gate alone is the bar. The dispatch machinery costs more than it saves below that
 size, and a one-ticket plan is a ceremony that has to be maintained.
 
-Two independent subsystems don't get one plan either. Say so and write separate
-plans — a plan with two unrelated halves can never be milestone-ordered
-sensibly, and half of it blocks on the other half for no reason.
+The other stop — two independent subsystems — lives in Phase 3, because the grill
+is often what surfaces it. "These are two unrelated things" is a conclusion a
+round of questions reaches, not a property visible in the requirements as handed
+over.
 
-## Sharpen the requirements first — `grilling`
+### Sharpen the requirements first — `grilling`
 
 Requirements arrive vaguer than they look. Every gap left in them becomes a
 ticket whose acceptance criteria somebody invented, and that invention is
@@ -46,16 +54,12 @@ is cached. Whatever name the list gives it is the invocation, verbatim; a bare
 `grilling` and a `mattpocock-skills:grilling` do not resolve interchangeably, so
 don't add or strip a prefix to make it look tidier.
 
-Check it **after the one-ticket stop above and before `Explore`** — that stop is
+Check it **after the one-ticket stop above and before Phase 2** — that stop is
 one cheap read, so nothing is thrown away by taking it first, and there's no
 point asking the user to install an interview for work that turns out not to
 need a plan at all. Everything after it is the opposite: `Explore`, the
-decomposition and the estimator all read the requirements, so a gap still open
-when they start is a gap each of them reasons from.
-
-The subsystem stop stays where it is, downstream, because the grill is often
-what surfaces it — "these are two unrelated things" is a conclusion a round of
-questions reaches, not a property visible in the requirements as handed over.
+architect, the decomposition and the estimator all read the requirements, so a
+gap still open when they start is a gap each of them reasons from.
 
 Installed → invoke it with the requirements. Missing → ask once:
 
@@ -90,7 +94,41 @@ session re-litigates from scratch.
 Under `--decisions auto` there is nobody to answer questions: skip the interview,
 decompose what's written, and carry the gap into the approval summary.
 
-## `Explore` earns its dispatch
+### Then write the Scenarios
+
+Phase 1's artifact is the milestone **`Scenarios`** field: the journeys this
+milestone has to make true, in the user's language, as `**Given** … **When** …
+**Then** …` prose.
+
+They come **from what the grill settled** — they are the settled requirements
+restated as observable journeys, not a fresh invention alongside them. If you're
+writing a scenario the interview never touched, you're guessing, and that guess
+is exactly what the interview existed to prevent.
+
+A scenario is not an acceptance criterion, and neither can express the other. A
+criterion is one ticket's assertion — _"a 6th request inside 60s returns 429"_.
+A scenario spans tickets — _"**Given** a signed-in user who has just hit the
+limit, **When** they retry after the window, **Then** the request succeeds and
+the counter has reset"_. Nothing else in the plan file holds the second, and a
+milestone's whole claim is that it is independently shippable, which is a
+statement about journeys rather than about assertions.
+
+They earn their place twice downstream: the architect consumes them, because a
+journey constrains a contract, and Phase 3 derives acceptance criteria from them,
+which is the cheapest available guard against a criterion nobody can trace to a
+requirement.
+
+**More than about six per milestone means the milestone is too big** — the same
+test the `XL` rule applies, reached from the other direction.
+
+Prose, not Gherkin. The intended consumer is a model and needs no formal grammar,
+while real Gherkin invites someone to point Cucumber at the plan file, and then
+it wants step definitions and a framework nobody asked for. The bolded keywords
+keep it greppable without inviting a runner.
+
+## Phase 2 — Design
+
+### `Explore` earns its dispatch
 
 One subagent, read-only, answering the questions no record can cache: which files
 look like the work, what patterns the surrounding code already uses, what the
@@ -100,7 +138,78 @@ with no business in the planning context.
 Don't ask it for the build and test commands. Those are already on the record,
 and asking twice is how two answers appear.
 
-## Acceptance criteria are assertions
+Its brief is unchanged by everything below: **`Explore` locates, the architect
+audits.** By its own description it reads excerpts rather than whole files, which
+is what makes it cheap and what makes it insufficient on its own.
+
+### When the architect is skipped
+
+One condition, and **every clause has to hold**: the work lands inside a single
+existing module, invents no data shape, payload or persisted field, and adds no
+dependency. That is the plan whose design output would have been three short
+"none"s — and it's the same plan whose `Contracts` field will legitimately read
+`none`.
+
+The condition is decidable from what you already hold: the requirements and
+`Explore`'s findings. A boundary crossed, a shape invented, or a dependency
+proposed dispatches the architect — **and so does any doubt about which of those
+is true.** A skip guessed at is the pass being guessed away.
+
+Report a skipped architect at approval, beside a skipped grill. It's the other
+thing at approval the user can't see from the plan file, and it changes how hard
+they should read a `Contracts: none`.
+
+### Dispatch `qoq-architect`
+
+One agent, once per plan, after `Explore` and before any decomposition. It reads
+deep in what `Explore` located and returns the interface the tickets have to hit.
+
+It exists because nothing else in the pipeline reads deeply enough at plan time
+to find what will break, and `execute` already files that failure by name:
+`scope-expansion`, _the developer found work nobody knew was there_. Everything
+the architect returns is bought to move that discovery onto the page.
+
+Its dispatch carries, verbatim:
+
+- the requirements, and what the grill settled
+- **the `Scenarios`** — journeys are _what_, contracts are _how_, and that is the
+  order. A contract that can't serve a journey is wrong however clean it is.
+- `Explore`'s findings
+- this skill's absolute path
+
+It returns four sections: **Contracts**, **Integration surface**, **Risks**,
+**Unknowns**. It never edits, and it never guesses a contract.
+
+### Ask the Unknowns before Phase 3 starts
+
+A subagent can't ask the user, so ambiguity comes back as questions. **Ask them
+here, on this thread, and get answers before decomposing.** An invented contract
+reads exactly like a real one on the page, and every ticket downstream would be
+written against it before anyone noticed it was fiction.
+
+Re-dispatch the architect with the answers if they change the shape; otherwise
+fold them in yourself.
+
+### Where the output lands
+
+- **Contracts** → the **milestone's** `Contracts` field. Its tickets share one
+  interface — one implements it, another asserts it — and `qoq execute` passes it
+  verbatim into every dispatch and into the test-review gate.
+- **Integration surface** and **Risks** → the relevant tickets' **Context**. This
+  is the anti-scope-expansion payload: it's what stops a cold subagent
+  discovering the eleventh caller of a type at implementation time.
+- **Risks** also feed **sizing** in Phase 3 — a ticket with a named risk against
+  it is not the same size as one without.
+
+## Phase 3 — Breakdown
+
+### Two independent subsystems don't get one plan
+
+Say so and write separate plans — a plan with two unrelated halves can never be
+milestone-ordered sensibly, and half of it blocks on the other half for no
+reason.
+
+### Acceptance criteria are assertions
 
 This is the rule everything else in decomposition follows from. `execute` opens
 every ticket by transcribing its criteria into failing specs, one to one, before
@@ -112,13 +221,23 @@ of implementation exists. Anything phrased as work-to-do rather than
 behaviour-to-observe leaves the red beat with nothing to transcribe, and the
 agent ends up inventing the assertion it was supposed to be handed.
 
+**Derive them with the `Scenarios` in view.** Each criterion should be traceable
+to the journey it serves, which gives it a parent rather than an author. A
+criterion that serves no scenario is either an invention or evidence the scenario
+list is incomplete — and either way it's a question, not a ticket.
+
+Where the milestone has a `Contracts` shape, write the criteria **against that
+shape**. The developer asserts against the contract, not against whatever its own
+implementation ends up returning, and it can only do that if the criteria are
+phrased in those terms.
+
 **A ticket that can't be asserted up front isn't decomposed yet.** That's a
 sharper test than the size table and catches a different failure: five files is
 an `M`, but "make the config loader more flexible" is unsizeable _because_ nobody
 can say what it would assert. Same answer either way — split it, or write down
 the behaviour that was actually meant.
 
-## Sizing and complexity
+### Sizing and complexity
 
 **Size** stops at `M`. There is no `L` ticket: more than five files, or crossing a
 subsystem boundary, means the decomposition isn't finished. Milestones use
@@ -130,7 +249,7 @@ It does not decide which checks run — every ticket runs the identical steps.
 An inflated rating costs a bigger model and nothing more, which is the right way
 round for a rating that's easy to get wrong.
 
-## Then check the pick against what actually happened last time
+### Then check the pick against what actually happened last time
 
 Size and tier together are one decision — _this much work, delegated to that
 model_ — and the two heuristics above are good defaults for making it. What they
@@ -192,7 +311,7 @@ this call, and a plan file is read by every later ticket. That field is what
 closes the loop: `qoq execute` reports each outcome back against exactly those
 tags and that tier, so the next plan starts from a record this one improved.
 
-## No test-only tickets for feature work
+### No test-only tickets for feature work
 
 A ticket that ships a feature carries its specs by construction — they're the red
 beat of its own TDD cycle. Splitting "build it" and "test it" into two tickets
@@ -202,7 +321,26 @@ against an implementation whose reasoning it never saw.
 Test-only tickets stay legitimate for what they were always for: coverage over
 code that already shipped.
 
-## `--tool` — where the tickets end up
+### Self-review — the definition-of-ready gate
+
+Before approval, read your own plan back as the cold subagent that will be handed
+one ticket of it and nothing else. This is the readiness bar, and naming it makes
+it something a reader can point at:
+
+- **coverage** — every requirement and every scenario has a ticket behind it
+- **no placeholders** — "similar to Ticket 1.3", "handle edge cases", "the auth
+  module" are all unfinished work wearing the shape of finished work
+- **exact `Files`** — paths, not descriptions. A subagent should never have to
+  grep the repo to find out what "the relevant file" meant.
+- **every criterion assertable** before the implementation exists, against the
+  milestone's `Contracts` where there is one
+- **standalone `Context`** — enough that the ticket needs no other ticket, and no
+  part of this conversation, to be done
+
+A ticket that fails any of these isn't ready to dispatch, and the cost of finding
+that out here is one edit rather than three attempts and an escalation.
+
+### `--tool` — where the tickets end up
 
 `--tool local` is the default and writes the plan file and nothing else.
 `jira`, `linear` and `trello` add one beat after approval: raise the milestones
@@ -221,21 +359,23 @@ when either the tool or the destination is unknown are all in
 [export.md](export.md). Read it only when `--tool` isn't `local` — a local run
 has no use for the field tables of three trackers it will never write to.
 
-## Approval, then handoff
+### Approval, then handoff
 
 Save to `./plans/YYYY-MM-DD-<feature>.md` with `Plan status: draft`, then ask.
 Three things get surfaced at approval because they're the ones a user would want
-to veto: **new dependencies** any ticket needs, the **model ceiling** — if a
-ticket is rated above the session's own model, no tier exists to escalate to —
-and every ticket whose **tier the estimator moved**, with what the bucket's
-record was. That last one is a judgement the user is better placed to make than
-either the script or you: they know whether this ticket really is the same shape
-as the four that went wrong, and it's their model spend.
+to veto: **new dependencies** any ticket needs — including any the architect
+_flagged_, since it never chooses one — the **model ceiling** — if a ticket is
+rated above the session's own model, no tier exists to escalate to — and every
+ticket whose **tier the estimator moved**, with what the bucket's record was.
+That last one is a judgement the user is better placed to make than either the
+script or you: they know whether this ticket really is the same shape as the four
+that went wrong, and it's their model spend.
 
-Say here, too, if the `grilling` round was skipped — installed-and-declined, or
-`--decisions auto`. It isn't a veto item; it's the one thing at approval the user
-can't see from the plan file, and it changes how hard they should read the
-acceptance criteria.
+Say here, too, what was **skipped**: the `grilling` round — installed-and-declined
+or `--decisions auto` — and the **architect**, if the skip condition held. Neither
+is a veto item; they're the two things at approval the user can't see from the
+plan file, and they change how hard they should read the acceptance criteria and a
+`Contracts: none` respectively.
 
 On approval: set `Plan status: approved` and fill the **Commands** header from
 the record, so the milestone gate still has the project's full build and test

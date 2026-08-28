@@ -43,7 +43,7 @@ const STATS_TIMEOUT_MS = 2000;
 const CONSENT_FILE = join(homedir(), '.claude', 'qoq', 'consent.md');
 const CONFIG_FILES = ['qoq.config.ts', 'qoq.config.js', 'qoq.config.cjs', 'qoq.config.mjs'];
 
-const COMMANDS = ['fix', 'refactor', 'bump', 'plan', 'execute', 'test', 'compress'];
+const COMMANDS = ['fix', 'refactor', 'bump', 'plan', 'replan', 'execute', 'test', 'compress'];
 
 const args = process.argv.slice(2);
 const [command] = args;

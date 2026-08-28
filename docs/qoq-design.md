@@ -22,6 +22,7 @@ note — it reads as current and nothing contradicts it.
 | [`refactor`](#refactor)                       | `references/refactor.md`  |
 | [`bump`](#bump)                               | `references/bump.md`      |
 | [`plan`](#plan)                               | `references/plan.md`      |
+| [`replan`](#replan)                           | `references/replan.md`    |
 | [`execute`](#execute)                         | `references/execute.md`   |
 | [`test`](#test)                               | `references/test.md`      |
 
@@ -39,8 +40,8 @@ right lifetime: its answers are only valid for the dependency tree currently
 installed, and `npm install` wiping it is the invalidation working rather than
 failing.
 
-**Why JSON rather than prose lines.** Five agents read it and none of them
-should be parsing anything by eye.
+**Why JSON rather than prose lines.** Every consumer reads it cold, and none of
+them should be parsing anything by eye.
 
 **Why the hash is a projection, not the files.** Hashing `package.json` and the
 lockfile whole made the gate fire on inputs the record has no stake in: `version`
@@ -338,6 +339,72 @@ unrelated things" is usually a conclusion the questions reach, not something
 visible in the requirements as handed over. Moving it up would ask it of the
 version of the requirements least able to answer it.
 
+**Why the architect is an agent rather than a pass on the main thread.** The
+argument for main-thread was that the requirements, the grill's answers and
+`Explore`'s output are already sitting in that context. It's wrong twice. That
+context is _cluttered_ rather than clean — a grill transcript full of discarded
+branches, plus the skill's own references — and high-volume reading in the
+orchestrating context is the exact thing dispatching exists to avoid. The design
+also needs the architect to be able to say "I don't know", which is only
+meaningful from a reader that hasn't already absorbed every assumption the
+planning conversation made.
+
+**Why `Explore` wasn't just widened instead.** It locates; it doesn't audit — by
+its own description it reads excerpts rather than whole files. Widening it to
+read deeply would make every plan pay a deep read of everything it found, which
+is the opposite of what makes a fan-out cheap. Both agents earn their dispatch
+precisely because they're different jobs: `Explore`'s breadth is what keeps the
+architect's depth targeted.
+
+**Why the architect inherits the session's model.** Every other pinned agent does
+one bounded job whose blast radius is its own report. A design error doesn't stay
+where it was made: it becomes a contract, and every ticket in the milestone is
+written against it. This is the one place in the pipeline where a cheaper tier is
+a false economy paid for by everything downstream.
+
+**Why it reads pattern indexes but not the write-ups.** `qoq-designer` already
+names the hazard — pattern documentation is persuasive by construction, and an
+agent that reads the Observer write-up before scanning starts seeing Observer
+everywhere. That hazard is strictly worse at design time, because at refactor
+time there is real code to falsify a pattern against and at design time there is
+nothing at all. An architect scanning with the catalogue open produces a
+Factory-Strategy-Observer cathedral for a CRUD endpoint.
+
+The post-citation read is what keeps the catalogue from being unreachable rather
+than merely un-loaded. Once a pattern is named against a `file:line` smell in
+code that already exists, the candidate is fixed and further reading can only
+falsify it, not widen it — so the write-up is safe to open at exactly that point,
+and useful, because it's the thing that can say "this doesn't fit". That's the
+move `qoq-designer`'s caller already makes; here it happens one step earlier,
+under a citation the reading can't revise.
+
+**Why the skip is one conjunction and not a judgement call.** A skip has to be
+decidable from what the main thread already holds — the requirements and
+`Explore`'s findings — or it's a guess about a pass being guessed away. Single
+existing module, no invented shape, no new dependency: that's the plan whose
+design output would have been three "none"s, and it's the same plan whose
+`Contracts` will legitimately read `none`. Any doubt dispatches, because the cost
+of a needless architect is one agent round and the cost of a missed one is
+distributed across every ticket as scope nobody planned.
+
+**Why scenarios sit on the milestone and aren't just duplicated criteria.** The
+obvious objection is that acceptance criteria are already assertions, so writing
+journeys too writes the same thing twice and the copy rots. It doesn't, because
+neither altitude can express the other: a criterion is one ticket's assertion, a
+scenario is a user journey spanning tickets. Nothing in the plan file held the
+second, and a milestone's whole claim is that it's independently shippable —
+which is a statement about journeys, not about assertions. They're written in
+Phase 1 rather than Phase 2 because they're a requirements artifact in the user's
+language and the direct output of what the grill settled; the architect then
+_consumes_ them, which is the right direction. And they earn their place with no
+e2e consumer at all: they give acceptance criteria a parent to be derived from,
+which is the cheapest available guard against an invented criterion.
+
+**Why prose and not Gherkin.** The intended consumer is a model, which needs no
+formal grammar. Real Gherkin in a plan file invites someone to point Cucumber at
+it, and then it wants step definitions and a runner nobody asked for. Bolded
+keywords keep it greppable without inviting any of that.
+
 **Why `--tool` is a flag on `plan` and not a command of its own.** A separate
 `qoq export` would be a fourth surface with its own discovery, its own scope
 grammar and its own approval. The export is one beat that only ever happens right
@@ -371,6 +438,53 @@ makes in `refactor`. Import lives in that same file rather than in `execute.md`
 for the harder version of the reason: it reads the identical table backwards,
 and two copies of a field mapping disagree the first time a tracker adds a
 field.
+
+## `replan`
+
+**Why delivered work is frozen.** The hard case is a half-executed plan, and the
+archive's own rule is that it's append-only history — nothing in it is ever
+re-planned or re-gated. A `done` ticket that gets re-decomposed loses the link
+between its criteria and the commit that satisfied them, and at that point the
+history stops meaning anything: the commit is still there, but nothing says what
+it was for. So the file splits in two. Frozen parts are read-only _input_ and get
+a mechanical backfill only — a missing `Log` reconstructed from git, a missing
+`Estimate` from the script. Live parts get the full reshape.
+
+The split also dissolves a question that looked hard: whether `replan` is a
+migration or a reshape. It's both, and which one applies is decided per section
+by whether the work has shipped.
+
+**Why the failure history is the grill's best input.** Blocked tickets,
+escalations and `scope-expansion` attributions are direct evidence that the old
+decomposition was wrong, they're already sitting in the plan file, and nothing in
+the system reads them at plan time today. It's also why re-grilling is cheap:
+`plan` already hands the interview everything settled so its frontier opens on
+the gaps, and here "settled" is enormous — the whole old plan plus milestones
+that demonstrably work. The grill is self-limiting, so no skip mode is needed.
+
+**Why it overwrites in place and refuses on uncommitted changes.** The path has
+to stay stable: `External` keys, the `.completed.md` archive and any resume all
+reference the plan by name, so a `.v2` file would orphan all three. Git is the
+history, which makes a second file redundant anyway. But overwriting uncommitted
+work destroys the only copy, so the guard is a refusal rather than a warning —
+it costs one `git status`.
+
+**Why it's a command and not a flag on `plan`.** `plan.md` is already the longest
+reference in the skill; folding this in would make every fresh plan pay for the
+rare case. `qoq replan plans/<file>.md` also fits the existing positional-scope
+grammar exactly, and its own reference stays short by _naming_ `plan`'s phases
+rather than restating them.
+
+**Why it reports tracker orphans instead of syncing them.** The skill's position
+everywhere is that the export writes once and never syncs back. A live ticket
+that's re-decomposed loses its `External`, and the issue it was is now dangling —
+so `replan` lists them at approval and the user closes them by hand. Syncing is
+the entire problem this skill deliberately refuses to own, and a re-decomposition
+is the worst possible place to start owning it.
+
+**Why calibration is untouched.** A recorded outcome means "this shape of work at
+this tier went this way", which stays true regardless of how the plan is now
+shaped. Stated explicitly so nobody adds the work.
 
 ## `execute`
 
@@ -406,9 +520,71 @@ milestone.
 
 **Why there's no per-ticket standards pass and no complexity-driven routing
 table.** Complexity rates the model and nothing else, so a `trivial` ticket and
-a `judgment-heavy` one run identical steps at different tiers. The third TDD
-beat belongs to the milestone instead — per ticket the scope is too small to see
-anything.
+a `judgment-heavy` one run identical steps at different tiers. A per-ticket
+semantic code review was considered and declined for the same reason: it
+duplicates the milestone `refactor` at a worse altitude, one agent round per
+ticket. The test-integrity gate was kept precisely because it has _no_ duplicate
+at any altitude.
+
+**Why there are two refactor beats rather than one.** They answer different
+questions at different scopes and neither substitutes for the other. The
+ticket-level tidy is ordinary TDD — the developer's own diff, still warm, inside
+its own `Files`, no interface change. The milestone-level beat is `qoq refactor`
+over the union of every ticket's files, and it's the first moment those tickets
+exist as one piece of code: duplication across four tickets, a now-dead export,
+three tickets that each picked a different shape are invisible at any smaller
+scope. This file previously said the third beat belonged _only_ to the milestone,
+on the grounds that per-ticket scope is too small to see anything. That was true
+of the second question and false of the first, and a developer that never tidies
+hands the milestone gate a mess it was never meant to sort.
+
+**Why the test-integrity gate is a new read-only agent and not a mode on
+`qoq-tester`.** `tools:` is declared once per agent file. `qoq-tester` needs
+`Write, Edit` to do its writing job, so a review mode living in that file would
+carry `Write, Edit` into the review pass — and the standing rule is that an agent
+permitted to report and fix will quietly do both, with the finding disappearing
+into the diff. A dual-mode tester breaks that by construction. The two would also
+share nothing but `test-conventions.md`, which both read from disk anyway, so the
+"reuse" buys no code — only a shared filename.
+
+It's an agent rather than a read on the orchestrating thread for two reasons: the
+reading volume is what dispatching exists to keep out of that context, and the
+orchestrator is holding the developer's own report, which primes it to accept. A
+cold reader isn't primed.
+
+**Why the gate sits before the commit rather than at the milestone.** This was
+moved to the milestone at one point on cost, and moved back, because the cost
+argument was buying the wrong thing. A ticket marked `done` whose tests assert
+nothing isn't a deferred problem — it's a false statement the plan file
+propagates: a `success` filed with the estimator, downstream tickets built on a
+behaviour nothing pins, an archive entry claiming delivery. Catching it a
+milestone later means unwinding all three. Cross-ticket spec problems genuinely
+are milestone-shaped, but they need nothing extra: the milestone `refactor` runs
+over the union of every ticket's files, specs included, and its first assessment
+is a duplication detector.
+
+**Why a rejection can unlock an edit the developer is otherwise forbidden.**
+Without the exception the gate has one output. Every defect it can find — an
+assertion that cannot fail, a shape asserted from the implementation rather than
+the contract — is repaired by editing a green assertion, so a rejection would
+re-dispatch a developer forbidden from acting on it, burn the shared budget, and
+end `blocked`. A gate that can only produce blockers is a blocker generator. The
+prohibition is on _self-initiated_ edits: the agent alone with its own
+implementation, deciding an assertion should expect something else. A `REJECTED`
+verdict is the opposite — an external reader, without the implementation in
+context, naming a specific assertion as defective — which is why the licence is
+scoped to exactly the assertions the verdict cites.
+
+**Why the three attempts are shared across both gates rather than three each.**
+The budget is a property of the ticket. Three rounds of feedback and still not
+right means the ticket is mis-rated, whichever gate said so, and that's exactly
+what the escalation ladder acts on. The obvious objection — a ticket burns its
+attempts on trivia and has nothing left for the harder semantic feedback —
+doesn't hold, because Gate 1 spends a budget of its own first: `qoq fix` is a
+check/**fix** loop that runs three internal rounds, fixes what it can, reverts
+any fix that breaks a test, and returns `FAIL` only on what survived all of it. A
+Gate 1 `FAIL` is never "prettier complained". Separate counters would also allow
+six rounds before the tier moved, and the estimator takes one number anyway.
 
 **Why the usage gate is opt-in and per ticket.** A ceiling nobody asked for is
 a stop nobody expected, and the check costs an authenticated round trip per

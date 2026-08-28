@@ -78,11 +78,20 @@ test('a fresh install is a question for fix, test and execute', () => {
 // land in the window — and a question in front of a command whose next move is
 // another command's question is noise.
 test('refactor and the rest only report the install at the end', () => {
-  for (const command of ['refactor', 'bump', 'plan', 'compress']) {
+  for (const command of ['refactor', 'bump', 'plan', 'replan', 'compress']) {
     const { stdout } = run(fixture(), command);
     assert.match(stdout, /agents installed:/);
     assert.doesNotMatch(stdout, /ACTION: ask the user before carrying on/);
   }
+});
+
+// `replan` decomposes, so it reads the record for the same reasons `plan` does.
+// It is the one thing that would have made it plausible to skip discovery.
+test('replan reads the record like plan does', () => {
+  const { status, stdout } = run(fixture(), 'replan');
+
+  assert.equal(status, 0);
+  assert.doesNotMatch(stdout, /## discovery\nskipped/);
 });
 
 // The CLI is a constant this skill assumes, not something entry discovers: a

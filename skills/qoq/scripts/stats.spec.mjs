@@ -47,6 +47,15 @@ test('a config with no stats key still exits 1 — absent is not a decline', () 
   assert.equal(run(project(NO_STATS), home(), 'fix').status, 1);
 });
 
+// The allowlist is hardcoded in both scripts, so a command added to one and not
+// the other exits 2 on a usage error the caller has no way to interpret.
+test('replan is an accepted command, not a usage error', () => {
+  const { status, stdout } = run(project(), home(), 'replan');
+
+  assert.notEqual(status, 2);
+  assert.ok(stdout.includes(JSON.stringify({ tool: 'qoq-skill', options: ['replan'] })));
+});
+
 // The disclosure quotes the request body rather than describing it, so it cannot
 // come to promise less than what is sent. That only holds while it is generated
 // from the same object, which is what this asserts.

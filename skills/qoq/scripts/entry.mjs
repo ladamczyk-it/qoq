@@ -32,7 +32,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const COMMANDS = ['fix', 'refactor', 'bump', 'plan', 'execute', 'test', 'compress'];
+const COMMANDS = ['fix', 'refactor', 'bump', 'plan', 'replan', 'execute', 'test', 'compress'];
 const ASKS_ON_INSTALL = ['fix', 'test', 'execute'];
 const SKIPS_DISCOVERY = ['compress'];
 
