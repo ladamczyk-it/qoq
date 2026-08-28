@@ -24,21 +24,15 @@ handful of files instead of a project.
 ## The one external lens — checked before anything runs
 
 Assessment 3 is `ponytail-review`, the only assessment this skill doesn't own.
-Look for it in **your own available-skills list** — it's already in this thread's
-context, it's what the invocation resolves against, and it is never out of date.
-Nothing about it is cached: an answer cached at discovery time goes stale the
-moment somebody installs a lens, and it goes stale silently, which is the worst
-way for the fact that decides a quarter of this run to be wrong.
+Resolve it from your own available-skills list, under whatever name that list
+gives it — a bare `ponytail-review` and a `ponytail:ponytail-review` do not
+resolve interchangeably, so don't add or strip the prefix to make it look tidier.
 
 Check it **before dispatching the green base.** Missing means a quarter of the
 run is about to be silently downgraded, and one of the two answers is "let me
 install it and start over" — so ask while a re-run is still free. Asking when
 assessment 3 comes up, after a green base and two assessments and a re-green,
 spends the user's time and then throws it away.
-
-Whatever name the list gives it is the invocation, verbatim — a bare
-`ponytail-review` and a `ponytail:ponytail-review` do not resolve
-interchangeably, so don't add or strip the prefix to make it look tidier.
 
 Installed → say nothing, proceed. Missing → ask once:
 

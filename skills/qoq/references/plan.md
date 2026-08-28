@@ -47,12 +47,9 @@ the same interview and cannot be called from here — its frontmatter sets
 `grilling`. Looking for `grill-me` would report it missing even on a machine
 where it's installed.
 
-Look for it in **your own available-skills list**, exactly as `refactor` looks
-for `ponytail-review` — that list is already in this thread's context, it's what
-the invocation resolves against, and it is never out of date. Nothing about it
-is cached. Whatever name the list gives it is the invocation, verbatim; a bare
-`grilling` and a `mattpocock-skills:grilling` do not resolve interchangeably, so
-don't add or strip a prefix to make it look tidier.
+Resolve it from your own available-skills list, under whatever name that list
+gives it — a bare `grilling` and a `mattpocock-skills:grilling` do not resolve
+interchangeably, so don't add or strip a prefix to make it look tidier.
 
 Check it **after the one-ticket stop above and before Phase 2** — that stop is
 one cheap read, so nothing is thrown away by taking it first, and there's no

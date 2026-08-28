@@ -22,10 +22,9 @@ from a person.
 Nobody passes anything but the project root, and nobody gets a different answer
 than anybody else.
 
-Which review lenses are installed is deliberately **not** here. That answer lives
-in the available-skills list of whichever thread needs it, which is always
-current and costs nothing to read — `refactor` looks `ponytail-review` up when
-assessment 3 comes round.
+Which review lenses are installed is deliberately **not** here: a cached answer
+goes stale silently the moment somebody installs one, so `ponytail-review` is
+resolved from the available-skills list at the moment it's needed.
 
 **How the qoq CLI is invoked is not here either.** It is a constant, spelled out
 in [cli.yaml](cli.yaml) — so there is nothing to discover, no field to go stale,
@@ -112,17 +111,12 @@ it, usually because a previous run asked, and it outranks anything
 `package.json` implies.
 
 **The commands are the project's own scripts, verbatim** — `npm test`,
-`npm run build`, `npm run test:execute -- {file}`. Never compose `npx vitest …`
-or `npx tsc …` out of a dependency spotted in `package.json`: that invocation
-skips the project's config, flags and setup files, and it's plausible enough that
-nobody notices it was invented. A project with no script for something is a
-project that has to be asked. (An `npx` invocation the user already gave, written
-in the docs, is an answer — record it.)
+`npm run build`, `npm run test:execute -- {file}` — under the standing `npx` rule.
+The one case that rule doesn't cover: an `npx vitest …` or `npx tsc …` invocation
+the user already gave, written in the docs, is an answer — record it.
 
 **Anything still ambiguous is a question, and the file stays unwritten until it's
-answered.** Not a sensible default with a note afterwards: a plausible guess is
-worse than a stop, because nobody notices it. Half a record is worse still — the
-next run reads it as whole.
+answered.** Half a record is worse than none — the next run reads it as whole.
 
 **A repaired record is announced, at the end of the run.** Stale fields are
 re-derived without asking — no permission is needed to re-derive a fact you

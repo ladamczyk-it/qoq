@@ -28,8 +28,8 @@ note — it reads as current and nothing contradicts it.
 
 ## The discovery record
 
-**Why it's cached at all.** One JSON file, six consumers, and an agent that runs
-only when the file can't be trusted. No command re-derives any of it, which is
+**Why it's cached at all.** One JSON file, six consumers, derived on the main
+thread only when the file can't be trusted. No command re-derives any of it, which is
 the point: two commands that each work out "what's the test command" will
 eventually disagree, and the one that's wrong won't announce it.
 

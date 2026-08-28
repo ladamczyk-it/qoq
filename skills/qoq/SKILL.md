@@ -129,16 +129,16 @@ state in both directions ([references/export.md](references/export.md)).
 
 Commands compose, but **only on the main thread**.
 
-| Command    | Calls                  | Called by                                                     |
-| ---------- | ---------------------- | ------------------------------------------------------------- |
-| `fix`      | its own `qoq-checker`  | `refactor`, `execute`, `test`, `compress`                     |
-| `refactor` | `fix`                  | `bump`, `execute`, `test`                                     |
-| `bump`     | `refactor` (per patch) | —                                                             |
-| `plan`     | `grilling` (external)  | —                                                             |
-| `replan`   | `grilling` (external)  | —                                                             |
-| `execute`  | `fix`, `refactor`      | `plan` — offered at approval, never dispatched from inside it |
-| `test`     | `fix`, `refactor`      | —                                                             |
-| `compress` | `fix`                  | nobody                                                        |
+| Command    | Calls                              | Called by                                                     |
+| ---------- | ---------------------------------- | ------------------------------------------------------------- |
+| `fix`      | its own `qoq-checker`              | `refactor`, `bump`, `execute`, `test`, `compress`             |
+| `refactor` | `fix`                              | `bump`, `execute`, `test`                                     |
+| `bump`     | `fix`, `refactor` — both per patch | —                                                             |
+| `plan`     | `grilling` (external)              | —                                                             |
+| `replan`   | `grilling` (external)              | —                                                             |
+| `execute`  | `fix`, `refactor`                  | `plan` — offered at approval, never dispatched from inside it |
+| `test`     | `fix`, `refactor`                  | —                                                             |
+| `compress` | `fix`                              | —                                                             |
 
 `compress` changes what future runs read, never what this one does, so no
 command should be reaching for it mid-task.
@@ -211,16 +211,10 @@ Entry copies them into the project's `.claude/agents/`, because an agent file
 inside a skill is registered by nothing, and Claude Code picks that directory up
 on its own a moment later. It also deletes the copies of agents this skill has
 stopped shipping, so nothing stays dispatchable with a contract that no longer
-exists. Whether a fresh install is a question for the user or
-a line in the end-of-run notice depends on the command, and `entry.mjs` decides
-it — do what its **agents** section says.
-
-If an agent isn't registered under `.claude/agents/`, dispatch `general-purpose`
-with the agent file's body pasted in, **plus the tier and the prohibitions
-restated** — `general-purpose` inherits the session's model and gets every tool,
-so an unregistered `qoq-checker` runs at the caller's tier and an unregistered
-`qoq-tester` gains exactly the ability to edit production source its contract
-forbids.
+exists. Do what `entry.mjs`'s **agents** section says: it decides whether a fresh
+install is a question or an end-of-run line, and on the one run where an agent
+isn't registered yet it prints the `general-purpose` fallback to dispatch
+instead.
 
 **Every dispatch passes this skill's absolute path.** An agent starts cold and
 cannot derive it, and it's what `<skill>` stands for in every path an agent is

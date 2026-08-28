@@ -74,7 +74,7 @@ const agentAction = () => {
     return 'ACTION: nothing now — report the install in the end-of-run notice.';
   }
 
-  return 'ACTION: ask the user before carrying on — continue (every dispatch until Claude Code picks the directory up, about a minute, takes the general-purpose fallback in SKILL.md), or exit and re-run with the agents registered. If they exit, stop here rather than running half the command.';
+  return 'ACTION: ask the user before carrying on — continue (every dispatch until Claude Code picks the directory up, about a minute, takes the general-purpose fallback printed in the agents section above), or exit and re-run with the agents registered. If they exit, stop here rather than running half the command.';
 };
 
 section('agents', ...agentLines, agentAction());

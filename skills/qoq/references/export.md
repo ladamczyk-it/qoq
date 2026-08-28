@@ -151,11 +151,9 @@ on a projection.
 ## Finding the tools
 
 Look in **your own available-tools list** for the MCP tools that read and write
-the target tracker, at the moment you need them — the same rule `refactor` uses for
-`ponytail-review` and `plan` uses for `grilling`, for the same reason: that list
-is already in this thread's context and is never out of date, and an answer
-cached at discovery time goes stale silently the moment somebody connects a
-server.
+the target tracker, at the moment you need them — the same rule the skill applies
+to `ponytail-review` and `grilling`, and for the same reason: a cached answer goes
+stale silently the moment somebody connects a server.
 
 Names differ per server — several Jira MCPs exist and none of them agree on
 their tool names — so match on what the tool does, not on a name this file

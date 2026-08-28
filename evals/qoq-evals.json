@@ -4,21 +4,23 @@
     {
       "id": 1,
       "name": "fix-loop-budget-and-verdict",
-      "prompt": "The lint is a mess on this branch \u2014 a bunch of prettier stuff plus some eslint complaints and I think knip is unhappy about a couple of exports. Can you just clean it all up? Don't spend the whole afternoon on it though.",
-      "expected_output": "Dispatches qoq-checker (never runs the tools inline), handing it the three things it cannot derive: the absolute paths to scripts/reports-current.mjs and scripts/summarize.mjs in the skill, and the report directory. The checker reads run: and check: from the record as its only read \u2014 it never opens the CLI's AGENTS.md, since discovery already distilled the flags into check: \u2014 calls reports-current.mjs to decide whether the reports on disk are still current, runs `<run:> <check:>` when they aren't (--json is what writes the reports at all), and calls summarize.mjs with the report dir as its positional argument \u2014 never bare. The command fixes findings itself rather than delegating, verifies each fix against the owning tool and then a scoped test:one + build, prints one progress line per loop, stops to ask after 3 loops rather than looping indefinitely, stops without asking if the finding count fails to drop, and ends on a single PASS or FAIL line with the digest underneath.",
+      "prompt": "The lint is a mess on this branch — a bunch of prettier stuff plus some eslint complaints and I think knip is unhappy about a couple of exports. Can you just clean it all up? Don't spend the whole afternoon on it though.",
+      "expected_output": "Runs `node <skill>/scripts/entry.mjs --project <root> --command fix` once at the head of the run and does what each printed section says. Then dispatches qoq-checker (never runs the tools inline), handing it the one thing it cannot derive: this skill's absolute path. The checker reads references/cli.yaml — the CLI is a constant, so nothing discovers its flags and the record carries no run or check field — calls reports-current.mjs to decide whether the reports on disk are still current, runs the `full` form `npx qoq --check --json` when they aren't (--json is what writes the reports at all), and calls summarize.mjs with the report dir as its positional argument, never bare. The command fixes findings itself rather than delegating, verifies each fix against the owning tool and then a scoped test:one + build, prints one progress line per loop, asks after 3 loops rather than looping indefinitely (a yes resets the counter rather than buying one more pass), stops without asking if the finding count fails to drop, and ends on a single PASS or FAIL line with the digest underneath.",
       "files": [],
       "assertions": [
+        "Calls entry.mjs once at the head of the run and acts on each section it prints",
         "Dispatches qoq-checker rather than running the tools inline",
-        "Hands the checker the reports-current.mjs path, the summarize.mjs path, and the report directory",
+        "Hands the checker this skill's absolute path — the one thing it cannot derive",
+        "The checker reads references/cli.yaml for the invocation rather than discovering or inventing flags",
         "Checker branches on reports-current.mjs's exit code (0 reuse, 1 re-run) instead of judging staleness itself",
-        "Runs `<run:> <check:>` composed from the record's two lines \u2014 never invents the flags, never without --json, and never reads the CLI's AGENTS.md",
+        "Runs the `full` form `npx qoq --check --json` verbatim — never without --json, never with --output",
         "Calls summarize.mjs with the report dir positionally, never bare",
         "Reads the digest only; does not load a raw report wholesale",
         "The command fixes findings itself rather than dispatching an agent per finding",
         "Each fix is verified by re-running the owning tool, then test:one plus build",
         "A fix that breaks a test is reverted and carried as unfixable, never retried",
-        "Prints one progress line per loop showing per-tool before \u2192 after counts",
-        "Stops and asks after 3 loops rather than looping indefinitely",
+        "Prints one progress line per loop showing per-tool before → after counts",
+        "Asks after 3 loops rather than looping indefinitely, and a yes resets the counter",
         "Stops without asking when a loop fails to reduce the finding count",
         "Ends on a single PASS or FAIL line with the digest underneath"
       ]
@@ -26,16 +28,17 @@
     {
       "id": 2,
       "name": "refactor-four-assessments-sequential",
-      "prompt": "src/modules/npm has gotten pretty gnarly \u2014 lots of copy-paste and I don't think the shape is right anymore. Give it a proper going over, just that directory.",
-      "expected_output": "Establishes a green base by dispatching qoq fix scoped to the same path and stops (without asking) if it isn't green. Then runs exactly four assessments strictly in order \u2014 JSCPD, project conventions, ponytail-review, qoq-designer \u2014 one at a time and never in parallel, dispatching the ponytail lens for 3 and the qoq-designer agent for 4. After qoq-designer returns, the caller itself opens only the assets/patterns/ files the agent named \u2014 never the whole catalogue, and never before the agent has scanned. Asks the user per assessment before applying anything, re-greens with qoq fix after each applied assessment, and reports every assessment at the end including empty and declined ones.",
+      "prompt": "src/modules/npm has gotten pretty gnarly — lots of copy-paste and I don't think the shape is right anymore. Give it a proper going over, just that directory.",
+      "expected_output": "Resolves `ponytail-review` against its own available-skills list BEFORE dispatching the green base — nothing about lens availability is cached on the record, and a missing lens is worth asking about while a re-run is still free. Establishes a green base by dispatching qoq fix scoped to the same path and stops (without asking) if it isn't green. Then runs exactly four assessments strictly in order — JSCPD, project conventions, ponytail-review, qoq-designer — one at a time and never in parallel. After qoq-designer returns its detected stack and its smell→pattern rows, the caller itself opens only the assets/patterns/ files the agent named — never the whole catalogue, and never before the agent has scanned. Asks the user per assessment before applying anything, re-greens with qoq fix after each applied assessment, and reports every assessment at the end including empty and declined ones.",
       "files": [],
       "assertions": [
         "Runs exactly four assessments in order: JSCPD, project conventions, ponytail-review, qoq-designer",
+        "Checks the lens is installed before dispatching the green base, not when assessment 3 comes round",
         "Dispatches qoq fix over the same scope first and refuses to start unless it returns PASS",
         "Stops without asking the user when the base isn't green",
         "Scopes the green base to the requested path, not the whole repo",
         "Runs them one at a time, never in parallel",
-        "Dispatches the two lens skills under the names on the record's skills: line",
+        "Resolves ponytail-review from its own available-skills list, verbatim including any plugin prefix — never from the record",
         "Asks the user per assessment before applying anything, never once up front for all four",
         "Re-dispatches qoq fix after each assessment that applied changes",
         "Reports every assessment at the end, including empty and declined ones",
@@ -46,21 +49,21 @@
     },
     {
       "id": 3,
-      "name": "blocked-discovery-asks-and-persists",
+      "name": "ambiguous-discovery-asks-and-persists",
       "prompt": "run qoq fix on this repo",
-      "expected_output": "Dispatches qoq-discovery, which cannot determine the single-file test command because package.json has both `test:unit` and `test:ci` and no project docs answer it. The agent writes no record at all (not a partial one) and returns the question. The caller asks the user, and once answered writes it into the project's own docs (CLAUDE.md, else AGENTS.md, else README.md) inside a `<!-- qoq:discovery -->` block BEFORE re-dispatching \u2014 so a later npm install doesn't cost the same question again. Never guesses a default, and never composes an `npx vitest ...` invocation from package.json dependencies. The caller resolves `ponytail-review` against its own available-skills list and hands the `skills:` line in at dispatch under the exact name that list gives it, plugin prefix included \u2014 the agent transcribes it and never searches the filesystem, which cannot see a plugin lens and would record =no for an installed one.",
+      "expected_output": "entry.mjs's discovery section reports the record stale and prints the hash to stamp, a `proposed` block and an `unresolved` list. The record is filled in HERE, on the main thread — no agent is dispatched for it. Project docs are read first (CLAUDE.md, then AGENTS.md, then README.md) for a `qoq:discovery` block. The single-file test command stays ambiguous because package.json has both `test:unit` and `test:ci` and no doc answers it, so the run stops and asks rather than guessing, and the record file stays unwritten until it is answered — half a record is worse than none, because the next run reads it as whole. Once answered, the answer is written into the project's own docs inside a `<!-- qoq:discovery -->` block BEFORE the record is written, so a later npm install doesn't cost the same question again. The hash is stamped verbatim as handed over, never recomputed. Never composes an `npx vitest ...` invocation from a dependency spotted in package.json.",
       "files": [],
       "assertions": [
-        "Dispatches qoq-discovery with the project root and the resolved skills: line \u2014 nothing else",
-        "The agent writes no record at all when ambiguous \u2014 not a partial one",
-        "Returns `blocked` with the question rather than guessing a default",
+        "Fills the record in on the main thread — dispatches no agent for discovery",
+        "Reads CLAUDE.md, then AGENTS.md, then README.md for a qoq:discovery block before inferring anything",
+        "Treats entry.mjs's `proposed` block as something to check, not to re-derive",
+        "Asks the user rather than picking between test:unit and test:ci",
+        "Writes no record at all while the question is open — not a partial one",
         "Never composes an npx vitest/tsc invocation from package.json dependencies",
-        "The caller asks the user rather than picking between test:unit and test:ci",
-        "The answer is written into CLAUDE.md, else AGENTS.md, else README.md \u2014 never a new file",
+        "The answer is written into CLAUDE.md, else AGENTS.md, else README.md — never a new file",
         "The answer is written inside a <!-- qoq:discovery --> block",
-        "The write happens BEFORE re-dispatching discovery",
-        "The caller resolves the lens names from its own available-skills list, plugin prefix included, and passes them in \u2014 the agent never derives them from the filesystem",
-        "Booleans in the record are written yes/no"
+        "The doc write happens BEFORE the record is written",
+        "Stamps the hash entry.mjs handed over verbatim rather than computing its own"
       ]
     },
     {
@@ -80,15 +83,15 @@
     {
       "id": 5,
       "name": "bump-analyse-then-split-ladder",
-      "prompt": "worktree is clean. update our npm dependencies \u2014 there are a few majors in there I think",
+      "prompt": "worktree is clean. update our npm dependencies — there are a few majors in there I think",
       "expected_output": "Analyses first and writes nothing: works out what's outdated, groups minor/patch, plans at most one major step per package, and dispatches one qoq-bumper per major (which reads changelogs and greps this codebase, never edits). Presents the impact and lets the user pick and exclude, and only then writes patches for the chosen set. Applies one patch at a time with reinstall, validates with all three of qoq fix, full test suite, and build after every patch, then runs qoq refactor --decisions auto scoped to that patch's changed files AFTER it validates. A failing grouped patch is reverted and re-cut minor/patch, then per-package, before any package is abandoned.",
       "files": [],
       "assertions": [
-        "The planning phase writes nothing \u2014 no tree changes, no patch files",
+        "The planning phase writes nothing — no tree changes, no patch files",
         "Groups minor and patch bumps and plans at most one major step per package",
         "Dispatches one qoq-bumper per major package",
-        "qoq-bumper edits nothing \u2014 no source, no package.json, no lockfile",
-        "Presents current \u2192 target plus the breaking changes that land here, with files",
+        "qoq-bumper edits nothing — no source, no package.json, no lockfile",
+        "Presents current → target plus the breaking changes that land here, with files",
         "Lets the user pick and exclude before any patch is written",
         "An empty selection is accepted and ends the run",
         "Applies one patch at a time, never a batch",
@@ -102,14 +105,14 @@
       "id": 6,
       "name": "plan-criteria-as-assertions",
       "prompt": "Here's what we need: users should be able to schedule a report to run daily/weekly, get it emailed as a PDF, and manage their schedules from the settings page. Also rate-limit the schedule creation endpoint. Can you work out how we'd build this?",
-      "expected_output": "Produces a plan file under ./plans/ following the plan template. Every acceptance criterion is written as an observable assertion a spec could be written from today (\"a 6th request inside 60s returns 429\"), never as a task (\"add rate limiting\"). Tickets stop at size M, complexity rates only the model tier (no delivery routing, no per-ticket standards pass), and there are no test-only tickets for feature work. Each ticket is tagged and its baseline size+tier pick checked against scripts/estimate.mjs, whose exit code it branches on rather than re-deriving the thresholds \u2014 taking the tier the script returns in either direction, up on 1 and down on 5; the tags, stack and verdict land in the ticket's Estimate field. Dispatches Explore for repo patterns but takes build/test commands from the discovery record, not from Explore. Ends at approval and offers qoq execute rather than dispatching any ticket.",
+      "expected_output": "Produces a plan file under ./plans/ following the plan template. Every acceptance criterion is written as an observable assertion a spec could be written from today (\"a 6th request inside 60s returns 429\"), never as a task (\"add rate limiting\"). Tickets stop at size M, complexity rates only the model tier (no delivery routing, no per-ticket standards pass), and there are no test-only tickets for feature work. Each ticket is tagged and its baseline size+tier pick checked against scripts/estimate.mjs, whose exit code it branches on rather than re-deriving the thresholds — taking the tier the script returns in either direction, up on 1 and down on 5; the tags, stack and verdict land in the ticket's Estimate field. Dispatches Explore for repo patterns but takes build/test commands from the discovery record, not from Explore. Ends at approval and offers qoq execute rather than dispatching any ticket.",
       "files": [],
       "assertions": [
         "Writes a plan file under ./plans/ named YYYY-MM-DD-<feature>.md",
         "Follows assets/plan-template.md structurally without inventing sections",
         "Every acceptance criterion is an observable assertion, never a task description",
         "No ticket is sized above M",
-        "Complexity rates the agent tier only \u2014 no delivery routing, no per-ticket standards pass",
+        "Complexity rates the agent tier only — no delivery routing, no per-ticket standards pass",
         "Tags each ticket with the multi-tag taxonomy plus the stack it lands in, rather than a single label",
         "Calls scripts/estimate.mjs per ticket with its own baseline size and tier as the input",
         "Branches on the script's exit code instead of recomputing the counts or thresholds itself",
@@ -127,8 +130,8 @@
     {
       "id": 7,
       "name": "execute-sequential-tdd-milestone-refactor",
-      "prompt": "the plan in ./plans/ is signed off \u2014 go ahead and build it",
-      "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order \u2014 no waves, no parallelism flag, no run id \u2014 handing it the record's path, the test-conventions.md path, and the ticket's tier explicitly. The developer writes assertions transcribed from the acceptance criteria, implements, raises those assertions to test-conventions.md itself (no `qoq test` dispatch \u2014 a subagent can't dispatch), proves the work runs with the project's own test:one and build, and hands back the changed-file list. It never invokes the qoq CLI. THE ORCHESTRATOR then dispatches `qoq fix` scoped to that list \u2014 the gate \u2014 and commits exactly that ticket's files on PASS; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread. Once each ticket reaches done or blocked it reports the outcome back with scripts/estimate.mjs --record, using the ticket's own tags, stack and the tier the plan assigned (not the tier that finally delivered it), the attempts actually spent, and its own attribution call \u2014 estimation-miss when the ticket was what the plan said it was, scope-expansion when the developer found work nobody knew was there. A ticket that landed after an escalation is still reported as success \u2014 the attempt count already says the tier was mis-picked; only a ticket left blocked is reported as failure.",
+      "prompt": "the plan in ./plans/ is signed off — go ahead and build it",
+      "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order — no waves, no parallelism flag, no run id — handing it the record's path, the test-conventions.md path, and the ticket's tier explicitly. The developer writes assertions transcribed from the acceptance criteria, implements, raises those assertions to test-conventions.md itself (no `qoq test` dispatch — a subagent can't dispatch), proves the work runs with the project's own test:one and build, and hands back the changed-file list. It never invokes the qoq CLI. THE ORCHESTRATOR then dispatches `qoq fix` scoped to that list — the gate — and commits exactly that ticket's files on PASS; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread. Once each ticket reaches done or blocked it reports the outcome back with scripts/estimate.mjs --record, using the ticket's own tags, stack and the tier the plan assigned (not the tier that finally delivered it), the attempts actually spent, and its own attribution call — estimation-miss when the ticket was what the plan said it was, scope-expansion when the developer found work nobody knew was there. A ticket that landed after an escalation is still reported as success — the attempt count already says the tier was mis-picked; only a ticket left blocked is reported as failure.",
       "files": [],
       "assertions": [
         "Loads the plan fresh from disk rather than reusing an in-session copy",
@@ -162,7 +165,7 @@
       "id": 8,
       "name": "test-red-base-asks-first",
       "prompt": "the TokenService in src/auth has no tests at all, can you write some? unit tests are fine",
-      "expected_output": "Reads runner, globals, react and conventions off the discovery record rather than rediscovering them. States the inferred scope back rather than asking. Runs the full suite BEFORE writing anything to establish a baseline, and on finding pre-existing failures asks the user whether to skip them (recording them as the baseline) or fix them first \u2014 it does not silently absorb them into the new work's result. Dispatches qoq-tester one slice at a time, handing over the record path, the test-conventions.md path, the slice, the baseline, and any specs already in place. The tester proves its specs run using only the PROJECT's own scripts \u2014 test:one then the full suite against the baseline \u2014 never the qoq CLI, and hands back the file list. THE COMMAND then dispatches `qoq fix` scoped to those spec files as the gate, re-running the full suite if fix changed anything, and re-dispatches the tester with the digest on a FAIL. qoq refactor runs ONCE after the last slice, scoped to every file written. Never uses .skip or loosens an assertion to get green.",
+      "expected_output": "Reads runner, globals, react and conventions off the discovery record rather than rediscovering them. States the inferred scope back rather than asking. Runs the full suite BEFORE writing anything to establish a baseline, and on finding pre-existing failures asks the user whether to skip them (recording them as the baseline) or fix them first — it does not silently absorb them into the new work's result. Dispatches qoq-tester one slice at a time, handing over the record path, the test-conventions.md path, the slice, the baseline, and any specs already in place. The tester proves its specs run using only the PROJECT's own scripts — test:one then the full suite against the baseline — never the qoq CLI, and hands back the file list. THE COMMAND then dispatches `qoq fix` scoped to those spec files as the gate, re-running the full suite if fix changed anything, and re-dispatches the tester with the digest on a FAIL. qoq refactor runs ONCE after the last slice, scoped to every file written. Never uses .skip or loosens an assertion to get green.",
       "files": [],
       "assertions": [
         "Reads runner, globals, react and conventions off the record rather than rediscovering them",
@@ -196,22 +199,25 @@
     {
       "id": 10,
       "name": "repaired-record-notified-after-the-work",
-      "prompt": "run qoq fix over src/auth \u2014 I renamed the test script in package.json this morning",
-      "expected_output": "The renamed script changes package.json, so `scripts/discovery-check.mjs` reports the record stale and hands back the fresh hash \u2014 that gate, not a judgement call, is what decides `qoq-discovery` runs at all. The agent then finds the recorded test:one no longer resolves, re-derives that field unambiguously, stamps the new hash and returns `repaired test:one`. The run carries on with the repaired value and the notice reaches the user once the fix loop has reported its verdict \u2014 never before it, and never as a request for permission.",
+      "prompt": "run qoq fix over src/auth — I renamed the test script in package.json this morning",
+      "expected_output": "The renamed script changes package.json's scripts block, so entry.mjs's discovery section reports the record stale and hands back the fresh hash with a `proposed` block — that gate, not a judgement call, is what decides the record is touched at all. The existing record is treated as a starting point and verified line by line: the recorded test:one no longer resolves, so that line only is re-derived, the handed hash is stamped verbatim, and every line that still verifies is left untouched. The run carries on with the repaired value and the notice reaches the user once the fix loop has reported its verdict — never before it, and never as a request for permission.",
       "files": [],
       "assertions": [
-        "Discovery repairs only the stale line, leaving verified lines untouched",
-        "The repair happens in the same dispatch, without asking permission",
+        "Repairs the record on the main thread, not in a dispatched agent",
+        "Verifies the existing record line by line rather than re-deriving all of it",
+        "Repairs only the stale line, leaving verified lines untouched",
+        "Stamps the hash entry.mjs handed over verbatim",
+        "The repair happens without asking permission — re-deriving a known fact needs none",
         "The run continues with the repaired value rather than stopping",
         "The repair notice is reported AFTER the fix verdict, not before the work",
-        "The notice names the field with its old \u2192 new value",
+        "The notice names the field with its old → new value",
         "An ambiguous repair would have been returned as a question instead"
       ]
     },
     {
       "id": 11,
       "name": "escalation-exhausted-blocks-the-ticket",
-      "prompt": "keep going on the plan \u2014 ticket 2.3 has already come back failing twice at sonnet",
+      "prompt": "keep going on the plan — ticket 2.3 has already come back failing twice at sonnet",
       "expected_output": "The ticket's remaining attempt is spent at its current tier, then it escalates one tier up with the last report and digest pasted into the new prompt. When the top rung is already in use there is nowhere to escalate to: the ticket is marked `blocked`, the report goes to the user, and execution does not quietly continue as though the ticket were done.",
       "files": [],
       "assertions": [
@@ -228,10 +234,10 @@
       "id": 12,
       "name": "compress-default-scope-and-literal-check",
       "prompt": "My CLAUDE.md and the AGENTS.md files have gotten really wordy and they're eating my context on every single run. Can you trim them down to just what an agent actually needs?",
-      "expected_output": "Skips qoq-discovery entirely (nothing on the record describes a markdown file) and says so rather than dispatching it. Resolves the default scope with `git ls-files '*CLAUDE.md' '*AGENTS.md'` and lists what matched before editing anything. Works one file at a time, never in parallel, reading each file whole before cutting. Writes each compressed version to a scratch path first, runs `node <skill>/scripts/compress-check.mjs <original> <scratch>`, and treats a dropped literal as something to restore or justify and an invented one as a hallucinated path to rewrite \u2014 never as an automatic revert. Skips files that would save under ~15%. Ends by dispatching `qoq fix` over exactly the changed files so Prettier reformats the markdown, then reports one table of before/after word counts taken from the script's own output, naming every skipped file and every dropped literal it judged redundant.",
+      "expected_output": "Calls entry.mjs, whose discovery section reports `skipped — compress reads nothing on the record`, and says so rather than reading a manifest to learn a test command before deleting an adjective. Resolves the default scope with `git ls-files '*CLAUDE.md' '*AGENTS.md'` and lists what matched before editing anything. Works one file at a time, never in parallel, reading each file whole before cutting. Writes each compressed version to a scratch path first, runs `node <skill>/scripts/compress-check.mjs <original> <scratch>`, and treats a dropped literal as something to restore or justify and an invented one as a hallucinated path to rewrite — never as an automatic revert. Skips files that would save under ~15%. Ends by dispatching `qoq fix` over exactly the changed files so Prettier reformats the markdown, then reports one table of before/after word counts taken from the script's own output, naming every skipped file and every dropped literal it judged redundant.",
       "files": [],
       "assertions": [
-        "Does not dispatch qoq-discovery, and states that compress needs no record",
+        "Acts on entry.mjs reporting discovery skipped, and states that compress needs no record",
         "Resolves the default scope with git ls-files over *CLAUDE.md and *AGENTS.md",
         "Lists the matched files before editing any of them",
         "Compresses one file at a time, never dispatching parallel agents",
@@ -246,14 +252,14 @@
         "Keeps a rationale clause that prevents a wrong action; cuts one that only justifies a right one",
         "Dispatches qoq fix over exactly the files it changed",
         "Reports a before/after word-count table using the script's own numbers",
-        "Edits only markdown \u2014 no code, config, or test file is touched"
+        "Edits only markdown — no code, config, or test file is touched"
       ]
     },
     {
       "id": 13,
       "name": "stats-consent-asked-not-defaulted",
       "prompt": "clean up the lint on this repo",
-      "expected_output": "Before doing the work, runs node <skill>/scripts/stats.mjs fix once. On exit 1 it asks the user whether to send anonymous usage stats rather than assuming either answer, states honestly that the payload is the tool name plus the command and nothing else, then records the answer with --consent yes|no. It never composes the POST itself, never reads or writes the consent files by hand, and never re-asks within the run \u2014 a fix dispatched later from inside another command does not call the script again.",
+      "expected_output": "Before doing the work, runs node <skill>/scripts/stats.mjs fix once. On exit 1 it asks the user whether to send anonymous usage stats rather than assuming either answer, states honestly that the payload is the tool name plus the command and nothing else, then records the answer with --consent yes|no. It never composes the POST itself, never reads or writes the consent files by hand, and never re-asks within the run — a fix dispatched later from inside another command does not call the script again.",
       "files": [],
       "assertions": [
         "Runs scripts/stats.mjs with the command name before starting the work",
@@ -269,8 +275,8 @@
     {
       "id": 14,
       "name": "estimator-buckets-tags-and-stacks",
-      "prompt": "we want saved filters on the dashboard \u2014 user picks some filters, names the set, saves it, and can pick it again later from a dropdown. needs a backend endpoint too. this repo has both the react app and the nest api in it. can you break it down into tickets?",
-      "expected_output": "Decomposes as usual, but per ticket also tags it (multiple tags from mechanical/architectural/pattern-repeat, extended where none fit) and names the stack \u2014 react for the dashboard tickets, nestjs for the endpoint \u2014 rather than pooling both into one bucket. Runs scripts/estimate.mjs per ticket with the baseline size and tier it picked itself, and branches purely on the exit code: 0 keeps the pick, 1 takes the returned dearer tier, 2 sends the ticket back to decomposition instead of saving it. It never edits .claude/qoq-estimator.json by hand and never re-derives the tier from the miss counts. A moved tier is flagged for approval. The tags, stack and verdict go into each ticket's Estimate field so qoq execute can report the outcome back against the same bucket.",
+      "prompt": "we want saved filters on the dashboard — user picks some filters, names the set, saves it, and can pick it again later from a dropdown. needs a backend endpoint too. this repo has both the react app and the nest api in it. can you break it down into tickets?",
+      "expected_output": "Decomposes as usual, but per ticket also tags it (multiple tags from mechanical/architectural/pattern-repeat, extended where none fit) and names the stack — react for the dashboard tickets, nestjs for the endpoint — rather than pooling both into one bucket. Runs scripts/estimate.mjs per ticket with the baseline size and tier it picked itself, and branches purely on the exit code: 0 keeps the pick, 1 takes the returned dearer tier, 2 sends the ticket back to decomposition instead of saving it. It never edits .claude/qoq-estimator.json by hand and never re-derives the tier from the miss counts. A moved tier is flagged for approval. The tags, stack and verdict go into each ticket's Estimate field so qoq execute can report the outcome back against the same bucket.",
       "files": [],
       "assertions": [
         "Tags each ticket with multiple tags where they apply, not one label per ticket",
@@ -282,14 +288,14 @@
         "Records tags, stack and verdict in each ticket's Estimate field",
         "Never edits .claude/qoq-estimator.json directly",
         "Surfaces a moved tier at approval rather than treating it as settled",
-        "Never proposes a cheaper tier than the one it picked \u2014 the adjustment only goes up"
+        "Never proposes a cheaper tier than the one it picked — the adjustment only goes up"
       ]
     },
     {
       "id": 15,
       "name": "refactor-missing-ponytail-lens-asks-before-green-base",
       "prompt": "/qoq refactor src/modules/npm",
-      "expected_output": "The discovery record's `skills` field maps `ponytail-review` to null. Before dispatching the green-base `qoq fix` \u2014 not after it, and not when assessment 3 comes up \u2014 the run tells the user assessment 3 cannot run, and asks with two real options: install the lens and re-run (recommended, with https://github.com/DietrichGebert/ponytail, the two-prompt install, and the note to delete the discovery record first, since the hash covers only package.json and the lockfile), or proceed with 3 of 4 assessments. It says why proceeding costs more than one pass \u2014 assessment 4 proposes structure and ponytail is its counterweight. It never improvises a substitute deletion pass, and if the user proceeds it runs assessments 1, 2 and 4 in full and names the skipped one in the final summary.",
+      "expected_output": "The discovery record's `skills` field maps `ponytail-review` to null. Before dispatching the green-base `qoq fix` — not after it, and not when assessment 3 comes up — the run tells the user assessment 3 cannot run, and asks with two real options: install the lens and re-run (recommended, with https://github.com/DietrichGebert/ponytail, the two-prompt install, and the note to delete the discovery record first, since the hash covers only package.json and the lockfile), or proceed with 3 of 4 assessments. It says why proceeding costs more than one pass — assessment 4 proposes structure and ponytail is its counterweight. It never improvises a substitute deletion pass, and if the user proceeds it runs assessments 1, 2 and 4 in full and names the skipped one in the final summary.",
       "files": [],
       "assertions": [
         "Checks the record's skills field and asks BEFORE dispatching the green-base qoq fix",
@@ -306,7 +312,7 @@
       "id": 16,
       "name": "designer-smells-first-then-routes-to-asset",
       "prompt": "/qoq refactor src/payments",
-      "expected_output": "Assessment 4 dispatches qoq-designer over src/payments only. The agent reads assets/patterns/index.md and the scope's source, and reads none of the per-pattern write-ups \u2014 it names them. src/payments has the same six-branch switch on provider in three files, so it returns the divergent-switch smell with the files and line ranges, the cost stated concretely (a new provider means editing three files that don't know about each other), Strategy as the candidate, assets/patterns/strategy.md as the asset, and the cheaper TS-native answer (a Record of provider functions) with whether it suffices. It also returns the smells it found and rejected. The caller then opens strategy.md \u2014 only that file \u2014 and takes the finding to the user with the code in front of them. If the Record answer holds, that is what gets proposed, not a class hierarchy. qoq-designer edits nothing.",
+      "expected_output": "Assessment 4 dispatches qoq-designer over src/payments only. The agent reads assets/patterns/index.md and the scope's source, and reads none of the per-pattern write-ups — it names them. src/payments has the same six-branch switch on provider in three files, so it returns the divergent-switch smell with the files and line ranges, the cost stated concretely (a new provider means editing three files that don't know about each other), Strategy as the candidate, assets/patterns/strategy.md as the asset, and the cheaper TS-native answer (a Record of provider functions) with whether it suffices. It also returns the smells it found and rejected. The caller then opens strategy.md — only that file — and takes the finding to the user with the code in front of them. If the Record answer holds, that is what gets proposed, not a class hierarchy. qoq-designer edits nothing.",
       "files": [],
       "assertions": [
         "Dispatches qoq-designer scoped to src/payments, not the repo",
@@ -324,7 +330,7 @@
       "id": 17,
       "name": "designer-detects-react-and-routes-to-the-react-table",
       "prompt": "/qoq refactor src/components src/server/jobs",
-      "expected_output": "Assessment 4 dispatches qoq-designer over both paths. Before hunting anything the agent settles the stack from the scope's own files \u2014 .tsx under src/components and no react import anywhere under src/server/jobs \u2014 not from package.json, and opens its return with that. It reads assets/patterns/index.md and, because React is present in part of the scope, assets/patterns/react/index.md as well \u2014 additively, so the base smells still apply to the component files. It reads no per-pattern write-up from either directory. In src/components it finds a filter value threaded through four components that never read it, and returns the prop-drilling smell with the cost stated concretely, Provider as the candidate, assets/patterns/react/provider.md as the asset, and the cheaper React-native answer (pass children so the middle layers never see the value) with whether it suffices. It does not report the src/server/jobs files against React rows. The caller then opens only the named asset files. If passing children holds, that is what gets proposed, not a context.",
+      "expected_output": "Assessment 4 dispatches qoq-designer over both paths. Before hunting anything the agent settles the stack from the scope's own files — .tsx under src/components and no react import anywhere under src/server/jobs — not from package.json, and opens its return with that. It reads assets/patterns/index.md and, because React is present in part of the scope, assets/patterns/react/index.md as well — additively, so the base smells still apply to the component files. It reads no per-pattern write-up from either directory. In src/components it finds a filter value threaded through four components that never read it, and returns the prop-drilling smell with the cost stated concretely, Provider as the candidate, assets/patterns/react/provider.md as the asset, and the cheaper React-native answer (pass children so the middle layers never see the value) with whether it suffices. It does not report the src/server/jobs files against React rows. The caller then opens only the named asset files. If passing children holds, that is what gets proposed, not a context.",
       "files": [],
       "assertions": [
         "Detects the stack from the scope's own files, not from package.json or the discovery record",
@@ -341,26 +347,125 @@
     {
       "id": 18,
       "name": "execute-source-jira-imports-then-runs",
-      "prompt": "we track everything in jira \u2014 can you just run the PLAT-412 epic? all the tickets are under it",
-      "expected_output": "Reads references/export.md before anything else, because --source isn't local. Confirms the milestone level it was given is an epic (not a bare ticket, which would leave the run with no milestone gate, and not a board, which would import work nobody agreed to start), offering what the read-only Jira tools can see if the destination is unclear. Finds the Jira MCP tools in its own available-tools list at the moment it needs them \u2014 matching on what a tool does, never on a guessed name \u2014 and never substitutes curl, a REST call against a token in the environment, or a CLI for a missing one; with no Jira MCP tool at all it stops and offers qoq plan or --source local instead. Reads the epic and its issues and writes ./plans/<milestone-slug>.md in the standard plan template, mapping description back to Context and Files, the Acceptance checklist to Acceptance criteria, story points to Size and the qoq:<tier> label to Agent tier, and putting each issue key in that ticket's External field. Fills the two fields no tracker carries rather than guessing them: Commands from the discovery record and Estimate from scripts/estimate.mjs. Stops and asks the user for real assertions on any ticket whose acceptance criteria are prose or a restated title \u2014 all of them in one question, before anything dispatches \u2014 and writes the answers into the plan file rather than inferring them. Marks Plan status: approved, then loads that file from disk and runs the ordinary execute loop unchanged: one qoq-developer at a time, the scoped qoq fix gate on the orchestrating thread, the commit after PASS, the milestone refactor beat, and estimate.mjs --record per resolved ticket. As each ticket reaches done or blocked it also writes the status back to that issue as a LABEL plus the commit hash as a comment \u2014 never the Jira workflow state \u2014 and treats a rejected write as a line in the report rather than a stop.",
+      "prompt": "we track everything in jira — can you just run the PLAT-412 epic? all the tickets are under it",
+      "expected_output": "Reads references/export.md before anything else, because --source isn't local. Confirms the milestone level it was given is an epic (not a bare ticket, which would leave the run with no milestone gate, and not a board, which would import work nobody agreed to start), offering what the read-only Jira tools can see if the destination is unclear. Finds the Jira MCP tools in its own available-tools list at the moment it needs them — matching on what a tool does, never on a guessed name — and never substitutes curl, a REST call against a token in the environment, or a CLI for a missing one; with no Jira MCP tool at all it stops and offers qoq plan or --source local instead. Reads the epic and its issues and writes ./plans/<milestone-slug>.md in the standard plan template, mapping description back to Context and Files, the Acceptance checklist to Acceptance criteria, story points to Size and the qoq:<tier> label to Agent tier, and putting each issue key in that ticket's External field. Fills the two fields no tracker carries rather than guessing them: Commands from the discovery record and Estimate from scripts/estimate.mjs. Stops and asks the user for real assertions on any ticket whose acceptance criteria are prose or a restated title — all of them in one question, before anything dispatches — and writes the answers into the plan file rather than inferring them. Marks Plan status: approved, then loads that file from disk and runs the ordinary execute loop unchanged: one qoq-developer at a time, the scoped qoq fix gate on the orchestrating thread, the commit after PASS, the milestone refactor beat, and estimate.mjs --record per resolved ticket. As each ticket reaches done or blocked it also writes the status back to that issue as a LABEL plus the commit hash as a comment — never the Jira workflow state — and treats a rejected write as a line in the report rather than a stop.",
       "files": [],
       "assertions": [
         "Reads references/export.md before acting, since --source is not local",
-        "Asks for or confirms the milestone level \u2014 an epic \u2014 never a bare ticket and never a whole board",
+        "Asks for or confirms the milestone level — an epic — never a bare ticket and never a whole board",
         "Resolves the Jira MCP tools from its own available-tools list rather than a cached or guessed name",
         "Never substitutes curl, a REST call against an env token, or a CLI for a missing MCP tool",
         "Writes an actual plan file under ./plans/ rather than executing against the tracker directly",
-        "Maps the tracker fields back into the plan template \u2014 description to Context and Files, the Acceptance checklist to Acceptance criteria, points to Size, the qoq: label to Agent tier",
+        "Maps the tracker fields back into the plan template — description to Context and Files, the Acceptance checklist to Acceptance criteria, points to Size, the qoq: label to Agent tier",
         "Writes each issue key into that ticket's External field",
         "Fills Commands from the discovery record",
         "Fills Estimate by calling scripts/estimate.mjs rather than inventing tags or a stack",
         "Stops and asks the user for assertions when a ticket's acceptance criteria are prose, rather than inferring them",
         "Writes the answers into the plan file so a resume does not re-ask",
         "Marks Plan status: approved and then loads the file from disk before dispatching",
-        "Runs the ordinary execute loop unchanged \u2014 one developer at a time, scoped qoq fix gate, commit after PASS, milestone refactor beat",
+        "Runs the ordinary execute loop unchanged — one developer at a time, scoped qoq fix gate, commit after PASS, milestone refactor beat",
         "Still reports each resolved ticket back with estimate.mjs --record",
         "Writes status back to the issue as a label plus a commit comment, never as the tracker's workflow state",
         "Treats a rejected tracker write as a report line, not a stop"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "entry-fresh-agent-install-asks",
+      "prompt": "just installed the qoq plugin. run qoq test over src/auth/TokenService.ts, it has no coverage at all",
+      "expected_output": "Calls `node <skill>/scripts/entry.mjs --project <root> --command test` once, before anything else. Its agents section reports `agents installed:` because this is a fresh install, and for `test` — one of the three commands that dispatch a pinned agent inside the window before Claude Code registers the directory — the ACTION is to ask the user before carrying on: continue and accept that the first dispatch takes the general-purpose fallback, or exit and re-run with the agents registered. If they exit, the run stops there rather than running half the command. If they continue, the qoq-tester dispatch goes to general-purpose with the agent file's body pasted in, its tier passed explicitly and its write-tests-only prohibition restated — because general-purpose inherits the session's model and gets every tool, which is exactly the ability to edit production source the contract forbids.",
+      "files": [],
+      "assertions": [
+        "Calls entry.mjs once at the head of the run, with --project and --command",
+        "Does not run sync-agents.mjs, discovery-check.mjs or stats.mjs directly — entry.mjs composes them",
+        "Acts on the agents section's ACTION rather than deciding for itself whether to ask",
+        "Asks the user before carrying on, because the command is test",
+        "Stops the run entirely if the user chooses to exit, rather than running half of it",
+        "An unregistered agent is dispatched as general-purpose with the agent file's body pasted in",
+        "The fallback dispatch restates the tier explicitly and the agent's prohibitions",
+        "Never runs entry.mjs a second time for a command invoked from inside this one"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "replan-freezes-delivered-work",
+      "prompt": "the plan in plans/2026-08-04-reports.md isn't working out — milestone 1 shipped fine but 2 and 3 were written before we knew the export had to be async. reshape it",
+      "expected_output": "Refuses outright if the plan file has uncommitted changes — commit or stash first, not a warning, because replan overwrites in place and git is the only history. Splits the file into frozen and live before anything else: delivered milestones, done tickets, `## Completed` blocks, the `.completed.md` archive and every commit hash are read-only input, and only todo/in-progress/blocked tickets and undelivered milestones may be rewritten. Frozen parts get a mechanical backfill only — a missing Log reconstructed from git log, a missing Estimate from estimate.mjs against the tags and tier the ticket already records — and nothing else. Re-runs plan.md's three phases over the live part, handing the grill the old plan, the original Requirements source, and what went wrong: every blocked ticket, every Escalation, every scope-expansion attribution. Lists at approval every live ticket whose External key is now orphaned, and touches .claude/qoq-estimator.json not at all.",
+      "files": [],
+      "assertions": [
+        "Refuses and stops if the plan file has uncommitted changes",
+        "Splits frozen from live before doing anything else",
+        "Never re-decomposes a done ticket, a Completed block, or the .completed.md archive",
+        "Backfills a frozen ticket's missing Log from git log and missing Estimate from estimate.mjs — nothing else",
+        "Rewrites only todo, in-progress and blocked tickets and undelivered milestones",
+        "Overwrites the plan file in place rather than writing a .v2",
+        "Hands the grill the old plan, the Requirements source, and every blocked ticket, Escalation and scope-expansion attribution",
+        "Reports orphaned External keys at approval, and does not attempt to sync the tracker",
+        "Leaves .claude/qoq-estimator.json untouched",
+        "Stops and says so if the plan is one milestone from done, or if nothing is delivered and the requirements changed substantially"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "plan-grills-then-architects",
+      "prompt": "we need multi-tenant API keys — each org can mint keys, scope them to specific endpoints, rotate them, and revoke. keys hit a new auth middleware and there's a usage counter per key. spec is in docs/api-keys.md",
+      "expected_output": "Reads docs/api-keys.md itself rather than a paraphrase. Checks the one-ticket stop first (this is not one ticket's work), then resolves `grilling` — not `grill-me` — against its own available-skills list and invokes it with the requirements plus what is already settled, before Phase 2. Phase 1's artifact is the milestone Scenarios field, Given/When/Then prose derived from what the grill settled, at most about six per milestone. Phase 2 dispatches Explore to locate, then qoq-architect — this work invents data shapes and crosses a boundary, so the skip condition does not hold — carrying the requirements, the Scenarios verbatim, Explore's findings and the skill's absolute path. The architect's Unknowns are asked on the main thread and answered BEFORE decomposition starts. Contracts land on the milestone, Integration surface and Risks on the relevant tickets' Context. Phase 3 writes acceptance criteria as assertions traceable to a scenario, sizes nothing above M, and calls estimate.mjs per ticket.",
+      "files": [],
+      "assertions": [
+        "Reads the requirements file rather than working from a summary of it",
+        "Invokes grilling, never grill-me, resolved from its own available-skills list verbatim",
+        "Checks the one-ticket stop before checking whether grilling is installed",
+        "Writes Scenarios as Given/When/Then prose derived from what the grill settled, not Gherkin",
+        "Dispatches Explore to locate before dispatching the architect",
+        "Dispatches qoq-architect — the skip condition fails because the work invents data shapes",
+        "The architect's dispatch carries the Scenarios verbatim, plus the skill's absolute path",
+        "Asks the architect's Unknowns on the main thread and gets answers before Phase 3 starts",
+        "Contracts go on the milestone; Integration surface and Risks go on ticket Context",
+        "Every acceptance criterion is an assertion, traceable to a scenario",
+        "No ticket is sized above M",
+        "Calls estimate.mjs per ticket and writes its verdict into the Estimate field, not raw JSON",
+        "Surfaces new dependencies, the model ceiling, estimator-moved tiers, and anything skipped at approval"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "execute-two-gates-before-commit",
+      "prompt": "plans/2026-08-20-ratelimit.md is approved, go build it",
+      "expected_output": "Loads the plan fresh from disk, checks it isn't on the default branch before dispatching anything, and sends tickets out one at a time in dependency order. Each dispatch carries the ticket's id, Context, Files and Acceptance criteria verbatim, the milestone's Contracts verbatim, the record's path, the path to references/test-conventions.md, the tier's model explicitly, and the three-attempt budget — but NOT the milestone's Scenarios. When the developer hands back, both gates run here, in order: qoq fix scoped to exactly the files the ticket changed, then qoq-test-reviewer over the spec files. The commit happens only after both pass. A REJECTED verdict is re-dispatched verbatim, never summarised. The attempt budget is three shared across both gates, and a fourth failure escalates one tier with the last report pasted in. On done, each acceptance criterion is ticked with the spec/file::test name taken from Gate 2's own mapping, and the outcome is filed with estimate.mjs --record against the tier the plan assigned.",
+      "files": [],
+      "assertions": [
+        "Loads the plan from disk rather than an in-memory copy",
+        "Asks before dispatching when on the default branch",
+        "Dispatches one ticket at a time — no parallel mode, no flag for one",
+        "The dispatch carries Context, Files and Acceptance criteria verbatim, never 'see the plan'",
+        "The dispatch carries the milestone's Contracts verbatim, passing `none` as a real value",
+        "The dispatch does NOT carry the milestone's Scenarios",
+        "qoq fix runs before qoq-test-reviewer, because fix rewrites formatting",
+        "Both gates run on the orchestrating thread, not inside the developer",
+        "No ticket is committed before qoq-test-reviewer returns APPROVED",
+        "A REJECTED verdict is re-dispatched verbatim, never summarised",
+        "The three-attempt budget is shared across both gates, not one budget each",
+        "Criteria are ticked from Gate 2's criterion→assertion mapping, not from reading the diff",
+        "Files one estimate outcome per ticket, against the tier the plan assigned rather than an escalated one",
+        "Writes the ticket's Log at every transition"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "execute-usage-gate-per-ticket",
+      "prompt": "/qoq execute plans/2026-08-20-ratelimit.md --session-limit 60",
+      "expected_output": "Arms the usage gate because a limit flag was given, and runs `node <skill>/scripts/usage-check.mjs --session-limit 60 --weekly-limit 100` before dispatching EACH ticket — not once at the start — passing both flags so the script's own defaults fill in the one the user left out. Shows the script's stdout verbatim to the user before each dispatch. Exit 0 dispatches. Exit 1 stops and asks whether to carry on anyway, saying in the question that a yes disarms the gate for the rest of the run; a no ends the run cleanly, leaves the ticket at its current status — not blocked — and files no estimate outcome, because nothing was dispatched. Output beginning `usage unavailable` is reported in one line and the run carries on.",
+      "files": [],
+      "assertions": [
+        "Runs usage-check.mjs before every ticket dispatch, not once at the start of the run",
+        "Passes both --session-limit and --weekly-limit even though the user gave one",
+        "Shows the script's stdout verbatim to the user",
+        "Exit 0 proceeds to the dispatch",
+        "Exit 1 stops and asks, stating that a yes disarms the gate for the rest of the run",
+        "A no leaves the ticket at its current status rather than marking it blocked",
+        "A no files no estimate outcome, because nothing was dispatched",
+        "`usage unavailable` is one reported line and does not wedge the run",
+        "Without either flag no usage check would run at all"
       ]
     }
   ]

@@ -41,7 +41,10 @@ test("a project with no agents gets every one of the skill's, then reports nothi
 
   const first = run(dir);
   assert.equal(first.status, 0);
-  assert.match(first.stdout, /^agents installed: .*registered a moment later$/);
+  assert.match(first.stdout, /^agents installed: .*registered a moment later$/m);
+  // The fallback procedure rides on the `installed` line: it is only actionable
+  // on the run that installs, so SKILL.md doesn't carry it on every other one.
+  assert.match(first.stdout, /dispatch any of them as `general-purpose`/);
   assert.deepEqual(agentsIn(join(dir, '.claude', 'agents')), agentsIn(SOURCE));
 
   // Idempotent, because this runs at the tail of every discovery.

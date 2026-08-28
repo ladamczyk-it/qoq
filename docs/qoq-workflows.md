@@ -23,6 +23,7 @@ Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 | [`refactor`](#refactor)                     | [refactor.md](../skills/qoq/references/refactor.md)                                      |
 | [`bump`](#bump)                             | [bump.md](../skills/qoq/references/bump.md)                                              |
 | [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                              |
+| [`replan`](#replan)                         | [replan.md](../skills/qoq/references/replan.md)                                          |
 | [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                        |
 | [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                              |
 | [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                      |

@@ -61,6 +61,13 @@
 // Exit 0 with one line on stdout, for the caller to pass through verbatim:
 // `agents current`, `agents installed: <names>`, `agents removed: <names>`,
 // and/or `agents kept (edited here): <names>`. Exit 2 usage error.
+//
+// An `installed` line also prints the fallback procedure, because that is the
+// only run on which anything can act on it: until Claude Code registers the
+// directory, a dispatch of one of those names lands on `general-purpose`
+// instead. It lives here rather than in SKILL.md for the same reason the stats
+// disclosure lives in stats.mjs — SKILL.md is loaded on every run of every
+// command, and this is read on roughly one run per install.
 
 import { createHash } from 'node:crypto';
 import {
@@ -191,7 +198,13 @@ writeFileSync(manifestPath, `${JSON.stringify(installedDigests, undefined, 2)}\n
 
 const lines = [];
 if (installed.length) {
-  lines.push(`agents installed: ${installed.join(', ')} — registered a moment later`);
+  lines.push(
+    `agents installed: ${installed.join(', ')} — registered a moment later`,
+    "Until then, dispatch any of them as `general-purpose` with the agent file's body pasted in,",
+    "plus the tier and the prohibitions restated: `general-purpose` inherits the session's model and",
+    "gets every tool, so an unregistered `qoq-checker` runs at the caller's tier and an unregistered",
+    '`qoq-tester` gains exactly the ability to edit production source its contract forbids.'
+  );
 }
 if (removed.length) {
   lines.push(`agents removed: ${removed.join(', ')} — this skill no longer ships them`);
