@@ -1,0 +1,40 @@
+skill: the directory holding this file; passed at dispatch, never derived
+bin: npx qoq
+bin_if_symlinked: npm run build && npx qoq
+symlink_test: test -L node_modules/@ladamczyk/qoq-cli
+reports: node_modules/@ladamczyk/qoq-cli/bin/report
+
+run:
+  full: npx qoq --check --json
+  fix: npx qoq --fix
+  scoped: npx qoq staged <file>...
+  tools: npx qoq <tool>...
+
+tool_names: [prettier, eslint, jscpd, knip, npm, stylelint, structurelint, skillslint]
+narrow: --skip-<tool>
+exit: { 0: clean, 1: findings }
+
+facts:
+  - positional args are tool names, never paths
+  - staged is the only path-scoped form
+  - staged takes no --json and no --fix, and writes no reports
+  - no --json, no reports, no digest
+  - never pass --output
+
+digest:
+  cmd: node <skill>/scripts/summarize.mjs <reports>
+  exit: { 0: none, 1: findings, 2: error }
+  raw: open one report only for one finding's line numbers
+
+reuse:
+  cmd: node <skill>/scripts/reports-current.mjs <reports> <scope>...
+  exit: { 0: reuse the reports, 1: re-run full }
+
+may_run:
+  fix: [full, fix, digest, reuse]
+  qoq-checker: [full, digest, reuse]
+  qoq-developer: [scoped]
+  qoq-tester: [scoped]
+  qoq-bumper: []
+  qoq-designer: []
+  qoq-discovery: []

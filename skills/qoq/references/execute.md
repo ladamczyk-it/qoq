@@ -1,8 +1,24 @@
-# `qoq execute` — an approved plan file in, delivered milestones out
+# `qoq execute` — an approved plan in, delivered milestones out
 
 Run a plan to completion by dispatching every ticket to a `qoq-developer` at the
 tier the plan already assigned. This command **never implements anything
 itself** — its whole job is dispatch, gates, status, and archiving.
+
+## Where the plan comes from — `--source`
+
+`--source local` is the default and needs nothing: a plan path, or the single
+approved plan under `./plans/` when the argument is omitted.
+
+`--source jira|linear|trello` asks which milestone to run, reads it and its
+tickets into a plan file, and then continues here as if that file had always
+existed — [references/export.md](export.md) owns that beat, including the two
+places it stops. **Read it before anything else on a non-local source**; nothing
+below this section knows or cares where the tickets came from, which is the
+whole point of importing rather than executing against a tracker.
+
+One thing from there reaches into the loop below: on an imported plan, a ticket
+arriving at `done` or `blocked` also writes its status label and commit back to
+the tracker. That is the only write, and it's a label, never a workflow column.
 
 ## Loading and resuming
 
@@ -105,11 +121,16 @@ tiers.
 changed — spec and source both. Scoped, because the verdict has to be about this
 ticket and nothing else.
 
-**It runs here, not inside the developer** — the gate runs one thread up, per
-`SKILL.md`. The developer writes, proves its own work green with the project's
-`test:one`, and hands back the file list; this thread dispatches `qoq fix` over
-that list and commits on a `PASS`. A `FAIL` re-dispatches the developer with the
-digest pasted in, and that round is one of its three attempts.
+**It runs here, not inside the developer.** The developer proves its own work —
+the project's `test:one` and `build`, then the CLI's `scoped` form over the files
+it touched — and hands back that list; this thread dispatches `qoq fix` over it and
+commits on a `PASS`. A `FAIL` re-dispatches the developer with the digest pasted
+in, and that round is one of its three attempts.
+
+The developer's own scoped run doesn't make the gate redundant: it writes no
+reports, so the digest and the retry budget that acts on it both live here. What
+it does is stop a whole dispatch-and-gate round being spent on a formatting
+finding.
 
 The commit happens here too, after the gate — nothing reaches history until it
 has passed.
@@ -140,6 +161,9 @@ node <skill>/scripts/estimate.mjs --record --tags <the ticket's tags> \
   --outcome success|failure --attempts <n> \
   --attribution estimation-miss|scope-expansion --summary "<the ticket title>"
 ```
+
+On an imported plan the ticket's **External** field gets the same news — status
+label, commit hash as a comment — in the same beat, so the two never drift.
 
 Tags and stack come from the ticket's **Estimate** field verbatim, the tier from
 its **Agent tier**. The estimate being graded is _this much work at that tier_,
@@ -215,10 +239,10 @@ never looked for.
 
 ## Setup
 
-One check: is `qoq-developer` registered under `.claude/agents/`? If not, fall
-back per `SKILL.md`'s Agents section — body pasted in, tier passed explicitly,
-since `general-purpose` otherwise inherits the session's model and quietly
-overrides the rating the plan made.
+One check: is `qoq-developer` registered under `.claude/agents/`? If not,
+dispatch `general-purpose` with `agents/qoq-developer.md`'s body pasted in and
+the tier passed explicitly — `general-purpose` otherwise inherits the session's
+model and quietly overrides the rating the plan made.
 
 Commands come from the record. The plan's **Commands** header is a convenience
 copy for a session that has one and not the other — there's no `package.json`

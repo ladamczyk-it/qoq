@@ -15,9 +15,15 @@ Given files, the verdict is about those files and nothing else. That matters
 because of who asks: `execute` needs to know whether _this ticket_ is clean and
 `test` whether _this slice_ is, not whether the repo is.
 
-Both of those callers dispatch a subagent to do the writing, so the gate runs one
-thread up (`SKILL.md`). The scope and the retry budget both survive the move
-intact, which is the only property that mattered.
+Both of those callers dispatch a subagent to do the writing, and the subagent has
+already run the CLI's `scoped` form over its own files before handing them back
+(`agents/qoq-developer.md`, `agents/qoq-tester.md`). This command is still the
+gate: that form writes no reports, so the digest — and the retry budget that acts
+on it — only exist here.
+
+Scope is a property of the verdict, not of the invocation: `full` takes no paths,
+so a scoped `fix` runs the whole check and reports on the scope. The findings
+outside it are somebody else's, and saying so is the whole answer.
 
 ## The checker
 
@@ -30,17 +36,13 @@ loses the audit trail of what changed and why.
 Never decide it by eye: a stale digest read as current makes this command declare
 PASS over code nothing checked.
 
-**The check is `<run> <check>`** — two record lines concatenated. `check` carries
-`--json`, which is not an optimisation: it is what writes the reports at all,
-and without it the checker has nothing to summarise. Don't pass `--output` —
-reports belong in the CLI's default directory, next to the record and with the
-same lifetime, so `npm install` wipes both together and nobody has a second path
-to agree on.
+**The check is the `full` run in [cli.yaml](cli.yaml)** — that file holds the
+invocation, the report directory and both helper scripts, for this command and
+for everyone else.
 
-**The dispatch hands the checker three things it cannot derive**: the absolute
-paths to `scripts/reports-current.mjs` and `scripts/summarize.mjs` in this skill,
-and the report directory. Neither script defaults an argument — both exit 2 when
-called bare.
+**The dispatch hands the checker the one thing it cannot derive**: this skill's
+absolute path, which is what `<skill>` in that file stands for. Neither helper
+script defaults an argument — both exit 2 when called bare.
 
 ## Verifying a fix
 

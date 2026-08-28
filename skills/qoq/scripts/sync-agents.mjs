@@ -40,6 +40,17 @@
 // another, which is worse than the hazard. So the first run refreshes and
 // records; every run after it can tell the difference.
 //
+// An agent the skill stops shipping is removed the same way, and only under the
+// same proof: it's in the manifest, so we wrote it, and the copy on disk is
+// still byte-for-byte the one we wrote. Left behind, it stays registered and
+// dispatchable with a contract that no longer exists anywhere — worse than a
+// stale copy, because nothing in the skill mentions it any more.
+//
+// The one exception is a symlink with nothing on the other end. A checkout that
+// symlinks its agents never appears in the manifest, so the removal above can't
+// see it — but a dangling link points at nothing, so there is no edit to lose and
+// no reason to keep a file Claude Code will try to parse as an agent.
+//
 // A symlinked target is left alone regardless. That's a checkout pointing at the
 // source files deliberately, and overwriting it with a copy would silently
 // freeze the next edit out of every dispatch.
@@ -48,8 +59,8 @@
 //   --project   project root (default: cwd)
 //
 // Exit 0 with one line on stdout, for the caller to pass through verbatim:
-// `agents current`, `agents installed: <names>`, and/or `agents kept (edited
-// here): <names>`. Exit 2 usage error.
+// `agents current`, `agents installed: <names>`, `agents removed: <names>`,
+// and/or `agents kept (edited here): <names>`. Exit 2 usage error.
 
 import { createHash } from 'node:crypto';
 import {
@@ -59,6 +70,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  rmSync,
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
@@ -137,11 +149,52 @@ for (const agent of agents) {
   installed.push(name);
 }
 
+// Agents this script installed that the skill no longer ships.
+const removed = [];
+
+for (const agent of Object.keys(installedDigests)) {
+  if (agents.includes(agent)) {
+    continue;
+  }
+
+  const to = join(target, agent);
+  const wrote = installedDigests[agent];
+  const existing = lstatSync(to, { throwIfNoEntry: false });
+
+  delete installedDigests[agent];
+
+  if (!existing || existing.isSymbolicLink()) {
+    continue;
+  }
+
+  if (digest(readFileSync(to)) !== wrote) {
+    kept.push(agent.replace(/\.md$/, ''));
+    continue;
+  }
+
+  rmSync(to);
+  removed.push(agent.replace(/\.md$/, ''));
+}
+
+// Symlinks pointing at an agent file the skill no longer ships. existsSync
+// follows the link, so a false here is a link with nothing behind it.
+for (const agent of readdirSync(target).filter((name) => name.endsWith('.md'))) {
+  const to = join(target, agent);
+
+  if (lstatSync(to).isSymbolicLink() && !existsSync(to)) {
+    rmSync(to);
+    removed.push(agent.replace(/\.md$/, ''));
+  }
+}
+
 writeFileSync(manifestPath, `${JSON.stringify(installedDigests, undefined, 2)}\n`);
 
 const lines = [];
 if (installed.length) {
   lines.push(`agents installed: ${installed.join(', ')} — registered a moment later`);
+}
+if (removed.length) {
+  lines.push(`agents removed: ${removed.join(', ')} — this skill no longer ships them`);
 }
 if (kept.length) {
   lines.push(`agents kept (edited here, not overwritten): ${kept.join(', ')}`);

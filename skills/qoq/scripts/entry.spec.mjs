@@ -45,11 +45,11 @@ test('a run reports all three checks', () => {
 
 // The record is the whole point of the check; a caller that has to go and read
 // the file itself is paying for the gate twice.
-test('a stale record hands over the payload to dispatch with', () => {
+test('a stale record hands the payload to the caller', () => {
   const { stdout } = run(fixture(), 'fix');
 
   assert.match(stdout, /stale —/);
-  assert.match(stdout, /dispatch `qoq-discovery`/);
+  assert.match(stdout, /fill the record in yourself/);
   assert.ok(stdout.includes('"proposed"'));
   assert.ok(stdout.includes('"unresolved"'));
 });
@@ -61,11 +61,9 @@ test('compress skips discovery', () => {
 
   assert.equal(status, 0);
   assert.match(stdout, /## discovery\nskipped/);
-  // Scoped to the section: `qoq-discovery` is also one of the agent names the
-  // install line above it lists.
   const [, afterHeading] = stdout.split('## discovery');
   const [discovery] = afterHeading.split('##');
-  assert.doesNotMatch(discovery, /dispatch/);
+  assert.doesNotMatch(discovery, /fill the record/);
 });
 
 // The rule that had drifted across three prose files. These three dispatch a
@@ -87,13 +85,13 @@ test('refactor and the rest only report the install at the end', () => {
   }
 });
 
-// Dispatching an agent to discover the CLI's absence spends a run learning what
-// one existsSync already knew.
-test('a project without the qoq CLI stops the run', () => {
+// The CLI is a constant this skill assumes, not something entry discovers: a
+// project without it runs the same three checks as any other.
+test('the CLI is not a head-of-run check', () => {
   const { status, stdout } = run(fixture({ cli: false }), 'fix');
 
-  assert.equal(status, 3);
-  assert.match(stdout, /STOP:/);
+  assert.equal(status, 0);
+  assert.doesNotMatch(stdout, /STOP:/);
 });
 
 test('an unknown command is a usage error', () => {

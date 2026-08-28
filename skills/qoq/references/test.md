@@ -62,16 +62,19 @@ N slices is N full-suite runs. That cost is the design, not an oversight.
 
 ## Two checks per slice, one refactor at the end
 
-The split follows from the gate running one thread up (`SKILL.md`): the tester
-proves the specs _work_ using the project's own scripts, and this thread proves
-they're _good_.
+The split follows from where the digest can exist ([cli.yaml](cli.yaml)): the
+tester proves the specs _work_ — the project's own scripts, then the CLI's
+`scoped` form over the specs it wrote, which takes paths but writes no reports —
+and this thread proves they're _good_, which needs the digest only a `full` run
+produces.
 
 1. **The tester's own proof, before it hands back.** `test:one` on the specs it
-   wrote — they have to run and pass — and then the full suite against the
-   baseline it was given, because a scoped run can't tell you a new spec broke
-   someone else's through a shared setup file or a global mock. That's the one
-   question scope forecloses, and it's the question the tester exists to answer
-   about its own slice.
+   wrote — they have to run and pass — then the full suite against the baseline
+   it was given, because a scoped run can't tell you a new spec broke someone
+   else's through a shared setup file or a global mock. That's the one question
+   scope forecloses, and it's the question the tester exists to answer about its
+   own slice. Then `npx qoq staged` over those specs, which costs seconds and
+   spares a gate round on a lint finding.
 
 2. **`qoq fix` from here, scoped to exactly those spec files.** This is the gate.
    Dispatched after the tester returns, over the file list it returned.

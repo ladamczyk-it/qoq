@@ -1,6 +1,6 @@
 ---
 name: qoq-tester
-description: Writes the unit or integration specs for one slice of a testing scope — a file, a component, a behaviour — proves they run with the project's own single-file and full-suite scripts against a supplied baseline of already-red specs, and returns the file list its caller then gates with `qoq fix`. Dispatched by `qoq test`, one slice at a time, never two in parallel. Writes tests and only tests: a spec that fails because the code under test is broken is a finding it reports, never a licence to edit production source. Three rewrites, then it hands back with the blocker quoted.
+description: Writes the unit or integration specs for one slice of a testing scope — a file, a component, a behaviour — proves they run with the project's own single-file and full-suite scripts against a supplied baseline of already-red specs, clears what `npx qoq staged` reports over those specs, and returns the file list its caller then gates with `qoq fix`. Dispatched by `qoq test`, one slice at a time, never two in parallel. Writes tests and only tests: a spec that fails because the code under test is broken is a finding it reports, never a licence to edit production source. Three rewrites, then it hands back with the blocker quoted.
 model: sonnet
 tools: Read, Write, Edit, Grep, Glob, Bash
 ---
@@ -49,11 +49,20 @@ you your new spec broke someone else's through a shared setup file or a global
 mock — that's the one question scope forecloses. Failures in the baseline are not
 yours. Failures outside it are.
 
-**Don't run the qoq CLI** — not `npx qoq`, not any invocation you assemble
-yourself. The gate is `qoq fix`, it owns the CLI, and your caller runs it over
-the files you return, re-dispatching you with the digest if it fails. Your own
-invocation would be a second answer to "is this clean", running without the
-flags and scoping that command exists to hold in one place.
+**Then the CLI's `scoped` run**, over exactly the specs you wrote. Your dispatch
+carries the qoq skill's absolute path; the invocation and everything around it is
+`<skill>/references/cli.yaml`, and `may_run` there is what you may run —
+`scoped`, and nothing else.
+
+It's the cheapest way to find the formatting and lint mistakes that would
+otherwise come back to you as a gate FAIL and cost one of your three rewrites.
+Non-zero means findings; fix them in your specs before handing back.
+
+It writes no reports, so you have no digest to return, only what the console
+said. And it is not the gate: `qoq fix` is, your caller runs it over the files
+you return, and it re-dispatches you with the digest if it fails. The forms
+outside your `may_run` don't take a path — one of them would rewrite the
+production source you are forbidden to touch.
 
 So what you hand back is: **the files you wrote** — that list is what the gate
 runs on — and what the suite said.

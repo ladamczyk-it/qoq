@@ -27,8 +27,7 @@
 // Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|execute|test|compress>
 //
 // Exit code: 0 proceed — stdout is a section per check, each with what to do.
-// 2 usage error. 3 stop the run: the qoq CLI isn't installed, and every
-// command's spine is that binary.
+// 2 usage error.
 
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -86,14 +85,6 @@ if (SKIPS_DISCOVERY.includes(command)) {
 } else {
   const discovery = run('discovery-check.mjs');
 
-  if (discovery.status === 3) {
-    process.stderr.write(discovery.stderr);
-    process.stdout.write(
-      `${out.join('\n')}\n## discovery\nSTOP: ${discovery.stderr.trim()}. Every qoq command's spine is the CLI; without it they degrade into advice while still calling themselves a gate. Tell the user to install it and stop the run.\n`
-    );
-    process.exit(3);
-  }
-
   if (discovery.status === 0) {
     section(
       'discovery',
@@ -104,7 +95,7 @@ if (SKIPS_DISCOVERY.includes(command)) {
     section(
       'discovery',
       `stale — ${discovery.stderr.trim()}`,
-      'ACTION: dispatch `qoq-discovery` with the payload below. `proposed` is already derived and wants checking, not re-deriving; `unresolved` is what it has to settle itself. Branch on the one status word it returns and nothing else.',
+      'ACTION: fill the record in yourself, on this thread, from the payload below — see references/discovery.md. `proposed` is already derived and wants checking, not re-deriving; `unresolved` is what you settle. Anything ambiguous is a question for the user, and the file stays unwritten until it is answered.',
       discovery.stdout.trim()
     );
   } else {

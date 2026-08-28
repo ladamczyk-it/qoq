@@ -21,6 +21,7 @@ note — it reads as current and nothing contradicts it.
 | [`fix`](#fix)                                 | `references/fix.md`       |
 | [`refactor`](#refactor)                       | `references/refactor.md`  |
 | [`bump`](#bump)                               | `references/bump.md`      |
+| [`plan`](#plan)                               | `references/plan.md`      |
 | [`execute`](#execute)                         | `references/execute.md`   |
 | [`test`](#test)                               | `references/test.md`      |
 
@@ -46,10 +47,8 @@ lockfile whole made the gate fire on inputs the record has no stake in: `version
 moves on every release commit, and a lockfile moves whenever any transitive
 dependency does. Each of those dispatched a Haiku run to re-confirm answers
 nothing had touched — the exact cost the gate exists to avoid. So the digest
-takes the `scripts` block and the four dependency names the other fields are read
-off, and skips their versions too: `runner` is `vitest` at any version, and a qoq
-CLI upgrade deletes the record outright, since the record lives inside that
-package. Over-matching a neighbour (`@vitest/coverage-v8`) is the safe direction —
+takes the `scripts` block and the dependency names the other fields are read off,
+and skips their versions too: `runner` is `vitest` at any version. Over-matching a neighbour (`@vitest/coverage-v8`) is the safe direction —
 one wasted re-derive, against a field silently describing a project that's gone.
 
 **Why the skill's agent files are _not_ in the hash.** They were, for exactly one
@@ -96,7 +95,7 @@ it.
 **Why the mechanical half of derivation moved into the check script.** The agent
 derived ten fields from scratch on every stale record, and most of them were
 reading rather than judgement: which scripts exist, which test stack is
-installed, whether the CLI resolves to a workspace link. `discovery-check.mjs`
+installed. `discovery-check.mjs`
 was already parsing `package.json` to compute the hash, so the same read was
 being implemented twice — once to hash, once to derive — which is precisely how
 two answers to one question appear.
@@ -108,10 +107,97 @@ is nearly every run — pays none of it. `test:one` stays unresolved every time:
 both runners take a path positionally, so a default is easy to write and easy to
 be wrong about, and a project with its own single-file script wants that one.
 
-The same script now exits 3 when the qoq CLI is absent. That was an agent
-dispatch whose entire finding was a missing directory.
+**Why the CLI isn't discovered at all.** The record used to carry `run` and
+`check`, and the agent read the CLI's own `AGENTS.md` — thousands of tokens — to
+learn two flags. Both were discovery of a constant: `npx qoq --check --json` is
+the same line in every project this skill runs in, and the one variation
+(a workspace symlink, in the CLI's own monorepo) is a `test -L` that any thread
+can run in the moment it matters. So the fields are gone, the CLI is no longer a
+watched dependency, and the script no longer exits 3 on a missing install — a
+project without the CLI is not a case this skill spends a field, a hash input and
+an agent dispatch to handle. What replaces all of it is `references/cli.yaml`,
+which the threads that actually run the binary open when they need it.
 
-**Why `entry.mjs` exists.** Three scripts already owned the three head-of-run
+The cost of the old arrangement wasn't only tokens. Two fields concatenated as
+`<run> <check>` meant every caller had to be told the concatenation, and a record
+that failed to carry `check` was a set of flags for an agent to invent.
+
+**Why the CLI's real shape is written down where it can't be guessed.** Two of
+its properties fail silently: positional arguments are tool _names_, so
+`npx qoq --check src/auth` quietly asks for a tool that doesn't exist; and
+`staged`, the only path-scoped command, takes no `--json` and therefore writes no
+reports. An agent reasoning from "the scope is positional everywhere" would get
+both wrong and report a clean project. Neither is derivable from the skill's own
+conventions, so both are stated rather than left to inference.
+
+**Why that statement is a YAML file and not prose.** `references/cli.yaml` is the
+only file here that isn't written for a reader — it's a lookup table: keys for the
+four invocations, the report path, the two helper scripts with their exit codes,
+a `facts` list of the five things that fail quietly, and `may_run`, which says
+per command and per agent what that thread is allowed to invoke. Prose was the
+wrong shape for it twice over. It was duplicated into four files the moment more
+than one thread needed it, and a flag stated in four places is a flag that drifts
+in three; and the whys around it were re-read on every dispatch by agents that
+needed a command line, not an argument. YAML costs about a third of the tokens
+the same content cost as a Markdown section, and it can be diffed for drift by
+eye. What stays in prose is only what stops a wrong action in context — the
+checker's "never reuse reports the script called stale", the writers' "the gate
+is your caller's" — and each of those now sits in exactly one agent file.
+
+**Why `SKILL.md` doesn't restate any of it.** It named the file and then
+described its contents, and the command references pointed back up at that
+description — so a fact about the binary had three homes and the dependency ran
+in both directions. The router now does one thing in both places: it says which
+file answers which question. Nothing under `references/` or `agents/` refers to
+`SKILL.md` at all any more, which is what makes each of those files readable on
+its own — an agent gets one of them pasted into a cold context and can act on it
+without a file it will never be given.
+
+**Why the writing agents got the CLI, and only `staged`.** `qoq-developer` and
+`qoq-tester` were forbidden the binary outright, on the grounds that a second
+answer to "is this clean" would compete with the gate. But the cheapest lint
+finding still cost a full dispatch-and-gate round trip. `npx qoq staged` over the
+files an agent just wrote is scoped, takes seconds, and produces no digest — so
+it cannot compete with the gate, because the gate _is_ the digest. `--fix` and
+`--check` stay out for a reason that outlives the policy: neither takes a path,
+so either one would leave the caller unable to tell the ticket's diff from the
+reformat.
+
+**Why there is no discovery agent any more.** There was one, pinned to Haiku,
+and once the mechanical half moved into the check script its remaining job was:
+read the committed `qoq:discovery` block, settle `test:one`, verify a few lines,
+write eight lines of JSON. Costed out, the dispatch was about $0.19 against $0.15
+inline and roughly twice the wall clock, buying some 1.5k tokens of context
+cleanliness — marginal either way. Two structural facts settled it.
+
+The Haiku pin never held on the run that mattered. The record is always stale on
+the first run in a project, which is the same run where `sync-agents` has just
+installed the agent files — so the dispatch landed inside Claude Code's
+registration window and took the `general-purpose` fallback: session tier, every
+tool, the agent body pasted into the prompt. The one dispatch with real judgement
+in it ran at the caller's model anyway, and every later one was transcription.
+
+And `blocked` cost a round trip nothing else needed. Ambiguity meant the agent
+wrote nothing and returned a question, the main thread asked the user, wrote the
+answer into `CLAUDE.md`, and dispatched again — two dispatches and a user turn
+for a question the main thread could have asked directly, given that asking and
+persisting the answer were already its job.
+
+What it cost to remove: on a first run in an awkward project — no committed
+block, non-standard scripts — the derivation reads three to five files into the
+main context and they stay there for the rest of the run. Once per project, and
+the answers are committed immediately after, so it doesn't repeat.
+
+**Why `sync-agents.mjs` deletes as well as installs.** Dropping an agent from the
+skill left every project that had ever run it holding a registered, dispatchable
+copy whose contract existed nowhere any more — worse than a stale copy, which at
+least still matches something. Removal takes the same proof as overwriting: the
+file is in the manifest, so this script wrote it, and its digest still matches
+what was written. An edited copy is reported and kept, never deleted. The one
+addition is dangling symlinks: a checkout that symlinks its agents never appears
+in the manifest, and a link with nothing behind it holds no edit to lose.
+
+**Why `entry.mjs` exists. Three scripts already owned the three head-of-run
 answers, and `SKILL.md` carried the sequencing: two exit-code tables, a consent
 procedure, and the rule about which commands ask after a fresh agent install.
 That file is loaded on every run of every command, so all of it was paid whether
@@ -163,6 +249,12 @@ as current would make the command declare PASS over code nothing checked.
 tools, and it's what makes the loop head safe to call five times in a row
 without five full tool runs.
 
+**Why a scoped `fix` still runs the whole check.** `--check` takes no paths, so
+scope is a property of the verdict rather than the invocation: the command runs
+the full check and reports on the files it was asked about. The alternative —
+`staged`, which does take paths — writes no reports, and a gate with no digest
+has nothing to hand back on a FAIL.
+
 **Why `fix` doesn't delegate the fixing.** A lint fix is a mechanical
 single-file edit that has to be attributed to the tool that reported it.
 Dispatching an agent per finding costs more than the fix and blurs that
@@ -213,7 +305,104 @@ approved bumps are sliced, not which ones were approved. The cost is many more
 validate cycles than one grouped patch, which is the trade: the alternative is
 skipping fourteen good bumps because a fifteenth was bad.
 
+## `plan`
+
+**Why an external interview skill instead of `plan` asking its own questions.**
+`plan` could ask. It would ask badly: one question at a time, in the order the
+decomposition happened to need them, from a context already full of the plan it
+is trying to write. `grilling` works a design tree in rounds — the whole frontier
+of questions whose prerequisites are settled — which is a different algorithm,
+not a politer version of the same one. Writing that into `plan.md` would be
+re-implementing a skill the user can install, and paying for it in every local
+run's context whether the requirements were vague or not.
+
+**Why the skill invokes `grilling` and not `grill-me`, which is what a user
+types.** `grill-me` sets `disable-model-invocation: true`, so it never appears in
+the available-skills list a model resolves against and cannot be called from
+another skill; its entire body is one line handing off to `grilling`. A check
+written against the name the user knows would report it missing on every machine,
+including the ones where it's installed — a silent downgrade that looks like a
+correct negative. This is worth restating if the mattpocock plugin ever
+restructures: the rule is _look for the skill Claude can invoke_, not the one the
+human types.
+
+**Why the grill runs before `Explore` rather than after decomposition.**
+`Explore`, the decomposition and the estimator all reason from the requirements,
+so a gap still open when they start gets reasoned from three times, three
+different ways. Running the interview afterwards would mean re-deciding work
+already sized. The one-ticket stop stays ahead of it because it's a single cheap
+read and it's the one answer that makes the whole interview pointless.
+
+**Why the subsystem stop stays downstream of the grill.** "These are two
+unrelated things" is usually a conclusion the questions reach, not something
+visible in the requirements as handed over. Moving it up would ask it of the
+version of the requirements least able to answer it.
+
+**Why `--tool` is a flag on `plan` and not a command of its own.** A separate
+`qoq export` would be a fourth surface with its own discovery, its own scope
+grammar and its own approval. The export is one beat that only ever happens right
+after an approval, so it lives where the approval is. If it ever grows a
+re-export-the-changed-ones mode, that's the point to reconsider — the
+**External** field already makes it re-runnable.
+
+**Why the export is offered rather than folded into approval.** Approving a plan
+and publishing it into a team's tracker are two different acts with two different
+blast radii: one writes a file this repo owns, the other notifies real people and
+leaves items somebody has to delete by hand. Collapsing them would make "approve"
+mean something different depending on a flag typed several minutes earlier.
+
+**Why `local` is the default and the plan file is always written.** `qoq execute`
+reads `./plans/*.md` and nothing else. Making a tracker authoritative would put
+delivery behind a network call and a credential, for the benefit of a projection
+nobody's build reads. `--source` doesn't change that — it produces a plan file
+and then reads it, which is the same rule from the other side.
+
+**Why three trackers are named rather than a generic adapter.** Jira, Linear and
+Trello are the three the user asked for, and a fourth is a row in one table plus
+its quirks. An adapter interface with three implementations would be the same
+table with indirection over it, and the thing that actually varies — which MCP
+server is connected and what its tools are called — can't be captured in the
+skill at all, because it's discovered from the session's tool list at run time.
+
+**Why the mapping is `references/export.md` and not part of `plan.md`.** The
+default is `local`, so most runs would read three trackers' field tables to use
+none of them. It's the same progressive-disclosure split the pattern catalogue
+makes in `refactor`. Import lives in that same file rather than in `execute.md`
+for the harder version of the reason: it reads the identical table backwards,
+and two copies of a field mapping disagree the first time a tracker adds a
+field.
+
 ## `execute`
+
+**Why `--source jira` imports to a plan file instead of executing against the
+tracker.** The plan file is already the execution state — resume reconciles
+against it, the estimate loopback reads `Estimate` off it, the milestone gate
+takes the union of `Files` from it, and the archive moves text within it.
+Executing off a tracker means reimplementing every one of those against a
+second state store that lives behind a credential, and then keeping the two
+implementations in agreement forever. Importing costs one beat at the head of
+the run and leaves exactly one execution path, which is also why nothing after
+the import knows the difference.
+
+**Why the import fills `Estimate` and `Commands` but stops on acceptance
+criteria.** The first two are derivable here with no judgement: `estimate.mjs`
+already buckets a ticket from its tags and stack, and the discovery record
+already holds the commands. Acceptance criteria aren't derivable — a tracker
+ticket says "add rate limiting to the auth routes", and turning that into
+`a 6th request inside 60s returns 429` is a decision about behaviour, not a
+transcription. Inferring it would hand the developer a bar the run invented for
+itself, and an invented criterion reads exactly like a real one on the page.
+That's the skill's "never assume a default" rule landing on the one field the
+whole TDD cycle turns on.
+
+**Why status writes back during a run when the export refuses to.** Same fact,
+opposite conclusion, because the two acts differ in what they know. An export
+sets a status once and walks away, so it is wrong within an hour and reads as
+live to everyone looking at it. A run knows each transition at the moment it
+happens, so the value it writes is true when written and updated when it stops
+being true. It stays a label even so: the workflow column belongs to the team's
+process, not to qoq, and in Trello a list position is already carrying the
+milestone.
 
 **Why there's no per-ticket standards pass and no complexity-driven routing
 table.** Complexity rates the model and nothing else, so a `trivial` ticket and
@@ -238,9 +427,10 @@ nothing to grade — filing it would teach the next plan to decompose work that
 was fine.
 
 **Why the commit happens after the gate rather than inside the agent.** It falls
-out of the gate running one thread up, and it's the better place regardless:
-nothing reaches history until it has passed, and "one ticket, one commit" stops
-depending on an agent's discipline.
+out of the gate living with the caller — the only thread that has a digest and
+can re-dispatch — and it's the better place regardless: nothing reaches history
+until it has passed, and "one ticket, one commit" stops depending on an agent's
+discipline.
 
 ## `test`
 

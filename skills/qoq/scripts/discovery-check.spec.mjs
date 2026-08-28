@@ -115,7 +115,6 @@ test('the stale payload proposes the mechanical fields', () => {
   });
   const { proposed } = JSON.parse(run(fixture({ manifest })).stdout);
 
-  assert.equal(proposed.run, 'npx qoq');
   assert.equal(proposed.test, 'npm test');
   assert.equal(proposed.build, 'npm run build');
   assert.equal(proposed.runner, 'vitest');
@@ -150,13 +149,20 @@ test('a build with no script is asked about, never invented from a dependency', 
   assert.ok(!('build' in proposed));
 });
 
-// Every command's spine is that binary. Dispatching an agent to discover its
-// absence spends a run learning what one existsSync already knew.
-test('a project without the qoq CLI stops the run instead of discovering', () => {
+// How the CLI is invoked is a constant, not a discovered field, so a project
+// without it discovers exactly what any other project does. Nothing here watches
+// that package, and nothing proposes a `run` or a `check`.
+test('the CLI is neither watched nor proposed', () => {
   const project = mkdtempSync(join(tmpdir(), 'discovery-check-'));
   writeFileSync(join(project, 'package.json'), '{"scripts":{"test":"vitest"}}');
 
-  assert.equal(run(project).status, 3);
+  const { status, stdout } = run(project);
+  const { proposed, unresolved } = JSON.parse(stdout);
+
+  assert.equal(status, 1);
+  assert.ok(!('run' in proposed));
+  assert.ok(!('check' in proposed));
+  assert.ok(!unresolved.includes('check'));
 });
 
 test('an unparsable record is treated as missing rather than half-read', () => {

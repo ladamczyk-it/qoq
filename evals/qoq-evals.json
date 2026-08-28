@@ -337,6 +337,31 @@
         "The caller opens only the asset files the agent named, after it returns",
         "qoq-designer edits nothing"
       ]
+    },
+    {
+      "id": 18,
+      "name": "execute-source-jira-imports-then-runs",
+      "prompt": "we track everything in jira \u2014 can you just run the PLAT-412 epic? all the tickets are under it",
+      "expected_output": "Reads references/export.md before anything else, because --source isn't local. Confirms the milestone level it was given is an epic (not a bare ticket, which would leave the run with no milestone gate, and not a board, which would import work nobody agreed to start), offering what the read-only Jira tools can see if the destination is unclear. Finds the Jira MCP tools in its own available-tools list at the moment it needs them \u2014 matching on what a tool does, never on a guessed name \u2014 and never substitutes curl, a REST call against a token in the environment, or a CLI for a missing one; with no Jira MCP tool at all it stops and offers qoq plan or --source local instead. Reads the epic and its issues and writes ./plans/<milestone-slug>.md in the standard plan template, mapping description back to Context and Files, the Acceptance checklist to Acceptance criteria, story points to Size and the qoq:<tier> label to Agent tier, and putting each issue key in that ticket's External field. Fills the two fields no tracker carries rather than guessing them: Commands from the discovery record and Estimate from scripts/estimate.mjs. Stops and asks the user for real assertions on any ticket whose acceptance criteria are prose or a restated title \u2014 all of them in one question, before anything dispatches \u2014 and writes the answers into the plan file rather than inferring them. Marks Plan status: approved, then loads that file from disk and runs the ordinary execute loop unchanged: one qoq-developer at a time, the scoped qoq fix gate on the orchestrating thread, the commit after PASS, the milestone refactor beat, and estimate.mjs --record per resolved ticket. As each ticket reaches done or blocked it also writes the status back to that issue as a LABEL plus the commit hash as a comment \u2014 never the Jira workflow state \u2014 and treats a rejected write as a line in the report rather than a stop.",
+      "files": [],
+      "assertions": [
+        "Reads references/export.md before acting, since --source is not local",
+        "Asks for or confirms the milestone level \u2014 an epic \u2014 never a bare ticket and never a whole board",
+        "Resolves the Jira MCP tools from its own available-tools list rather than a cached or guessed name",
+        "Never substitutes curl, a REST call against an env token, or a CLI for a missing MCP tool",
+        "Writes an actual plan file under ./plans/ rather than executing against the tracker directly",
+        "Maps the tracker fields back into the plan template \u2014 description to Context and Files, the Acceptance checklist to Acceptance criteria, points to Size, the qoq: label to Agent tier",
+        "Writes each issue key into that ticket's External field",
+        "Fills Commands from the discovery record",
+        "Fills Estimate by calling scripts/estimate.mjs rather than inventing tags or a stack",
+        "Stops and asks the user for assertions when a ticket's acceptance criteria are prose, rather than inferring them",
+        "Writes the answers into the plan file so a resume does not re-ask",
+        "Marks Plan status: approved and then loads the file from disk before dispatching",
+        "Runs the ordinary execute loop unchanged \u2014 one developer at a time, scoped qoq fix gate, commit after PASS, milestone refactor beat",
+        "Still reports each resolved ticket back with estimate.mjs --record",
+        "Writes status back to the issue as a label plus a commit comment, never as the tracker's workflow state",
+        "Treats a rejected tracker write as a report line, not a stop"
+      ]
     }
   ]
 }

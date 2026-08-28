@@ -3,7 +3,10 @@
 Copy this structure for every new plan file. The fixed shape is what lets `qoq
 execute` resume a plan across sessions, and what lets a cold subagent trust that
 "Status" and "Definition of done" mean the same thing in every ticket it's ever
-handed. Fill in the `<…>` placeholders; don't add or remove sections.
+handed. Fill in the `<…>` placeholders; don't add or remove sections. The one
+exception is **External**, which the `--tool` export writes onto milestones and
+tickets after approval — and which `qoq execute --source` writes as it imports
+them the other way. It's simply absent on a plan that never met a tracker.
 
 ```markdown
 # <Feature Name> Implementation Plan
@@ -12,6 +15,8 @@ handed. Fill in the `<…>` placeholders; don't add or remove sections.
 **Architecture:** <2-3 sentences>
 **Requirements source:** <link or short description of what was decomposed>
 **Commands:** build `<full build command>` · test `<full test command>`
+**Tool:** local | jira | linear | trello · <destination — project key, team, or
+board; omit the whole field on a local plan>
 **Plan status:** draft | approved | in-progress | complete
 
 ---
@@ -37,6 +42,8 @@ handed. Fill in the `<…>` placeholders; don't add or remove sections.
 **Goal:** <what this milestone delivers on its own — should be independently
 shippable/testable>
 **Depends on:** none | Milestone <N>
+**External:** <added by the export beat only — the epic/milestone/list it was
+raised as; absent otherwise>
 
 ### Ticket 1.1: <Title>
 
@@ -84,6 +91,9 @@ ticket exists. No "similar to Ticket 1.3" — restate what's needed.
 
 **Commit:** <filled in after commit — short hash, or a link if the remote is a
 known host; "none" until then>
+
+**External:** <added by the export beat only — the issue key or card URL this
+ticket was raised as; absent otherwise>
 
 ### Ticket 1.2: ...
 
@@ -170,6 +180,16 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
   "handle edge cases" is a placeholder — go back and write the actual content.
 - **Commit** is only ever filled in after a real commit exists. Never guess a
   hash.
+- **Tool** and **External** exist for the two beats that cross into a tracker
+  (`references/export.md`): `qoq plan --tool jira|linear|trello` raises the
+  milestones and tickets there after approval, and `qoq execute --source` reads
+  a milestone back out into a file shaped like this one. **External** is what
+  makes both re-runnable — on export an item that already has one is skipped, so
+  a second run after a crash adds what's missing instead of duplicating forty
+  issues into a shared project; on an imported plan it's the address the run
+  writes each ticket's status label and commit back to. A local plan carries
+  neither field, which is the point: the file is the state in either direction,
+  and `qoq execute` never treats a tracker as one.
 - **Completed** is absent from a fresh plan and grows one short block per
   delivered milestone, so the plan shrinks as work lands. If a block starts
   turning into a narrative, move the detail to the archive file. **Decisions that

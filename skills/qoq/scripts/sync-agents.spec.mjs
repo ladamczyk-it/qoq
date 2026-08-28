@@ -5,7 +5,9 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
+  existsSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -94,6 +96,62 @@ test('a symlinked agent is left as a symlink', () => {
   const { stdout } = run(dir);
   assert.ok(lstatSync(join(dir, '.claude', 'agents', agent)).isSymbolicLink());
   assert.doesNotMatch(stdout, new RegExp(`\\b${agent.replace('.md', '')}\\b`));
+});
+
+// An agent the skill drops stays registered and dispatchable otherwise, with a
+// contract that exists nowhere any more.
+test('an agent the skill no longer ships is removed', () => {
+  const dir = project();
+  run(dir);
+
+  const gone = join(dir, '.claude', 'agents', 'qoq-retired.md');
+  const manifestPath = join(dir, '.claude', 'agents', '.qoq-agents.json');
+  const body = '---\nname: qoq-retired\n---\n';
+  writeFileSync(gone, body);
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  manifest['qoq-retired.md'] = createHash('sha256').update(body).digest('hex').slice(0, 16);
+  writeFileSync(manifestPath, JSON.stringify(manifest));
+
+  const { stdout } = run(dir);
+
+  assert.match(stdout, /agents removed: qoq-retired/);
+  assert.ok(!existsSync(gone));
+  assert.ok(!('qoq-retired.md' in JSON.parse(readFileSync(manifestPath, 'utf8'))));
+});
+
+// Same proof as everywhere else here: a body that isn't the one we wrote is the
+// user's, and deleting it would be the one thing this script must never do.
+test('an edited copy of a dropped agent is kept, not deleted', () => {
+  const dir = project();
+  run(dir);
+
+  const gone = join(dir, '.claude', 'agents', 'qoq-retired.md');
+  const manifestPath = join(dir, '.claude', 'agents', '.qoq-agents.json');
+  writeFileSync(gone, '---\nname: qoq-retired\n---\nedited by hand\n');
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  manifest['qoq-retired.md'] = 'notthedigest00';
+  writeFileSync(manifestPath, JSON.stringify(manifest));
+
+  const { stdout } = run(dir);
+
+  assert.match(stdout, /agents kept \(edited here[^\n]*qoq-retired/);
+  assert.ok(existsSync(gone));
+});
+
+// A checkout that symlinks its agents never appears in the manifest, so the
+// removal above can't see it — and a link with nothing behind it is a file
+// Claude Code still tries to parse as an agent.
+test('a symlink to a dropped agent is removed', () => {
+  const dir = project();
+  run(dir);
+
+  const dangling = join(dir, '.claude', 'agents', 'qoq-retired.md');
+  symlinkSync(join(SOURCE, 'qoq-retired.md'), dangling);
+
+  const { stdout } = run(dir);
+
+  assert.match(stdout, /agents removed: qoq-retired/);
+  assert.ok(!lstatSync(dangling, { throwIfNoEntry: false }));
 });
 
 test('an unknown flag is a usage error', () => {

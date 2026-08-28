@@ -25,6 +25,71 @@ Two independent subsystems don't get one plan either. Say so and write separate
 plans — a plan with two unrelated halves can never be milestone-ordered
 sensibly, and half of it blocks on the other half for no reason.
 
+## Sharpen the requirements first — `grilling`
+
+Requirements arrive vaguer than they look. Every gap left in them becomes a
+ticket whose acceptance criteria somebody invented, and that invention is
+invisible until the ticket is being implemented. `grilling` closes the gaps
+while closing them is still cheap: rounds of questions over the whole frontier,
+the user answering, until nothing is silently assumed.
+
+**Invoke `grilling`, not `grill-me`.** `grill-me` is the user's front door to
+the same interview and cannot be called from here — its frontmatter sets
+`disable-model-invocation: true`, and its entire body is one line handing off to
+`grilling`. Looking for `grill-me` would report it missing even on a machine
+where it's installed.
+
+Look for it in **your own available-skills list**, exactly as `refactor` looks
+for `ponytail-review` — that list is already in this thread's context, it's what
+the invocation resolves against, and it is never out of date. Nothing about it
+is cached. Whatever name the list gives it is the invocation, verbatim; a bare
+`grilling` and a `mattpocock-skills:grilling` do not resolve interchangeably, so
+don't add or strip a prefix to make it look tidier.
+
+Check it **after the one-ticket stop above and before `Explore`** — that stop is
+one cheap read, so nothing is thrown away by taking it first, and there's no
+point asking the user to install an interview for work that turns out not to
+need a plan at all. Everything after it is the opposite: `Explore`, the
+decomposition and the estimator all read the requirements, so a gap still open
+when they start is a gap each of them reasons from.
+
+The subsystem stop stays where it is, downstream, because the grill is often
+what surfaces it — "these are two unrelated things" is a conclusion a round of
+questions reaches, not a property visible in the requirements as handed over.
+
+Installed → invoke it with the requirements. Missing → ask once:
+
+> `grilling` isn't installed, so the clarification round can't run and I'd be
+> decomposing the requirements exactly as written.
+>
+> - **Install and re-run** _(recommended)_ — `/plugin install mattpocock-skills`.
+>   It's in Claude Code's official marketplace, so there's nothing to add first.
+>   Then `/qoq plan <requirements>` again.
+> - **Proceed without it** — I decompose what's written and stop to ask you
+>   directly whenever a ticket can't be written from it. That's the same
+>   questions arriving one at a time, mid-decomposition, instead of in rounds.
+
+**Recommended is not a veto.** Proceed-without is a real option; take it at the
+user's word, decompose in full, and report the skipped round in the approval
+summary so it's on the record rather than only in a message they scrolled past.
+
+**Hand it what's already settled**, not just the requirements file. Its rounds
+open on the frontier — the questions whose prerequisites are answered — so a
+spec that already answers them should produce a short session, not a re-ask of
+its own contents. A precise spec ends in one round and costs almost nothing.
+Deciding for the user that their spec has no gaps is what costs.
+
+**The grill leaves nothing behind but the conversation.** It's stateless by
+design: no files, no workspace, no record. Everything it settled lives only in
+this thread, so it has to land in the plan file as you decompose — the
+architecture sentence, a ticket's **Context**, the acceptance criterion that
+only got sharp because a question was asked. Note on **Requirements source**
+that the requirements were grilled. A decision nobody wrote down is one the next
+session re-litigates from scratch.
+
+Under `--decisions auto` there is nobody to answer questions: skip the interview,
+decompose what's written, and carry the gap into the approval summary.
+
 ## `Explore` earns its dispatch
 
 One subagent, read-only, answering the questions no record can cache: which files
@@ -137,6 +202,25 @@ against an implementation whose reasoning it never saw.
 Test-only tickets stay legitimate for what they were always for: coverage over
 code that already shipped.
 
+## `--tool` — where the tickets end up
+
+`--tool local` is the default and writes the plan file and nothing else.
+`jira`, `linear` and `trello` add one beat after approval: raise the milestones
+and tickets in that tool. Any other value is a typo rather than a fourth tool —
+ask, don't map it to the nearest one.
+
+**The plan file is the source of truth in every mode.** `qoq execute` runs off
+`./plans/*.md` and nothing else — even `--source jira`, which imports a
+milestone into one first. So the export is a projection for the people who live
+in a tracker, never a replacement. `--tool jira` still writes the file,
+still gets approved the same way, and an export that fails halfway leaves a plan
+that works.
+
+The field mapping, how to find the MCP tools that raise items, and what to do
+when either the tool or the destination is unknown are all in
+[export.md](export.md). Read it only when `--tool` isn't `local` — a local run
+has no use for the field tables of three trackers it will never write to.
+
 ## Approval, then handoff
 
 Save to `./plans/YYYY-MM-DD-<feature>.md` with `Plan status: draft`, then ask.
@@ -148,10 +232,24 @@ record was. That last one is a judgement the user is better placed to make than
 either the script or you: they know whether this ticket really is the same shape
 as the four that went wrong, and it's their model spend.
 
+Say here, too, if the `grilling` round was skipped — installed-and-declined, or
+`--decisions auto`. It isn't a veto item; it's the one thing at approval the user
+can't see from the plan file, and it changes how hard they should read the
+acceptance criteria.
+
 On approval: set `Plan status: approved` and fill the **Commands** header from
 the record, so the milestone gate still has the project's full build and test
 commands in a session days later with no memory of this one.
 
-Then **offer** `qoq execute` and run it on a yes. Never dispatch a ticket from
-here. The plan file is the entire handoff, and folding execution in would put
-decomposition reasoning back into the context that has to run the plan.
+Then the two handoffs, in this order — export first, because it's the one that
+leaves the machine and the user should see it land before anything starts
+changing code:
+
+1. **`--tool` isn't `local`** → offer to raise the items now and do it on a yes,
+   following [export.md](export.md). An outward-facing write gets its own
+   confirmation; approving a plan is not the same act as publishing it into a
+   team's tracker. Declined, the plan file stands on its own and the export can
+   be run later.
+2. **Offer `qoq execute`** and run it on a yes. Never dispatch a ticket from
+   here. The plan file is the entire handoff, and folding execution in would put
+   decomposition reasoning back into the context that has to run the plan.

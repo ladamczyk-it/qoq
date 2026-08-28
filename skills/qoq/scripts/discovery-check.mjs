@@ -1,29 +1,30 @@
 #!/usr/bin/env node
 // Is the discovery record still good for this project?
 //
-// Every qoq command starts from the record. Dispatching `qoq-discovery` to
-// re-verify it on every run costs an agent and a dozen file reads to confirm
-// something nothing has touched, so this is the cheap gate in front of it: the
-// record carries a hash of the inputs its answers came from, and a matching hash
-// means nothing it describes has moved.
+// Every qoq command starts from the record. Re-deriving it on every run costs a
+// dozen file reads to confirm something nothing has touched, so this is the cheap
+// gate in front of that: the record carries a hash of the inputs its answers came
+// from, and a matching hash means nothing it describes has moved.
 //
 // Two inputs, and only the parts of them the record actually reads:
 //
 //   - package.json's `scripts` block. Every command field on the record quotes
 //     one verbatim, and renaming one moves no lockfile at all — the record would
 //     keep naming a script that no longer exists.
-//   - the handful of dependencies the rest of the fields were read off — the qoq
-//     CLI behind `run` and `check`, the test stack behind `runner` and `react` —
-//     by name in package.json's dependencies, by the lines naming them in the
-//     project's lockfile.
+//   - the handful of dependencies the rest of the fields were read off — the test
+//     stack behind `runner` and `react` — by name in package.json's dependencies,
+//     by the lines naming them in the project's lockfile.
+//
+// How the qoq CLI is invoked is deliberately not a field and not an input. It is
+// a constant (`npx qoq --check --json`, SKILL.md's CLI section), so there is
+// nothing here to go stale and no reason to watch that package.
 //
 // Deliberately NOT the whole of either file. package.json's `version` moves on
 // every release commit, and a lockfile moves whenever any transitive dependency
 // does; neither changes a word of the record. Hashing them whole dispatched a
 // discovery agent to re-confirm answers nothing had touched, which is the exact
 // cost this gate exists to avoid. Versions of the watched packages are out for
-// the same reason: `runner` is `vitest` at any version, and a qoq CLI upgrade
-// deletes the record outright — it lives inside that package.
+// the same reason: `runner` is `vitest` at any version.
 //
 // A script rather than prose for the caller to carry out, because "has this
 // project moved" has to mean one thing. Two callers eyeballing a lockfile will
@@ -41,12 +42,11 @@
 //
 // When the record IS stale, this also derives the fields that are a matter of
 // reading rather than judgement — the scripts block, which test stack is
-// installed, whether the CLI is a workspace link — and hands them over as a
-// proposal. `qoq-discovery` then checks a filled-in record and settles what's
-// left, instead of deriving ten fields from scratch every time one dependency
-// moved. The mechanical half was never the part that needed a model, and two
-// implementations of it (one here to hash, one in the agent to derive) is how
-// the two come to disagree.
+// installed — and hands them over as a proposal. The caller then checks a
+// filled-in record and settles what's left, instead of deriving ten fields from
+// scratch every time one dependency moved. The mechanical half never needed a
+// model at all, and two implementations of it (one here to hash, one in prose to
+// derive) is how the two come to disagree.
 //
 // The derivation runs only after the hash has already failed, so the common
 // path — a current record, which is nearly every run — pays none of it.
@@ -57,13 +57,10 @@
 // Exit code: 0 the record is current — its JSON is on stdout, use it and
 // dispatch nothing. 1 missing, unreadable, or derived from a different project
 // state — stdout is `{ hash, proposed, unresolved }` for the agent's dispatch,
-// stderr says which it was. 2 usage error. 3 the qoq CLI isn't installed, which
-// stops the whole run: every command's spine is that binary, and dispatching an
-// agent to discover its absence is a run spent learning what one `existsSync`
-// already knew.
+// stderr says which it was. 2 usage error.
 
 import { createHash } from 'node:crypto';
-import { existsSync, lstatSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const RECORD = ['node_modules', '@ladamczyk', 'qoq-cli', 'bin', 'qoq-skill-discovery.json'];
@@ -73,12 +70,11 @@ const RECORD = ['node_modules', '@ladamczyk', 'qoq-cli', 'bin', 'qoq-skill-disco
 // still hashes cleanly — the same dependency names are in package.json.
 const LOCKS = ['package-lock.json', 'npm-shrinkwrap.json', 'pnpm-lock.yaml', 'yarn.lock'];
 
-// The dependencies the record's non-script fields are read off: the qoq CLI
-// behind `run` and `check`, the test stack behind `runner` and `react`. Matched
-// as a substring, so a neighbour comes along (`@vitest/coverage-v8`,
-// `jest-worker`) — over-matching costs a re-derive that finds nothing changed,
-// missing one is the silent failure.
-const WATCHED = /@ladamczyk\/qoq-cli|@testing-library\/react|vitest|jest/;
+// The dependencies the record's non-script fields are read off: the test stack
+// behind `runner` and `react`. Matched as a substring, so a neighbour comes along
+// (`@vitest/coverage-v8`, `jest-worker`) — over-matching costs a re-derive that
+// finds nothing changed, missing one is the silent failure.
+const WATCHED = /@testing-library\/react|vitest|jest/;
 
 const args = process.argv.slice(2);
 const projectIndex = args.indexOf('--project');
@@ -117,8 +113,7 @@ digest.update(JSON.stringify(scripts, Object.keys(scripts).sort()));
 // package.json is parsed, so the watched names are matched against dependency
 // names — not raw lines, which on a minified manifest would drag `version` back
 // in through whatever line it shares. Names without ranges: `runner` is `vitest`
-// at any version, and a qoq CLI upgrade deletes the record outright, since it
-// lives inside that package.
+// at any version.
 const declared = Object.keys({ ...manifest.dependencies, ...manifest.devDependencies }).filter(
   (name) => WATCHED.test(name)
 );
@@ -138,22 +133,12 @@ const hash = digest.digest('hex').slice(0, 16);
 const dependency = (name) =>
   Boolean(manifest.dependencies?.[name] ?? manifest.devDependencies?.[name]);
 
-const cliDir = join(project, 'node_modules', '@ladamczyk', 'qoq-cli');
-
 // Runner config, as text. Which key decides `globals` differs between the two
 // runners, and neither file is worth evaluating to read one boolean.
 const configText = (names) => {
   const path = names.map((name) => join(project, name)).find((candidate) => existsSync(candidate));
   return path ? readFileSync(path, 'utf8') : undefined;
 };
-
-// `npx qoq` is the published binary. In a repo whose source IS the CLI, npm
-// links the workspace package into node_modules as a symlink — and there the
-// published release is precisely the wrong code to be checking with.
-const proposeRun = () =>
-  lstatSync(cliDir, { throwIfNoEntry: false })?.isSymbolicLink()
-    ? 'npm run build && npx qoq'
-    : 'npx qoq';
 
 // Opposite defaults: vitest ships globals off, jest ships them on, so the
 // absence of the key means different things and the fallback is per runner.
@@ -204,20 +189,12 @@ const SCRIPTED = [
 // of these is worse than a stop, because nothing downstream would notice it.
 const propose = () => {
   const scripts = manifest.scripts ?? {};
-  const proposed = { run: proposeRun() };
+  const proposed = {};
 
   // `test:one` is always the agent's: both runners take a path positionally, so
   // a default is easy to write and easy to be wrong about, and a project with a
   // dedicated single-file script wants that one.
   const unresolved = ['test:one'];
-
-  // The check flags live in the CLI's own shipped docs, which run to thousands
-  // of tokens and answer this in two. Only worth opening when it's there.
-  if (existsSync(join(cliDir, 'AGENTS.md'))) {
-    unresolved.push('check');
-  } else {
-    proposed.check = '--check --json';
-  }
 
   for (const [field, script, invocation] of SCRIPTED) {
     if (scripts[script]) {
@@ -241,11 +218,6 @@ const propose = () => {
 };
 
 const stale = (reason) => {
-  if (!existsSync(cliDir)) {
-    process.stderr.write('@ladamczyk/qoq-cli is not installed\n');
-    process.exit(3);
-  }
-
   process.stderr.write(`${reason}\n`);
   process.stdout.write(`${JSON.stringify(propose(), undefined, 2)}\n`);
   process.exit(1);

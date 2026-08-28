@@ -16,16 +16,16 @@ in the reference file too.
 Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 — also outside the skill, and for the same reason these diagrams are.
 
-| Diagram                                     | Prose it reflects                                                                      |
-| ------------------------------------------- | -------------------------------------------------------------------------------------- |
-| [Entry and discovery](#entry-and-discovery) | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md) |
-| [`fix`](#fix)                               | [fix.md](../skills/qoq/references/fix.md)                                              |
-| [`refactor`](#refactor)                     | [refactor.md](../skills/qoq/references/refactor.md)                                    |
-| [`bump`](#bump)                             | [bump.md](../skills/qoq/references/bump.md)                                            |
-| [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                            |
-| [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                      |
-| [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                            |
-| [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                    |
+| Diagram                                     | Prose it reflects                                                                        |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| [Entry and discovery](#entry-and-discovery) | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)   |
+| [`fix`](#fix)                               | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml) |
+| [`refactor`](#refactor)                     | [refactor.md](../skills/qoq/references/refactor.md)                                      |
+| [`bump`](#bump)                             | [bump.md](../skills/qoq/references/bump.md)                                              |
+| [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                              |
+| [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                        |
+| [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                              |
+| [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                      |
 
 **Legend, shared by all eight.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
@@ -51,19 +51,17 @@ flowchart TD
 
     subgraph HEAD["what entry.mjs runs, in order"]
         direction TB
-        SYNC["**1. sync-agents.mjs** —<br/>copy the skill's agent files into<br/>&lt;root&gt;/.claude/agents<br/>*an agent inside a skill is registered<br/>by nothing; symlinked ones are left alone*<br/>*did the SKILL move? — a separate<br/>question from the hash's did the<br/>PROJECT move, so it gets its own check*<br/>*tracks what it wrote in .qoq-agents.json:<br/>a body that isn't the one it installed is<br/>the user's, and is kept, never reverted*"]
+        SYNC["**1. sync-agents.mjs** —<br/>copy the skill's agent files into<br/>&lt;root&gt;/.claude/agents<br/>*an agent inside a skill is registered<br/>by nothing; symlinked ones are left alone*<br/>*did the SKILL move? — a separate<br/>question from the hash's did the<br/>PROJECT move, so it gets its own check*<br/>*tracks what it wrote in .qoq-agents.json:<br/>a body that isn't the one it installed is<br/>the user's, and is kept, never reverted*<br/>*deletes the copies of agents the skill<br/>stopped shipping — same proof, plus any<br/>symlink with nothing behind it*"]
         SYNC --> CISC{"command =<br/>compress?"}
         CISC -->|"yes — edits prose, runs no tool,<br/>dispatches no agent"| STATSN
         CISC -->|"no"| CHECK
 
-        CHECK["**2. discovery-check.mjs** —<br/>hash the package.json scripts block +<br/>the watched deps (qoq CLI, vitest/jest,<br/>@testing-library/react) named in<br/>package.json and the lockfile,<br/>compare it to the record's hash field<br/>*the scripts too: a renamed script<br/>moves no lockfile, and every command<br/>field on the record quotes one*<br/>*those parts only: a version bump or an<br/>unrelated transitive dependency changes<br/>no word of the record*"]
+        CHECK["**2. discovery-check.mjs** —<br/>hash the package.json scripts block +<br/>the watched deps (vitest/jest,<br/>@testing-library/react) named in<br/>package.json and the lockfile,<br/>compare it to the record's hash field<br/>*the scripts too: a renamed script<br/>moves no lockfile, and every command<br/>field on the record quotes one*<br/>*those parts only: a version bump or an<br/>unrelated transitive dependency changes<br/>no word of the record*<br/>*the qoq CLI is not watched: its<br/>invocation is a constant, not a field*"]
         CHECK --> STATSN
         STATSN["**3. stats.mjs &lt;command&gt;** —<br/>reads qoq.config `stats:`, then<br/>~/.claude/qoq/consent.md<br/>*on exit 1 it prints the disclosure itself,<br/>quoting the literal request body — so it<br/>cannot drift from what is sent, and every<br/>run that isn't asking stops paying for it*"]
     end
 
     HEAD --> SECT["**stdout: one section per check**"]
-
-    SECT -.->|"no qoq CLI — exit 3"| STOP(["**the run stops**<br/>every command's spine is that binary<br/>*caught before any agent is dispatched:<br/>one existsSync already knew*"])
 
     SECT -.->|"line is `agents installed:` **and**<br/>the command is fix / test / execute"| AASK
     AASK(["**caller ASKS THE USER**<br/>continue now on the general-purpose<br/>fallback, or exit and re-run with them<br/>registered?<br/>*those three dispatch a pinned agent<br/>inside the pickup window — and for<br/>qoq-tester the fallback is its<br/>restriction gone*<br/>*refactor is the exception: it opens with<br/>a fix, but a question in front of another<br/>command's question is the noise this<br/>narrowing exists to remove*"])
@@ -71,12 +69,12 @@ flowchart TD
     SECT -.->|"stats never asked"| SASK(["**ASK THE USER**<br/>send anonymous usage stats?<br/>*consent is never defaulted*"])
     SASK -.->|"record it: `stats.mjs &lt;command&gt;<br/>--consent yes/no`"| SECT
 
-    SECT -->|"discovery current —<br/>the record is in the section"| USE["**use the record as-is**,<br/>dispatch nothing<br/>*the common case,<br/>and the reason it exists*"]
+    SECT -->|"discovery current —<br/>the record is in the section"| USE["**use the record as-is**,<br/>derive nothing<br/>*the common case,<br/>and the reason it exists*"]
     SECT -->|"discovery stale — the section<br/>carries hash + proposed + unresolved"| DISP
 
-    DISP["dispatch **qoq-discovery**<br/>(Haiku, one per top-level run)<br/>*proposed = the half that was only ever<br/>reading, already derived by the check.<br/>unresolved = the half that needed a<br/>reader. Deriving both in the agent meant<br/>two implementations of the same read*"]
+    DISP["**fill the record in, on this thread**<br/>*proposed = the half that was only ever<br/>reading, already derived by the check.<br/>unresolved = the half that needed a<br/>reader. Deriving both twice is how the<br/>two answers come to disagree*<br/>*no agent: a Haiku pin can't hold on the<br/>first run in a project — the agents were<br/>installed seconds ago — and the one move<br/>this can end in is a question only this<br/>thread can ask*"]
 
-    subgraph DISCO["qoq-discovery flow *(everything the agent does)*"]
+    subgraph DISCO["filling the record *(references/discovery.md)*"]
         direction TB
         HAS{"a stale record<br/>to repair?"}
         HAS -->|yes| VER{"verify it<br/>field by field"}
@@ -87,20 +85,19 @@ flowchart TD
         D0 --> DOCS["**read the project's docs first** —<br/>CLAUDE.md / AGENTS.md / README.md.<br/>*a written answer outranks a guess*"]
         DOCS --> D1["**check `proposed`**<br/>*a starting point with a stale record's<br/>standing: usually right, worth a glance,<br/>yours to overrule when the docs say so*"]
         D1 --> D3["**1. project commands**, unresolved only<br/>test — full suite · test — single file · build<br/>*the project's own scripts —<br/>npx is qoq's alone*<br/>*test:one is always here: both runners take<br/>a path positionally, so a default is easy to<br/>write and easy to be wrong about*"]
-        D3 --> D3B["**2. the check flags**, when unresolved —<br/>read the CLI's own AGENTS.md **once, here**<br/>→ `check` = `--check --json`<br/>*the only agent that opens it;<br/>thousands of tokens, one line of answer*"]
-        D3B --> D4["**3. test conventions**, unresolved only<br/>runner · globals on or off ·<br/>React? · a testing-gate.md<br/>at the root"]
+        D3 --> D4["**2. test conventions**, unresolved only<br/>runner · globals on or off ·<br/>React? · a testing-gate.md<br/>at the root<br/>*no CLI step: npx qoq --check --json is<br/>the same line in every project, so<br/>nothing reads the CLI's AGENTS.md*"]
         D4 --> REC["write the record — **JSON**,<br/>hash included →<br/>node_modules/@ladamczyk/qoq-cli/bin/<br/>qoq-skill-discovery.json"]
 
-        BLOCK(["**agent stops**<br/>reports the open question,<br/>writes nothing"])
+        BLOCK(["**stop, write nothing**<br/>half a record is read as<br/>whole by the next run"])
         D3 -.->|anything unclear| BLOCK
         D4 -.->|anything unclear| BLOCK
     end
 
     DISP --> HAS
 
-    BLOCK -.-> ASK(["**caller ASKS THE USER**<br/>never assume a default"])
+    BLOCK -.-> ASK(["**ASK THE USER**<br/>never assume a default"])
     ASK -.-> WRITE["**write the answer into the<br/>project's docs** — CLAUDE.md /<br/>AGENTS.md / README.md.<br/>*survives the next reinstall*"]
-    WRITE -.-> DISP
+    WRITE -.-> D1
 
     REC --> OPT
     DONE --> OPT
@@ -125,15 +122,13 @@ flowchart TD
     REXEC --> NOTE
     RTEST --> NOTE
     RCOMP --> NOTE
-    NOTE(["**end of run: notice to user**<br/>what discovery repaired, one line each,<br/>plus any agents entry installed<br/>or kept because they were edited here"])
+    NOTE(["**end of run: notice to user**<br/>what discovery repaired, one line each,<br/>plus any agents entry installed,<br/>removed, or kept because they<br/>were edited here"])
 
-    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
     classDef command fill:#f59e0b1a,stroke:#f59e0b,stroke-width:2px,stroke-dasharray:4 3
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
 
-    class DISCO agent
     class RFIX,RREF,RBUMP,RPLAN,REXEC,RTEST,RCOMP command
-    class ASK,OASK,SASK,AASK,NOTE,STOP user
+    class ASK,OASK,SASK,AASK,NOTE user
 ```
 
 ---
@@ -146,11 +141,10 @@ flowchart TD
 
     subgraph CHECKER["qoq-checker flow *(everything the agent does)*"]
         direction TB
-        C0["**read the record** — `run` and<br/>`check`. *one read, first move —<br/>discovery already distilled the<br/>CLI's AGENTS.md into that line*"]
-        C0 --> S{"run `reports-current.mjs<br/>&lt;report dir&gt; &lt;scope&gt;`<br/>exit 0 or 1?"}
-        S -->|"1 — stale or missing"| RUN["the check: `&lt;run:&gt; &lt;check:&gt;`<br/>*--json is what writes the<br/>reports at all*"]
-        S -->|"0 — current"| DIG
-        RUN --> DIG["the digest: `node &lt;summarize path&gt;<br/>&lt;report dir&gt;` — both script<br/>paths and the report dir<br/>are handed in at dispatch"]
+        C0{"run `reports-current.mjs<br/>&lt;report dir&gt; &lt;scope&gt;`<br/>exit 0 or 1?"}
+        C0 -->|"1 — stale or missing"| RUN["the check: `npx qoq --check --json`<br/>*a constant — nothing read off the<br/>record, nothing derived*<br/>*--json is what writes the reports at all*<br/>*no narrowing: positionals are TOOL<br/>names, and `staged` writes no reports*"]
+        C0 -->|"0 — current"| DIG
+        RUN --> DIG["the digest: `node &lt;skill&gt;/scripts/<br/>summarize.mjs &lt;report dir&gt;`<br/>*the report dir is a constant too;<br/>the skill path is handed in at dispatch*"]
         DIG --> SUM["return the **digest**<br/>tool → rule → files<br/>(never the raw reports)"]
     end
 
@@ -184,8 +178,9 @@ flowchart TD
 ```mermaid
 flowchart TD
     G0["a command dispatches a writer<br/>*(qoq-developer, qoq-tester)*"]
-    G0 --> G1["the agent writes, then proves it<br/>runs with the **project's own**<br/>`test:one` / `test` / `build`<br/>*— never the qoq CLI*"]
-    G1 --> G2["hands back **the file list**"]
+    G0 --> G1["the agent writes, then proves it<br/>runs with the **project's own**<br/>`test:one` / `test` / `build`"]
+    G1 --> G1B["then **npx qoq staged &lt;its files&gt;**<br/>*the CLI's only path-scoped command:<br/>seconds, and it spares a whole<br/>dispatch-and-gate round on a lint nit*<br/>*writes no reports, so no digest — and<br/>never `--fix` or `--check`, neither<br/>of which takes a path*"]
+    G1B --> G2["hands back **the file list**"]
     G2 --> G3["**caller** dispatches<br/>**qoq fix** over that list"]
     G3 -->|FAIL| G4{"budget<br/>spent?"}
     G4 -->|"no — re-dispatch<br/>with the digest"| G1
@@ -323,7 +318,13 @@ flowchart TD
     EXIST -->|"yes — resume / execute"| EG2["hand to **qoq execute**<br/>*(not this command's job)*"]
     EXIST -->|no| SMALL{"one ticket's<br/>worth of work?"}
     SMALL -->|yes| PSTOP(["**stop** — no plan file.<br/>straight to the code —<br/>the gate alone is the bar"])
-    SMALL -->|no| PEXP["dispatch **Explore**<br/>deps · existing patterns · test conventions<br/>*(paths only, no edits)*"]
+    SMALL -->|no| GRILLQ{"is `grilling` in your own<br/>**available-skills list**?<br/>*never cached — that list is<br/>already in this thread's context*<br/>*look for `grilling`, NOT `grill-me`:<br/>grill-me is disable-model-invocation<br/>and its whole body forwards here*"}
+
+    GRILLQ -->|missing| GASK(["**ASK ONCE** — install<br/>`/plugin install mattpocock-skills`<br/>and re-run *(recommended)*,<br/>or proceed and ask the gaps one<br/>at a time, mid-decomposition"])
+    GASK -.->|"proceed without"| PEXP
+    GRILLQ -->|installed| GRILL["invoke **grilling** with the requirements<br/>**plus what's already settled**, so its<br/>frontier opens on the gaps rather than<br/>re-asking what the spec answers"]
+    GRILL --> GCAP["**it is stateless** — no files, no record.<br/>everything it settled lives only in this<br/>thread, so it has to land in the plan:<br/>Architecture · a ticket's Context ·<br/>a criterion that only got sharp<br/>because a question was asked"]
+    GCAP --> PEXP["dispatch **Explore**<br/>deps · existing patterns · test conventions<br/>*(paths only, no edits)*"]
 
     PEXP --> PSCOPE{"independent<br/>subsystems?"}
     PSCOPE -->|yes| PSPLIT(["**say so** — separate plans,<br/>one each. never one plan<br/>with both"])
@@ -343,13 +344,24 @@ flowchart TD
     PSAVE --> PAPPR(["**ASK THE USER** — approve.<br/>surfaced here: new deps,<br/>the model ceiling, and every<br/>tier the estimator moved"])
     PAPPR -.->|"changes"| PDEC
     PAPPR -.->|"approved"| PMARK["**Plan status: approved**<br/>+ Commands header,<br/>copied from the record"]
-    PMARK --> PHAND["offer **qoq execute** —<br/>run it on a yes,<br/>dispatch nothing from here"]
+    PMARK --> PTOOL{"which `--tool`?"}
+    PTOOL -->|"local *(default)*"| PHAND
+    PTOOL -->|"jira · linear · trello"| PXOFF(["**ASK** — raise them now?<br/>*approving a plan is not the same<br/>act as publishing it into<br/>a team's tracker*"])
+    PXOFF -.->|no| PHAND
+    PXOFF -.->|yes| PMCP{"an MCP tool for it in your own<br/>**available-tools list**, and a<br/>**destination** — project key,<br/>team, or board?"}
+    PMCP -->|"no tool — the *how*"| PXSTOP(["**say so and stop.** MCP setup is<br/>out of scope for this command.<br/>nothing is lost — the plan file is<br/>complete and `qoq execute` runs<br/>from it as-is<br/>*never curl, never a REST call<br/>against a token in the env*"])
+    PMCP -->|"no destination — the *where*"| PXWHERE(["**ASK which one**, offering what the<br/>read-only tools can already see.<br/>never pick, never create one —<br/>a plan raised into the wrong project<br/>is worse than one not raised"])
+    PXWHERE -.-> PXRUN
+    PMCP -->|both known| PXRUN["**export** — container, then milestones,<br/>then tickets, then `Depends on` links last<br/>*(each level needs the one above it<br/>to have an id already)*<br/>status is a **label**, never the tracker's<br/>own workflow column: the export writes<br/>once and never syncs back"]
+    PXRUN --> PXBACK["write each returned key/URL into that<br/>item's **External** field, then commit<br/>*the only thing making a re-run<br/>idempotent — an item that has one<br/>is skipped, always*"]
+    PXBACK --> PHAND
+    PHAND["offer **qoq execute** —<br/>run it on a yes,<br/>dispatch nothing from here"]
 
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
 
-    class PAPPR user
-    class EG2,PHAND skill
+    class PAPPR,GASK,PXOFF,PXWHERE,PXSTOP user
+    class EG2,PHAND,GRILL skill
 ```
 
 ---
@@ -358,8 +370,18 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    EARG["plan path — ./plans/[file].md"]
-    EARG --> ELOAD["**load the plan, fresh from disk**<br/>every time, resume or not"]
+    EARG{"--source?"}
+    EARG -->|"local *(default)*"| ELOAD
+    EARG -->|"jira · linear · trello"| EIMP(["**ASK which milestone** — epic ·<br/>milestone · list, offering what the<br/>read-only tools can see.<br/>*never a bare ticket (no milestone gate)<br/>and never a board (work nobody started)*"])
+    EIMP --> EIMAP["**read the mapping backwards** into<br/>the plan template — External = the key/URL.<br/>fill what no tracker has: **Commands** from<br/>the record, **Estimate** from estimate.mjs.<br/>write **Plan status: approved**"]
+    EIMAP --> ERE{"a plan file already<br/>carries this milestone's<br/>**External**?"}
+    ERE -->|"yes — the common<br/>second invocation"| ERES["**resume it** — add tickets the tracker<br/>has gained, touch nothing already there.<br/>*re-importing overwrites every done,<br/>every commit hash, and every assertion<br/>the user was asked for*"]
+    ERES --> ELOAD
+    ERE -->|no| ECRIT{"acceptance criteria<br/>assertable as written?"}
+    ECRIT -->|"no — prose, a title"| ECASK(["**ASK THE USER** for the assertions,<br/>quoted, all tickets in one question,<br/>before anything dispatches.<br/>*never infer them — an invented criterion<br/>is a bar the ticket sets for itself*"])
+    ECASK -.-> ELOAD
+    ECRIT -->|yes| ELOAD
+    ELOAD["**load the plan, fresh from disk**<br/>every time, resume or not<br/>*(./plans/[file].md — imported or not,<br/>nothing below knows the difference)*"]
     ELOAD --> EDRAFT{"Plan status<br/>approved?"}
     EDRAFT -->|draft| EBACK["back to **qoq plan** —<br/>it was never signed off"]
     EDRAFT -->|approved| EPROG{"any ticket<br/>in-progress?"}
@@ -386,7 +408,7 @@ flowchart TD
         T0 --> T1["**red** — write plain assertions<br/>straight from the acceptance criteria,<br/>**in the project's dialect**"]
         T1 --> T2["**green** — implement the ticket<br/>until those assertions pass"]
         T2 --> TRAISE["**raise them to the bar itself** —<br/>test-conventions.md: mocking,<br/>the edge cases a first pass skips.<br/>*no dispatch — a subagent<br/>can't spawn one*"]
-        TRAISE --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`.<br/>*never the qoq CLI: the gate<br/>is the caller's move*"]
+        TRAISE --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`, then<br/>`npx qoq staged` over its files<br/>*scoped and report-less: the<br/>digest and the gate stay<br/>with the caller*"]
         T4 -->|"red"| T5{"3 attempts<br/>spent?"}
         T5 -->|no| T2
         T5 -->|"yes"| THAND(["**handoff report** —<br/>never narrow the ticket,<br/>never weaken the gate"])
@@ -401,6 +423,9 @@ flowchart TD
     THAND --> EESC{"a tier<br/>above?"}
     EESC -->|"yes — re-dispatch with<br/>the report pasted in"| EDISP
     EESC -->|"no — top rung already"| EBLOCK(["**Status: blocked** — bring the<br/>user the report: bad ticket,<br/>or session model too small"])
+    EDONE --> EXBACK
+    EBLOCK --> EXBACK
+    EXBACK["**imported plan only** — write the status<br/>**label** and the commit back to the item's<br/>**External** key. *the one state qoq writes:<br/>a run knows the transition as it happens,<br/>an export sets one and walks away.<br/>never the workflow column, never a list move.<br/>a rejected write is a report line, not a stop*"]
     EDONE -->|"**success** — even after three<br/>rounds and an escalation"| EREC["**estimate.mjs --record** — against the tags<br/>and **the tier the plan assigned**, never the one<br/>that finally delivered it. attempts spent, plus<br/>**your attribution**: estimation-miss *(the pick was<br/>wrong)* vs scope-expansion *(a different ticket got<br/>built)* — only a miss reaches a verdict"]
     EBLOCK -->|"**failure** — nothing delivered it<br/>*(the only thing that earns a split)*"| EREC
     EREC --> EMORE{"tickets left in<br/>the milestone?"}
@@ -418,7 +443,7 @@ flowchart TD
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
 
     class EDEV agent
-    class EASK,EPERM user
+    class EASK,EPERM,EIMP,ECASK user
     class EBACK,EMGATE,EGATE skill
 ```
 
@@ -446,7 +471,7 @@ flowchart TD
     subgraph TESTER["qoq-tester flow *(everything the agent does)*"]
         direction TB
         A1["write the specs<br/>for this slice"]
-        A1 --> A2["run `test:one` on exactly those specs —<br/>*the project's own script,<br/>never the qoq CLI*"]
+        A1 --> A2["run `test:one` on exactly those specs<br/>*the project's own script*, then<br/>`npx qoq staged` over the same specs<br/>*scoped, seconds, no reports*"]
         A2 -->|"red"| A4
         A2 -->|"green"| A3["**the full suite** —<br/>against the baseline it was given"]
         A3 -->|"red"| A4{"3 rewrites<br/>spent?"}
@@ -492,7 +517,7 @@ flowchart TD
     CDEF --> CLIST
     CLIST --> CSHOW["**list what matched** before touching<br/>anything — in a monorepo that's<br/>twenty files, some shipped to npm"]
 
-    CSHOW --> CNODISC["**no qoq-discovery** —<br/>*no line of the record describes<br/>a markdown file. the only command<br/>that skips it*"]
+    CSHOW --> CNODISC["**no discovery at all** —<br/>*no line of the record describes<br/>a markdown file. the only command<br/>that skips it*"]
 
     CNODISC --> CFILE["**next file** — one at a time,<br/>never in parallel"]
     CFILE --> CREAD["read it **whole** first.<br/>*a rule stated in ¶2 and used in ¶9<br/>looks redundant from ¶9*"]

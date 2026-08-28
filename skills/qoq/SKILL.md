@@ -1,6 +1,6 @@
 ---
 name: qoq
-description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an approved plan executed or resumed, tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
+description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
 argument-hint: '[fix|refactor|bump|plan|execute|test|compress] [scope]'
 allowed-tools:
   - Read
@@ -35,7 +35,7 @@ allowed-tools:
 
 # QoQ — quality over quantity
 
-Seven commands, one shared discovery record, six agents.
+Seven commands, one shared discovery record, five agents.
 
 **This file routes.** Each command's reference owns its rules — read the one you
 need, not all of them.
@@ -46,13 +46,17 @@ need, not all of them.
 | `refactor` | green base, then four judgement assessments over a scope   | [references/refactor.md](references/refactor.md) |
 | `bump`     | analyse dependencies, pick, then apply one patch at a time | [references/bump.md](references/bump.md)         |
 | `plan`     | requirements → an approved plan file under `./plans/`      | [references/plan.md](references/plan.md)         |
-| `execute`  | an approved plan file → delivered milestones               | [references/execute.md](references/execute.md)   |
+| `execute`  | an approved plan, local or imported → delivered milestones | [references/execute.md](references/execute.md)   |
 | `test`     | unit/integration coverage for code that already exists     | [references/test.md](references/test.md)         |
 | `compress` | strip agent-facing markdown to what an agent acts on       | [references/compress.md](references/compress.md) |
 
-Everything a command knows about the project comes from one cached record,
-derived once per top-level run:
-[references/discovery.md](references/discovery.md).
+Two files sit under every command rather than beside them. What this skill knows
+about the _project_ is one cached record, derived once per top-level run:
+[references/discovery.md](references/discovery.md). What it knows about the _qoq
+binary_ — invocations, flags, report location, the digest scripts, and which
+command or agent may run which — is
+[references/cli.yaml](references/cli.yaml). Open either when you need it; this
+file states neither, so there is one copy of each to go stale.
 
 ## Usage
 
@@ -68,19 +72,28 @@ nobody has to remember which one took a flag.
 | `/qoq refactor --decisions auto <paths>`       | unattended: apply the mechanical tier, advise the rest |
 | `/qoq bump`                                    | every outdated dependency                              |
 | `/qoq plan <requirements file or description>` | —                                                      |
+| `/qoq plan <requirements> --tool jira`         | also raise the tickets there; default `local`          |
 | `/qoq execute [plans/<file>.md]`               | omitted → ask, unless exactly one plan is approved     |
+| `/qoq execute --source jira`                   | ask which epic/milestone/list, import it, then run it  |
 | `/qoq execute <plan> --session-limit 60`       | stop before spending past 60% of the 5-hour limit      |
 | `/qoq execute <plan> --weekly-limit 80`        | same for the 7-day limit; both default to 100          |
 | `/qoq test <what to cover>`                    | —                                                      |
 | `/qoq compress`                                | every `CLAUDE.md` and `AGENTS.md` git tracks           |
 | `/qoq compress docs/ skills/qoq/references`    | those paths only                                       |
 
-Three flags exist. `--decisions auto` is for the two callers that can't stop to
+Five flags exist. `--decisions auto` is for the two callers that can't stop to
 answer questions — `execute`'s milestone gate and `bump`
 ([references/refactor.md](references/refactor.md)). `--session-limit` and
 `--weekly-limit` cap what a plan run may spend of the account's 5-hour and 7-day
 limits; give neither and no usage check runs at all
 ([references/execute.md](references/execute.md)).
+
+`--tool` and `--source` are the two ends of the same road, and both default to
+`local`. `--tool` is `plan`'s: `jira`, `linear` or `trello` offer to raise the
+approved tickets there. `--source` is `execute`'s: those same three values ask
+which milestone to run, import it into a plan file, and then execute that file
+like any other. Neither makes a tracker authoritative — the plan file is the
+state in both directions ([references/export.md](references/export.md)).
 
 ## Entry
 
@@ -92,20 +105,18 @@ limits; give neither and no usage check runs at all
 
    It runs the three head-of-run checks — the agents, the discovery record, the
    usage stats — and prints a section per check with what to do about each. Do
-   what the sections say. Exit 3 stops the run before any work: the qoq CLI
-   isn't installed, and every command's spine is that binary.
+   what the sections say.
 
    Once per **top-level** run, keyed to the command the user typed. A command
    invoked from inside another inherits everything the outer run already
    established rather than re-checking — a `fix` dispatched from inside
    `refactor` is part of that refactor, not a second run.
 
-2. **If it asks you to dispatch `qoq-discovery`**, hand over the payload it
-   printed and branch on the one status word that comes back, nothing else:
-   `fresh` / `verified` → carry on; `repaired <fields>` → carry on and report
-   the fields at the end of the run; `blocked <question>` → ask the user, write
-   the answer into the project's own docs, re-dispatch
-   ([references/discovery.md](references/discovery.md) has the wording).
+2. **If it reports the record stale**, fill it in from the payload it printed —
+   here, on this thread, not in an agent. It's a few reads, and the one move it
+   can end in is a question only this thread can ask
+   ([references/discovery.md](references/discovery.md)). Note any field you
+   repaired for the end-of-run notice.
 
 3. **No command given** → ask which one. Never guess.
 
@@ -121,7 +132,7 @@ Commands compose, but **only on the main thread**.
 | `fix`      | its own `qoq-checker`  | `refactor`, `execute`, `test`, `compress`                     |
 | `refactor` | `fix`                  | `bump`, `execute`, `test`                                     |
 | `bump`     | `refactor` (per patch) | —                                                             |
-| `plan`     | —                      | —                                                             |
+| `plan`     | `grilling` (external)  | —                                                             |
 | `execute`  | `fix`, `refactor`      | `plan` — offered at approval, never dispatched from inside it |
 | `test`     | `fix`, `refactor`      | —                                                             |
 | `compress` | `fix`                  | nobody                                                        |
@@ -129,10 +140,13 @@ Commands compose, but **only on the main thread**.
 `compress` changes what future runs read, never what this one does, so no
 command should be reaching for it mid-task.
 
-`refactor`'s assessment 3 is `ponytail-review`, the one lens this skill doesn't
-own — it looks the name up in its own available-skills list when it gets there,
-because that list is already in the thread's context and is never out of date.
-Assessment 4 is `qoq-designer`, which ships here.
+Two commands reach for a skill this one doesn't own, and both resolve the name
+the same way: look it up in **your own available-skills list** at the moment you
+need it, because that list is already in the thread's context and is never out of
+date. `refactor`'s assessment 3 is `ponytail-review` (assessment 4 is
+`qoq-designer`, which ships here); `plan` opens with `grilling`, the interview
+that closes the gaps in a set of requirements before they become invented
+acceptance criteria. Each reference states what to do when its skill is missing.
 
 ## Standing rules
 
@@ -166,37 +180,19 @@ and the finding disappears into the diff instead of reaching the user.
 weakened gate. If the bar can't be met, that's a report, not something to route
 around.
 
-**The qoq CLI belongs to `fix`.** Every other command and every agent gets its
-verdict by **dispatching `qoq fix`** and reading the PASS/FAIL line; nobody
-assembles `npx qoq …` for themselves. One owner keeps the flags, the scoping,
-the report location, and the digest a single answer instead of six that drift.
-The project's own scripts — `test`, `test:one`, `build` — are a different matter
-and anyone may run them.
-
-**Read the digest, never a raw report.** An ESLint or JSCPD report on a real
-codebase runs to tens of thousands of lines and is almost all repetition;
-`scripts/summarize.mjs` collapses it. Open a raw report only when one specific
-finding needs a line number, and read only that slice.
-
-### The gate runs one thread up
-
-A subagent composes nothing: it cannot dispatch another subagent. So
-`qoq-developer` and `qoq-tester` can neither run `qoq fix` nor be allowed to
-reach around it into the CLI, which belongs to `fix`. They write, verify with the
-_project's own_ scripts, and hand back the list of files they touched; the
-command that dispatched them runs `qoq fix` over exactly that list and
-re-dispatches on a FAIL, with the digest pasted in. Same gate, same scope, one
-thread up — and the retry budget moves with it, so an attempt is one
-dispatch-and-gate round rather than a loop inside the agent.
+**The CLI is a constant.** `npx qoq` is installed wherever this skill runs;
+nothing discovers it, checks for it, or derives its flags. Whoever needs it reads
+`references/cli.yaml` at the moment they need it. What stays with `fix` is the
+_verdict_ — it owns the check/fix loop and the one PASS/FAIL line its callers
+read.
 
 ## Agents
 
-Six, in `agents/`. Everything is pinned except `qoq-developer`, whose tier is a
+Five, in `agents/`. Everything is pinned except `qoq-developer`, whose tier is a
 property of the ticket and is passed at dispatch.
 
 | Agent           | Model      | Job                                                      |
 | --------------- | ---------- | -------------------------------------------------------- |
-| `qoq-discovery` | haiku      | derive/verify/repair the record — one per top-level run  |
 | `qoq-checker`   | haiku      | run the tools, return the digest — one per `fix` loop    |
 | `qoq-bumper`    | sonnet     | read a changelog, find what lands here — one per package |
 | `qoq-developer` | _dispatch_ | one ticket, TDD — one per ticket                         |
@@ -205,7 +201,9 @@ property of the ticket and is passed at dispatch.
 
 Entry copies them into the project's `.claude/agents/`, because an agent file
 inside a skill is registered by nothing, and Claude Code picks that directory up
-on its own a moment later. Whether a fresh install is a question for the user or
+on its own a moment later. It also deletes the copies of agents this skill has
+stopped shipping, so nothing stays dispatchable with a contract that no longer
+exists. Whether a fresh install is a question for the user or
 a line in the end-of-run notice depends on the command, and `entry.mjs` decides
 it — do what its **agents** section says.
 
@@ -215,6 +213,10 @@ restated** — `general-purpose` inherits the session's model and gets every too
 so an unregistered `qoq-checker` runs at the caller's tier and an unregistered
 `qoq-tester` gains exactly the ability to edit production source its contract
 forbids.
+
+**Every dispatch passes this skill's absolute path.** An agent starts cold and
+cannot derive it, and it's what `<skill>` stands for in every path an agent is
+told to run — `references/cli.yaml` included.
 
 An agent reported as `kept (edited here)` is the user's own version and stays
 that way. Dispatch it like any other; it's registered.

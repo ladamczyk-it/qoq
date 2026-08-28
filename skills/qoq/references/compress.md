@@ -29,9 +29,9 @@ files, and some of them ship to npm.
 
 ## No discovery
 
-`compress` is the one command that doesn't dispatch `qoq-discovery`. Every line
+`compress` is the one command that skips discovery entirely. Every line
 of the record answers "how is this project built, tested, checked" and none of
-that bears on editing prose. Running a subagent to learn the test command before
+that bears on editing prose. Reading a manifest to learn the test command before
 deleting an adjective would be this command failing at its own premise.
 
 It ends by calling `qoq fix` over the files it changed, and that call does its
@@ -78,10 +78,11 @@ Nothing acts on it. Gone.
 
 ### Headings are an API here
 
-`SKILL.md` routes into these files by name and `docs/qoq-workflows.md` links to
-their anchors. Rewording a heading to save four words breaks a link silently, and
-a broken route costs far more than the words saved. Keep heading text stable
-unless you're also fixing what points at it — `grep -rn '#the-anchor'` first.
+Other files link to these headings by anchor — the skill's router by name, and
+`docs/qoq-workflows.md` by anchor. Rewording a heading to save four words breaks
+a link silently, and a broken route costs far more than the words saved. Keep
+heading text stable unless you're also fixing what points at it —
+`grep -rn '#the-anchor'` first.
 
 ## Per file, one at a time
 
