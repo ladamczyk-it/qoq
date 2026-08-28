@@ -1,3 +1,13 @@
+## [6.1.4](https://github.com/ladamczyk-it/qoq/compare/v6.1.3...v6.1.4) (2026-08-28)
+
+
+### Bug Fixes
+
+* bump packages ([6b9da7e](https://github.com/ladamczyk-it/qoq/commit/6b9da7e3f04b98f15fded01be42cc85ffb93e4bc))
+* update to skills and agents ([702e1b0](https://github.com/ladamczyk-it/qoq/commit/702e1b05ec7d797cd56e1899750f2f5eede787ec))
+* update to skills and agents ([38360bf](https://github.com/ladamczyk-it/qoq/commit/38360bf495f1225dcad50f4905fcb8d987810eb0))
+* update to skills and agents ([fdc6f51](https://github.com/ladamczyk-it/qoq/commit/fdc6f517ed3d1f5c975f917141240878cbd724a3))
+
 ## [6.1.3](https://github.com/ladamczyk-it/qoq/compare/v6.1.2...v6.1.3) (2026-08-20)
 
 

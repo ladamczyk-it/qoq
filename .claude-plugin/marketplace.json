@@ -6,12 +6,12 @@
   },
   "metadata": {
     "description": "QoQ skills",
-    "version": "6.1.3"
+    "version": "6.1.4"
   },
   "plugins": [
     {
       "name": "qoq",
-      "description": "Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an approved plan executed or resumed, tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says \"qoq\" or names a tool.",
+      "description": "Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says \"qoq\" or names a tool.",
       "source": "./",
       "strict": false,
       "skills": ["./skills/qoq"]
