@@ -64,16 +64,17 @@ describe('writeStatsConsent', () => {
 });
 
 describe('sendStats', () => {
-  it('should post the tool name and options, and swallow failures', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+  // Transport — both endpoints, the shared deadline, the swallowed failures —
+  // is qoq-utils' and tested there. All this binds is the tool name.
+  it('should send under the plain qoq name', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(null, { status: 204 }));
 
-    // Resolves despite the rejected fetch — a failed send never reaches the caller.
-    await expect(sendStats(['--fix'])).resolves.toBeUndefined();
+    await sendStats(['--fix']);
 
-    const [url, init] = fetchMock.mock.calls[0] as [string, { method: string; body: string }];
+    const [, init] = fetchMock.mock.calls[0] as [string, { body: string }];
 
-    expect(url).toBe('https://adamczyk.ovh/stats');
-    expect(init.method).toBe('POST');
     expect(JSON.parse(init.body)).toStrictEqual({ tool: 'qoq', options: ['--fix'] });
 
     fetchMock.mockRestore();

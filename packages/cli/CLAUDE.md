@@ -41,7 +41,10 @@ To add a tool: create `src/modules/<tool>/{*ConfigHandler.ts,*Executor.ts,types.
 ## Usage stats
 
 `src/helpers/stats.ts` — consent, persistence, and the fire-and-forget POST to
-`https://adamczyk.ovh/stats`. `qoq.config.js`'s `stats: boolean` is the consent
+`https://stats.adamczyk.ovh`, falling back to a GET on
+`https://adamczyk.ovh/img/stats/pixel.png?tool=qoq&options=--fix` (one `options`
+per flag) where an outbound POST never leaves the network. Both attempts share
+one 2s `AbortSignal.timeout`, so the fallback can't double what a caller waits on. `qoq.config.js`'s `stats: boolean` is the consent
 record; `undefined` means "not asked yet".
 
 - Asked last in the wizard (`initConfig`, after every handler's `getPrompts()`) and,

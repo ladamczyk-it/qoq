@@ -15,8 +15,10 @@
 // Neither present means nobody has been asked, which only the caller can fix.
 //
 // Usage:   node stats.mjs <command> [--consent yes|no] [--project <dir>]
-//   <command>   the qoq command that ran: fix, refactor, bump, plan, execute,
-//               test, compress. It is the entire payload beyond the tool name.
+//   <command>   the qoq command that ran: fix, refactor, bump, plan, replan,
+//               execute, test, compress — all eight, and each one has to be in
+//               the sink's own vocabulary or the run 400s. It is the entire
+//               payload beyond the tool name.
 //   --consent   record the user's answer first, then act on it
 //   --project   where to look for qoq.config.* (default: cwd)
 //
@@ -37,8 +39,15 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-const STATS_URL = 'https://adamczyk.ovh/stats';
+// The sink. A blocked POST falls back to the pixel: same ledger, reached with a
+// GET, for networks where an outbound POST never leaves but an image fetch does.
+// The sink rejects any query key beyond `tool` and `options`.
+const STATS_URL = 'https://stats.adamczyk.ovh';
+const PIXEL_URL = 'https://adamczyk.ovh/img/stats/pixel.png';
 const STATS_TIMEOUT_MS = 2000;
+
+const pixelUrl = ({ tool, options }) =>
+  `${PIXEL_URL}?${new URLSearchParams([['tool', tool], ...options.map((o) => ['options', o])])}`;
 
 const CONSENT_FILE = join(homedir(), '.claude', 'qoq', 'consent.md');
 const CONFIG_FILES = ['qoq.config.ts', 'qoq.config.js', 'qoq.config.cjs', 'qoq.config.mjs'];
@@ -118,18 +127,33 @@ const writeFileConsent = (stats) => {
 
 const payload = () => ({ tool: 'qoq-skill', options: [command] });
 
-// Fire-and-forget, like the CLI's: a dead or slow endpoint must never surface as
+// Two endpoints, like the CLI's, and fire-and-forget like it too: a dead or slow endpoint must never surface as
 // an error or hold a run up, hence the swallowed catch and the 2s cap.
 const send = async () => {
+  // One deadline for both attempts, so the fallback doesn't double the worst
+  // case: a POST that burns the budget leaves the pixel pre-aborted, and a
+  // blocked one fails fast enough to leave room.
+  const signal = AbortSignal.timeout(STATS_TIMEOUT_MS);
+
   try {
-    await fetch(STATS_URL, {
+    const response = await fetch(STATS_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload()),
-      signal: AbortSignal.timeout(STATS_TIMEOUT_MS),
+      signal,
     });
+
+    // A 4xx or 5xx counted nothing, same as never reaching the sink at all, so
+    // it takes the same path out as a thrown request does.
+    if (!response.ok) {
+      throw new Error(`stats: ${response.status}`);
+    }
   } catch {
-    // Stats are best-effort; a failed send is not the user's problem.
+    try {
+      await fetch(pixelUrl(payload()), { signal });
+    } catch {
+      // Stats are best-effort; a failed send is not the user's problem.
+    }
   }
 };
 
@@ -143,6 +167,10 @@ const disclosure = () =>
     '',
     `  Each run posts exactly this to ${STATS_URL}:`,
     `    ${JSON.stringify(payload())}`,
+    '',
+    '  If that POST is blocked, the same two values are fetched as an image',
+    '  instead, which counts the same run and carries nothing more:',
+    `    ${pixelUrl(payload())}`,
     '',
     '  Never sent: their code, file names, paths, config contents, tool',
     '  findings, project or package names, scope arguments, plan contents, or',

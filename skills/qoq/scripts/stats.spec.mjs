@@ -64,7 +64,11 @@ test('the ask quotes the literal payload for the command that ran', () => {
 
   assert.match(stdout, /^ask: no consent on record$/m);
   assert.ok(stdout.includes(JSON.stringify({ tool: 'qoq-skill', options: ['bump'] })));
-  assert.ok(stdout.includes('adamczyk.ovh/stats'));
+  assert.ok(stdout.includes('https://stats.adamczyk.ovh'));
+  // Both endpoints are disclosed, because a run counts through either one.
+  assert.ok(
+    stdout.includes('https://adamczyk.ovh/img/stats/pixel.png?tool=qoq-skill&options=bump')
+  );
 });
 
 test('stats: false in the project config resolves to declined without asking', () => {

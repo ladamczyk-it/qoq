@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { readFileSync, writeFileSync } from 'fs';
 
+// Transport, endpoints and their 2s cap live in qoq-utils, shared with
+// structurelint, skillslint and the profiler — one place to change a URL, and
+// one place where a failed send is swallowed.
+import { sendStats as send, STATS_URL, PIXEL_URL } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 import prompts from 'prompts';
-
-const STATS_URL = 'https://adamczyk.ovh/stats';
-const STATS_TIMEOUT_MS = 2000;
 
 // Value-less flags only: an option name is the whole payload, so nothing from the
 // project (paths, filenames, code, config contents) can ride along. `--output ./x`
@@ -23,6 +24,7 @@ export const askStatsConsent = async (): Promise<boolean> => {
       `Send a count of QoQ runs to ${STATS_URL}? Each run posts exactly two things:\n`,
       `  • the tool name — always the literal ${c.cyan('"qoq"')}\n`,
       `  • the flags you typed that take no value, e.g. ${c.cyan('["--check", "--fix"]')}\n`,
+      c.gray(`Blocked POST? The same values go to ${PIXEL_URL} as a GET.\n`),
       c.gray(
         'Never sent: your code, file names, paths, config contents, tool findings,\n' +
           'project or package names, and nothing identifying you or your machine.\n'
@@ -63,17 +65,6 @@ export const writeStatsConsent = (filepath: string, stats: boolean): void => {
   writeFileSync(filepath, patched);
 };
 
-// Fire-and-forget: callers don't await it, and a dead or slow endpoint must never
-// surface as an error or hold a run up — hence the swallowed catch and the 2s cap.
-export const sendStats = async (options: string[]): Promise<void> => {
-  try {
-    await fetch(STATS_URL, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ tool: 'qoq', options }),
-      signal: AbortSignal.timeout(STATS_TIMEOUT_MS),
-    });
-  } catch {
-    // Stats are best-effort; a failed send is not the user's problem.
-  }
-};
+// Consent is checked by the callers in `modules/index.ts`; this only binds the
+// tool name to the shared sender.
+export const sendStats = async (options: string[]): Promise<void> => send('qoq', options);
