@@ -55,6 +55,11 @@ export default {
 } satisfies QoqConfig;
 ```
 
+A `qoq.config.ts` is type-stripped in memory and imported as a data URL — no
+sibling `.mjs` is written to disk. It must therefore be self-contained (a plain
+`export default` with type-only imports); a config that needs runtime `import`s
+should be authored as `qoq.config.mjs`.
+
 All fields are optional. Defaults apply when omitted.
 
 ```js
