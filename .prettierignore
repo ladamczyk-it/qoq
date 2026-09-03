@@ -2,3 +2,5 @@ lerna.json
 **/index.json
 CHANGELOG.md
 .claude
+mcp/uv.lock
+.pytest_cache/
