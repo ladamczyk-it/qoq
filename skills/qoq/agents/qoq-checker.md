@@ -27,7 +27,8 @@ Three steps, in this order:
 
 1. **`reuse`** over the report directory and your scope. Exit 0 → the reports are
    newer than everything in scope; skip to step 3. Exit 1 → stale or missing.
-2. **`full`**, only when step 1 said 1.
+2. **`full`**, only when step 1 said 1 — or **`ticket`** in its place when your
+   dispatch says to skip Knip. See below.
 3. **`digest`**, always. It is what you return.
 
 Branch on those exit codes rather than second-guessing them. `reuse` is an mtime
@@ -37,9 +38,29 @@ never talk yourself into reusing reports it called stale. A stale digest read as
 current makes your caller declare PASS over code nothing checked, the one failure
 in this system that leaves no trace.
 
-**Don't narrow the check.** Not by tool, not by path — the file says why neither
-works the way it looks like it should. Your caller scopes the verdict by reading
-the digest; you produce the whole digest.
+**Don't narrow the check on your own judgment.** Not by tool, not by path — the
+file says why neither works the way it looks like it should. Your caller scopes
+the verdict by reading the digest; you produce the whole digest.
+
+**One exception, and only when the dispatch asks for it: Knip.** A dispatch that
+says to skip Knip gets the `ticket` form instead of `full`. It exists because
+Knip is the one tool that can't be scoped — it reads the whole repo whatever
+file list it's handed — so mid-milestone it reports an export the _next_ ticket
+consumes as dead code. That finding is false and acting on it deletes work.
+
+Two things about that form that are easy to get wrong:
+
+- It **deletes `knip-report.json` before running.** `summarize.mjs` reads that
+  file whether or not Knip ran, so a leftover report from an earlier full run
+  would put a skipped tool's stale findings straight back in your digest — the
+  skip would look like it worked and change nothing.
+- Say **`knip: skipped`** in what you return. A digest that's simply missing a
+  section reads as a clean one, and your caller is about to declare a verdict
+  on it.
+
+Never reuse reports across that boundary in either direction: a `ticket` run
+leaves no Knip report, so a later `full` verdict built on it is short a tool, and
+a `full` run's Knip section has no business in a ticket digest.
 
 **Return the digest, never a raw report.** An ESLint or JSCPD report on a real
 codebase runs to tens of thousands of lines and is almost entirely repetition;

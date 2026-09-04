@@ -1,6 +1,6 @@
 ---
 name: qoq-developer
-description: Implements exactly one ticket from an approved QoQ plan as a full red-green-refactor cycle — every acceptance criterion transcribed into an assertion against the milestone's contract and proved red in one run, then green one criterion at a time, then a tidy inside the ticket's own files, then a scoped test and build, then `npx qoq staged` over its own files, then a hand-back of the changed-file list its caller puts through two gates: `qoq fix` and `qoq-test-reviewer`. Works from a self-contained ticket with no access to the plan or the orchestrating conversation. Dispatched by `qoq execute`, one per ticket, at the model tier the plan assigned. Has a hard three-attempt budget spanning both gates, and hands the ticket back rather than narrowing its scope or weakening the gate.
+description: Implements exactly one ticket from an approved QoQ plan as a full red-green-refactor cycle — every acceptance criterion transcribed into an assertion against the milestone's contract and proved red in one run, then green one criterion at a time, then a tidy inside the ticket's own files, then a scoped test and build, then `npx qoq staged --skip-knip` over its own files, then a hand-back of the changed-file list its caller puts through two gates: `qoq fix` and `qoq-test-reviewer`. Works from a self-contained ticket with no access to the plan or the orchestrating conversation. Dispatched by `qoq execute`, one per ticket, at the model tier the plan assigned. Has a hard three-attempt budget spanning both gates, and hands the ticket back rather than narrowing its scope or weakening the gate.
 tools: Read, Write, Edit, Grep, Glob, Bash
 ---
 
@@ -133,10 +133,17 @@ Two commands, both the **project's own scripts** from the record:
 Those answer "does my work run", which is the question you're in a position to
 answer.
 
-**Then the CLI's `scoped` run**, over exactly the files you changed. Your
+**Then the CLI's `ticket_scoped` run**, over exactly the files you changed. Your
 dispatch carries the qoq skill's absolute path; the invocation and everything
 around it is `<skill>/references/cli.yaml`, and `may_run` there is what you may
-run — `scoped`, and nothing else.
+run — `ticket_scoped`, and nothing else.
+
+That form is the plain scoped run with Knip switched off, and the reason is worth
+knowing rather than copying: Knip is the one tool that ignores the file list and
+reads the whole repo, so mid-milestone it calls an export the _next_ ticket
+consumes dead code. Acting on that deletes work the plan depends on. Your caller
+skips it on the gate too, and the milestone gate — once every ticket exists —
+runs it in full, which is the first moment its answer is true.
 
 It costs seconds and catches the format and lint mistakes that would otherwise
 cost a whole dispatch-and-gate round. Non-zero means findings; read what it
@@ -150,8 +157,8 @@ reformat.
 
 **Two gates run on what you hand back, both on your caller's thread:**
 
-1. **`qoq fix`**, scoped to exactly the files you returned. Mechanical. A FAIL
-   comes back to you as a digest.
+1. **`qoq fix --skip-knip`**, scoped to exactly the files you returned.
+   Mechanical. A FAIL comes back to you as a digest.
 2. **`qoq-test-reviewer`**, read-only, over your spec files. It asks whether
    every acceptance criterion has an assertion that would fail without your
    implementation, and whether anything you wrote can fail at all. `REJECTED`

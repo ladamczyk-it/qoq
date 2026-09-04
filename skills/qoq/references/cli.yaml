@@ -6,8 +6,10 @@ reports: node_modules/@ladamczyk/qoq-cli/bin/report
 
 run:
   full: npx qoq --check --json
+  ticket: rm -f <reports>/knip-report.json && npx qoq --check --json --skip-knip
   fix: npx qoq --fix
   scoped: npx qoq staged <file>...
+  ticket_scoped: npx qoq staged --skip-knip <file>...
   tools: npx qoq <tool>...
 
 tool_names: [prettier, eslint, jscpd, knip, npm, stylelint, structurelint, skillslint]
@@ -20,6 +22,9 @@ facts:
   - staged takes no --json and no --fix, and writes no reports
   - no --json, no reports, no digest
   - never pass --output
+  - knip ignores the file list; staged runs it repo-wide like every other form
+  - ticket forms drop knip because half the milestone does not exist yet
+  - ticket deletes knip-report.json first — summarize.mjs reads that file whatever ran, so a leftover would re-report a skipped tool from stale data
 
 digest:
   cmd: node <skill>/scripts/summarize.mjs <reports>
@@ -29,11 +34,12 @@ digest:
 reuse:
   cmd: node <skill>/scripts/reports-current.mjs <reports> <scope>...
   exit: { 0: reuse the reports, 1: re-run full }
+  note: never reuse across the ticket/full boundary — a ticket run left no knip report, so a full verdict built on it would be missing a tool
 
 may_run:
-  fix: [full, fix, digest, reuse]
-  qoq-checker: [full, digest, reuse]
-  qoq-developer: [scoped]
+  fix: [full, ticket, fix, digest, reuse]
+  qoq-checker: [full, ticket, digest, reuse]
+  qoq-developer: [ticket_scoped]
   qoq-tester: [scoped]
   qoq-bumper: []
   qoq-designer: []

@@ -256,6 +256,25 @@ the full check and reports on the files it was asked about. The alternative —
 `staged`, which does take paths — writes no reports, and a gate with no digest
 has nothing to hand back on a FAIL.
 
+**Why Knip is the one tool with an opt-out.** Every other tool answers a question
+about the file in front of it, so scoping the verdict by reading the digest is
+exact. Knip answers a whole-repo question — is this export reachable — which the
+digest can attribute to a file in scope but cannot recompute for a scope. That
+makes it the only tool whose verdict depends on code that isn't written yet, and
+`--skip-knip` exists for exactly the callers that know it isn't: `execute`
+mid-milestone. The narrower alternatives were considered and don't work — a Knip
+ignore list would have to be maintained per ticket and would outlive the plan,
+and reading the finding and deciding to ignore it puts the judgement on the
+thread most primed to accept the deletion.
+
+**Why the skip deletes `knip-report.json` rather than only passing the flag.**
+`summarize.mjs` reads each report off disk by name, unconditionally. A skipped
+run leaves the previous full run's report in place, so the digest would carry
+Knip findings computed against a tree several tickets old — the skip would appear
+to work while making the false positives worse. Deleting the file is also what
+keeps `reports-current.mjs` honest, since its oldest-report rule would otherwise
+call the whole set stale on every loop.
+
 **Why `fix` doesn't delegate the fixing.** A lint fix is a mechanical
 single-file edit that has to be attributed to the tool that reported it.
 Dispatching an agent per finding costs more than the fix and blurs that
@@ -525,6 +544,20 @@ semantic code review was considered and declined for the same reason: it
 duplicates the milestone `refactor` at a worse altitude, one agent round per
 ticket. The test-integrity gate was kept precisely because it has _no_ duplicate
 at any altitude.
+
+**Why the ticket gate is the one that gives up a tool, and the milestone gate is
+the one that gets it back.** A Knip finding mid-milestone is a statement about a
+repo that is deliberately half-built: an export ticket 4 consumes is unreachable
+while ticket 3 is the newest code on disk. Acted on, the gate sends the developer
+back to delete what the plan told it to build — and the developer, holding a FAIL
+digest and no view of the plan, has no way to know the finding is wrong. Held to
+the milestone gate, the same check runs over a tree where every ticket exists,
+and what it reports is real: something built and never consumed, an export
+stranded by a shape that changed mid-milestone. The cost is one milestone of dead
+code sitting in the tree, unreleased; the alternative was per-ticket rounds spent
+undoing correct work. That is the same argument the milestone refactor already
+makes — cross-ticket questions get answered at cross-ticket scope — reaching one
+tool inside `fix`.
 
 **Why there are two refactor beats rather than one.** They answer different
 questions at different scopes and neither substitutes for the other. The
