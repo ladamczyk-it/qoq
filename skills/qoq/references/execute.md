@@ -182,6 +182,27 @@ the files it touched — and hands back that list. A `FAIL` or a `REJECTED`
 re-dispatches it, and the commit happens here after both gates pass, so nothing
 reaches history unproven.
 
+### The commit passes `--no-verify` — and so does any push
+
+`git commit --no-verify` on every ticket, because the two gates above **are** the
+verification, run over exactly this ticket's files a moment earlier. A project's
+`pre-commit` hook re-runs the same tools over the same diff for the same
+findings, once per ticket, for nothing.
+
+It's worse than redundant when the hook runs the project's own full check,
+because that check runs Knip — the one tool Gate 1 deliberately drops, for the
+reason above. Mid-milestone the hook asks whether ticket 4's dependency is
+reachable in a tree where ticket 4 doesn't exist yet, answers no, and blocks the
+commit on a finding that isn't true. `--skip-knip` in the gate and a verifying
+commit right after it cancel each other out.
+
+None of this skips the unscoped check; it moves it to the milestone gate, where
+`qoq fix` runs with Knip on over the union of every ticket's files, alongside the
+project's full build and suite. That's the beat where a hook's answer would have
+been true, and it already runs there — which is why a push, if the user asks for
+one after the milestone gate is green, carries `--no-verify` too rather than
+paying for that suite a second time.
+
 A `REJECTED` verdict is re-dispatched **verbatim, never summarised.** The
 developer is forbidden from editing a green assertion on its own judgment, and
 this verdict is its single exception — scoped to exactly the assertions the

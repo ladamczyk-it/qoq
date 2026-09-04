@@ -559,6 +559,18 @@ undoing correct work. That is the same argument the milestone refactor already
 makes — cross-ticket questions get answered at cross-ticket scope — reaching one
 tool inside `fix`.
 
+**Why the commit skips the project's own hooks rather than asking the user to
+configure them.** `--no-verify` is the only lever `execute` holds. A pre-commit
+hook belongs to the project and is shared with every human committing to it, so
+the alternatives are telling the user to weaken a gate their team relies on for
+the duration of a plan run, or detecting hooks and reasoning about what each one
+does. The run already knows something no hook can: that these exact files passed
+these exact tools seconds ago, and that Knip's answer is false until the
+milestone completes. Skipping verification it has already performed is a
+narrower claim than it looks — the checks aren't dropped, they're the two gates,
+plus the full unscoped pass at the milestone. What the run gives up is a hook
+firing on work the run itself verified.
+
 **Why there are two refactor beats rather than one.** They answer different
 questions at different scopes and neither substitutes for the other. The
 ticket-level tidy is ordinary TDD — the developer's own diff, still warm, inside

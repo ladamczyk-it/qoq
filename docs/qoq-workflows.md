@@ -488,7 +488,7 @@ flowchart TD
     EGATE -->|FAIL| EATT
     EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the spec files.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
     EGATE2 -->|"REJECTED — file:line per defect"| EATT
-    EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof<br/>its tests are real*"]
+    EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files,<br/>**`--no-verify`**.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof its tests<br/>are real — the gates just ran, scoped, and a<br/>pre-commit hook would re-run them plus the<br/>knip that gate 1 dropped on purpose*"]
 
     EATT{"**3 attempts spent?**<br/>*shared across BOTH gates —<br/>an attempt is an attempt*"}
     EATT -->|"no — re-dispatch with the<br/>digest or the verdict **verbatim**"| EDISP
