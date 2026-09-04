@@ -30,7 +30,4 @@ logs
 lerna-debug.log*
 eslint.config.local.bundled_*.cjs
 
-# local Claude config — but the estimator store is the plan/execute
-# calibration and has to travel with a clone
 .claude/*
-!.claude/qoq-estimator.json
