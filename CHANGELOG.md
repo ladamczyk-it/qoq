@@ -1,3 +1,10 @@
+## [6.1.7](https://github.com/ladamczyk-it/qoq/compare/v6.1.6...v6.1.7) (2026-09-04)
+
+
+### Bug Fixes
+
+* skip redundant githooks where needed ([8c5112a](https://github.com/ladamczyk-it/qoq/commit/8c5112a59e9d0c42a8fa1d87502c023da1361a96))
+
 ## [6.1.6](https://github.com/ladamczyk-it/qoq/compare/v6.1.5...v6.1.6) (2026-09-04)
 
 
