@@ -83,3 +83,12 @@ its header table names.
 Prose wins on a disagreement. But a stale diagram or a design note for a rule
 that no longer exists is worse than none: it's what a person reaches for, and
 they have no reason to doubt it. Landing on one side only isn't finished.
+
+<!-- qoq:discovery -->
+
+- test (full suite): `npm test`
+- test (one file): `npm test {file}`
+- build: `npm run build`
+- runner: vitest, globals off, no React
+
+<!-- /qoq:discovery -->

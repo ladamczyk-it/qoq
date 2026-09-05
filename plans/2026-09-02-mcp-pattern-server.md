@@ -4,7 +4,14 @@
 **Architecture:** One Python package under `./mcp`: YAML seed records (one file per pattern) are validated by a pydantic loader, loaded into a freshly-built SQLite file with an FTS5 index, and served over streamable HTTP by a stateless FastMCP app behind nginx. The same validated records feed a generator that renders `skills/qoq/assets/patterns/**`, so the shipped markdown becomes a CI-gated projection of the seeds rather than a second source. Woodpecker builds and deploys on the box by writing into a host-mounted artifacts directory; a `systemd.path` unit restarts the service.
 **Requirements source:** `/qoq plan` invocation of 2026-09-02, grilled to an empty frontier over four rounds (14 settled decisions, recorded in `docs/qoq-design.md` on delivery of Milestone 4).
 **Commands:** build `npm run build` · test `npm test`
-**Plan status:** approved
+**Plan status:** draft — parked, superseded pending a Python → TypeScript replan
+
+> **PARKED — do not execute.** This plan is written against a Python
+> implementation that has been abandoned. Ticket 1.1's commit `1edeaaf` was
+> reverted by `7a48d86`, so its `done` status below is false and no milestone is
+> frozen. The replacement stack is settled but not yet decomposed — see
+> [`2026-09-02-mcp-pattern-server.replan.md`](2026-09-02-mcp-pattern-server.replan.md)
+> and resume with `/qoq replan plans/2026-09-02-mcp-pattern-server.md`.
 
 **Scope boundary — this is plan 1 of 2.** Plan 1 owns _data and service_: the seed corpus, the database, the server, the render and its gate, and the deploy. **No agent calls the server when this plan completes.** Plan 2 owns _consumers_: `.mcp.json` in the plugin, `qoq-designer`'s frontmatter and its anti-persuasion rule, `refactor.md`'s assessment-4 fallback flow, and `cli.yaml`'s `api_version` stamp. `qoq refactor` behaves identically before and after plan 1 — the render is byte-compatible with what ships today.
 
