@@ -1,8 +1,8 @@
 # Plan 2 prompt — skill integration
 
 **Run this only after** `2026-09-02-mcp-pattern-server.md`'s Milestone 5 is delivered
-and signed off: the live endpoint answers both tools, and `api_version` matches
-`package.json`'s version. Plan 1 deliberately ships a server nothing calls; this is
+and signed off: the server answers both tools wherever the container has put it, and
+`api_version` matches `package.json`'s version. Plan 1 deliberately ships a server nothing calls; this is
 the plan that gives it a caller.
 
 Paste the block below as-is. It carries what plan 1 settled so `grilling` opens on
@@ -17,10 +17,13 @@ returns.
 ```
 /qoq plan wire the `qoq` skill to the MCP pattern server delivered by plan 1
 (plans/2026-09-02-mcp-pattern-server.md). Plan 1 built the data, the database, the
-server and the deploy; nothing calls it. This plan is consumers only.
+server and the standalone package; nothing calls it, and nothing in this repo deploys
+it. This plan is consumers only.
 
 ## What plan 1 delivered — facts, not open questions
-- `https://mcp.adamczyk.ovh`, streamable HTTP, stateless, no auth, nginx rate-limited.
+- Streamable HTTP, stateless, no auth. The endpoint URL is a property of the pm2
+  container that hosts it, not of this repo — plan 2 has to ask for it rather than
+  assume `https://mcp.adamczyk.ovh`.
 - `lookup_pattern(smell_description, limit=5)` → index rows carrying
   `{name, pattern_name, stack, smell, cost, cheaper, asset_path, score}`. Rows are
   index *entries*, so `name`/`asset_path` repeat across rows (Strategy owns two).
@@ -31,8 +34,8 @@ server and the deploy; nothing calls it. This plan is consumers only.
 - Every response carries `api_version` (string) and `api_major` (int).
 - `skills/qoq/assets/patterns/**` is now a generated render of
   `mcp/db/seed/patterns/`, CI-gated byte-identical on every push. Never hand-edited.
-- `scripts/sync-plugin-version.js` stamps `mcp/src/qoq_mcp/__init__.py`'s
-  `API_VERSION` at release, alongside `marketplace.json`.
+- `scripts/sync-plugin-version.js` stamps `mcp/src/version.ts`'s `API_VERSION` at
+  release, alongside `marketplace.json`.
 
 ## Settled during plan 1's grilling — do not re-litigate
 - `qoq-designer` may call `lookup_pattern` and **never** `get_pattern`. Its
@@ -42,6 +45,8 @@ server and the deploy; nothing calls it. This plan is consumers only.
   the designer has named it.
 - The plugin ships `.mcp.json` auto-registering the endpoint for every installer.
 - Compatibility is **major-only**: minor/patch drift is normal and silent.
+- `mcp/` is TypeScript, standalone, outside the npm workspace. It has no CI and no
+  knip coverage — both deliberate, both recorded in `docs/qoq-design.md`.
 - The shipped markdown is the offline floor; the server is the upgrade. A user with
   no network still gets assessment 4.
 - `api_version` is the npm workspace version — lockstep with the whole toolkit.
