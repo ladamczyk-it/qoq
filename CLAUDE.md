@@ -21,6 +21,15 @@ Structurelint and Skillslint are the separate `@ladamczyk/structurelint` and
 | `npm run qoq:check`  | full quality check — this is what CI and pre-push run   |
 | `npm run qoq:fix`    | auto-fix                                                |
 
+<!-- qoq:discovery -->
+
+- test (full suite): `npm test`
+- test (one file): `npm test {file}`
+- build: `npm run build`
+- runner: vitest, globals off, no React
+
+<!-- /qoq:discovery -->
+
 ## Versioning
 
 `.claude-plugin/marketplace.json` is generated, not authored: `metadata.version`

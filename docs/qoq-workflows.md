@@ -180,9 +180,9 @@ flowchart TD
 flowchart TD
     G0["a command dispatches a writer<br/>*(qoq-developer, qoq-tester)*"]
     G0 --> G1["the agent writes, then proves it<br/>runs with the **project's own**<br/>`test:one` / `test` / `build`"]
-    G1 --> G1B["then **npx qoq staged &lt;its files&gt;**<br/>*the CLI's only path-scoped command:<br/>seconds, and it spares a whole<br/>dispatch-and-gate round on a lint nit*<br/>*writes no reports, so no digest — and<br/>never `--fix` or `--check`, neither<br/>of which takes a path*"]
+    G1 --> G1B["then **npx qoq staged &lt;its files&gt;**<br/>*the CLI's only path-scoped command:<br/>seconds, and it spares a whole<br/>dispatch-and-gate round on a lint nit*<br/>*writes no reports, so no digest — and<br/>never `--fix` or `--check`, neither<br/>of which takes a path*<br/>**qoq-developer adds `--skip-knip`**<br/>*(knip ignores the file list and reads<br/>the whole repo — mid-milestone that<br/>repo is missing the tickets to come)*"]
     G1B --> G2["hands back **the file list**"]
-    G2 --> G3["**caller** dispatches<br/>**qoq fix** over that list"]
+    G2 --> G3["**caller** dispatches<br/>**qoq fix** over that list<br/>*execute passes `--skip-knip` too;<br/>test does not — no next slice is coming*"]
     G3 -->|FAIL| G4{"budget<br/>spent?"}
     G4 -->|"no — re-dispatch<br/>with the digest"| G1
     G4 -->|yes| G5(["**blocked** — bring the<br/>user the report"])
@@ -474,7 +474,7 @@ flowchart TD
         T1 --> T2["**GREEN** — one criterion at a time, the<br/>minimum that turns that one assertion.<br/>*re-run a single one when you want to<br/>check it — permitted, never required*"]
         T2 --> TREF["**REFACTOR** — tidy inside the ticket's own<br/>**Files**, while green, no interface change,<br/>re-run after. *not the milestone refactor*"]
         TREF --> TADD["may **add** cases per test-conventions.md.<br/>**never change what a green assertion<br/>expects on your own judgment** — that is a<br/>hand-back with the criterion quoted.<br/>*a Gate 2 rejection is the one exception,<br/>and only for the assertions it cites*"]
-        TADD --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`, then<br/>`npx qoq staged` over its files<br/>*scoped and report-less: the<br/>digest and the gate stay<br/>with the caller*"]
+        TADD --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`, then<br/>`npx qoq staged --skip-knip` over its files<br/>*scoped and report-less: the<br/>digest and the gate stay<br/>with the caller*"]
         T4 -->|"red, budget left"| T2
         T4 -->|"red, budget spent"| THAND(["**handoff report** —<br/>never narrow the ticket,<br/>never weaken the gate"])
         T4 -->|"green"| TRET["hand back **every file changed**,<br/>spec and source both"]
@@ -484,11 +484,11 @@ flowchart TD
     T1 -.-> CONTRA
 
     EDISP --> T0
-    TRET --> EGATE["**GATE 1 — qoq fix**, scoped to<br/>exactly the files it returned"]
+    TRET --> EGATE["**GATE 1 — qoq fix --skip-knip**, scoped<br/>to exactly the files it returned.<br/>*knip is the one tool that can't be scoped —<br/>it asks whether an export is reachable in a<br/>repo missing every ticket after this one, so<br/>it calls ticket 4's dependency dead code and<br/>the gate sends ticket 3 back to delete it*"]
     EGATE -->|FAIL| EATT
     EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the spec files.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
     EGATE2 -->|"REJECTED — file:line per defect"| EATT
-    EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof<br/>its tests are real*"]
+    EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files,<br/>**`--no-verify`**.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof its tests<br/>are real — the gates just ran, scoped, and a<br/>pre-commit hook would re-run them plus the<br/>knip that gate 1 dropped on purpose*"]
 
     EATT{"**3 attempts spent?**<br/>*shared across BOTH gates —<br/>an attempt is an attempt*"}
     EATT -->|"no — re-dispatch with the<br/>digest or the verdict **verbatim**"| EDISP
@@ -506,7 +506,7 @@ flowchart TD
     EBLOCK -->|"**failure** — nothing delivered it<br/>*(the only thing that earns a split)*"| EREC
     EREC --> EMORE{"tickets left in<br/>the milestone?"}
     EMORE -->|yes| EWAVE
-    EMORE -->|no| EMGATE["**milestone 1 — qoq refactor --decisions auto**<br/>over the union of every ticket's files.<br/>*the specs are in that union, so cross-ticket<br/>setup duplication and one boundary mocked<br/>three ways are already JSCPD's job —<br/>no third gate is needed here*"]
+    EMORE -->|no| EMGATE["**milestone 1 — qoq refactor --decisions auto**<br/>over the union of every ticket's files.<br/>*the specs are in that union, so cross-ticket<br/>setup duplication and one boundary mocked<br/>three ways are already JSCPD's job —<br/>no third gate is needed here*<br/>**its green base is a full qoq fix — knip on.**<br/>*first moment every consumer exists, so the<br/>first moment a dead-code finding is true*"]
     EMGATE --> EMSUITE["**milestone 2 — the project's<br/>full build + full test suite**"]
     EMSUITE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
     ENEW --> EWAVE

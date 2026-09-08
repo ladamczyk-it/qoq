@@ -138,12 +138,24 @@ tiers.
 ### Two gates per ticket, in this order
 
 ```
-developer hands back → qoq fix (scoped) → qoq-test-reviewer → commit
+developer hands back → qoq fix --skip-knip (scoped) → qoq-test-reviewer → commit
 ```
 
-**Gate 1 — `qoq fix`, scoped** to exactly the files the ticket changed, spec and
-source both. Scoped, because the verdict has to be about this ticket and nothing
-else.
+**Gate 1 — `qoq fix --skip-knip`, scoped** to exactly the files the ticket
+changed, spec and source both. Scoped, because the verdict has to be about this
+ticket and nothing else.
+
+**Knip is off here, and it's the only tool that is.** Scoping the others is just
+reading the digest for the ticket's files; Knip can't be scoped that way, because
+what it answers — is this export reachable — is computed from the whole repo, and
+mid-milestone that repo is missing every ticket after this one. An export ticket 4
+consumes is unreachable while ticket 3 is the newest code on disk, so Knip reports
+it, the gate FAILs, and the fix the developer is sent back to make is deleting the
+thing the plan told it to build. The finding isn't early; it's false.
+
+That's true of the developer's own scoped run too, which is why it uses
+`ticket_scoped`. Everything else — Prettier, ESLint, JSCPD, the rest — is a
+property of the file in front of it and stays on.
 
 **Gate 2 — `qoq-test-reviewer`**, read-only, over the spec files. Its dispatch
 carries those files, the ticket's acceptance criteria, the milestone's
@@ -169,6 +181,27 @@ work — the project's `test:one` and `build`, then the CLI's `scoped` form over
 the files it touched — and hands back that list. A `FAIL` or a `REJECTED`
 re-dispatches it, and the commit happens here after both gates pass, so nothing
 reaches history unproven.
+
+### The commit passes `--no-verify` — and so does any push
+
+`git commit --no-verify` on every ticket, because the two gates above **are** the
+verification, run over exactly this ticket's files a moment earlier. A project's
+`pre-commit` hook re-runs the same tools over the same diff for the same
+findings, once per ticket, for nothing.
+
+It's worse than redundant when the hook runs the project's own full check,
+because that check runs Knip — the one tool Gate 1 deliberately drops, for the
+reason above. Mid-milestone the hook asks whether ticket 4's dependency is
+reachable in a tree where ticket 4 doesn't exist yet, answers no, and blocks the
+commit on a finding that isn't true. `--skip-knip` in the gate and a verifying
+commit right after it cancel each other out.
+
+None of this skips the unscoped check; it moves it to the milestone gate, where
+`qoq fix` runs with Knip on over the union of every ticket's files, alongside the
+project's full build and suite. That's the beat where a hook's answer would have
+been true, and it already runs there — which is why a push, if the user asks for
+one after the milestone gate is green, carries `--no-verify` too rather than
+paying for that suite a second time.
 
 A `REJECTED` verdict is re-dispatched **verbatim, never summarised.** The
 developer is forbidden from editing a green assertion on its own judgment, and
@@ -292,6 +325,15 @@ When every ticket in a milestone is `done` or `blocked`:
    is needed here.
 2. The project's **full** build and test suite from the record — not the scoped
    variants a ticket gate uses.
+
+**This is where Knip runs, in full, and it is the first moment its answer is
+true.** Its green base is a plain `qoq fix` over the union — no `--skip-knip`,
+because every ticket that was going to consume an export now exists. What it
+reports here is real dead code: something a ticket built and nothing consumed, or
+an export left behind by a shape that changed halfway through. Deferring it costs
+one milestone of dead code sitting in the tree, and buys back every ticket that
+would otherwise have been sent round the loop to delete work it was told to
+write.
 
 Red → write the failure up as a new ticket: sized, rated, dispatched like any
 other. Don't patch it on this thread; the lead doesn't implement.

@@ -1,3 +1,21 @@
+## [6.1.7](https://github.com/ladamczyk-it/qoq/compare/v6.1.6...v6.1.7) (2026-09-04)
+
+
+### Bug Fixes
+
+* skip redundant githooks where needed ([8c5112a](https://github.com/ladamczyk-it/qoq/commit/8c5112a59e9d0c42a8fa1d87502c023da1361a96))
+
+## [6.1.6](https://github.com/ladamczyk-it/qoq/compare/v6.1.5...v6.1.6) (2026-09-04)
+
+
+### Bug Fixes
+
+* bump packages ([7fab393](https://github.com/ladamczyk-it/qoq/commit/7fab393ee42513030545c897693b83dabdc5b7b2))
+* bump packages ([8097d56](https://github.com/ladamczyk-it/qoq/commit/8097d56054662f1217525c7621c3f6aa9d26d183))
+* bump packages ([2706724](https://github.com/ladamczyk-it/qoq/commit/2706724415e5101992e37543999b40b0af1ed8d2))
+* remove temporary config file ([7007d72](https://github.com/ladamczyk-it/qoq/commit/7007d72310c7d36dcb13b9701007dde0173802b2))
+* skip knip in qoq execute ticket scope ([5afce84](https://github.com/ladamczyk-it/qoq/commit/5afce84eabc70357839ce97846b9e27b33eb113e))
+
 ## [6.1.5](https://github.com/ladamczyk-it/qoq/compare/v6.1.4...v6.1.5) (2026-08-28)
 
 
