@@ -1,3 +1,11 @@
+## [6.1.8](https://github.com/ladamczyk-it/qoq/compare/v6.1.7...v6.1.8) (2026-09-11)
+
+
+### Bug Fixes
+
+* bump packages ([031f423](https://github.com/ladamczyk-it/qoq/commit/031f4237b98ce1b08d8432824694700017e01757))
+* bump packages ([5e79cd4](https://github.com/ladamczyk-it/qoq/commit/5e79cd4c7f50f6851a04c9a8ebfd49dc19f111a1))
+
 ## [6.1.7](https://github.com/ladamczyk-it/qoq/compare/v6.1.6...v6.1.7) (2026-09-04)
 
 
