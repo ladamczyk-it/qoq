@@ -16,4 +16,18 @@ describe('loadTsConfig', () => {
       srcPath: './src',
     });
   });
+
+  it('resolves a real (non-type) npm import against the config file location', async () => {
+    const source = [
+      "import { isPackageInstalled } from '@ladamczyk/qoq-utils';",
+      '',
+      "export default isPackageInstalled('cac');",
+    ].join('\n');
+
+    // The file need not exist — Node's resolver only needs a real `file:` parent
+    // to walk up looking for `node_modules`, which this directory has.
+    await expect(
+      loadTsConfig(new URL('./qoq.config.ts', import.meta.url).pathname, source)
+    ).resolves.toBe(true);
+  });
 });
