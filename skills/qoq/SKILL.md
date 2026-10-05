@@ -31,6 +31,22 @@ allowed-tools:
   - Bash(git revert:*)
   - Bash(git symbolic-ref:*)
   - Bash(git merge-base:*)
+hooks:
+  PreToolUse:
+    - matcher: Bash
+      hooks:
+        - type: command
+          command: |
+            node -e '
+            let s = "";
+            process.stdin.on("data", (d) => (s += d)).on("end", () => {
+              const c = JSON.parse(s).tool_input?.command ?? "";
+              if (/(^|[\s;&|(`])npx\s+(?:-{1,2}[\w-]+\s+)*(?!qoq(?:\s|$))[^\s-]/.test(c)) {
+                process.stderr.write("qoq: npx is for qoq and nothing else. Run the project script verbatim (npm test, npm run <script>); a project with no script for this is a question for the user.\n");
+                process.exit(2);
+              }
+            });
+            '
 ---
 
 # QoQ — quality over quantity
@@ -99,20 +115,22 @@ state in both directions ([references/export.md](references/export.md)).
 
 ## Entry
 
-1. **One call, at the head of every top-level run:**
+Invoked with: `$ARGUMENTS`
 
-   ```bash
-   node <skill>/scripts/entry.mjs --project <root> --command <command>
-   ```
+`<skill>` is `${CLAUDE_SKILL_DIR}`.
 
-   It runs the three head-of-run checks — the agents, the discovery record, the
-   usage stats — and prints a section per check with what to do about each. Do
-   what the sections say.
+1. **The head-of-run checks have already run.** This is `entry.mjs`'s output —
+   the agents, the discovery record, the usage stats, a section each with what to
+   do about it. Do what the sections say.
+
+   !`node "${CLAUDE_SKILL_DIR}/scripts/entry.mjs" --project "${CLAUDE_PROJECT_DIR}" --command "$0"`
 
    Once per **top-level** run, keyed to the command the user typed. A command
    invoked from inside another inherits everything the outer run already
    established rather than re-checking — a `fix` dispatched from inside
-   `refactor` is part of that refactor, not a second run.
+   `refactor` is part of that refactor, not a second run. So never re-invoke this
+   skill for an inner command: that re-runs the checks and counts a second run.
+   Open its reference instead.
 
 2. **If it reports the record stale**, fill it in from the payload it printed —
    here, on this thread, not in an agent. It's a few reads, and the one move it
@@ -120,7 +138,8 @@ state in both directions ([references/export.md](references/export.md)).
    ([references/discovery.md](references/discovery.md)). Note any field you
    repaired for the end-of-run notice.
 
-3. **No command given** → ask which one. Never guess.
+3. **No command given** → the output above is a single `command` section. Ask,
+   then run the line it prints yourself.
 
 4. **Run the command**, then close the run by reporting anything discovery
    repaired — one line per field, _after_ the real work, never before it.
@@ -165,6 +184,8 @@ re-dispatches with the answer.
 
 **`npx` is for `qoq` and nothing else.** Every other command is the project's own
 script, verbatim — `npm test`, `npm run build`, `npm run test:execute -- {file}`.
+This skill's `PreToolUse` hook blocks any other `npx`, in agents too, for the
+rest of the session.
 Never compose `npx vitest …` or `npx tsc …` out of a dependency spotted in
 `package.json`: that invocation skips the project's config, flags, and setup
 files, and it is plausible enough that nobody notices it was invented. A project
@@ -216,9 +237,13 @@ install is a question or an end-of-run line, and on the one run where an agent
 isn't registered yet it prints the `general-purpose` fallback to dispatch
 instead.
 
-**Every dispatch passes this skill's absolute path.** An agent starts cold and
-cannot derive it, and it's what `<skill>` stands for in every path an agent is
-told to run — `references/cli.yaml` included.
+**Every dispatch passes this skill's absolute path** — the `<skill>` line under
+Entry. An agent starts cold and cannot derive it, and it's what `<skill>` stands
+for in every path an agent is told to run — `references/cli.yaml` included.
+
+`qoq-developer` and `qoq-tester` carry a `maxTurns` cap. One that stops on it
+comes back marked partial: that is a hand-back and spends an attempt, never
+something to resume with `SendMessage`.
 
 An agent reported as `kept (edited here)` is the user's own version and stays
 that way. Dispatch it like any other; it's registered.

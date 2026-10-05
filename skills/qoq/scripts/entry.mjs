@@ -24,10 +24,10 @@
 //     question in front of a command whose next move is another command's
 //     question is the noise this narrowing exists to remove.
 //
-// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|execute|test|compress>
+// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress>
 //
-// Exit code: 0 proceed — stdout is a section per check, each with what to do.
-// 2 usage error.
+// Exit code: always 0 — stdout is a section per check, each with what to do, or
+// a single `command` section asking for one.
 
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -44,13 +44,22 @@ const flag = (name) => {
 
 const project = flag('project') ?? process.cwd();
 const command = flag('command');
+const script = (name) => fileURLToPath(new URL(name, import.meta.url));
 
+// SKILL.md runs this through dynamic context injection, where any non-zero exit
+// aborts the skill invocation. A missing or unknown command is the user's to
+// settle, so it's a question on stdout — and nothing else runs, least of all
+// stats.mjs, which would count a run that has no command yet.
 if (!COMMANDS.includes(command)) {
-  process.stderr.write(`usage: entry.mjs --project <dir> --command <${COMMANDS.join('|')}>\n`);
-  process.exit(2);
+  const given = command
+    ? `\`${command}\` is not a command — one of ${COMMANDS.join(', ')}`
+    : 'none given';
+  process.stdout.write(
+    `## command\n${given}.\nACTION: ask which command, never guess. Then run \`node ${script('entry.mjs')} --project ${project} --command <answer>\` yourself and do what it prints.\n`
+  );
+  process.exit(0);
 }
 
-const script = (name) => fileURLToPath(new URL(name, import.meta.url));
 const run = (name, ...extra) =>
   spawnSync(process.execPath, [script(name), '--project', project, ...extra], {
     encoding: 'utf8',

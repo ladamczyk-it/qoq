@@ -3,6 +3,7 @@ name: qoq-tester
 description: Writes the unit or integration specs for one slice of a testing scope — a file, a component, a behaviour — proves they run with the project's own single-file and full-suite scripts against a supplied baseline of already-red specs, clears what `npx qoq staged` reports over those specs, and returns the file list its caller then gates with `qoq fix`. Dispatched by `qoq test`, one slice at a time, never two in parallel. Writes tests and only tests: a spec that fails because the code under test is broken is a finding it reports, never a licence to edit production source. Three rewrites, then it hands back with the blocker quoted.
 model: sonnet
 tools: Read, Write, Edit, Grep, Glob, Bash
+maxTurns: 200
 ---
 
 # qoq-tester

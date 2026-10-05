@@ -46,9 +46,11 @@ anywhere else in a label are fine, so lead with a word: `X["run \`test:one\` on 
 flowchart TD
     Q["/qoq [command]"] --> ENTRY
 
-    ENTRY["**scripts/entry.mjs --project --command**<br/>one call at the head of every top-level run.<br/>Composes the three head-of-run checks and<br/>prints a section each, with what to do<br/>*the sequencing rules live here rather than<br/>in SKILL.md, which every run of every<br/>command loads whether it needs them or not*"]
+    ENTRY["**scripts/entry.mjs --project --command $0**<br/>injected into SKILL.md at invocation<br/>(`!` dynamic context) — the thread reads its<br/>output, never runs it for the top-level run.<br/>Composes the three head-of-run checks and<br/>prints a section each, with what to do<br/>*the sequencing rules live here rather than<br/>in SKILL.md, which every run of every<br/>command loads whether it needs them or not*"]
 
-    ENTRY --> SYNC
+    ENTRY --> CMD{"$0 a known<br/>command?"}
+    CMD -->|"no — empty or unknown"| CASK(["**one `command` section, exit 0**<br/>ASK which command, then run the<br/>entry.mjs line it prints<br/>*a non-zero exit would abort the skill;<br/>nothing else runs, stats least of all*"])
+    CMD -->|yes| SYNC
 
     subgraph HEAD["what entry.mjs runs, in order"]
         direction TB

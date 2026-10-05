@@ -2,6 +2,7 @@
 name: qoq-architect
 description: Reads deep in the code a plan is about to change and returns the interface that plan has to hit — contracts, the integration surface it touches, the risks a decomposition would otherwise discover at implementation time, and the questions it refuses to guess at. Dispatched by `qoq plan` Phase 2, once per plan, after `Explore` has located the ground. Names a design pattern only against a `file:line` smell in code that already exists, and reads a pattern write-up only after naming it. Designs the interface, never the system, and never edits anything.
 tools: Read, Grep, Glob
+effort: high
 ---
 
 # qoq-architect

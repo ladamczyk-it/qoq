@@ -7,6 +7,9 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { mkdtempSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 import test from 'node:test';
 
 import { parseLimit, verdict } from './usage-check.mjs';
@@ -60,4 +63,19 @@ test('a bad limit exits 2 before any network call', () => {
   });
   assert.equal(run.status, 2);
   assert.match(run.stderr, /--session-limit must be a percentage/);
+});
+
+// `.claude/skills/qoq` is a symlink, and argv[1] arrives unresolved through it.
+// The guard once compared it raw, so the gate exited 0 having checked nothing.
+test('runs when invoked through a symlinked skill directory', () => {
+  const link = join(mkdtempSync(join(tmpdir(), 'qoq-usage-')), 'scripts');
+  symlinkSync(dirname(SCRIPT), link);
+  const run = spawnSync(
+    process.execPath,
+    [join(link, 'usage-check.mjs'), '--session-limit', 'lots'],
+    {
+      encoding: 'utf8',
+    }
+  );
+  assert.equal(run.status, 2);
 });

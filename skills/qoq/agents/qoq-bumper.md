@@ -3,6 +3,7 @@ name: qoq-bumper
 description: Reads a single npm package's changelog, release notes, and migration guide for the range between its current version and the next sensible target, then greps this codebase to find which of those breaking changes actually land here. Dispatched by `qoq bump` once per major-version package, and for any package the split ladder gave up on. Takes the package name and current version only — it resolves the target itself. Returns breaking changes with the files they affect, migration steps, and a risk read. Never edits anything.
 model: sonnet
 tools: Read, Grep, Glob, Bash, WebFetch
+omitClaudeMd: true
 ---
 
 # qoq-bumper

@@ -26,7 +26,7 @@
 // endpoint being down is not a reason to wedge a plan, and the account's real
 // limits enforce themselves regardless of whether this check ran.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -92,7 +92,10 @@ const fetchUsage = async (token) => {
   return res.json();
 };
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+// import.meta.url is realpath'd and argv[1] isn't, so compare real paths: through
+// the .claude/skills/qoq symlink this block otherwise never runs and the gate
+// exits 0 with nothing on stdout.
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const args = process.argv.slice(2);
   const flag = (name) => {
     const index = args.indexOf(`--${name}`);

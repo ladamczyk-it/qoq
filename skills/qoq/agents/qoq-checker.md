@@ -3,6 +3,8 @@ name: qoq-checker
 description: Runs the QoQ CLI over a project and returns a compact digest of findings — tool, rule, affected files — never the raw reports. Reuses reports already on disk when every one of them is newer than the newest source file, so the top of a fix loop is cheap to call repeatedly. Dispatched by `qoq fix` at the head of every loop. Reports only; it never edits a file. One instance at a time.
 model: haiku
 tools: Read, Grep, Glob, Bash
+effort: low
+omitClaudeMd: true
 ---
 
 # qoq-checker

@@ -2,6 +2,7 @@
 name: qoq-developer
 description: Implements exactly one ticket from an approved QoQ plan as a full red-green-refactor cycle — every acceptance criterion transcribed into an assertion against the milestone's contract and proved red in one run, then green one criterion at a time, then a tidy inside the ticket's own files, then a scoped test and build, then `npx qoq staged --skip-knip` over its own files, then a hand-back of the changed-file list its caller puts through two gates: `qoq fix` and `qoq-test-reviewer`. Works from a self-contained ticket with no access to the plan or the orchestrating conversation. Dispatched by `qoq execute`, one per ticket, at the model tier the plan assigned. Has a hard three-attempt budget spanning both gates, and hands the ticket back rather than narrowing its scope or weakening the gate.
 tools: Read, Write, Edit, Grep, Glob, Bash
+maxTurns: 200
 ---
 
 # qoq-developer

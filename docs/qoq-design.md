@@ -217,6 +217,45 @@ each.
 It composes and decides nothing the three children decide; each keeps its own
 contract and its own spec.
 
+**Why `entry.mjs` is injected rather than called.** SKILL.md runs it through
+dynamic context injection (`` !`…` ``), so its output is already in the skill
+text when the thread first reads it: one tool round trip fewer on every run, and
+"once, at the head" stops being an instruction a thread can skip. Injection
+aborts the invocation on any non-zero exit, which is why a missing or unknown
+command is a `command` section on exit 0 rather than a usage error — it's a
+question for the user, and the thread runs the printed line itself once it has
+the answer. `$ARGUMENTS` sits in the body because a skill that uses `$0` no
+longer gets its arguments appended, and the scope and flags still have to reach
+the thread.
+
+**Why `<skill>` is `${CLAUDE_SKILL_DIR}`.** The thread used to be told to pass
+"this skill's absolute path" with nothing to read it from. Substitution gives it
+the path literally — but only in SKILL.md, so references and agents keep
+`<skill>` and every dispatch still carries it. Through `.claude/skills/qoq` the
+substituted path is the symlink, which is why `usage-check.mjs`'s main-module
+guard compares real paths: raw, it silently skipped its body and the spending
+gate exited 0 having fetched nothing.
+
+**Why the `npx` rule is a hook.** Prose says why; the `PreToolUse` hook in
+SKILL.md's frontmatter makes it hold, including inside agents, since skill hooks
+apply to every tool call for the rest of the session. It's inline `node -e`
+because hook commands get no `${CLAUDE_SKILL_DIR}`, and the plugin and the
+symlinked checkout keep the script in different places. `npx-guard.spec.mjs`
+runs the command exactly as the frontmatter ships it. It matches `npx` anywhere
+in the command string, so a commit message quoting `npx vitest` is blocked too;
+rare, and the message says why.
+
+**Why the agent frontmatter says what it says.** `qoq-checker` runs at
+`effort: low` — it runs tools and digests, nothing to deliberate. `qoq-checker`,
+`qoq-bumper` and `qoq-designer` set `omitClaudeMd`, because everything they act
+on arrives in the dispatch or is read from code; `qoq-test-reviewer` doesn't,
+because its dispatch never names the project's own conventions file, and
+"the project's file wins" is often met through CLAUDE.md. `qoq-architect` pins
+`effort: high`, so a low-effort session can't quietly thin the contract every
+ticket inherits. `qoq-developer` and `qoq-tester` cap `maxTurns` at 200: the
+longest developer run measured was 122 turns (median about 35 over 24 runs); no
+tester runs were on record, so it takes the same cap.
+
 **Why the stats disclosure is printed by the script.** It was prose in
 `SKILL.md`, describing the request body. Two problems: every run paid for text
 that matters on the one run in a user's life where somebody is actually asked,

@@ -103,9 +103,20 @@ test('the CLI is not a head-of-run check', () => {
   assert.doesNotMatch(stdout, /STOP:/);
 });
 
-test('an unknown command is a usage error', () => {
-  const { status } = spawnSync(process.execPath, [SCRIPT, '--command', 'lint'], {
-    encoding: 'utf8',
-  });
-  assert.equal(status, 2);
+// SKILL.md injects this script's output, and a non-zero exit there aborts the
+// whole skill invocation — so a missing command is a question, not an error.
+test('a missing or unknown command asks, runs nothing, and exits 0', () => {
+  for (const command of [[], ['--command', ''], ['--command', 'lint']]) {
+    const { status, stdout } = spawnSync(
+      process.execPath,
+      [SCRIPT, '--project', fixture(), ...command],
+      {
+        encoding: 'utf8',
+      }
+    );
+    assert.equal(status, 0);
+    assert.match(stdout, /^## command$/m);
+    assert.match(stdout, /ACTION: ask which command/);
+    assert.doesNotMatch(stdout, /^## (agents|discovery|stats)$/m);
+  }
 });
