@@ -278,10 +278,10 @@ flowchart TD
     MB3 --> BAPPR(["**ASK THE USER**<br/>here's the impact —<br/>**pick / exclude**, then approve"])
 
     BAPPR -.->|"nothing picked"| BSTOP
-    BAPPR -.->|"the chosen set"| MAKE["**now** write the git patches —<br/>one per bump, selected only"]
+    BAPPR -.->|"the chosen set"| MAKE["**now** write the git patches —<br/>one per bump, selected only<br/>*`package.json` only — never<br/>the lockfile*"]
     MAKE --> BAPPLY
 
-    BAPPLY["apply next patch<br/>+ reinstall"]
+    BAPPLY["apply next patch<br/>+ reinstall<br/>*the install alone regenerates<br/>the lockfile; a failed install<br/>is a failed patch*"]
     BAPPLY --> BVAL["**validate** — all three, in order<br/>`qoq fix` · `test` full suite · `build`<br/>*(commands from the record)*"]
     BVAL -->|passes| PREF["**qoq refactor --decisions auto**<br/>scope = this patch's files —<br/>*applies the safe tier,<br/>advises the rest*"]
     PREF -->|"changed nothing"| BMORE{"patches left?"}
@@ -289,7 +289,7 @@ flowchart TD
     BREVAL -->|passes| BMORE
     BREVAL -->|fails| BSPLIT
     BVAL -->|fails| BSPLIT{"can this patch<br/>split further?"}
-    BSPLIT -->|"yes — grouped → **minor** / **patch**,<br/>then → **one per package**"| BRECUT["revert it,<br/>re-cut at the next level down"]
+    BSPLIT -->|"yes — grouped → **minor** / **patch**,<br/>then → **one per package**"| BRECUT["revert it *(git restore<br/>package.json + lockfile, reinstall)*,<br/>re-cut at the next level down"]
     BRECUT --> BAPPLY
     BSPLIT -->|"no — one package left"| BSEEN{"already been through<br/>**qoq-bumper**?"}
     BSEEN -->|no| BQ["revert it, **queue the package<br/>for qoq-bumper**<br/>*(next round)*"]

@@ -28,6 +28,25 @@ be rejected, and frames the question as yes/no on a finished artifact when the
 real question is _which of these_. An empty selection is a valid answer and ends
 the run.
 
+## A patch is `package.json`; the lockfile comes only from a reinstall
+
+A patch changes version ranges in `package.json` and nothing else. The lockfile
+is **never** written by hand — not in the patch, not with an edit to fix up a
+version, a `resolved` URL or an `integrity` hash, not to clear a conflict.
+Applying a patch means `package.json`, then the project's own install
+(`npm install`, or the matching `pnpm`/`yarn` command), which regenerates it.
+
+A hand-edited lockfile describes a tree the package manager never resolved:
+peer ranges unchecked, transitive pins and hashes guessed. Validation then
+passes against `node_modules` that a fresh `npm ci` won't reproduce.
+
+An install that fails or warns about an unresolvable peer is a **failed patch**
+— it goes down the split ladder like a failing test. Reverting restores
+`package.json` and the lockfile from git (the last-green state), then reinstalls
+so `node_modules` matches. Deleting the lockfile to regenerate it from scratch
+re-resolves every transitive dependency at once and is a change the user never
+approved — stop and ask instead.
+
 ## Validation is all three, after every patch
 
 ```

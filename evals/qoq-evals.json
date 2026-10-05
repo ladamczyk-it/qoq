@@ -95,6 +95,7 @@
         "Lets the user pick and exclude before any patch is written",
         "An empty selection is accepted and ends the run",
         "Applies one patch at a time, never a batch",
+        "Patches touch package.json only; the lockfile is regenerated solely by the reinstall, never edited by hand",
         "Validates every patch with all three of qoq fix, full test suite, and build",
         "Runs qoq refactor --decisions auto over the patch's changed files AFTER it validates, not before",
         "A failing grouped patch is reverted and re-cut minor/patch, then per package, before any package is abandoned",
