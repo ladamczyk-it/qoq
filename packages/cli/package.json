@@ -38,7 +38,7 @@
     "@antfu/install-pkg": "2.1.0",
     "@eslint/compat": "2.1.1",
     "@ladamczyk/qoq-utils": "^6.1.10",
-    "@npmcli/package-json": "7.0.5",
+    "@npmcli/package-json": "8.0.0",
     "cac": "7.0.0",
     "cosmiconfig": "9.0.2",
     "fast-glob": "3.3.3",
