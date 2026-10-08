@@ -2,6 +2,8 @@ import { major } from 'semver';
 
 import { readJsonSync } from './readJson.ts';
 
+import type { LtsInfo } from './types.ts';
+
 interface IDataRow {
   version: string;
   date: string;
@@ -9,9 +11,7 @@ interface IDataRow {
   security: boolean;
 }
 
-export const fetchNodeInfo = async (
-  path: string
-): Promise<{ currentLts: string; maintainedLts: string }> => {
+export const fetchNodeInfo = async (path: string): Promise<LtsInfo> => {
   let data: IDataRow[];
   const formatData = (rawData: IDataRow[]): IDataRow[] =>
     rawData
@@ -19,7 +19,14 @@ export const fetchNodeInfo = async (
       .toSorted((a: IDataRow, b: IDataRow) => (new Date(a.date) > new Date(b.date) ? 1 : -1));
 
   try {
-    const response = await fetch('https://nodejs.org/download/release/index.json');
+    const response = await fetch('https://nodejs.org/download/release/index.json', {
+      signal: AbortSignal.timeout(3000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
     const responseData = (await response.json()) as IDataRow[];
 
     data = formatData(responseData);
@@ -28,7 +35,7 @@ export const fetchNodeInfo = async (
       data = formatData(readJsonSync<IDataRow[]>(path));
     } catch {
       throw new Error(
-        "Can't read 'https://nodejs.org/download/release/index.json' + no 'node.json' present in root!"
+        `Can't read 'https://nodejs.org/download/release/index.json' and no '${path}' found in the project root. Pass --no-lts to skip the LTS lookup.`
       );
     }
   }

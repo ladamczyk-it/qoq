@@ -1,51 +1,57 @@
 #!/usr/bin/env node
 
-import { existsSync, readdirSync } from 'node:fs';
-
-import { getPackageJson, getRelativePath, resolveCwdPath } from '@ladamczyk/qoq-utils';
+import { getPackageJson } from '@ladamczyk/qoq-utils';
 import cac from 'cac';
 
-import { checkEngine } from './helpers/checkEngine.ts';
+import { checkEngine, type CheckOptions } from './helpers/checkEngine.ts';
 import { fetchNodeInfo } from './helpers/fetchNodeInfo.ts';
+import { findWorkspaces } from './helpers/findWorkspaces.ts';
+import { buildReport, formatHuman } from './helpers/report.ts';
+
+import type { IncludeFlag } from './helpers/types.ts';
 
 export const cli = cac('check-engine');
 
-cli.command('', 'Check Your engines.node config for project').action(async () => {
-  const packageJson = getPackageJson();
-  const workspaces = (packageJson?.workspaces as string[]) ?? [];
-  const pathsToCheck: string[] = [
-    './package.json',
-    ...(workspaces ?? []).reduce((acc: string[], current) => {
-      if (!current.includes('*')) {
-        acc.push(current);
-      } else {
-        const path = `/${current.replaceAll('*', '')}`;
+const INCLUDE_FLAGS: readonly IncludeFlag[] = ['dev', 'peer', 'optional'];
 
-        return acc.concat(
-          readdirSync(resolveCwdPath(path), { withFileTypes: true })
-            .filter((entry) => entry.isDirectory())
-            .filter(({ parentPath, name }) =>
-              existsSync(getRelativePath(`${parentPath}/${name}/package.json`))
-            )
-            .map(({ parentPath, name }) => {
-              return getRelativePath(`${parentPath}/${name}/package.json`);
-            })
-        );
-      }
+cli
+  .command('', 'Check Your engines.node config for project')
+  .option('--include <list>', 'Also check dependency groups: dev, peer, optional (comma-separated)')
+  .option('--no-lts', 'Skip the Node LTS lookup and its advisory')
+  .option('--json', 'Write the report as JSON to stdout')
+  .option('--quiet', 'Print nothing to stderr when every workspace passes')
+  .action(async (options: { include?: string; lts?: boolean; json?: boolean; quiet?: boolean }) => {
+    const requested = options.include?.split(',') ?? [];
+    const bad = requested.find((value) => !INCLUDE_FLAGS.includes(value as IncludeFlag));
 
-      return acc;
-    }, []),
-  ];
+    if (bad !== undefined) {
+      process.stderr.write(
+        `Unknown --include value "${bad}"; allowed: ${INCLUDE_FLAGS.join(', ')}\n`
+      );
+      process.exitCode = 1;
 
-  process.stderr.write('********* CHECK ENGINE *********\n\n');
+      return;
+    }
 
-  const { currentLts, maintainedLts } = await fetchNodeInfo('./node.json');
+    const lts = options.lts === false ? null : await fetchNodeInfo('./node.json');
+    const checkOptions: CheckOptions = { include: requested as IncludeFlag[], lts };
+    const pathsToCheck = findWorkspaces(process.cwd(), getPackageJson()?.workspaces);
+    const results = pathsToCheck.map((entry) => checkEngine(entry, checkOptions));
 
-  process.stderr.write(`Current LTS: ${currentLts}\n`);
-  process.stderr.write(`Maintained LTS: ${maintainedLts}\n\n`);
+    const text = options.quiet ? formatHuman(results, { quiet: true }) : formatHuman(results);
 
-  pathsToCheck.forEach((entry) => checkEngine(entry, pathsToCheck.length > 1));
-});
+    if (text !== '') {
+      process.stderr.write(text);
+    }
+
+    if (options.json) {
+      process.stdout.write(`${JSON.stringify(buildReport(results, lts), null, 2)}\n`);
+    }
+
+    if (results.some(({ status }) => status === 'fail')) {
+      process.exitCode = 1;
+    }
+  });
 
 cli.help();
 

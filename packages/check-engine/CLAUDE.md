@@ -12,9 +12,12 @@ npm test      # from the repo root — no per-package test script
 
 ## Internal architecture
 
-Two helpers in `src/helpers/`:
+Helpers in `src/helpers/`:
 
-- **`fetchNodeInfo(path)`** — fetches `https://nodejs.org/download/release/index.json` to derive the two highest active LTS major versions. Falls back to reading a local `node.json` snapshot when the network is unavailable. Returns `{ currentLts, maintainedLts }`.
-- **`checkEngine(path, workspaces)`** — reads one `package.json`, collects `engines.node` from every dependency (or devDependency if dependencies is empty), then validates the package's own `engines.node` against that set using semver range intersection. Exits with code `1` on mismatch or invalid range.
+- **`checkEngine(path, { include, lts })`** — pure: reads one `package.json`, collects `engines.node` from every dependency (or devDependency if dependencies is empty, plus the `include`d groups), and returns a `WorkspaceResult`, with an LTS advisory when `lts` is given. It never exits or writes.
+- **`findWorkspaces(cwd, workspaces)`** — expands workspace globs with `node:fs` `globSync`; root first, then sorted.
+- **`fetchNodeInfo(path)`** — current and maintained LTS from nodejs.org (3s timeout), falling back to `./node.json`; throws with instructions if both fail.
+- **`formatHuman(results, { quiet })`** — pure: renders the results as one line per workspace, plus warning and advisory lines; `quiet` returns `''` when every workspace passes.
+- **`buildReport(results, lts)`** — pure: the `--json` document (`{ ok, lts, workspaces }`, workspaces sorted by path).
 
-`src/index.ts` resolves the list of `package.json` files to check: the root `package.json` is always included; workspace glob patterns are expanded by reading the filesystem via `readdirSync`. Both helpers are called once per resolved path.
+`src/index.ts` fetches the LTS info once (skipped by `--no-lts`), resolves the `package.json` files via `findWorkspaces`, and runs `checkEngine` once per path. The human report goes to stderr (`--json` also writes the document to stdout; `--quiet` hides the human text on success), and `process.exitCode` is set to `1` once if any result failed (`process.exit` is never called). A `fetchNodeInfo` error propagates.
