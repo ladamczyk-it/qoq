@@ -46,11 +46,30 @@ describe('formatHuman', () => {
   it('renders a passing result as one line with path, range and counts', () => {
     const out = formatHuman([pass('packages/foo')]);
 
-    expect(out.split('\n')).toHaveLength(1);
+    expect(out.trimEnd().split('\n')).toHaveLength(1);
     expect(out).toContain('packages/foo');
     expect(out).toContain('>=22.22.2');
     expect(out).toContain('12 checked');
     expect(out).toContain('3 skipped');
+  });
+
+  it('ends a passing report with exactly one newline', () => {
+    const out = formatHuman([pass('packages/foo')]);
+
+    expect(out.endsWith('\n')).toBe(true);
+    expect(out.endsWith('\n\n')).toBe(false);
+  });
+
+  it('ends an incompatible report with exactly one newline', () => {
+    const out = formatHuman([incompatible('22.22.2')]);
+
+    expect(out.endsWith('\n')).toBe(true);
+    expect(out.endsWith('\n\n')).toBe(false);
+    expect(out.trimEnd().split('\n').at(-1)).toContain('required floor');
+  });
+
+  it('returns an empty string for no results', () => {
+    expect(formatHuman([])).toBe('');
   });
 
   it('renders three passing workspaces as exactly three non-empty lines', () => {

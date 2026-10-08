@@ -49,4 +49,7 @@ const formatOne = (result: WorkspaceResult): string[] => {
 };
 
 export const formatHuman = (results: readonly WorkspaceResult[]): string =>
-  results.flatMap(formatOne).join('\n');
+  results
+    .flatMap(formatOne)
+    .map((line) => `${line}\n`)
+    .join('');

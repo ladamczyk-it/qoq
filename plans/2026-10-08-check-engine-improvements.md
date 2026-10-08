@@ -19,32 +19,47 @@
 export type IncludeFlag = 'dev' | 'peer' | 'optional';
 export type DependencyGroup =
   'dependencies' | 'devDependencies' | 'peerDependencies' | 'optionalDependencies';
-export interface LtsInfo { currentLts: string; maintainedLts: string }
+export interface LtsInfo {
+  currentLts: string;
+  maintainedLts: string;
+}
 export type SkipReason = 'not-installed' | 'no-engines' | 'malformed-range';
 
-export interface DependencyRequirement { name: string; group: DependencyGroup; range: string } // checked deps only
-export interface SkippedDependency { name: string; group: DependencyGroup; reason: SkipReason; range: string | null } // range only for 'malformed-range'
+export interface DependencyRequirement {
+  name: string;
+  group: DependencyGroup;
+  range: string;
+} // checked deps only
+export interface SkippedDependency {
+  name: string;
+  group: DependencyGroup;
+  reason: SkipReason;
+  range: string | null;
+} // range only for 'malformed-range'
 export interface Conflict {
-  dependency: string; group: DependencyGroup; range: string;
-  why: 'not-in-range' | 'not-subset';   // exact vs ranged engines.node
-  dependencyFloor: string | null;       // semver.minVersion(range)
+  dependency: string;
+  group: DependencyGroup;
+  range: string;
+  why: 'not-in-range' | 'not-subset'; // exact vs ranged engines.node
+  dependencyFloor: string | null; // semver.minVersion(range)
 }
 export interface WorkspaceBase {
-  path: string;                    // workspace dir relative to cwd, '.' for root
-  packageJsonPath: string;         // relative to cwd
-  configured: string | null;       // raw engines.node, null when absent
-  configuredFloor: string | null;  // minVersion(configured); null if absent/invalid
-  floor: string | null;            // required floor, see rule below
+  path: string; // workspace dir relative to cwd, '.' for root
+  packageJsonPath: string; // relative to cwd
+  configured: string | null; // raw engines.node, null when absent
+  configuredFloor: string | null; // minVersion(configured); null if absent/invalid
+  floor: string | null; // required floor, see rule below
   requirements: DependencyRequirement[];
   skipped: SkippedDependency[];
-  counts: { checked: number; skipped: number };  // = requirements.length / skipped.length
-  advisories: string[];            // always [] in Milestone 1
+  counts: { checked: number; skipped: number }; // = requirements.length / skipped.length
+  advisories: string[]; // always [] in Milestone 1
 }
-export type WorkspaceResult = WorkspaceBase & (
-  | { status: 'pass' }
-  | { status: 'fail'; reason: 'incompatible'; conflicts: Conflict[] }            // non-empty
-  | { status: 'fail'; reason: 'invalid-engines' | 'unreadable'; message: string }
-);
+export type WorkspaceResult = WorkspaceBase &
+  (
+    | { status: 'pass' }
+    | { status: 'fail'; reason: 'incompatible'; conflicts: Conflict[] } // non-empty
+    | { status: 'fail'; reason: 'invalid-engines' | 'unreadable'; message: string }
+  );
 
 // checkEngine.ts — pure compute: no process.exit, no stderr, never throws for per-package problems
 export const checkEngine: (packageJsonPath: string) => WorkspaceResult;
@@ -53,6 +68,7 @@ export const formatHuman: (results: readonly WorkspaceResult[]) => string;
 ```
 
 Rules the specs assert against:
+
 - **Compatibility:** `valid(configured)` truthy → `new Range(depRange).test(configured)`; else a valid range → `subset(configured, depRange)` must hold for every checked dependency; neither → `fail` / `invalid-engines`; absent or empty `engines.node` → `pass` (a warning line, as today), `configured: null`.
 - **Required floor:** lowest candidate satisfying every dependency range, candidates being `minVersion` of each comparator set of each dependency range (`new Range(r).set`), linear, no cross product. `floor === null` with `requirements.length > 0` means the ranges are mutually unsatisfiable → `fail` / `incompatible`, `conflicts` listing every dependency (criterion 1.2.6). `floor === null` with no requirements means nothing to compute.
 - **Dependency groups (Milestone 1):** `dependencies`, falling back to `devDependencies` only when there are no `dependencies`. A name in several groups is reported once, first group wins.
@@ -286,11 +302,11 @@ A failing `incompatible` workspace prints `✖ packages/foo  >=18  (…)` (red),
   - `2026-10-08 qoq fix PASS (knip skipped) · tests approved`
   - `2026-10-08 done`
 
-**Commit:** PENDING
+**Commit:** 9d4be02
 
 ### Ticket 1.6: Report ends with a newline
 
-- **Status:** todo
+- **Status:** done
 - **Size:** XS
 - **Complexity:** mechanical
 - **Agent tier:** `sonnet`
@@ -305,23 +321,27 @@ A failing `incompatible` workspace prints `✖ packages/foo  >=18  (…)` (red),
 
 **Acceptance criteria:**
 
-- [ ] `formatHuman` of one passing result returns a string that ends with exactly one `\n` (and not `\n\n`) — `<spec::>`
-- [ ] `formatHuman` of a failing `incompatible` result (table plus `required floor`) ends with exactly one `\n` — `<spec::>`
-- [ ] `formatHuman([])` returns `''` — `<spec::>`
+- [x] `formatHuman` of one passing result returns a string that ends with exactly one `\n` (and not `\n\n`) — `report.spec.ts::ends a passing report with exactly one newline`
+- [x] `formatHuman` of a failing `incompatible` result (table plus `required floor`) ends with exactly one `\n` — `report.spec.ts::ends an incompatible report with exactly one newline`
+- [x] `formatHuman([])` returns `''` — `report.spec.ts::returns an empty string for no results`
 
 **Definition of done:**
 
-- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
-- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
-- [ ] Every acceptance criterion ticked with its evidence pointer
-- [ ] Change committed after both gates; hash recorded in **Commit** below
-- [ ] Status set to `done`; advisories (if any) noted below
+- [x] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [x] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [x] Every acceptance criterion ticked with its evidence pointer
+- [x] Change committed after both gates; hash recorded in **Commit** below
+- [x] Status set to `done`; advisories (if any) noted below
 
-**Advisories:** none
+**Advisories:** the empty-result test is a regression guard (it passed before the change); the newline tests cover no warning-last result.
 
 - **Log:**
+  - `2026-10-08 dispatched @ sonnet (attempt 1)`
+  - `2026-10-08 qoq fix FAIL — prettier report.ts; fixed on the orchestrating thread`
+  - `2026-10-08 qoq fix PASS (knip skipped) · tests approved`
+  - `2026-10-08 done`
 
-**Commit:** none
+**Commit:** PENDING
 
 ### Milestone 1 — Definition of done
 
@@ -343,7 +363,10 @@ A failing `incompatible` workspace prints `✖ packages/foo  >=18  (…)` (red),
 
 ```ts
 // checkEngine.ts
-export interface CheckOptions { include: readonly IncludeFlag[]; lts: LtsInfo | null }
+export interface CheckOptions {
+  include: readonly IncludeFlag[];
+  lts: LtsInfo | null;
+}
 export const checkEngine: (packageJsonPath: string, options?: CheckOptions) => WorkspaceResult;
 //   options omitted ⇒ { include: [], lts: null }
 
@@ -353,15 +376,23 @@ export const findWorkspaces: (cwd: string, workspaces: PackageJson['workspaces']
 //   accepts string[] | { packages?: string[] }; '!pattern' entries are excludes; node_modules always excluded.
 
 // report.ts
-export interface Report { ok: boolean; lts: LtsInfo | null; workspaces: WorkspaceResult[] }  // workspaces sorted by path
+export interface Report {
+  ok: boolean;
+  lts: LtsInfo | null;
+  workspaces: WorkspaceResult[];
+} // workspaces sorted by path
 export const buildReport: (results: readonly WorkspaceResult[], lts: LtsInfo | null) => Report;
-export const formatHuman: (results: readonly WorkspaceResult[], opts?: { quiet: boolean }) => string;
+export const formatHuman: (
+  results: readonly WorkspaceResult[],
+  opts?: { quiet: boolean }
+) => string;
 
 // fetchNodeInfo.ts (signature unchanged)
 export const fetchNodeInfo: (path: string) => Promise<LtsInfo>;
 ```
 
 Rules:
+
 - **Groups:** default exactly as Milestone 1 (dependencies, devDependencies fallback only when no dependencies). `include` adds `dev` → devDependencies, `peer` → peerDependencies, `optional` → optionalDependencies on top of the default; the fallback still applies. Precedence for a name in several groups: dependencies, dev, peer, optional.
 - **Advisory:** when `lts` is non-null and `configuredFloor` is non-null and `major(configuredFloor) < major(lts.maintainedLts)`, push `engines.node floor <configuredFloor> is below the maintained LTS (v<major>)` to `advisories`. Majors only. Never affects `status` or the exit code. `lts: null` ⇒ `advisories` stays `[]`.
 - **`fetchNodeInfo`:** `AbortSignal.timeout(3000)` on the nodejs.org fetch; a non-OK response or any failure falls back to the `path` file (`./node.json`); if both fail it **throws** an `Error` whose message contains all of: `https://nodejs.org/download/release/index.json`, `./node.json`, `project root`, `--no-lts`.
