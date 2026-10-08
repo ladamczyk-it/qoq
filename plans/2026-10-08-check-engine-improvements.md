@@ -75,7 +75,7 @@ Rules:
 
 ### Ticket 2.1: Glob-based workspace discovery
 
-- **Status:** todo
+- **Status:** done
 - **Size:** M
 - **Complexity:** moderate
 - **Agent tier:** `sonnet`
@@ -91,29 +91,34 @@ Rules:
 
 **Acceptance criteria:**
 
-- [ ] in a tmp fixture with `packages/a/package.json` and `packages/b/package.json`, `findWorkspaces(cwd, ['packages/*'])` returns `['./package.json', 'packages/a/package.json', 'packages/b/package.json']` — `<spec::>`
-- [ ] `findWorkspaces(cwd, { packages: ['packages/*'] })` returns the same list as the array form — `<spec::>`
-- [ ] with nested `packages/x/y/package.json`, the pattern `packages/**` returns it, and a `packages/x/node_modules/dep/package.json` is never returned — `<spec::>`
-- [ ] `['packages/**', '!packages/legacy']` excludes `packages/legacy/package.json` and everything under it — `<spec::>`
-- [ ] a literal `libs/missing` (no such directory) is returned as `libs/missing/package.json` — `<spec::>`
-- [ ] a directory without a `package.json` matched by a glob is not returned — `<spec::>`
-- [ ] results are deduplicated and sorted, the root first — `<spec::>`
-- [ ] calling `findWorkspaces` emits no Node `ExperimentalWarning` (listen on `process.on('warning')`, await one tick, assert none) — `<spec::>`
-- [ ] the CLI action passes the root `package.json`'s `workspaces` value to `findWorkspaces` and calls `checkEngine` once per returned path — `<spec::>`
+- [x] in a tmp fixture with `packages/a/package.json` and `packages/b/package.json`, `findWorkspaces(cwd, ['packages/*'])` returns `['./package.json', 'packages/a/package.json', 'packages/b/package.json']` — `findWorkspaces.spec.ts::should return the root first, then the glob matches sorted`
+- [x] `findWorkspaces(cwd, { packages: ['packages/*'] })` returns the same list as the array form — `findWorkspaces.spec.ts::should accept the { packages } object form`
+- [x] with nested `packages/x/y/package.json`, the pattern `packages/**` returns it, and a `packages/x/node_modules/dep/package.json` is never returned — `findWorkspaces.spec.ts::should match nested packages with ** and never return node_modules`
+- [x] `['packages/**', '!packages/legacy']` excludes `packages/legacy/package.json` and everything under it — `findWorkspaces.spec.ts::should treat !pattern as an exclude of the whole subtree`
+- [x] a literal `libs/missing` (no such directory) is returned as `libs/missing/package.json` — `findWorkspaces.spec.ts::should return a literal path verbatim even when it does not exist`
+- [x] a directory without a `package.json` matched by a glob is not returned — `findWorkspaces.spec.ts::should skip glob-matched directories without a package.json`
+- [x] results are deduplicated and sorted, the root first — `findWorkspaces.spec.ts::should deduplicate overlapping patterns`
+- [x] calling `findWorkspaces` emits no Node `ExperimentalWarning` (listen on `process.on('warning')`, await one tick, assert none) — `findWorkspaces.spec.ts::should emit no Node warning on the first globSync use in a fresh process`
+- [x] the CLI action passes the root `package.json`'s `workspaces` value to `findWorkspaces` and calls `checkEngine` once per returned path — `index.spec.ts::should pass the root workspaces value to findWorkspaces and check each returned path`
 
 **Definition of done:**
 
-- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
-- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
-- [ ] Every acceptance criterion ticked with its evidence pointer
-- [ ] Change committed after both gates; hash recorded in **Commit** below
-- [ ] Status set to `done`; advisories (if any) noted below
+- [x] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [x] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [x] Every acceptance criterion ticked with its evidence pointer
+- [x] Change committed after both gates; hash recorded in **Commit** below
+- [x] Status set to `done`; advisories (if any) noted below
 
-**Advisories:** none
+**Advisories:** `!` excludes apply only to glob matches, not to literal workspace paths (literals are returned verbatim); the warning test loads a `.ts` file through Node type stripping, so a Node version whose type stripping itself warns would fail it for an unrelated reason; the developer used `npm exec -- prettier --write` once in attempt 1 (a way around the qoq-only rule for package runners) — attempt 2 used qoq only.
 
 - **Log:**
+  - `2026-10-08 dispatched @ sonnet (attempt 1)`
+  - `2026-10-08 qoq fix PASS (knip skipped) · tests REJECTED — ExperimentalWarning test could pass vacuously (once-per-process warning)`
+  - `2026-10-08 re-dispatched (attempt 2)`
+  - `2026-10-08 qoq fix PASS · tests approved`
+  - `2026-10-08 done`
 
-**Commit:** none
+**Commit:** PENDING
 
 ### Ticket 2.2: `--include` dependency groups
 
@@ -206,7 +211,7 @@ Rules:
   - Test: `packages/check-engine/src/helpers/checkEngine.spec.ts`, `packages/check-engine/src/helpers/report.spec.ts`, `packages/check-engine/src/index.spec.ts`
   - Modify: `packages/check-engine/AGENTS.md`, `packages/check-engine/CLAUDE.md`
 
-**Context:** Milestone 1 removed the `fetchNodeInfo` call from `index.ts`; this ticket restores it, once per run, before the workspace map, skipped when cac's `options.lts === false` (`--no-lts`; cac defaults `options.lts` to `true`). Pass `{ include, lts }` to every `checkEngine`. `checkEngine` fills `advisories` per the **Contracts** advisory rule (`major` from `semver`). `formatHuman` prints each advisory on the workspace's line group in yellow, `⚠ <advisory>`. A thrown `fetchNodeInfo` error propagates (the instruction message is the point); do not catch it. The advisory never affects `status` or `process.exitCode`. Docs: AGENTS.md currently claims a "bundled `node.json` snapshot in the package root" — that is false (nothing ships one, `files` is `["bin","AGENTS.md"]`); replace it with: download `https://nodejs.org/download/release/index.json` to `./node.json` in the project root when offline, or use `--no-lts`. Document `--no-lts` and the advisory. CLAUDE.md: update the helper list. Milestone 1 established: `formatHuman` returns each line followed by `\n` (empty results → `''`), so advisory lines must be added as lines, not appended after the join; the CLI writes the return value to stderr verbatim.
+**Context:** Milestone 1 removed the `fetchNodeInfo` call from `index.ts`; this ticket restores it, once per run, before the workspace map, skipped when cac's `options.lts === false` (`--no-lts`; cac defaults `options.lts` to `true`). Pass `{ include, lts }` to every `checkEngine`. `checkEngine` fills `advisories` per the **Contracts** advisory rule (`major` from `semver`). `formatHuman` prints each advisory on the workspace's line group in yellow, `⚠ <advisory>`. A thrown `fetchNodeInfo` error propagates (the instruction message is the point); do not catch it. The advisory never affects `status` or `process.exitCode`. Docs: AGENTS.md currently claims a "bundled `node.json` snapshot in the package root" — that is false (nothing ships one, `files` is `["bin","AGENTS.md"]`); replace it with: download `https://nodejs.org/download/release/index.json` to `./node.json` in the project root when offline, or use `--no-lts`. Document `--no-lts` and the advisory. CLAUDE.md: update the helper list. Milestone 1 established: `formatHuman` returns each line followed by `\n` (empty results → `''`), so advisory lines must be added as lines, not appended after the join; the CLI writes the return value to stderr verbatim. Also update `packages/check-engine/CLAUDE.md`: it still says workspace globs are expanded via `readdirSync` — Ticket 2.1 replaced that with `findWorkspaces` (`node:fs` `globSync`).
 
 **Acceptance criteria:**
 

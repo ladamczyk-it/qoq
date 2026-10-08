@@ -1,35 +1,22 @@
-import { existsSync, readdirSync } from 'node:fs';
-
-import { getPackageJson, resolveCwdPath } from '@ladamczyk/qoq-utils';
+import { getPackageJson } from '@ladamczyk/qoq-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { checkEngine } from './helpers/checkEngine.ts';
 import { fetchNodeInfo } from './helpers/fetchNodeInfo.ts';
+import { findWorkspaces } from './helpers/findWorkspaces.ts';
 import { formatHuman } from './helpers/report.ts';
 import { cli } from './index.ts';
 
 import type { WorkspaceResult } from './helpers/types.ts';
 
-vi.mock('node:fs', () => ({
-  existsSync: vi.fn(),
-  readdirSync: vi.fn(),
-}));
-
 vi.mock('@ladamczyk/qoq-utils', () => ({
   getPackageJson: vi.fn(),
-  getRelativePath: vi.fn((path: string) => path),
-  resolveCwdPath: vi.fn((path: string) => path),
 }));
 
 vi.mock('./helpers/checkEngine.ts', () => ({ checkEngine: vi.fn() }));
 vi.mock('./helpers/fetchNodeInfo.ts', () => ({ fetchNodeInfo: vi.fn() }));
+vi.mock('./helpers/findWorkspaces.ts', () => ({ findWorkspaces: vi.fn() }));
 vi.mock('./helpers/report.ts', () => ({ formatHuman: vi.fn() }));
-
-const makeEntry = (parentPath: string, name: string): unknown => ({
-  parentPath,
-  name,
-  isDirectory: (): boolean => true,
-});
 
 const makeResult = (status: 'pass' | 'fail'): WorkspaceResult =>
   ({ status }) as unknown as WorkspaceResult;
@@ -50,6 +37,7 @@ describe('cli', () => {
     vi.mocked(checkEngine).mockReturnValue(makeResult('pass'));
     vi.mocked(formatHuman).mockReturnValue('REPORT');
     vi.mocked(getPackageJson).mockReturnValue({});
+    vi.mocked(findWorkspaces).mockReturnValue(['./package.json']);
   });
 
   afterEach(() => {
@@ -69,25 +57,30 @@ describe('cli', () => {
     expect(checkEngine).toHaveBeenCalledWith('./package.json');
   });
 
-  it('should check root, literal workspace and glob match in order', async () => {
-    vi.mocked(getPackageJson).mockReturnValue({ workspaces: ['libs/foo', 'packages/*'] });
-    vi.mocked(readdirSync).mockReturnValue([
-      makeEntry('packages', 'a'),
-      makeEntry('packages', 'b'),
-    ] as never);
-    vi.mocked(existsSync).mockReturnValueOnce(true).mockReturnValueOnce(false);
+  it('should pass the root workspaces value to findWorkspaces and check each returned path', async () => {
+    const workspaces = ['libs/foo', 'packages/*'];
+    vi.mocked(getPackageJson).mockReturnValue({ workspaces });
+    vi.mocked(findWorkspaces).mockReturnValue([
+      './package.json',
+      'libs/foo/package.json',
+      'packages/a/package.json',
+    ]);
 
     await run();
 
-    expect(resolveCwdPath).toHaveBeenCalledWith('/packages/');
+    expect(findWorkspaces).toHaveBeenCalledWith(process.cwd(), workspaces);
     expect(checkEngine).toHaveBeenCalledTimes(3);
     expect(checkEngine).toHaveBeenNthCalledWith(1, './package.json');
-    expect(checkEngine).toHaveBeenNthCalledWith(2, 'libs/foo');
+    expect(checkEngine).toHaveBeenNthCalledWith(2, 'libs/foo/package.json');
     expect(checkEngine).toHaveBeenNthCalledWith(3, 'packages/a/package.json');
   });
 
   it('should pass every result to formatHuman and set exitCode 1 when any fail', async () => {
-    vi.mocked(getPackageJson).mockReturnValue({ workspaces: ['libs/foo', 'libs/bar'] });
+    vi.mocked(findWorkspaces).mockReturnValue([
+      './package.json',
+      'a/package.json',
+      'b/package.json',
+    ]);
     const first = makeResult('fail');
     const second = makeResult('pass');
     const third = makeResult('fail');
