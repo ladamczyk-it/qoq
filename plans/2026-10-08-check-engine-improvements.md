@@ -162,11 +162,11 @@ Rules:
   - `2026-10-08 qoq fix PASS (knip skipped) · tests approved`
   - `2026-10-08 done`
 
-**Commit:** PENDING
+**Commit:** 9b17c92
 
 ### Ticket 2.3: Safe LTS fetch
 
-- **Status:** todo
+- **Status:** done
 - **Size:** S
 - **Complexity:** mechanical
 - **Agent tier:** `sonnet`
@@ -181,25 +181,28 @@ Rules:
 
 **Acceptance criteria:**
 
-- [ ] `fetch` is called with an `AbortSignal` (`expect.any(AbortSignal)`) — `<spec::>`
-- [ ] a non-OK response (`ok: false`) falls back to the `path` file — `<spec::>`
-- [ ] a rejected fetch falls back to the `path` file — `<spec::>`
-- [ ] when fetch fails and the file read throws, the rejection message contains `https://nodejs.org/download/release/index.json`, `./node.json`, `project root` and `--no-lts` — `<spec::>`
-- [ ] with a successful fetch the returned `currentLts` and `maintainedLts` are unchanged from today's behaviour for the existing fixture — `<spec::>`
+- [x] `fetch` is called with an `AbortSignal` (`expect.any(AbortSignal)`) — `fetchNodeInfo.spec.ts::calls fetch with an AbortSignal`
+- [x] a non-OK response (`ok: false`) falls back to the `path` file — `fetchNodeInfo.spec.ts::falls back to the local snapshot when the response is not OK`
+- [x] a rejected fetch falls back to the `path` file — `fetchNodeInfo.spec.ts::falls back to the local snapshot when the fetch fails`
+- [x] when fetch fails and the file read throws, the rejection message contains `https://nodejs.org/download/release/index.json`, `./node.json`, `project root` and `--no-lts` — `fetchNodeInfo.spec.ts::(both sources fail) rejects with the four-fragment instruction message`
+- [x] with a successful fetch the returned `currentLts` and `maintainedLts` are unchanged from today's behaviour for the existing fixture — `fetchNodeInfo.spec.ts::(success path) returns currentLts v20.1.0 and maintainedLts v18.1.0`
 
 **Definition of done:**
 
-- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
-- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
-- [ ] Every acceptance criterion ticked with its evidence pointer
-- [ ] Change committed after both gates; hash recorded in **Commit** below
-- [ ] Status set to `done`; advisories (if any) noted below
+- [x] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [x] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [x] Every acceptance criterion ticked with its evidence pointer
+- [x] Change committed after both gates; hash recorded in **Commit** below
+- [x] Status set to `done`; advisories (if any) noted below
 
-**Advisories:** none
+**Advisories:** fetchNodeInfo.spec.ts line 34 relies on test order (afterEach only restores mocks; add `vi.clearAllMocks()`); the 3000 ms timeout value is not pinned; `CheckOptions.lts` in checkEngine.ts still uses the inline structural type — Ticket 2.4 swaps in `LtsInfo`.
 
 - **Log:**
+  - `2026-10-08 dispatched @ sonnet (attempt 1)`
+  - `2026-10-08 qoq fix PASS (knip skipped; formatting applied on the orchestrating thread) · tests approved`
+  - `2026-10-08 done`
 
-**Commit:** none
+**Commit:** PENDING
 
 ### Ticket 2.4: LTS advisory and `--no-lts`
 

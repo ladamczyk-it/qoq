@@ -2,6 +2,10 @@
 export type DependencyGroup =
   'dependencies' | 'devDependencies' | 'peerDependencies' | 'optionalDependencies';
 export type IncludeFlag = 'dev' | 'peer' | 'optional';
+export interface LtsInfo {
+  currentLts: string;
+  maintainedLts: string;
+}
 type SkipReason = 'not-installed' | 'no-engines' | 'malformed-range';
 
 /** Checked dependencies only. */
