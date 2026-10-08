@@ -44,7 +44,7 @@ export interface WorkspaceBase {
   requirements: DependencyRequirement[];
   skipped: SkippedDependency[];
   counts: { checked: number; skipped: number };
-  /** Always [] in Milestone 1. */
+  /** LTS advisories; empty when no LTS info was given. */
   advisories: string[];
 }
 export type WorkspaceResult = WorkspaceBase &
