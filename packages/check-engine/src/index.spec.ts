@@ -5,7 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { checkEngine } from './helpers/checkEngine.ts';
 import { fetchNodeInfo } from './helpers/fetchNodeInfo.ts';
+import { formatHuman } from './helpers/report.ts';
 import { cli } from './index.ts';
+
+import type { WorkspaceResult } from './helpers/types.ts';
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
@@ -20,12 +23,16 @@ vi.mock('@ladamczyk/qoq-utils', () => ({
 
 vi.mock('./helpers/checkEngine.ts', () => ({ checkEngine: vi.fn() }));
 vi.mock('./helpers/fetchNodeInfo.ts', () => ({ fetchNodeInfo: vi.fn() }));
+vi.mock('./helpers/report.ts', () => ({ formatHuman: vi.fn() }));
 
 const makeEntry = (parentPath: string, name: string): unknown => ({
   parentPath,
   name,
   isDirectory: (): boolean => true,
 });
+
+const makeResult = (status: 'pass' | 'fail'): WorkspaceResult =>
+  ({ status }) as unknown as WorkspaceResult;
 
 const run = async (...argv: string[]): Promise<void> => {
   cli.parse(['node', 'check-engine', ...argv], { run: false });
@@ -34,13 +41,19 @@ const run = async (...argv: string[]): Promise<void> => {
 };
 
 describe('cli', () => {
+  let stderrMock: ReturnType<typeof vi.spyOn>;
+  let exitMock: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
-    vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-    vi.mocked(fetchNodeInfo).mockResolvedValue({ currentLts: 'v22.1.0', maintainedLts: 'v20.1.0' });
+    stderrMock = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    exitMock = vi.spyOn(process, 'exit').mockImplementation((() => undefined) as never);
+    vi.mocked(checkEngine).mockReturnValue(makeResult('pass'));
+    vi.mocked(formatHuman).mockReturnValue('REPORT');
     vi.mocked(getPackageJson).mockReturnValue({});
   });
 
   afterEach(() => {
+    process.exitCode = undefined;
     vi.clearAllMocks();
     cli.unsetMatchedCommand();
   });
@@ -52,23 +65,12 @@ describe('cli', () => {
   it('should check only the root package.json when there are no workspaces', async () => {
     await run();
 
-    expect(fetchNodeInfo).toHaveBeenCalledWith('./node.json');
     expect(checkEngine).toHaveBeenCalledTimes(1);
-    expect(checkEngine).toHaveBeenCalledWith('./package.json', false);
+    expect(checkEngine).toHaveBeenCalledWith('./package.json');
   });
 
-  it('should include literal workspace paths verbatim', async () => {
-    vi.mocked(getPackageJson).mockReturnValue({ workspaces: ['libs/foo'] });
-
-    await run();
-
-    expect(checkEngine).toHaveBeenCalledTimes(2);
-    expect(checkEngine).toHaveBeenNthCalledWith(1, './package.json', true);
-    expect(checkEngine).toHaveBeenNthCalledWith(2, 'libs/foo', true);
-  });
-
-  it('should expand glob workspaces to each child package.json that exists', async () => {
-    vi.mocked(getPackageJson).mockReturnValue({ workspaces: ['packages/*'] });
+  it('should check root, literal workspace and glob match in order', async () => {
+    vi.mocked(getPackageJson).mockReturnValue({ workspaces: ['libs/foo', 'packages/*'] });
     vi.mocked(readdirSync).mockReturnValue([
       makeEntry('packages', 'a'),
       makeEntry('packages', 'b'),
@@ -78,19 +80,45 @@ describe('cli', () => {
     await run();
 
     expect(resolveCwdPath).toHaveBeenCalledWith('/packages/');
-    expect(checkEngine).toHaveBeenCalledTimes(2);
-    expect(checkEngine).toHaveBeenCalledWith('./package.json', true);
-    expect(checkEngine).toHaveBeenCalledWith('packages/a/package.json', true);
-    expect(checkEngine).not.toHaveBeenCalledWith('packages/b/package.json', true);
+    expect(checkEngine).toHaveBeenCalledTimes(3);
+    expect(checkEngine).toHaveBeenNthCalledWith(1, './package.json');
+    expect(checkEngine).toHaveBeenNthCalledWith(2, 'libs/foo');
+    expect(checkEngine).toHaveBeenNthCalledWith(3, 'packages/a/package.json');
   });
 
-  it('should report the resolved LTS versions on stderr', async () => {
-    const stderrMock = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  it('should pass every result to formatHuman and set exitCode 1 when any fail', async () => {
+    vi.mocked(getPackageJson).mockReturnValue({ workspaces: ['libs/foo', 'libs/bar'] });
+    const results = [makeResult('fail'), makeResult('pass'), makeResult('fail')];
+    vi.mocked(checkEngine)
+      .mockReturnValueOnce(results[0])
+      .mockReturnValueOnce(results[1])
+      .mockReturnValueOnce(results[2]);
 
     await run();
 
-    expect(stderrMock).toHaveBeenCalledWith(expect.stringContaining('CHECK ENGINE'));
-    expect(stderrMock).toHaveBeenCalledWith(expect.stringContaining('v22.1.0'));
-    expect(stderrMock).toHaveBeenCalledWith(expect.stringContaining('v20.1.0'));
+    expect(formatHuman).toHaveBeenCalledWith(results);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('should leave exitCode unset when all results pass', async () => {
+    await run();
+
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it('should write exactly the formatHuman output to stderr', async () => {
+    await run();
+
+    expect(stderrMock).toHaveBeenCalledTimes(1);
+    expect(stderrMock).toHaveBeenCalledWith('REPORT');
+  });
+
+  it('should never call process.exit or fetchNodeInfo', async () => {
+    vi.mocked(checkEngine).mockReturnValue(makeResult('fail'));
+
+    await run();
+
+    expect(exitMock).not.toHaveBeenCalled();
+    expect(fetchNodeInfo).not.toHaveBeenCalled();
   });
 });

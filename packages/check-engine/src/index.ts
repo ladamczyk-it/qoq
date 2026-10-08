@@ -6,11 +6,11 @@ import { getPackageJson, getRelativePath, resolveCwdPath } from '@ladamczyk/qoq-
 import cac from 'cac';
 
 import { checkEngine } from './helpers/checkEngine.ts';
-import { fetchNodeInfo } from './helpers/fetchNodeInfo.ts';
+import { formatHuman } from './helpers/report.ts';
 
 export const cli = cac('check-engine');
 
-cli.command('', 'Check Your engines.node config for project').action(async () => {
+cli.command('', 'Check Your engines.node config for project').action(() => {
   const packageJson = getPackageJson();
   const workspaces = (packageJson?.workspaces as string[]) ?? [];
   const pathsToCheck: string[] = [
@@ -37,16 +37,13 @@ cli.command('', 'Check Your engines.node config for project').action(async () =>
     }, []),
   ];
 
-  process.stderr.write('********* CHECK ENGINE *********\n\n');
+  const results = pathsToCheck.map((entry) => checkEngine(entry));
 
-  const { currentLts, maintainedLts } = await fetchNodeInfo('./node.json');
+  process.stderr.write(formatHuman(results));
 
-  process.stderr.write(`Current LTS: ${currentLts}\n`);
-  process.stderr.write(`Maintained LTS: ${maintainedLts}\n\n`);
-
-  pathsToCheck.forEach((entry) => {
-    checkEngine(entry);
-  });
+  if (results.some(({ status }) => status === 'fail')) {
+    process.exitCode = 1;
+  }
 });
 
 cli.help();

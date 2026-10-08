@@ -206,11 +206,11 @@ A failing `incompatible` workspace prints `✖ packages/foo  >=18  (…)` (red),
   - `2026-10-08 qoq fix PASS · tests approved`
   - `2026-10-08 done`
 
-**Commit:** PENDING
+**Commit:** fa840dc
 
 ### Ticket 1.4: Collect every workspace, exit once
 
-- **Status:** todo
+- **Status:** done
 - **Size:** M
 - **Complexity:** moderate
 - **Agent tier:** `sonnet`
@@ -226,26 +226,29 @@ A failing `incompatible` workspace prints `✖ packages/foo  >=18  (…)` (red),
 
 **Acceptance criteria:**
 
-- [ ] with no `workspaces`, `checkEngine` is called once with `'./package.json'` and only that argument — `<spec::>`
-- [ ] with a literal workspace `libs/foo` and a glob `packages/*` matching one directory, `checkEngine` is called for `'./package.json'`, `'libs/foo'` and the glob match, in that order, each with exactly one argument — `<spec::>`
-- [ ] when two of three `checkEngine` results are `fail`, `formatHuman` receives all three results and `process.exitCode` is `1` — `<spec::>`
-- [ ] when all results are `pass`, `process.exitCode` stays unset (`undefined`) — `<spec::>`
-- [ ] the output written to `process.stderr` is exactly the string returned by `formatHuman` (no banner, no `CHECK ENGINE`) — `<spec::>`
-- [ ] `process.exit` is never called, and `fetchNodeInfo` is never called — `<spec::>`
+- [x] with no `workspaces`, `checkEngine` is called once with `'./package.json'` and only that argument — `index.spec.ts::should check only the root package.json when there are no workspaces`
+- [x] with a literal workspace `libs/foo` and a glob `packages/*` matching one directory, `checkEngine` is called for `'./package.json'`, `'libs/foo'` and the glob match, in that order, each with exactly one argument — `index.spec.ts::should check root, literal workspace and glob match in order`
+- [x] when two of three `checkEngine` results are `fail`, `formatHuman` receives all three results and `process.exitCode` is `1` — `index.spec.ts::should pass every result to formatHuman and set exitCode 1 when any fail`
+- [x] when all results are `pass`, `process.exitCode` stays unset (`undefined`) — `index.spec.ts::should leave exitCode unset when all results pass`
+- [x] the output written to `process.stderr` is exactly the string returned by `formatHuman` (no banner, no `CHECK ENGINE`) — `index.spec.ts::should write exactly the formatHuman output to stderr`
+- [x] `process.exit` is never called, and `fetchNodeInfo` is never called — `index.spec.ts::should never call process.exit or fetchNodeInfo`
 
 **Definition of done:**
 
-- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
-- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
-- [ ] Every acceptance criterion ticked with its evidence pointer
-- [ ] Change committed after both gates; hash recorded in **Commit** below
-- [ ] Status set to `done`; advisories (if any) noted below
+- [x] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [x] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [x] Every acceptance criterion ticked with its evidence pointer
+- [x] Change committed after both gates; hash recorded in **Commit** below
+- [x] Status set to `done`; advisories (if any) noted below
 
-**Advisories:** none
+**Advisories:** index.spec.ts line 82 asserts `resolveCwdPath` was called with '/packages/' — Ticket 2.1 replaces discovery and must drop that assertion; process.exitCode leaks into vitest's exit status, so any spec that triggers a fail path needs the afterEach reset; JSCPD clone index.ts:18-27 still present until Ticket 2.1.
 
 - **Log:**
+  - `2026-10-08 dispatched @ sonnet (attempt 1)`
+  - `2026-10-08 qoq fix PASS (knip skipped) · tests approved`
+  - `2026-10-08 done`
 
-**Commit:** none
+**Commit:** PENDING
 
 ### Milestone 1 — Definition of done
 
