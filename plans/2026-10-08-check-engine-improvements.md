@@ -160,11 +160,11 @@ This is a single scripted sweep (one `node` loop over `package.json` + `packages
   - `2026-10-08 qoq fix PASS · tests approved`
   - `2026-10-08 done`
 
-**Commit:** PENDING
+**Commit:** d565a8f
 
 ### Ticket 1.3: Terse human report
 
-- **Status:** todo
+- **Status:** done
 - **Size:** S
 - **Complexity:** mechanical
 - **Agent tier:** `sonnet`
@@ -181,27 +181,32 @@ A failing `incompatible` workspace prints `✖ packages/foo  >=18  (…)` (red),
 
 **Acceptance criteria:**
 
-- [ ] a passing result renders as one line containing its `path`, its `configured` range, `12 checked` and `3 skipped` for `counts` `{ checked: 12, skipped: 3 }` — `<spec::>`
-- [ ] a result list of three passing workspaces renders exactly three non-empty lines — `<spec::>`
-- [ ] an `incompatible` result lists, for each conflict, the dependency name, its range and its `dependencyFloor`, and the line `required floor: 22.22.2` when `floor` is `'22.22.2'` — `<spec::>`
-- [ ] an `incompatible` result with `floor: null` renders `required floor: none` — `<spec::>`
-- [ ] an `invalid-engines` and an `unreadable` result each render the `path` and the `message` — `<spec::>`
-- [ ] a `malformed-range` skip renders a warning line containing the dependency name and the bad range, under its workspace — `<spec::>`
-- [ ] the output contains neither `CHECK ENGINE` nor `criteria!.` — `<spec::>`
+- [x] a passing result renders as one line containing its `path`, its `configured` range, `12 checked` and `3 skipped` for `counts` `{ checked: 12, skipped: 3 }` — `report.spec.ts::renders a passing result as one line with path, range and counts`
+- [x] a result list of three passing workspaces renders exactly three non-empty lines — `report.spec.ts::renders three passing workspaces as exactly three non-empty lines`
+- [x] an `incompatible` result lists, for each conflict, the dependency name, its range and its `dependencyFloor`, and the line `required floor: 22.22.2` when `floor` is `'22.22.2'` — `report.spec.ts::lists each conflict with name, range and floor, plus the required floor`
+- [x] an `incompatible` result with `floor: null` renders `required floor: none` — `report.spec.ts::renders required floor: none when floor is null`
+- [x] an `invalid-engines` and an `unreadable` result each render the `path` and the `message` — `report.spec.ts::renders path and message for %s`
+- [x] a `malformed-range` skip renders a warning line containing the dependency name and the bad range, under its workspace — `report.spec.ts::renders a malformed-range skip as a warning under its workspace`
+- [x] the output contains neither `CHECK ENGINE` nor `criteria!.` — `report.spec.ts::prints neither the old banner nor the old typo`
 
 **Definition of done:**
 
-- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
-- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
-- [ ] Every acceptance criterion ticked with its evidence pointer
-- [ ] Change committed after both gates; hash recorded in **Commit** below
-- [ ] Status set to `done`; advisories (if any) noted below
+- [x] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [x] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [x] Every acceptance criterion ticked with its evidence pointer
+- [x] Change committed after both gates; hash recorded in **Commit** below
+- [x] Status set to `done`; advisories (if any) noted below
 
-**Advisories:** none
+**Advisories:** table regexes in report.spec.ts are colour-fragile (assume no ANSI under vitest; FORCE_COLOR would break the `$`-anchored rows); the malformed-range test uses a single workspace.
 
 - **Log:**
+  - `2026-10-08 dispatched @ sonnet (attempt 1)`
+  - `2026-10-08 qoq fix PASS (knip skipped) · tests REJECTED — dependencyFloor assertion was a substring of the range`
+  - `2026-10-08 re-dispatched (attempt 2)`
+  - `2026-10-08 qoq fix PASS · tests approved`
+  - `2026-10-08 done`
 
-**Commit:** none
+**Commit:** PENDING
 
 ### Ticket 1.4: Collect every workspace, exit once
 
