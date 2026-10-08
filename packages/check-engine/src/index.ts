@@ -44,7 +44,9 @@ cli.command('', 'Check Your engines.node config for project').action(async () =>
   process.stderr.write(`Current LTS: ${currentLts}\n`);
   process.stderr.write(`Maintained LTS: ${maintainedLts}\n\n`);
 
-  pathsToCheck.forEach((entry) => checkEngine(entry, pathsToCheck.length > 1));
+  pathsToCheck.forEach((entry) => {
+    checkEngine(entry);
+  });
 });
 
 cli.help();

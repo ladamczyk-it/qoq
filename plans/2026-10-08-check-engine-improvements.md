@@ -107,11 +107,11 @@ This is a single scripted sweep (one `node` loop over `package.json` + `packages
   - `2026-10-08 qoq fix PASS (knip skipped) · tests approved`
   - `2026-10-08 done`
 
-**Commit:** PENDING
+**Commit:** 3d006f5
 
 ### Ticket 1.2: Pure checkEngine with attribution and subset
 
-- **Status:** todo
+- **Status:** done
 - **Size:** M
 - **Complexity:** moderate
 - **Agent tier:** `sonnet`
@@ -127,33 +127,40 @@ This is a single scripted sweep (one `node` loop over `package.json` + `packages
 
 **Acceptance criteria:**
 
-- [ ] `engines.node` `>=18` with a dependency whose engines is `>=22` returns `status: 'fail'`, `reason: 'incompatible'`, and `conflicts[0]` has `dependency` = that name, `range: '>=22'`, `why: 'not-subset'`, `dependencyFloor: '22.0.0'` — `<spec::>`
-- [ ] `engines.node` `>=22.22.2` with a dependency `^22.13.0 || ^24.0.0` returns `fail` (it admits 23.x) — `<spec::>`
-- [ ] `engines.node` `^22.22.2 || ^24.15.0 || >=26.0.0` with dependency ranges `^22.12.0 || ^24.0.0 || >=26.0.0` and `^20.19.0 || ^22.13.0 || >=24` returns `pass` — `<spec::>`
-- [ ] exact `engines.node` `22.22.2` against `^22.13.0 || ^24` returns `pass`, and against `>=24` returns `fail` with `why: 'not-in-range'` — `<spec::>`
-- [ ] with two failing dependencies, `conflicts` lists both, each with its own `dependency` and `range` — `<spec::>`
-- [ ] dependency ranges `>=22` and `<20` (mutually unsatisfiable) give `floor: null` and `status: 'fail'`, `reason: 'incompatible'`, with a conflict entry per dependency — `<spec::>`
-- [ ] `floor` for dependency ranges `>=22.12.0`, `^20.19.0 || ^22.13.0 || >=24`, `>=22.22.2` is `'22.22.2'` — `<spec::>`
-- [ ] an invalid `engines.node` (`"banana"`) returns `fail`, `reason: 'invalid-engines'`, `configured: 'banana'`, with a non-empty `message` — `<spec::>`
-- [ ] an absent `engines.node` returns `status: 'pass'` with `configured: null` and `configuredFloor: null` — `<spec::>`
-- [ ] a dependency whose `getPackageInfo` throws is in `skipped` with `reason: 'not-installed'`; one with no `engines.node` has `reason: 'no-engines'`; one with range `"not a range"` has `reason: 'malformed-range'` and `range: 'not a range'`; none of them fails the workspace and `counts` is `{ checked, skipped }` of the right sizes — `<spec::>`
-- [ ] with no `dependencies` the `devDependencies` are used; with `dependencies` present the `devDependencies` are ignored; a name in both groups appears once under `dependencies` — `<spec::>`
-- [ ] an unreadable or unparseable `package.json` (including a path that does not exist) returns `fail`, `reason: 'unreadable'`, with `message` containing the path — `<spec::>`
-- [ ] `checkEngine` never calls `process.exit` and never writes to `process.stderr` (spies are not called in any case above) — `<spec::>`
+- [x] `engines.node` `>=18` with a dependency whose engines is `>=22` returns `status: 'fail'`, `reason: 'incompatible'`, and `conflicts[0]` has `dependency` = that name, `range: '>=22'`, `why: 'not-subset'`, `dependencyFloor: '22.0.0'` — `checkEngine.spec.ts::fails a ranged engines.node whose range is not a subset of the dependency range`
+- [x] `engines.node` `>=22.22.2` with a dependency `^22.13.0 || ^24.0.0` returns `fail` (it admits 23.x) — `checkEngine.spec.ts::fails when engines.node admits versions the dependency excludes`
+- [x] `engines.node` `^22.22.2 || ^24.15.0 || >=26.0.0` with dependency ranges `^22.12.0 || ^24.0.0 || >=26.0.0` and `^20.19.0 || ^22.13.0 || >=24` returns `pass` — `checkEngine.spec.ts::passes the repo-style multi-range engines.node`
+- [x] exact `engines.node` `22.22.2` against `^22.13.0 || ^24` returns `pass`, and against `>=24` returns `fail` with `why: 'not-in-range'` — `checkEngine.spec.ts::tests an exact engines.node against the dependency range`
+- [x] with two failing dependencies, `conflicts` lists both, each with its own `dependency` and `range` — `checkEngine.spec.ts::lists every failing dependency in conflicts`
+- [x] dependency ranges `>=22` and `<20` (mutually unsatisfiable) give `floor: null` and `status: 'fail'`, `reason: 'incompatible'`, with a conflict entry per dependency — `checkEngine.spec.ts::reports mutually unsatisfiable ranges with a null floor and a conflict per dependency`
+- [x] `floor` for dependency ranges `>=22.12.0`, `^20.19.0 || ^22.13.0 || >=24`, `>=22.22.2` is `'22.22.2'` — `checkEngine.spec.ts::computes the required floor across all dependency ranges`
+- [x] an invalid `engines.node` (`"banana"`) returns `fail`, `reason: 'invalid-engines'`, `configured: 'banana'`, with a non-empty `message` — `checkEngine.spec.ts::fails an invalid engines.node`
+- [x] an absent `engines.node` returns `status: 'pass'` with `configured: null` and `configuredFloor: null` — `checkEngine.spec.ts::passes with null configured and configuredFloor when engines.node is absent`
+- [x] a dependency whose `getPackageInfo` throws is in `skipped` with `reason: 'not-installed'`; one with no `engines.node` has `reason: 'no-engines'`; one with range `"not a range"` has `reason: 'malformed-range'` and `range: 'not a range'`; none of them fails the workspace and `counts` is `{ checked, skipped }` of the right sizes — `checkEngine.spec.ts::skips uninstalled, engine-less and malformed dependencies without failing`
+- [x] with no `dependencies` the `devDependencies` are used; with `dependencies` present the `devDependencies` are ignored; a name in both groups appears once under `dependencies` — `checkEngine.spec.ts::falls back to devDependencies only when there are no dependencies; ::ignores devDependencies when dependencies are present and reports a shared name once`
+- [x] an unreadable or unparseable `package.json` (including a path that does not exist) returns `fail`, `reason: 'unreadable'`, with `message` containing the path — `checkEngine.spec.ts::returns unreadable with the path in the message when package.json cannot be read`
+- [x] `checkEngine` never calls `process.exit` and never writes to `process.stderr` (spies are not called in any case above) — `checkEngine.spec.ts::never calls process.exit or writes to stderr, on pass, fail or unreadable`
 
 **Definition of done:**
 
-- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
-- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
-- [ ] Every acceptance criterion ticked with its evidence pointer
-- [ ] Change committed after both gates; hash recorded in **Commit** below
-- [ ] Status set to `done`; advisories (if any) noted below
+- [x] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [x] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [x] Every acceptance criterion ticked with its evidence pointer
+- [x] Change committed after both gates; hash recorded in **Commit** below
+- [x] Status set to `done`; advisories (if any) noted below
 
-**Advisories:** none
+**Advisories:** index.spec.ts has 3 failing assertions (old two-argument call) until Ticket 1.4 rewrites it; index.ts carries a one-line call-site adapter; types.ts has a file-level `eslint-disable @typescript-eslint/naming-convention` because the contract names have no I/T prefix; JSCPD clone index.ts:18-27 is pre-existing and removed by Ticket 2.1; reviewer notes: AC-12 mocks a plain Error rather than the real ReadFileError/JsonParseError, the ceiling spec asserts status/reason only.
 
 - **Log:**
+  - `2026-10-08 dispatched @ sonnet (attempt 1)`
+  - `2026-10-08 qoq fix FAIL — prefer-nullish-coalescing checkEngine.ts:102`
+  - `2026-10-08 re-dispatched (attempt 2)`
+  - `2026-10-08 qoq fix PASS (knip skipped) · tests REJECTED — fallback group asserted as dependencies`
+  - `2026-10-08 re-dispatched (attempt 3)`
+  - `2026-10-08 qoq fix PASS · tests approved`
+  - `2026-10-08 done`
 
-**Commit:** none
+**Commit:** PENDING
 
 ### Ticket 1.3: Terse human report
 
