@@ -7,7 +7,6 @@ import prompts from 'prompts';
 
 import { formatExecutionTime } from '../helpers/common.ts';
 import { formatCode } from '../helpers/formatCode.ts';
-import { loadTsConfig } from '../helpers/loadTsConfig.ts';
 import { installPackages } from '../helpers/packages.ts';
 import { askStatsConsent, getUsedOptions, sendStats, writeStatsConsent } from '../helpers/stats.ts';
 import { QoqConfig } from '../helpers/types.ts';
@@ -136,7 +135,6 @@ export const getConfig = async (
   const qoqConfig = await cosmiconfig(moduleName, {
     searchStrategy: 'project',
     searchPlaces,
-    loaders: { '.ts': loadTsConfig },
   }).search();
 
   if (!skipInit && !qoqConfig) {

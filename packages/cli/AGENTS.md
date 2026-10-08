@@ -55,10 +55,10 @@ export default {
 } satisfies QoqConfig;
 ```
 
-A `qoq.config.ts` is type-stripped in memory and imported as a data URL — no
-sibling `.mjs` is written to disk. Bare and relative imports still resolve
-against the config's real location (via a resolve hook), so runtime `import`s
-work the same as they would in a real file on disk.
+A `qoq.config.ts` is loaded natively by Node's type stripping (cosmiconfig 10) —
+no temp file is written. Erasable syntax only: no `enum`, `namespace` or
+parameter properties. Without `"type": "module"` in the project's
+`package.json`, Node prints a `MODULE_TYPELESS_PACKAGE_JSON` warning.
 
 All fields are optional. Defaults apply when omitted.
 

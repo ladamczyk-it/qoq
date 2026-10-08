@@ -39,8 +39,8 @@
     "@eslint/compat": "2.1.1",
     "@ladamczyk/qoq-utils": "^6.1.10",
     "@npmcli/package-json": "8.0.0",
-    "cac": "7.0.0",
-    "cosmiconfig": "9.0.2",
+    "cac": "7.0.1",
+    "cosmiconfig": "10.0.1",
     "fast-glob": "3.3.3",
     "micromatch": "4.0.8",
     "picocolors": "1.1.1",
@@ -74,8 +74,8 @@
     "@ladamczyk/qoq-prettier-with-json-sort": "^6",
     "@ladamczyk/qoq-stylelint-css": "^6",
     "@ladamczyk/qoq-stylelint-scss": "^6",
-    "@ladamczyk/skillslint": "^4.2.2",
-    "@ladamczyk/structurelint": "^1.1.1"
+    "@ladamczyk/skillslint": "^4.2.4",
+    "@ladamczyk/structurelint": "^1.1.4"
   },
   "peerDependenciesMeta": {
     "@ladamczyk/qoq-eslint-v9-js": {
