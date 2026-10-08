@@ -202,11 +202,11 @@ Rules:
   - `2026-10-08 qoq fix PASS (knip skipped; formatting applied on the orchestrating thread) · tests approved`
   - `2026-10-08 done`
 
-**Commit:** PENDING
+**Commit:** bab4666
 
 ### Ticket 2.4: LTS advisory and `--no-lts`
 
-- **Status:** todo
+- **Status:** done
 - **Size:** M
 - **Complexity:** moderate
 - **Agent tier:** `sonnet`
@@ -218,32 +218,35 @@ Rules:
   - Test: `packages/check-engine/src/helpers/checkEngine.spec.ts`, `packages/check-engine/src/helpers/report.spec.ts`, `packages/check-engine/src/index.spec.ts`
   - Modify: `packages/check-engine/AGENTS.md`, `packages/check-engine/CLAUDE.md`
 
-**Context:** Milestone 1 removed the `fetchNodeInfo` call from `index.ts`; this ticket restores it, once per run, before the workspace map, skipped when cac's `options.lts === false` (`--no-lts`; cac defaults `options.lts` to `true`). Pass `{ include, lts }` to every `checkEngine`. `checkEngine` fills `advisories` per the **Contracts** advisory rule (`major` from `semver`). `formatHuman` prints each advisory on the workspace's line group in yellow, `⚠ <advisory>`. A thrown `fetchNodeInfo` error propagates (the instruction message is the point); do not catch it. The advisory never affects `status` or `process.exitCode`. Docs: AGENTS.md currently claims a "bundled `node.json` snapshot in the package root" — that is false (nothing ships one, `files` is `["bin","AGENTS.md"]`); replace it with: download `https://nodejs.org/download/release/index.json` to `./node.json` in the project root when offline, or use `--no-lts`. Document `--no-lts` and the advisory. CLAUDE.md: update the helper list. Milestone 1 established: `formatHuman` returns each line followed by `\n` (empty results → `''`), so advisory lines must be added as lines, not appended after the join; the CLI writes the return value to stderr verbatim. Also update `packages/check-engine/CLAUDE.md`: it still says workspace globs are expanded via `readdirSync` — Ticket 2.1 replaced that with `findWorkspaces` (`node:fs` `globSync`).
+**Context:** Milestone 1 removed the `fetchNodeInfo` call from `index.ts`; this ticket restores it, once per run, before the workspace map, skipped when cac's `options.lts === false` (`--no-lts`; cac defaults `options.lts` to `true`). Pass `{ include, lts }` to every `checkEngine`. `checkEngine` fills `advisories` per the **Contracts** advisory rule (`major` from `semver`). `formatHuman` prints each advisory on the workspace's line group in yellow, `⚠ <advisory>`. A thrown `fetchNodeInfo` error propagates (the instruction message is the point); do not catch it. The advisory never affects `status` or `process.exitCode`. Docs: AGENTS.md currently claims a "bundled `node.json` snapshot in the package root" — that is false (nothing ships one, `files` is `["bin","AGENTS.md"]`); replace it with: download `https://nodejs.org/download/release/index.json` to `./node.json` in the project root when offline, or use `--no-lts`. Document `--no-lts` and the advisory. CLAUDE.md: update the helper list. Milestone 1 established: `formatHuman` returns each line followed by `\n` (empty results → `''`), so advisory lines must be added as lines, not appended after the join; the CLI writes the return value to stderr verbatim. Also update `packages/check-engine/CLAUDE.md`: it still says workspace globs are expanded via `readdirSync` — Ticket 2.1 replaced that with `findWorkspaces` (`node:fs` `globSync`). Established by Tickets 2.2/2.3: `CheckOptions.lts` in `checkEngine.ts` currently uses the inline type `{ currentLts: string; maintainedLts: string } | null` — replace it with the exported `LtsInfo` from `types.ts`. Until now `index.ts` calls `checkEngine(path)` with no options when `--include` is absent; from this ticket the CLI ALWAYS passes `{ include, lts }` to every `checkEngine` call, so the Milestone 1/2 assertions in `index.spec.ts` that expect `checkEngine` to be called with the path only (and the `--include` tests that hardcode `lts: null`) must change to the new argument shape — that call-argument shape is the only thing about those assertions you may change.
 
 **Acceptance criteria:**
 
-- [ ] `checkEngine(path, { include: [], lts: { currentLts: 'v24.13.0', maintainedLts: 'v22.13.1' } })` with `engines.node` `>=20.0.0` has `advisories` equal to one entry containing `20.0.0` and `v22` — `<spec::>`
-- [ ] with `engines.node` `>=22.22.2` and the same `lts`, `advisories` is `[]` — `<spec::>`
-- [ ] with `lts: null`, `advisories` is `[]` and `status` is unchanged — `<spec::>`
-- [ ] an advisory never changes `status` (a passing workspace with an advisory is still `pass`) — `<spec::>`
-- [ ] `formatHuman` renders each advisory as its own line containing the advisory text — `<spec::>`
-- [ ] by default the CLI calls `fetchNodeInfo('./node.json')` exactly once for a multi-workspace run and passes the result as `lts` to every `checkEngine` call — `<spec::>`
-- [ ] with `--no-lts` the CLI never calls `fetchNodeInfo` and passes `lts: null` — `<spec::>`
-- [ ] when `fetchNodeInfo` rejects, the action rejects with that error and `checkEngine` is not called — `<spec::>`
+- [x] `checkEngine(path, { include: [], lts: { currentLts: 'v24.13.0', maintainedLts: 'v22.13.1' } })` with `engines.node` `>=20.0.0` has `advisories` equal to one entry containing `20.0.0` and `v22` — `checkEngine.spec.ts::advises when the configured floor is below the maintained LTS major`
+- [x] with `engines.node` `>=22.22.2` and the same `lts`, `advisories` is `[]` — `checkEngine.spec.ts::gives no advisory when the floor is at the maintained LTS major`
+- [x] with `lts: null`, `advisories` is `[]` and `status` is unchanged — `checkEngine.spec.ts::gives no advisory without lts info and leaves status unchanged`
+- [x] an advisory never changes `status` (a passing workspace with an advisory is still `pass`) — `checkEngine.spec.ts::keeps a passing workspace with an advisory as pass`
+- [x] `formatHuman` renders each advisory as its own line containing the advisory text — `report.spec.ts::renders each advisory as its own line`
+- [x] by default the CLI calls `fetchNodeInfo('./node.json')` exactly once for a multi-workspace run and passes the result as `lts` to every `checkEngine` call — `index.spec.ts::should fetch the LTS info once and pass it to every checkEngine call`
+- [x] with `--no-lts` the CLI never calls `fetchNodeInfo` and passes `lts: null` — `index.spec.ts::should skip the LTS lookup and pass lts null with --no-lts`
+- [x] when `fetchNodeInfo` rejects, the action rejects with that error and `checkEngine` is not called — `index.spec.ts::should reject with the fetchNodeInfo error and not call checkEngine`
 
 **Definition of done:**
 
-- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
-- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
-- [ ] Every acceptance criterion ticked with its evidence pointer
-- [ ] Change committed after both gates; hash recorded in **Commit** below
-- [ ] Status set to `done`; advisories (if any) noted below
+- [x] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [x] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [x] Every acceptance criterion ticked with its evidence pointer
+- [x] Change committed after both gates; hash recorded in **Commit** below
+- [x] Status set to `done`; advisories (if any) noted below
 
-**Advisories:** none
+**Advisories:** the advisory fires on any floor whose major is below the maintained LTS major — once Ticket 2.6 lowers consumer floors it will fire on most published packages (decision pending: opt-in or drop); index.spec.ts fetch-once uses deep equality, so a copied `lts` object would not be caught.
 
 - **Log:**
+  - `2026-10-08 dispatched @ sonnet (attempt 1)`
+  - `2026-10-08 qoq fix PASS (knip skipped; formatting applied on the orchestrating thread) · tests approved`
+  - `2026-10-08 done`
 
-**Commit:** none
+**Commit:** PENDING
 
 ### Ticket 2.5: `--json` and `--quiet`
 

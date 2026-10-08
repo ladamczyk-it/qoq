@@ -12,9 +12,11 @@ npm test      # from the repo root — no per-package test script
 
 ## Internal architecture
 
-Two helpers in `src/helpers/`:
+Helpers in `src/helpers/`:
 
-- **`checkEngine(path)`** — pure: reads one `package.json`, collects `engines.node` from every dependency (or devDependency if dependencies is empty), and returns a `WorkspaceResult`. It never exits or writes.
-- **`formatHuman(results)`** — pure: renders the results as one line per workspace.
+- **`checkEngine(path, { include, lts })`** — pure: reads one `package.json`, collects `engines.node` from every dependency (or devDependency if dependencies is empty, plus the `include`d groups), and returns a `WorkspaceResult`, with an LTS advisory when `lts` is given. It never exits or writes.
+- **`findWorkspaces(cwd, workspaces)`** — expands workspace globs with `node:fs` `globSync`; root first, then sorted.
+- **`fetchNodeInfo(path)`** — current and maintained LTS from nodejs.org (3s timeout), falling back to `./node.json`; throws with instructions if both fail.
+- **`formatHuman(results)`** — pure: renders the results as one line per workspace, plus warning and advisory lines.
 
-`src/index.ts` resolves the list of `package.json` files to check: the root `package.json` is always included; workspace glob patterns are expanded by reading the filesystem via `readdirSync`. `checkEngine` runs once per resolved path, the report goes to stderr, and `process.exitCode` is set to `1` once if any result failed (`process.exit` is never called).
+`src/index.ts` fetches the LTS info once (skipped by `--no-lts`), resolves the `package.json` files via `findWorkspaces`, and runs `checkEngine` once per path. The report goes to stderr, and `process.exitCode` is set to `1` once if any result failed (`process.exit` is never called). A `fetchNodeInfo` error propagates.

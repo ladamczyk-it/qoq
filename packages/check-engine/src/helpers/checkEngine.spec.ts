@@ -315,3 +315,51 @@ describe('checkEngine include option', () => {
     expect(names(checkEngine('./package.json'))).toStrictEqual([['a', 'dependencies']]);
   });
 });
+
+describe('checkEngine advisories', () => {
+  const lts = { currentLts: 'v24.13.0', maintainedLts: 'v22.13.1' };
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('advises when the configured floor is below the maintained LTS major', () => {
+    withDeps('>=20.0.0', {});
+
+    const { advisories } = checkEngine('./package.json', { include: [], lts });
+
+    expect(advisories).toHaveLength(1);
+    expect(advisories[0]).toContain('20.0.0');
+    expect(advisories[0]).toContain('v22');
+  });
+
+  it('gives no advisory when the floor is at the maintained LTS major', () => {
+    withDeps('>=22.22.2', {});
+
+    expect(checkEngine('./package.json', { include: [], lts }).advisories).toStrictEqual([]);
+  });
+
+  it('gives no advisory without lts info and leaves status unchanged', () => {
+    withDeps('>=20.0.0', {});
+
+    const result = checkEngine('./package.json', { include: [], lts: null });
+
+    expect(result.advisories).toStrictEqual([]);
+    expect(result.status).toBe('pass');
+  });
+
+  it('keeps a passing workspace with an advisory as pass', () => {
+    withDeps('>=20.0.0', {});
+
+    const result = checkEngine('./package.json', { include: [], lts });
+
+    expect(result.advisories).toHaveLength(1);
+    expect(result.status).toBe('pass');
+  });
+
+  it('gives no advisory when engines.node is not configured', () => {
+    withDeps(undefined, {});
+
+    expect(checkEngine('./package.json', { include: [], lts }).advisories).toStrictEqual([]);
+  });
+});

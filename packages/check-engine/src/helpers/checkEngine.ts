@@ -1,7 +1,7 @@
 import { dirname, relative, resolve } from 'node:path';
 
 import { getPackageInfo } from '@ladamczyk/qoq-utils';
-import { minVersion, Range, satisfies, subset, valid, validRange } from 'semver';
+import { major, minVersion, Range, satisfies, subset, valid, validRange } from 'semver';
 
 import { readJsonSync } from './readJson.ts';
 
@@ -10,6 +10,7 @@ import type {
   DependencyGroup,
   DependencyRequirement,
   IncludeFlag,
+  LtsInfo,
   SkippedDependency,
   WorkspaceBase,
   WorkspaceResult,
@@ -78,8 +79,7 @@ const resolveDependencies = (
 // eslint-disable-next-line @typescript-eslint/naming-convention -- name fixed by the milestone contract
 export interface CheckOptions {
   include: readonly IncludeFlag[];
-  // Structurally the contract's LtsInfo; Ticket 2.3 declares the named type.
-  lts: { currentLts: string; maintainedLts: string } | null;
+  lts: LtsInfo | null;
 }
 
 const INCLUDED_GROUPS: Record<IncludeFlag, DependencyGroup> = {
@@ -157,14 +157,22 @@ export const checkEngine = (
   const requirements = results.flatMap((r) => r.requirements);
   const skipped = results.flatMap((r) => r.skipped);
   const floor = requiredFloor(requirements.map((r) => r.range));
+  const configuredFloor = configured === null ? null : floorOf(configured);
+  const advisories =
+    options.lts && configuredFloor && major(configuredFloor) < major(options.lts.maintainedLts)
+      ? [
+          `engines.node floor ${configuredFloor} is below the maintained LTS (v${major(options.lts.maintainedLts)})`,
+        ]
+      : [];
   const filled: WorkspaceBase = {
     ...base,
     configured,
-    configuredFloor: configured === null ? null : floorOf(configured),
+    configuredFloor,
     floor,
     requirements,
     skipped,
     counts: { checked: requirements.length, skipped: skipped.length },
+    advisories,
   };
 
   const why: Conflict['why'] = isExact ? 'not-in-range' : 'not-subset';

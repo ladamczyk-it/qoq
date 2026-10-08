@@ -24,6 +24,7 @@ const formatOne = (result: WorkspaceResult): string[] => {
     .map((skip) =>
       c.yellow(`  ⚠ ${skip.name} has a malformed engines.node range "${skip.range}" (skipped)`)
     );
+  const advisories = result.advisories.map((advisory) => c.yellow(`  ⚠ ${advisory}`));
 
   if (result.status === 'pass') {
     const head =
@@ -31,11 +32,11 @@ const formatOne = (result: WorkspaceResult): string[] => {
         ? c.yellow(`✔ ${path}  no engines.node configured — add one`)
         : c.green(`✔ ${path}  ${configured}  ${summary}`);
 
-    return [head, ...warnings];
+    return [head, ...warnings, ...advisories];
   }
 
   if (result.reason !== 'incompatible') {
-    return [c.red(`✖ ${path}  ${result.message}`), ...warnings];
+    return [c.red(`✖ ${path}  ${result.message}`), ...warnings, ...advisories];
   }
 
   const floor = result.floor ?? 'none — dependency ranges are mutually unsatisfiable';
@@ -45,6 +46,7 @@ const formatOne = (result: WorkspaceResult): string[] => {
     ...conflictTable(result.conflicts),
     `  required floor: ${floor}`,
     ...warnings,
+    ...advisories,
   ];
 };
 

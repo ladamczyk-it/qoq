@@ -11,6 +11,13 @@ check-engine
 No configuration file required. Run it from the project root.
 
 - `--include <list>` — also check these dependency groups, comma-separated: `dev` (`devDependencies`), `peer` (`peerDependencies`), `optional` (`optionalDependencies`). Any other value prints a one-line error to stderr and exits `1` without checking anything. A name in several groups is checked once (precedence: dependencies, dev, peer, optional).
+- `--no-lts` — skip the Node LTS lookup and its advisory.
+
+## Node LTS advisory
+
+Unless `--no-lts` is passed, the Node release list is fetched once per run from `https://nodejs.org/download/release/index.json`. When it is unreachable, `./node.json` in the project root is used instead; if neither works the run fails with instructions. Offline? Download `https://nodejs.org/download/release/index.json` to `./node.json` in the project root, or use `--no-lts`.
+
+A workspace whose `engines.node` floor has a lower major than the maintained LTS gets a yellow `⚠` advisory line. The advisory never changes the result or the exit code.
 
 ## What it checks
 
@@ -23,7 +30,7 @@ For each `package.json` in scope:
 
 ## Monorepo support
 
-Discovered automatically from the root `package.json` `workspaces` field. Glob patterns with `*` are expanded by reading the filesystem; each discovered sub-package is checked individually.
+Discovered automatically from the root `package.json` `workspaces` field. Glob patterns with `*` are expanded with `fs.globSync`; each discovered sub-package is checked individually.
 
 ## Integration
 

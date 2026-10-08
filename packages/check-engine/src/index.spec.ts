@@ -18,6 +18,9 @@ vi.mock('./helpers/fetchNodeInfo.ts', () => ({ fetchNodeInfo: vi.fn() }));
 vi.mock('./helpers/findWorkspaces.ts', () => ({ findWorkspaces: vi.fn() }));
 vi.mock('./helpers/report.ts', () => ({ formatHuman: vi.fn() }));
 
+const lts = { currentLts: 'v24.13.0', maintainedLts: 'v22.13.1' };
+const noInclude = { include: [], lts };
+
 const makeResult = (status: 'pass' | 'fail'): WorkspaceResult =>
   ({ status }) as unknown as WorkspaceResult;
 
@@ -37,6 +40,7 @@ describe('cli', () => {
     vi.mocked(checkEngine).mockReturnValue(makeResult('pass'));
     vi.mocked(formatHuman).mockReturnValue('REPORT');
     vi.mocked(getPackageJson).mockReturnValue({});
+    vi.mocked(fetchNodeInfo).mockResolvedValue(lts);
     vi.mocked(findWorkspaces).mockReturnValue(['./package.json']);
   });
 
@@ -54,7 +58,7 @@ describe('cli', () => {
     await run();
 
     expect(checkEngine).toHaveBeenCalledTimes(1);
-    expect(checkEngine).toHaveBeenCalledWith('./package.json');
+    expect(checkEngine).toHaveBeenCalledWith('./package.json', noInclude);
   });
 
   it('should pass the root workspaces value to findWorkspaces and check each returned path', async () => {
@@ -70,9 +74,9 @@ describe('cli', () => {
 
     expect(findWorkspaces).toHaveBeenCalledWith(process.cwd(), workspaces);
     expect(checkEngine).toHaveBeenCalledTimes(3);
-    expect(checkEngine).toHaveBeenNthCalledWith(1, './package.json');
-    expect(checkEngine).toHaveBeenNthCalledWith(2, 'libs/foo/package.json');
-    expect(checkEngine).toHaveBeenNthCalledWith(3, 'packages/a/package.json');
+    expect(checkEngine).toHaveBeenNthCalledWith(1, './package.json', noInclude);
+    expect(checkEngine).toHaveBeenNthCalledWith(2, 'libs/foo/package.json', noInclude);
+    expect(checkEngine).toHaveBeenNthCalledWith(3, 'packages/a/package.json', noInclude);
   });
 
   it('should pass every result to formatHuman and set exitCode 1 when any fail', async () => {
@@ -109,13 +113,37 @@ describe('cli', () => {
     expect(stderrMock).toHaveBeenCalledWith('REPORT');
   });
 
-  it('should never call process.exit or fetchNodeInfo', async () => {
+  it('should never call process.exit', async () => {
     vi.mocked(checkEngine).mockReturnValue(makeResult('fail'));
 
     await run();
 
     expect(exitMock).not.toHaveBeenCalled();
+  });
+
+  it('should fetch the LTS info once and pass it to every checkEngine call', async () => {
+    vi.mocked(findWorkspaces).mockReturnValue(['./package.json', 'a/package.json']);
+
+    await run();
+
+    expect(fetchNodeInfo).toHaveBeenCalledTimes(1);
+    expect(fetchNodeInfo).toHaveBeenCalledWith('./node.json');
+    expect(checkEngine).toHaveBeenNthCalledWith(1, './package.json', { include: [], lts });
+    expect(checkEngine).toHaveBeenNthCalledWith(2, 'a/package.json', { include: [], lts });
+  });
+
+  it('should skip the LTS lookup and pass lts null with --no-lts', async () => {
+    await run('--no-lts');
+
     expect(fetchNodeInfo).not.toHaveBeenCalled();
+    expect(checkEngine).toHaveBeenCalledWith('./package.json', { include: [], lts: null });
+  });
+
+  it('should reject with the fetchNodeInfo error and not call checkEngine', async () => {
+    vi.mocked(fetchNodeInfo).mockRejectedValue(new Error('no lts data'));
+
+    await expect(run()).rejects.toThrow('no lts data');
+    expect(checkEngine).not.toHaveBeenCalled();
   });
 
   it('should call checkEngine with the parsed include list for every workspace', async () => {
@@ -123,7 +151,7 @@ describe('cli', () => {
 
     await run('--include', 'dev,peer');
 
-    const options = { include: ['dev', 'peer'], lts: null };
+    const options = { include: ['dev', 'peer'], lts };
 
     expect(checkEngine).toHaveBeenCalledTimes(2);
     expect(checkEngine).toHaveBeenNthCalledWith(1, './package.json', options);

@@ -132,6 +132,18 @@ describe('formatHuman', () => {
     expect(out).toContain('no engines.node configured');
   });
 
+  it('renders each advisory as its own line', () => {
+    const out = formatHuman([
+      { ...pass('packages/foo'), advisories: ['first advice', 'second advice'] },
+    ]);
+    const lines = out.trimEnd().split('\n');
+
+    expect(lines).toHaveLength(3);
+    expect(lines[1]).toContain('⚠');
+    expect(lines[1]).toContain('first advice');
+    expect(lines[2]).toContain('second advice');
+  });
+
   it('prints neither the old banner nor the old typo', () => {
     const out = formatHuman([pass('a'), incompatible('22.22.2')]);
 
