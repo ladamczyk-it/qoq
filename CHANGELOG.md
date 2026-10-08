@@ -1,3 +1,27 @@
+# [6.2.0](https://github.com/ladamczyk-it/qoq/compare/v6.1.10...v6.2.0) (2026-10-08)
+
+
+### Bug Fixes
+
+* bump packages ([a06cc4c](https://github.com/ladamczyk-it/qoq/commit/a06cc4c2b554f6e34617fcfa17102b383331de82))
+* **check-engine:** compare engines with semver.subset, return attributed results ([d565a8f](https://github.com/ladamczyk-it/qoq/commit/d565a8fa250db49930da24625aac4ff9be8ae229))
+* **check-engine:** end the human report with a newline ([697861c](https://github.com/ladamczyk-it/qoq/commit/697861c6cde43ebec0d8fb5691b94cf5d112f7b5))
+* **check-engine:** milestone gate — drop unconsumed types, fix spec typings ([c16840b](https://github.com/ladamczyk-it/qoq/commit/c16840bdb16f21a662ce843f0b59414feda917d7))
+* **check-engine:** time out the LTS lookup and explain the node.json fallback ([bab4666](https://github.com/ladamczyk-it/qoq/commit/bab4666673e23924d3659b4efb9f7741b7eed04e))
+
+
+### Features
+
+* **check-engine:** add --include dev,peer,optional ([9b17c92](https://github.com/ladamczyk-it/qoq/commit/9b17c925c31fb4e0c4bfb39525beacc502daa5ee))
+* **check-engine:** add --json and --quiet ([8d06ba4](https://github.com/ladamczyk-it/qoq/commit/8d06ba4c18dcad6e6b29168ad05763425a729e90))
+* **check-engine:** discover workspaces with fs.globSync ([45ebc52](https://github.com/ladamczyk-it/qoq/commit/45ebc52a4e6def32ed6814f22c3ab39592c0c8e0))
+* **check-engine:** LTS advisory and --no-lts ([b0ea0f3](https://github.com/ladamczyk-it/qoq/commit/b0ea0f3bdd57ed12250aeb69df9cb93bfa1ca1ad))
+* **check-engine:** report every workspace, exit once ([2ab5fbd](https://github.com/ladamczyk-it/qoq/commit/2ab5fbde10a291a87ef3b0b23bb7190c725c7dc4))
+* **check-engine:** terse human report ([fa840dc](https://github.com/ladamczyk-it/qoq/commit/fa840dc95f935ff940b1e0dc20becddffb273f36))
+* packages + minimum node bump ([c184395](https://github.com/ladamczyk-it/qoq/commit/c184395c2ffb041b2e64a351b34daa1f100cb9e4))
+* packages + minimum node bump ([d3625ee](https://github.com/ladamczyk-it/qoq/commit/d3625ee20962ba3c782a1bb12547a6bba6e6daa7))
+* switch to @ladamczyk/outdated ([fe7877f](https://github.com/ladamczyk-it/qoq/commit/fe7877f3f4172728b904f690961fee009b70b148))
+
 ## [6.1.10](https://github.com/ladamczyk-it/qoq/compare/v6.1.9...v6.1.10) (2026-10-05)
 
 
