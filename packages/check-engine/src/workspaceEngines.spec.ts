@@ -18,6 +18,7 @@ interface ILockfile {
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const NODE_RANGE = '^22.22.2 || ^24.15.0 || >=26.0.0';
+const ROOT_NODE_RANGE = '^22.22.2';
 const NPM_RANGE = '>= 10';
 
 const readJson = <T>(relativePath: string): T =>
@@ -35,14 +36,21 @@ const checkedPackageJsons = ['package.json', ...workspacePackageJsons()];
 const isWorkspaceKey = (key: string): boolean => /^packages\/[^/]+$/.test(key);
 
 describe('workspace engines', () => {
-  it.each(checkedPackageJsons)('%s declares the shared engines', (relativePath) => {
+  it('root package.json declares the root engines', () => {
+    const { engines } = readJson<IPackageJson>('package.json');
+
+    expect(engines?.node).toBe(ROOT_NODE_RANGE);
+    expect(engines?.npm).toBe(NPM_RANGE);
+  });
+
+  it.each(workspacePackageJsons())('%s declares the shared engines', (relativePath) => {
     const { engines } = readJson<IPackageJson>(relativePath);
 
     expect(engines?.node).toBe(NODE_RANGE);
     expect(engines?.npm).toBe(NPM_RANGE);
   });
 
-  it('gives every workspace entry and the root entry in package-lock.json the shared engines', () => {
+  it('gives every workspace entry the shared engines and the root entry in package-lock.json the root engines', () => {
     const { packages } = readJson<ILockfile>('package-lock.json');
     const workspaceKeys = Object.keys(packages).filter((key) => key === '' || isWorkspaceKey(key));
     const enginesByKey = workspaceKeys.map((key) => ({
@@ -53,7 +61,11 @@ describe('workspace engines', () => {
 
     expect(workspaceKeys.length).toBeGreaterThan(1);
     expect(enginesByKey).toStrictEqual(
-      workspaceKeys.map((key) => ({ key, node: NODE_RANGE, npm: NPM_RANGE }))
+      workspaceKeys.map((key) => ({
+        key,
+        node: key === '' ? ROOT_NODE_RANGE : NODE_RANGE,
+        npm: NPM_RANGE,
+      }))
     );
   });
 

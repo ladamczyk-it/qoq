@@ -250,6 +250,79 @@ A failing `incompatible` workspace prints `✖ packages/foo  >=18  (…)` (red),
 
 **Commit:** 2ab5fbd
 
+### Ticket 1.5: Root engines track the strictest dev dependency
+
+- **Status:** done
+- **Size:** XS
+- **Complexity:** mechanical
+- **Agent tier:** `haiku`
+- **Estimate:** `mechanical` · stack `monorepo-js` · baseline 0/2
+- **Escalation:** none
+- **Depends on:** none
+- **Files:**
+  - Modify: `package.json`, `package-lock.json`
+  - Test: `packages/check-engine/src/workspaceEngines.spec.ts`
+
+**Context:** Found by the Milestone 1 gate: running the built `check-engine` on this repo fails the root, because root `engines.node` `^22.22.2 || ^24.15.0 || >=26.0.0` admits Node 27+ while the root devDependency `lerna` declares `^22.13.0 || ^24.0.0 || ^26.0.0`. The user decided the root only (private tooling) gets `engines.node` `^22.22.2` (and `engines.npm` stays `">= 10"`). Every `packages/*/package.json` keeps `^22.22.2 || ^24.15.0 || >=26.0.0`. The lockfile root entry is the `""` key under `packages`; update only its `engines.node`. Do **not** run `npm install`. `workspaceEngines.spec.ts` (Ticket 1.1) currently asserts the shared string for the root and for the lockfile `""` entry: change those two expectations to `^22.22.2` and leave the workspace expectations as they are.
+
+**Acceptance criteria:**
+
+- [x] the root `package.json` has `engines.node === "^22.22.2"` and `engines.npm === ">= 10"` — `workspaceEngines.spec.ts::root package.json declares the root engines`
+- [x] the `""` entry of `package-lock.json` has `engines.node === "^22.22.2"` and `engines.npm === ">= 10"` — `workspaceEngines.spec.ts::gives every workspace entry the shared engines and the root entry in package-lock.json the root engines (key === "")`
+- [x] every `packages/*/package.json` and its lockfile entry still has `engines.node === "^22.22.2 || ^24.15.0 || >=26.0.0"` and `engines.npm === ">= 10"` — `workspaceEngines.spec.ts::%s declares the shared engines; ::gives every workspace entry the shared engines and the root entry in package-lock.json the root engines`
+
+**Definition of done:**
+
+- [x] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [x] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [x] Every acceptance criterion ticked with its evidence pointer
+- [x] Change committed after both gates; hash recorded in **Commit** below
+- [x] Status set to `done`; advisories (if any) noted below
+
+**Advisories:** workspaceEngines.spec.ts derives the expected lockfile keys from the lockfile itself; an absent `""` entry would not fail AC-2 (add `expect(workspaceKeys).toContain('')`).
+
+- **Log:**
+  - `2026-10-08 dispatched @ haiku (attempt 1)`
+  - `2026-10-08 qoq fix PASS (knip skipped) · tests approved`
+  - `2026-10-08 done`
+
+**Commit:** PENDING
+
+### Ticket 1.6: Report ends with a newline
+
+- **Status:** todo
+- **Size:** XS
+- **Complexity:** mechanical
+- **Agent tier:** `sonnet`
+- **Estimate:** `mechanical` · stack `monorepo-js` · baseline 0/2
+- **Escalation:** none
+- **Depends on:** none
+- **Files:**
+  - Modify: `packages/check-engine/src/helpers/report.ts`
+  - Test: `packages/check-engine/src/helpers/report.spec.ts`
+
+**Context:** Found by the Milestone 1 gate: the CLI writes `formatHuman(results)` to stderr verbatim (Ticket 1.4 asserts the stderr write is exactly the `formatHuman` return value), and `formatHuman` currently returns lines joined by `\n` with no trailing newline, so the shell prompt lands on the last workspace's line. Fix it in `formatHuman` (not in `index.ts`): when there is at least one line, the returned string ends with exactly one `\n`; for an empty `results` it returns `''`. The existing `report.spec.ts` tests split the output on `\n` and filter empty lines or anchor rows with `$`; keep them green (adjust only a split that would now see a trailing empty element, never an expectation about content).
+
+**Acceptance criteria:**
+
+- [ ] `formatHuman` of one passing result returns a string that ends with exactly one `\n` (and not `\n\n`) — `<spec::>`
+- [ ] `formatHuman` of a failing `incompatible` result (table plus `required floor`) ends with exactly one `\n` — `<spec::>`
+- [ ] `formatHuman([])` returns `''` — `<spec::>`
+
+**Definition of done:**
+
+- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [ ] Every acceptance criterion ticked with its evidence pointer
+- [ ] Change committed after both gates; hash recorded in **Commit** below
+- [ ] Status set to `done`; advisories (if any) noted below
+
+**Advisories:** none
+
+- **Log:**
+
+**Commit:** none
+
 ### Milestone 1 — Definition of done
 
 - [ ] All tickets above are `done`
