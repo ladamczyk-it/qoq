@@ -31,3 +31,4 @@ lerna-debug.log*
 eslint.config.local.bundled_*.cjs
 
 .claude/*
+plans
