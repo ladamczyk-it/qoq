@@ -258,9 +258,9 @@ flowchart TD
 flowchart TD
     CLEAN{"worktree<br/>clean?"}
     CLEAN -->|no| BSTOP(["**stop** — commit or<br/>stash first"])
-    CLEAN -->|yes| PLAN["**impact analysis** — what's outdated,<br/>minor/patch grouped,<br/>**one major step per package**<br/>*(nothing written, no patches yet)*"]
+    CLEAN -->|yes| PLAN["**impact analysis** — what's outdated<br/>*(`npx qoq npm --json` →<br/>`@ladamczyk/outdated` report:<br/>majorBump, deprecated, stale, blocked,<br/>repository)*, minor/patch grouped,<br/>**one major step per package**<br/>*(nothing written, no patches yet)*"]
     PLAN --> MAJ{"majors, or queued<br/>failures, among them?"}
-    MAJ -->|yes| BUMPER["dispatch **qoq-bumper**<br/>(Sonnet, one per package)<br/>*(name, current version)*"]
+    MAJ -->|yes| BUMPER["dispatch **qoq-bumper**<br/>(Sonnet, one per package)<br/>*(name, current version,<br/>repository URL)*"]
     MAJ -->|no| BAPPR
 
     subgraph BUMPFLOW["qoq-bumper flow *(everything the agent does)*"]
@@ -269,7 +269,7 @@ flowchart TD
         MB0 -->|yes| MB1
         MB0 -->|"no — already on the<br/>latest major line"| MBL["target = **latest stable**<br/>within it"]
         MBL --> MB1
-        MB1["read the changelog / release notes /<br/>migration docs for **current → target**"]
+        MB1["read the changelog / release notes /<br/>migration docs for **current → target** —<br/>*repository first: shallow clone, then<br/>WebFetch of it, WebSearch last*"]
         MB1 --> MB2["grep **this codebase** for the<br/>APIs that actually changed"]
         MB2 --> MB3["return: breaking changes that<br/>land here, migration steps, risk<br/>— *no edits*"]
     end

@@ -296,24 +296,31 @@ if (jscpd && !jscpd.__parseError) {
 }
 
 // ---------- npm outdated ----------
-// Report is written by NpmExecutor's --json path: { major, minor, patch } buckets
-// of { name, current, latest } — already deduped and version-bucketed by
-// NpmExecutor itself, so no further grouping is needed here.
+// Report is written by NpmExecutor's --json path: @ladamczyk/outdated's schema v1
+// verbatim. `packages` always lists the ok ones too, so they are filtered here.
+// `blocked` is informational (latest needs a newer Node) — shown, never counted.
 const npm = read('npm-report.json');
 if (npm && !npm.__parseError) {
-  const buckets = ['major', 'minor', 'patch'];
-  const counts = Object.fromEntries(buckets.map((b) => [b, (npm[b] ?? []).length]));
-  const total = buckets.reduce((n, b) => n + counts[b], 0);
-  if (total) {
+  const pkgs = (npm.packages ?? []).filter((p) => !p.flags?.includes('ok'));
+  const has = (flag) => pkgs.filter((p) => p.flags?.includes(flag));
+  const upgrade = (p) => `${p.name} ${p.current}->${p.latest}`;
+  const outdated = has('outdated');
+  const groups = [
+    ['major', outdated.filter((p) => p.majorBump).map(upgrade)],
+    ['minor/patch', outdated.filter((p) => !p.majorBump).map(upgrade)],
+    ['deprecated', has('deprecated').map((p) => `${p.name}: ${p.deprecated}`)],
+    ['stale', has('stale').map((p) => `${p.name} (last release ${p.lastPublish?.slice(0, 10)})`)],
+    ['unknown', has('unknown').map((p) => `${p.name}: ${p.unknown}`)],
+    ['blocked', has('blocked').map((p) => `${p.name} (latest needs node ${p.latestNode})`)],
+  ].filter(([, items]) => items.length);
+  const total = pkgs.filter((p) => p.flags?.some((f) => f !== 'blocked')).length;
+  if (groups.length) {
     totalFindings += total;
-    const lines = buckets
-      .filter((b) => counts[b])
-      .map((b) => {
-        const items = (npm[b] ?? []).map((p) => `${p.name} ${p.current}->${p.latest}`);
-        return `  ${b.padEnd(8)} x${counts[b]}  ${cap(items)}`;
-      });
+    const lines = groups.map(
+      ([name, items]) => `  ${name.padEnd(11)} x${items.length}  ${cap(items)}`
+    );
     sections.push(
-      `NPM  ${total} outdated package(s)  [judgment needed — check changelogs before major bumps]\n${lines.join('\n')}`
+      `NPM  ${total} package(s) need attention  [judgment needed — check changelogs before major bumps]\n${lines.join('\n')}`
     );
   }
 } else if (npm?.__parseError) {

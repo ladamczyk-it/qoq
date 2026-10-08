@@ -17,7 +17,7 @@ With **QoQ CLI**, keeping your code clean and compliant is easier than ever.
 
 **Default checks** run on every command and need no configuration. Each can be skipped for a single run with its `--skip-*` flag:
 
-- **npm packages check** – flags outdated dependencies via `npm outdated`, throttled to `npm.checkOutdatedEvery` days (`--skip-npm`).
+- **npm packages check** – flags outdated, deprecated and stale dependencies via `@ladamczyk/outdated`, throttled to `npm.checkOutdatedEvery` days (`--skip-npm`).
 - **Prettier** formatting (`--skip-prettier`), **JSCPD** copy-paste detection (`--skip-jscpd`), **Knip** unused-exports/dead-code (`--skip-knip`), and **ESLint** linting (`--skip-eslint`).
 
 **Optional checks** run only when their config block is present in `qoq.config.js`; omit the block to disable them, or skip for a single run with the matching `--skip-*` flag:

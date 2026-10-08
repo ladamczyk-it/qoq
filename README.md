@@ -23,7 +23,7 @@ QoQ provides essential tooling to ensure code quality across all your projects:
 - **Stylelint** – Lint CSS/SCSS with opinionated presets.
 - **Structurelint** – Validate project file/folder structure (via `@ladamczyk/structurelint`).
 - **Skillslint** – Lint Claude Code skill documentation (via `@ladamczyk/skillslint`).
-- **npm outdated checks** – Flag stale dependencies on a configurable cadence.
+- **Dependency checks** – Flag outdated, deprecated and stale dependencies on a configurable cadence.
 
 Most tools are available as an independent package under the `@ladamczyk/qoq-*` namespace, making it easy to integrate and customize. Structurelint and Skillslint are optional integrations backed by separate `@ladamczyk/structurelint` and `@ladamczyk/skillslint` packages.
 

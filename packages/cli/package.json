@@ -45,8 +45,7 @@
     "micromatch": "4.0.8",
     "picocolors": "1.1.1",
     "prompts": "2.4.2",
-    "react-fast-compare": "3.2.2",
-    "semver": "7.8.5"
+    "react-fast-compare": "3.2.2"
   },
   "devDependencies": {
     "@types/micromatch": "4.0.10",
@@ -74,6 +73,7 @@
     "@ladamczyk/qoq-prettier-with-json-sort": "^6",
     "@ladamczyk/qoq-stylelint-css": "^6",
     "@ladamczyk/qoq-stylelint-scss": "^6",
+    "@ladamczyk/outdated": "^1.1.1",
     "@ladamczyk/skillslint": "^4.2.4",
     "@ladamczyk/structurelint": "^1.1.4"
   },

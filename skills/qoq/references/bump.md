@@ -13,10 +13,18 @@ dirty tree. This isn't a warning to proceed past.
 ## The plan is an impact analysis, not a patch set
 
 The planning phase **writes nothing** — not the tree, not a patch file. It works
-out what's outdated, groups minor and patch bumps, and plans **at most one major
-step per package**. Majors (and any package queued from a previous round's
-failure) get a `qoq-bumper` dispatch, which is the analysis itself and has to
-happen before the choice.
+out what's outdated with `npx qoq npm --json` (an explicit tool name skips the
+check's throttle; the result is `npm-report.json` in the record's report directory), groups minor and
+patch bumps, and plans **at most one major step per package**. Majors (and any
+package queued from a previous round's failure) get a `qoq-bumper` dispatch,
+which is the analysis itself and has to happen before the choice.
+
+Read the report, not just the version gap: `majorBump` separates the majors,
+`wanted` is what the current range already allows, `deprecated` and `stale`
+packages are worth raising even when no bump is pending, and `blocked` means
+the newest release needs a newer Node than this one — not a bump to attempt.
+`packages` also lists the ok ones; skip anything flagged `ok`. Each package's
+`repository` URL goes into its `qoq-bumper` dispatch.
 
 Then present, per package: current → target, minor/patch or major, and for majors
 what `qoq-bumper` found — the breaking changes that actually land here, with the

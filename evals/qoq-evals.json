@@ -90,6 +90,8 @@
         "The planning phase writes nothing — no tree changes, no patch files",
         "Groups minor and patch bumps and plans at most one major step per package",
         "Dispatches one qoq-bumper per major package",
+        "Gets the outdated list from `npx qoq npm --json` and each package's repository URL from it, not from `npm outdated` or a web search",
+        "qoq-bumper reads the repository first (clone, then fetch) and uses web search only as a last resort",
         "qoq-bumper edits nothing — no source, no package.json, no lockfile",
         "Presents current → target plus the breaking changes that land here, with files",
         "Lets the user pick and exclude before any patch is written",

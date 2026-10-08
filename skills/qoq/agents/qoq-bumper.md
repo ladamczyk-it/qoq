@@ -1,8 +1,8 @@
 ---
 name: qoq-bumper
-description: Reads a single npm package's changelog, release notes, and migration guide for the range between its current version and the next sensible target, then greps this codebase to find which of those breaking changes actually land here. Dispatched by `qoq bump` once per major-version package, and for any package the split ladder gave up on. Takes the package name and current version only — it resolves the target itself. Returns breaking changes with the files they affect, migration steps, and a risk read. Never edits anything.
+description: Reads a single npm package's changelog, release notes, and migration guide for the range between its current version and the next sensible target, then greps this codebase to find which of those breaking changes actually land here. Dispatched by `qoq bump` once per major-version package, and for any package the split ladder gave up on. Takes the package name, current version and repository URL — it resolves the target itself. Returns breaking changes with the files they affect, migration steps, and a risk read. Never edits anything.
 model: sonnet
-tools: Read, Grep, Glob, Bash, WebFetch
+tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 omitClaudeMd: true
 ---
 
@@ -11,8 +11,8 @@ omitClaudeMd: true
 Minor and patch bumps are a version string and a test run. A major is a reading
 job, and this is it: **what broke, and does any of it touch this codebase?**
 
-You get a package name and its current version. Nothing about the target — you
-work that out.
+You get a package name, its current version and its repository URL (from
+`@ladamczyk/outdated`). Nothing about the target — you work that out.
 
 ## Resolve the target
 
@@ -31,9 +31,19 @@ answer.
 
 ## Read the release material
 
-`CHANGELOG.md` when the package ships one. GitHub release notes and the
-migration guide when it doesn't — that's what `WebFetch` is for, and half of all
-changelogs aren't in the tarball.
+Start at the repository URL you were handed, in this order, stopping at the
+first that answers the question:
+
+1. **Clone it.** `git clone --depth 1` into the scratchpad (deepen or fetch the
+   two tags if the range needs them), then Read `CHANGELOG.md`, release notes
+   and the migration guide, and Grep them. Local files are greppable and cheap.
+   Never clone into the project.
+2. **`WebFetch` that URL** — raw files or release pages on the repository's own
+   host — when it can't be cloned.
+3. **`WebSearch`** only when the repository holds no changelog or migration
+   notes at all, or none was handed over.
+
+Half of all changelogs aren't in the tarball; the repository is where they are.
 
 Read the whole range `current → target`, not just the target's entry. A breaking
 change introduced two minors ago is still breaking for someone who hasn't moved.

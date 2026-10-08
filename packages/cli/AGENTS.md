@@ -32,7 +32,7 @@ Add `"postinstall": "qoq --warmup"` to the consumer's `package.json` so IDEs get
 
 **Default checks** run on every command unless explicitly skipped with the matching `--skip-*` flag:
 
-- **npm packages check** — `npm outdated`, throttled to `npm.checkOutdatedEvery` days (`--skip-npm`)
+- **npm packages check** — `@ladamczyk/outdated`'s JS API (table of problems; under `--json` the schema v1 result is written verbatim to `npm-report.json`), advisory — a failure warns and never fails the run, throttled to `npm.checkOutdatedEvery` days (`--skip-npm`)
 - **Prettier** (`--skip-prettier`), **JSCPD** (`--skip-jscpd`), **Knip** (`--skip-knip`), **ESLint** (`--skip-eslint`)
 
 **Optional checks** run only when their config block is present in `qoq.config.js`; omit the block to disable them, or skip for a single run with the matching `--skip-*` flag:
@@ -89,7 +89,7 @@ export default {
   },
 
   npm: {
-    checkOutdatedEvery: 1, // days between npm outdated checks; 0 = every run
+    checkOutdatedEvery: 1, // days between dependency checks; 0 = every run
   },
 
   prettier: {

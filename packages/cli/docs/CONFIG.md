@@ -21,7 +21,7 @@ Let's say You execute `qoq --check` in project root path and `Eslint` config is 
 
 # NPM
 
-The **NPM packages check** is a default check — it runs on every `qoq --check`, `qoq staged`, and `qoq --fix` without any configuration, surfacing outdated dependencies via `npm outdated`. Skip it for a single run with `--skip-npm`.
+The **NPM packages check** is a default check — it runs on every `qoq --check`, `qoq staged`, and `qoq --fix` without any configuration, surfacing outdated, deprecated and stale dependencies via `@ladamczyk/outdated`. Skip it for a single run with `--skip-npm`.
 
 Its execution can be configured via:
 

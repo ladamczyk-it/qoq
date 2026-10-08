@@ -245,6 +245,12 @@ runs the command exactly as the frontmatter ships it. It matches `npx` anywhere
 in the command string, so a commit message quoting `npx vitest` is blocked too;
 rare, and the message says why.
 
+**Why the bumper starts at the repository URL.** `@ladamczyk/outdated` (run
+through `qoq`'s npm check, so the skill never needs a second `npx`) already hands over each package's `repository`, so the changelog is one shallow clone
+away — greppable, with real tags, instead of a search that has to find the right
+repo first. `WebSearch` stays as the last rung for packages that ship nothing
+readable there, not as the default.
+
 **Why the agent frontmatter says what it says.** `qoq-checker` runs at
 `effort: low` — it runs tools and digests, nothing to deliberate. `qoq-checker`,
 `qoq-bumper` and `qoq-designer` set `omitClaudeMd`, because everything they act

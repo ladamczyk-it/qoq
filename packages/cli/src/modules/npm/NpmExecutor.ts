@@ -2,91 +2,57 @@ import { existsSync, rmSync, statSync, writeFileSync } from 'fs';
 
 import { EExitCode } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
-import { parse, lt, gt } from 'semver';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { resolveCliPackagePath } from '../../helpers/paths.ts';
-import { AbstractCommandExecutor } from '../abstract/AbstractCommandExecutor.ts';
-import { IExecutorOptions } from '../types.ts';
-
-import { ENpmWarningType, TNpmOutdatedEntry, TNpmOutdatedOutput } from './types.ts';
+import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
+import { IExecutorOptions, IModulesConfig } from '../types.ts';
 
 const ONE_DAY_MS = 86400000;
 
-export class NpmExecutor extends AbstractCommandExecutor {
+export class NpmExecutor extends AbstractApiExecutor {
   static readonly LOCK_PATH = resolveCliPackagePath('/bin/.npm-outdated-lock');
 
-  getName(): string {
-    return this.getCommandName().toUpperCase();
+  // `force` is for a run that named this tool (`qoq npm`): asking for it is
+  // asking for fresh data, so the throttle doesn't apply.
+  constructor(
+    modulesConfig: IModulesConfig,
+    silent: boolean = false,
+    hideTimer: boolean = false,
+    private readonly force: boolean = false
+  ) {
+    super(modulesConfig, silent, hideTimer);
   }
 
-  // `npm outdated` always needs its JSON captured, whatever stdio the caller
-  // asked for, so the spawn arguments are fixed here rather than plumbed through
-  // run(). Overriding run() itself is what this used to do — the base's
-  // TerminateExecutorGracefully path (see prepare()) covers the skip instead.
-  protected async execute(args: string[], options: IExecutorOptions): Promise<EExitCode> {
-    const result = (await super.execute(args, options, undefined, 'pipe', true)) as string;
-    const jsonResult = JSON.parse(result) as TNpmOutdatedOutput;
+  getName(): string {
+    return 'NPM';
+  }
 
-    const npmDictionary = Object.keys(jsonResult).reduce(
-      (acc, packageName: string) => {
-        let info = jsonResult[packageName];
+  // The check is advisory: whatever goes wrong (offline, a registry error) warns
+  // and returns OK, and the lock file is left unwritten so the next run tries
+  // again. `--json` writes @ladamczyk/outdated's schema v1 result verbatim for
+  // summarize.mjs; a plain run prints its table of problems.
+  protected async execute(_args: string[], options: IExecutorOptions): Promise<EExitCode> {
+    const { check, formatTable } = await import('@ladamczyk/outdated');
 
-        if (!info) {
-          return acc;
-        }
+    try {
+      const result = await check();
 
-        if (Array.isArray(info)) {
-          info = info.reduce(
-            (newInfo, innerInfo) => {
-              if (!newInfo.current || lt(innerInfo.current, newInfo.current)) {
-                newInfo.current = innerInfo.current;
-              }
+      if (options.json) {
+        this.writeReport(result, options.output);
+      } else if (!this.silent) {
+        process.stdout.write(formatTable(result, { onlyProblems: true, now: new Date() }));
+      }
+    } catch (error) {
+      if (!this.silent) {
+        process.stderr.write(
+          c.yellow(
+            `Dependency check skipped: ${error instanceof Error ? error.message : String(error)}\n`
+          )
+        );
+      }
 
-              if (gt(innerInfo.latest, newInfo.latest)) {
-                newInfo.latest = innerInfo.latest;
-              }
-
-              return newInfo;
-            },
-            { current: '', latest: '0.0.0' }
-          );
-        }
-
-        const current = parse(info.current);
-        const latest = parse(info.latest);
-        const entry = { name: packageName, current: info.current, latest: info.latest };
-
-        if (Number(latest?.major) > Number(current?.major)) {
-          acc[ENpmWarningType.MAJOR].push(entry);
-        } else if (Number(latest?.minor) > Number(current?.minor)) {
-          acc[ENpmWarningType.MINOR].push(entry);
-        } else {
-          acc[ENpmWarningType.PATCH].push(entry);
-        }
-
-        return acc;
-      },
-      {
-        [ENpmWarningType.MAJOR]: [],
-        [ENpmWarningType.MINOR]: [],
-        [ENpmWarningType.PATCH]: [],
-      } as Record<ENpmWarningType, TNpmOutdatedEntry[]>
-    );
-
-    if (!this.silent) {
-      this.printOutdated(npmDictionary);
-    }
-
-    if (options.json) {
-      this.writeReport(
-        {
-          major: npmDictionary[ENpmWarningType.MAJOR],
-          minor: npmDictionary[ENpmWarningType.MINOR],
-          patch: npmDictionary[ENpmWarningType.PATCH],
-        },
-        options.output
-      );
+      return EExitCode.OK;
     }
 
     writeFileSync(NpmExecutor.LOCK_PATH, '');
@@ -94,45 +60,16 @@ export class NpmExecutor extends AbstractCommandExecutor {
     return EExitCode.OK;
   }
 
-  private printOutdated(npmDictionary: Record<ENpmWarningType, TNpmOutdatedEntry[]>): void {
-    if (!Object.values(npmDictionary).some((warning) => warning.length > 0)) {
-      process.stdout.write(c.green(`\nAll dependencies are in latest version :)\n`));
-
-      return;
-    }
-
-    const colors = {
-      [ENpmWarningType.MAJOR]: c.red,
-      [ENpmWarningType.MINOR]: c.yellow,
-      [ENpmWarningType.PATCH]: c.cyan,
-    };
-
-    Object.values(ENpmWarningType)
-      .filter((type) => npmDictionary[type].length > 0)
-      .forEach((type) => {
-        process.stdout.write(colors[type](`\nConsider update following ${type} versions:\n`));
-
-        npmDictionary[type].forEach(({ name, current, latest }) => {
-          process.stdout.write(`${name} ${current} -> ${latest}\n`);
-        });
-      });
-  }
-
   protected getCommandName(): string {
     return 'npm';
   }
 
-  protected getCommandArgs(): string[] {
-    return ['outdated', '--json'];
-  }
-
-  // npm outdated has no cache of its own — getCachePath() staying undefined is
-  // what says so. What prepare() does own is the throttle: a lock file younger
-  // than `checkOutdatedEvery` days means this run is skipped, which the base's
-  // TerminateExecutorGracefully path turns into a clean EExitCode.OK — the same
-  // mechanism Stylelint, Prettier and ESLint use to bow out.
+  // The throttle: a lock file younger than `checkOutdatedEvery` days means this
+  // run is skipped, which the base's TerminateExecutorGracefully path turns into
+  // a clean EExitCode.OK — the same mechanism Stylelint, Prettier and ESLint use
+  // to bow out. getCachePath() staying undefined says the tool has no cache.
   protected prepare(_args: string[], options: IExecutorOptions): Promise<void> {
-    if (options.warmup) {
+    if (options.warmup || this.force) {
       return Promise.resolve();
     }
 

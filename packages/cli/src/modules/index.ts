@@ -211,7 +211,11 @@ export const execute = async (
   // need their config block present (stylelint, structurelint, skillslint) —
   // that gate is the only real difference between the rows.
   const registry: IExecutorEntry[] = [
-    { name: 'npm', executor: new NpmExecutor(modulesConfig, hideMessages), skip: skipNpm },
+    {
+      name: 'npm',
+      executor: new NpmExecutor(modulesConfig, hideMessages, false, !!tools?.includes('npm')),
+      skip: skipNpm,
+    },
     { name: 'knip', executor: new KnipExecutor(modulesConfig, hideMessages), skip: skipKnip },
     {
       name: 'prettier',

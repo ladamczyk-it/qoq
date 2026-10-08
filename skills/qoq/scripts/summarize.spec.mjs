@@ -50,3 +50,44 @@ test('says nothing about knip when knip found nothing', () => {
   const out = digestOf({ 'knip-report.json': { issues: [] } });
   assert.doesNotMatch(out, /unused files/);
 });
+
+// @ladamczyk/outdated's schema v1 lists ok packages too; they must not reach the
+// digest, and the flags the old npm-outdated buckets never carried must.
+test('reports outdated, deprecated, stale and blocked packages, skipping ok ones', () => {
+  const pkg = (name, flags, extra = {}) => ({
+    name,
+    flags,
+    current: '1.0.0',
+    latest: '2.0.0',
+    ...extra,
+  });
+  const out = digestOf({
+    'npm-report.json': {
+      schemaVersion: 1,
+      packages: [
+        pkg('fine', ['ok']),
+        pkg('big', ['outdated'], { majorBump: true }),
+        pkg('small', ['outdated'], { majorBump: false, latest: '1.1.0' }),
+        pkg('old', ['deprecated', 'stale'], {
+          deprecated: 'use new',
+          lastPublish: '2020-01-02T00:00:00Z',
+        }),
+        pkg('held', ['blocked'], { latestNode: '>=26' }),
+      ],
+    },
+  });
+  assert.match(out, /NPM {2}3 package\(s\)/);
+  assert.match(out, /major\s+x1\s+big 1\.0\.0->2\.0\.0/);
+  assert.match(out, /minor\/patch\s+x1\s+small 1\.0\.0->1\.1\.0/);
+  assert.match(out, /deprecated\s+x1\s+old: use new/);
+  assert.match(out, /stale\s+x1\s+old \(last release 2020-01-02\)/);
+  assert.match(out, /blocked\s+x1\s+held \(latest needs node >=26\)/);
+  assert.doesNotMatch(out, /fine/);
+});
+
+test('says nothing about npm when every package is ok', () => {
+  const out = digestOf({
+    'npm-report.json': { schemaVersion: 1, packages: [{ name: 'fine', flags: ['ok'] }] },
+  });
+  assert.doesNotMatch(out, /NPM/);
+});

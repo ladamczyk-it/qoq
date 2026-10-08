@@ -1,6 +1,6 @@
 import { existsSync, statSync, writeFileSync } from 'fs';
 
-import { EExitCode, executeCommand } from '@ladamczyk/qoq-utils';
+import { EExitCode } from '@ladamczyk/qoq-utils';
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 
 import { dummyModulesConfig } from '__tests__/common.ts';
@@ -17,10 +17,9 @@ vi.mock('fs', async (importOriginal) => ({
   rmSync: vi.fn(),
 }));
 
-vi.mock('@ladamczyk/qoq-utils', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@ladamczyk/qoq-utils')>()),
-  executeCommand: vi.fn(),
-}));
+const { check, formatTable } = vi.hoisted(() => ({ check: vi.fn(), formatTable: vi.fn() }));
+
+vi.mock('@ladamczyk/outdated', () => ({ check, formatTable }));
 
 const baseOptions: IExecutorOptions = {
   output: '',
@@ -37,12 +36,14 @@ describe('NpmExecutor', () => {
     vi.spyOn(console, 'time').mockImplementation(() => undefined);
     vi.spyOn(console, 'timeEnd').mockImplementation(() => undefined);
     vi.mocked(existsSync).mockReturnValue(false);
-    vi.mocked(executeCommand).mockResolvedValue('{}');
+    check.mockResolvedValue({ schemaVersion: 1, packages: [] });
+    formatTable.mockReturnValue('TABLE\n');
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.mocked(executeCommand).mockReset();
+    check.mockReset();
+    formatTable.mockReset();
   });
 
   describe('getName', () => {
@@ -57,7 +58,7 @@ describe('NpmExecutor', () => {
 
       const result = await executor.run({ ...baseOptions, warmup: true });
 
-      expect(executeCommand).not.toHaveBeenCalled();
+      expect(check).not.toHaveBeenCalled();
       expect(result).toBe(EExitCode.OK);
     });
 
@@ -68,7 +69,7 @@ describe('NpmExecutor', () => {
 
       const result = await executor.run(baseOptions);
 
-      expect(executeCommand).not.toHaveBeenCalled();
+      expect(check).not.toHaveBeenCalled();
       expect(result).toBe(EExitCode.OK);
     });
 
@@ -86,7 +87,7 @@ describe('NpmExecutor', () => {
 
       const result = await executor.run(baseOptions);
 
-      expect(executeCommand).not.toHaveBeenCalled();
+      expect(check).not.toHaveBeenCalled();
       expect(result).toBe(EExitCode.OK);
     });
 
@@ -103,45 +104,40 @@ describe('NpmExecutor', () => {
 
       await executor.run(baseOptions);
 
-      expect(executeCommand).toHaveBeenCalled();
+      expect(check).toHaveBeenCalled();
     });
 
-    it('should report a major update and write the lock file', async () => {
-      vi.mocked(executeCommand).mockResolvedValue(
-        JSON.stringify({ pkg: { current: '1.0.0', latest: '2.0.0' } })
-      );
+    it('should print the table of problems and write the lock file', async () => {
+      const result = { schemaVersion: 1, packages: [{ name: 'pkg', flags: ['outdated'] }] };
+      check.mockResolvedValue(result);
       const executor = new NpmExecutor(dummyModulesConfig, false, true);
 
-      const result = await executor.run(baseOptions);
+      const code = await executor.run(baseOptions);
 
-      expect(stdoutMock).toHaveBeenCalledWith(expect.stringContaining('MAJOR'));
-      expect(stdoutMock).toHaveBeenCalledWith('pkg 1.0.0 -> 2.0.0\n');
+      expect(formatTable).toHaveBeenCalledWith(result, {
+        onlyProblems: true,
+        now: expect.any(Date),
+      });
+      expect(stdoutMock).toHaveBeenCalledWith('TABLE\n');
       expect(writeFileSync).toHaveBeenCalledWith(NpmExecutor.LOCK_PATH, '');
-      expect(result).toBe(EExitCode.OK);
+      expect(code).toBe(EExitCode.OK);
     });
 
-    it('should write a lean npm-report.json when --json is set', async () => {
-      vi.mocked(executeCommand).mockResolvedValue(
-        JSON.stringify({ pkg: { current: '1.0.0', latest: '2.0.0' } })
-      );
+    it('should write the result verbatim to npm-report.json when --json is set', async () => {
+      const result = { schemaVersion: 1, packages: [{ name: 'pkg', flags: ['outdated'] }] };
+      check.mockResolvedValue(result);
       const executor = new NpmExecutor(dummyModulesConfig, true, true);
 
       await executor.run({ ...baseOptions, json: 'true', output: '.qoq/reports' });
 
       expect(writeFileSync).toHaveBeenCalledWith(
         '.qoq/reports/npm-report.json',
-        JSON.stringify({
-          major: [{ name: 'pkg', current: '1.0.0', latest: '2.0.0' }],
-          minor: [],
-          patch: [],
-        })
+        JSON.stringify(result)
       );
+      expect(formatTable).not.toHaveBeenCalled();
     });
 
     it('should not write a report when --json is not set', async () => {
-      vi.mocked(executeCommand).mockResolvedValue(
-        JSON.stringify({ pkg: { current: '1.0.0', latest: '2.0.0' } })
-      );
       vi.mocked(writeFileSync).mockClear();
       const executor = new NpmExecutor(dummyModulesConfig, true, true);
 
@@ -153,25 +149,36 @@ describe('NpmExecutor', () => {
       );
     });
 
-    it('should report when all dependencies are up to date', async () => {
-      vi.mocked(executeCommand).mockResolvedValue('{}');
+    it('should warn and stay OK when the check throws, leaving no lock file', async () => {
+      const stderrMock = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      check.mockRejectedValue(new Error('offline'));
+      vi.mocked(writeFileSync).mockClear();
       const executor = new NpmExecutor(dummyModulesConfig, false, true);
 
-      await executor.run(baseOptions);
+      const code = await executor.run(baseOptions);
 
-      expect(stdoutMock).toHaveBeenCalledWith(expect.stringContaining('latest version'));
+      expect(stderrMock).toHaveBeenCalledWith(expect.stringContaining('offline'));
+      expect(writeFileSync).not.toHaveBeenCalled();
+      expect(code).toBe(EExitCode.OK);
     });
 
     it('should print nothing when silenced, and still write the lock file', async () => {
-      vi.mocked(executeCommand).mockResolvedValue(
-        JSON.stringify({ pkg: { current: '1.0.0', latest: '2.0.0' } })
-      );
       const executor = new NpmExecutor(dummyModulesConfig, true, true);
 
       await executor.run(baseOptions);
 
       expect(stdoutMock).not.toHaveBeenCalled();
       expect(writeFileSync).toHaveBeenCalledWith(NpmExecutor.LOCK_PATH, '');
+    });
+
+    it('should ignore a fresh lock file when the tool was named explicitly', async () => {
+      vi.mocked(existsSync).mockReturnValue(true);
+      vi.mocked(statSync).mockReturnValue({ birthtime: new Date() } as never);
+      const executor = new NpmExecutor(dummyModulesConfig, true, true, true);
+
+      await executor.run(baseOptions);
+
+      expect(check).toHaveBeenCalled();
     });
   });
 });
