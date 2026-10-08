@@ -12,6 +12,8 @@ No configuration file required. Run it from the project root.
 
 - `--include <list>` — also check these dependency groups, comma-separated: `dev` (`devDependencies`), `peer` (`peerDependencies`), `optional` (`optionalDependencies`). Any other value prints a one-line error to stderr and exits `1` without checking anything. A name in several groups is checked once (precedence: dependencies, dev, peer, optional).
 - `--no-lts` — skip the Node LTS lookup and its advisory.
+- `--json` — also write the report to stdout as one JSON document, `{ ok, lts, workspaces }` (`workspaces` sorted by `path`, `lts` is `null` with `--no-lts`). Human text stays on stderr.
+- `--quiet` — print nothing to stderr when every workspace passes (warnings and advisories included); failures still print in full. Combined with `--json`, the document is still written.
 
 ## Node LTS advisory
 

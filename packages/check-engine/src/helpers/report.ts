@@ -1,6 +1,6 @@
 import c from 'picocolors';
 
-import type { Conflict, WorkspaceResult } from './types.ts';
+import type { Conflict, LtsInfo, Report, WorkspaceResult } from './types.ts';
 
 const COLUMNS = ['dependency', 'requires', 'floor'] as const;
 
@@ -50,8 +50,19 @@ const formatOne = (result: WorkspaceResult): string[] => {
   ];
 };
 
-export const formatHuman = (results: readonly WorkspaceResult[]): string =>
-  results
-    .flatMap(formatOne)
-    .map((line) => `${line}\n`)
-    .join('');
+export const buildReport = (results: readonly WorkspaceResult[], lts: LtsInfo | null): Report => ({
+  ok: results.every(({ status }) => status === 'pass'),
+  lts,
+  workspaces: results.toSorted((a, b) => a.path.localeCompare(b.path)),
+});
+
+export const formatHuman = (
+  results: readonly WorkspaceResult[],
+  opts?: { quiet: boolean }
+): string =>
+  opts?.quiet && results.every(({ status }) => status === 'pass')
+    ? ''
+    : results
+        .flatMap(formatOne)
+        .map((line) => `${line}\n`)
+        .join('');

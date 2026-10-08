@@ -246,11 +246,11 @@ Rules:
   - `2026-10-08 qoq fix PASS (knip skipped; formatting applied on the orchestrating thread) · tests approved`
   - `2026-10-08 done`
 
-**Commit:** PENDING
+**Commit:** b0ea0f3
 
 ### Ticket 2.5: `--json` and `--quiet`
 
-- **Status:** todo
+- **Status:** done
 - **Size:** S
 - **Complexity:** mechanical
 - **Agent tier:** `sonnet`
@@ -266,27 +266,30 @@ Rules:
 
 **Acceptance criteria:**
 
-- [ ] `buildReport` returns `ok: true` when every result passes and `ok: false` when any fails — `<spec::>`
-- [ ] `buildReport` sorts `workspaces` by `path` regardless of input order and carries `lts` through (`null` stays `null`) — `<spec::>`
-- [ ] `formatHuman(passingResults, { quiet: true })` returns `''` even when a result has skipped malformed ranges and advisories — `<spec::>`
-- [ ] `formatHuman(mixedResults, { quiet: true })` still contains the failing workspace's lines — `<spec::>`
-- [ ] with `--json`, `process.stdout.write` receives a string that `JSON.parse`s to an object with `ok`, `lts` and `workspaces`, and stderr still receives the human text — `<spec::>`
-- [ ] with `--json --quiet` on a passing run, stdout still receives the document and stderr receives nothing — `<spec::>`
-- [ ] without `--json`, nothing is written to `process.stdout` — `<spec::>`
+- [x] `buildReport` returns `ok: true` when every result passes and `ok: false` when any fails — `report.spec.ts::is ok when every result passes; ::is not ok when any result fails`
+- [x] `buildReport` sorts `workspaces` by `path` regardless of input order and carries `lts` through (`null` stays `null`) — `report.spec.ts::sorts workspaces by path regardless of input order; ::carries lts through, null stays null`
+- [x] `formatHuman(passingResults, { quiet: true })` returns `''` even when a result has skipped malformed ranges and advisories — `report.spec.ts::returns an empty string for passing results with warnings and advisories`
+- [x] `formatHuman(mixedResults, { quiet: true })` still contains the failing workspace's lines — `report.spec.ts::still prints the failing workspace`
+- [x] with `--json`, `process.stdout.write` receives a string that `JSON.parse`s to an object with `ok`, `lts` and `workspaces`, and stderr still receives the human text — `index.spec.ts::should write the JSON document to stdout and the human text to stderr with --json`
+- [x] with `--json --quiet` on a passing run, stdout still receives the document and stderr receives nothing — `index.spec.ts::should still write the document and nothing to stderr with --json --quiet on a passing run`
+- [x] without `--json`, nothing is written to `process.stdout` — `index.spec.ts::should write nothing to stdout without --json`
 
 **Definition of done:**
 
-- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
-- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
-- [ ] Every acceptance criterion ticked with its evidence pointer
-- [ ] Change committed after both gates; hash recorded in **Commit** below
-- [ ] Status set to `done`; advisories (if any) noted below
+- [x] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [x] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [x] Every acceptance criterion ticked with its evidence pointer
+- [x] Change committed after both gates; hash recorded in **Commit** below
+- [x] Status set to `done`; advisories (if any) noted below
 
-**Advisories:** none
+**Advisories:** `index.spec.ts` `makeResult` fixtures have no `path`, so a multi-workspace `--json` test would throw in the real `buildReport` sort; the `--json` test checks `workspaces` exists, not its contents; `index.ts` calls `formatHuman(results)` normally and `formatHuman(results, { quiet: true })` only under `--quiet` (to keep an older `toHaveBeenCalledWith(results)` assertion); the package `CLAUDE.md` does not yet mention `buildReport`, `--json` or `--quiet`.
 
 - **Log:**
+  - `2026-10-08 dispatched @ sonnet (attempt 1)`
+  - `2026-10-08 qoq fix PASS (knip skipped) · tests approved`
+  - `2026-10-08 done`
 
-**Commit:** none
+**Commit:** PENDING
 
 ### Milestone 2 — Definition of done
 

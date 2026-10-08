@@ -9,7 +9,7 @@ To catch Node version mismatches before they cause runtime failures, **check-eng
 
 ## Available options
 
-CLI has its own documentation just run `check-engine -help` or `check-engine -h`.
+CLI has its own documentation just run `check-engine -help` or `check-engine -h`. Pass `--json` for a machine-readable report on stdout.
 
 ### Last but not least
 

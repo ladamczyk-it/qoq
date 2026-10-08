@@ -53,3 +53,10 @@ export type WorkspaceResult = WorkspaceBase &
     | { status: 'fail'; reason: 'incompatible'; conflicts: Conflict[] }
     | { status: 'fail'; reason: 'invalid-engines' | 'unreadable'; message: string }
   );
+
+export interface Report {
+  ok: boolean;
+  lts: LtsInfo | null;
+  /** Sorted by path. */
+  workspaces: WorkspaceResult[];
+}

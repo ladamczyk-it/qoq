@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatHuman } from './report.ts';
+import { buildReport, formatHuman } from './report.ts';
 
 import type { SkippedDependency, WorkspaceResult } from './types.ts';
 
@@ -40,6 +40,50 @@ const incompatible = (floor: string | null): WorkspaceResult => ({
       dependencyFloor: '20.1.0',
     },
   ],
+});
+
+const lts = { currentLts: 'v24.13.0', maintainedLts: 'v22.13.1' };
+
+describe('buildReport', () => {
+  it('is ok when every result passes', () => {
+    expect(buildReport([pass('a'), pass('b')], null).ok).toBe(true);
+  });
+
+  it('is not ok when any result fails', () => {
+    expect(buildReport([pass('a'), incompatible('22.22.2')], null).ok).toBe(false);
+  });
+
+  it('sorts workspaces by path regardless of input order', () => {
+    const report = buildReport([pass('c'), pass('a'), pass('b')], null);
+
+    expect(report.workspaces.map(({ path }) => path)).toStrictEqual(['a', 'b', 'c']);
+  });
+
+  it('carries lts through, null stays null', () => {
+    expect(buildReport([], lts).lts).toStrictEqual(lts);
+    expect(buildReport([], null).lts).toBeNull();
+  });
+});
+
+describe('formatHuman quiet', () => {
+  const noisy: WorkspaceResult = {
+    ...pass('packages/foo'),
+    advisories: ['upgrade please'],
+    skipped: [{ name: 'weird', group: 'dependencies', reason: 'malformed-range', range: '??' }],
+  };
+
+  it('returns an empty string for passing results with warnings and advisories', () => {
+    expect(formatHuman([noisy], { quiet: true })).toBe('');
+  });
+
+  it('still prints the failing workspace', () => {
+    const out = formatHuman([noisy, incompatible('22.22.2')], { quiet: true });
+
+    expect(out).toContain('packages/foo');
+    expect(out).toContain('left-pad');
+    expect(out).toContain('required floor: 22.22.2');
+    expect(out.endsWith('\n')).toBe(true);
+  });
 });
 
 describe('formatHuman', () => {
