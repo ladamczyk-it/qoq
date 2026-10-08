@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention -- names are fixed by the milestone contract */
 export type DependencyGroup =
   'dependencies' | 'devDependencies' | 'peerDependencies' | 'optionalDependencies';
+export type IncludeFlag = 'dev' | 'peer' | 'optional';
 type SkipReason = 'not-installed' | 'no-engines' | 'malformed-range';
 
 /** Checked dependencies only. */

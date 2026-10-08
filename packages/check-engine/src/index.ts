@@ -3,23 +3,48 @@
 import { getPackageJson } from '@ladamczyk/qoq-utils';
 import cac from 'cac';
 
-import { checkEngine } from './helpers/checkEngine.ts';
+import { checkEngine, type CheckOptions } from './helpers/checkEngine.ts';
 import { findWorkspaces } from './helpers/findWorkspaces.ts';
 import { formatHuman } from './helpers/report.ts';
 
+import type { IncludeFlag } from './helpers/types.ts';
+
 export const cli = cac('check-engine');
 
-cli.command('', 'Check Your engines.node config for project').action(() => {
-  const pathsToCheck = findWorkspaces(process.cwd(), getPackageJson()?.workspaces);
+const INCLUDE_FLAGS: readonly IncludeFlag[] = ['dev', 'peer', 'optional'];
 
-  const results = pathsToCheck.map((entry) => checkEngine(entry));
+cli
+  .command('', 'Check Your engines.node config for project')
+  .option('--include <list>', 'Also check dependency groups: dev, peer, optional (comma-separated)')
+  .action((options: { include?: string }) => {
+    const requested = options.include?.split(',') ?? [];
+    const bad = requested.find((value) => !INCLUDE_FLAGS.includes(value as IncludeFlag));
 
-  process.stderr.write(formatHuman(results));
+    if (bad !== undefined) {
+      process.stderr.write(
+        `Unknown --include value "${bad}"; allowed: ${INCLUDE_FLAGS.join(', ')}\n`
+      );
+      process.exitCode = 1;
 
-  if (results.some(({ status }) => status === 'fail')) {
-    process.exitCode = 1;
-  }
-});
+      return;
+    }
+
+    const checkOptions: CheckOptions | undefined =
+      options.include === undefined
+        ? undefined
+        : { include: requested as IncludeFlag[], lts: null };
+    const pathsToCheck = findWorkspaces(process.cwd(), getPackageJson()?.workspaces);
+
+    const results = pathsToCheck.map((entry) =>
+      checkOptions ? checkEngine(entry, checkOptions) : checkEngine(entry)
+    );
+
+    process.stderr.write(formatHuman(results));
+
+    if (results.some(({ status }) => status === 'fail')) {
+      process.exitCode = 1;
+    }
+  });
 
 cli.help();
 

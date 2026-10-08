@@ -9,6 +9,7 @@ import type {
   Conflict,
   DependencyGroup,
   DependencyRequirement,
+  IncludeFlag,
   SkippedDependency,
   WorkspaceBase,
   WorkspaceResult,
@@ -74,7 +75,23 @@ const resolveDependencies = (
   return { requirements, skipped };
 };
 
-export const checkEngine = (packageJsonPath: string): WorkspaceResult => {
+// eslint-disable-next-line @typescript-eslint/naming-convention -- name fixed by the milestone contract
+export interface CheckOptions {
+  include: readonly IncludeFlag[];
+  // Structurally the contract's LtsInfo; Ticket 2.3 declares the named type.
+  lts: { currentLts: string; maintainedLts: string } | null;
+}
+
+const INCLUDED_GROUPS: Record<IncludeFlag, DependencyGroup> = {
+  dev: 'devDependencies',
+  peer: 'peerDependencies',
+  optional: 'optionalDependencies',
+};
+
+export const checkEngine = (
+  packageJsonPath: string,
+  options: CheckOptions = { include: [], lts: null }
+): WorkspaceResult => {
   const base: WorkspaceBase = {
     path: toRelative(dirname(packageJsonPath)),
     packageJsonPath: toRelative(packageJsonPath),
@@ -114,13 +131,31 @@ export const checkEngine = (packageJsonPath: string): WorkspaceResult => {
     };
   }
 
-  const dependencyNames = Object.keys(pkg.dependencies ?? {});
-  const useDev = dependencyNames.length === 0;
-  const { requirements, skipped } = resolveDependencies(
-    packageJsonPath,
-    useDev ? Object.keys(pkg.devDependencies ?? {}) : dependencyNames,
-    useDev ? 'devDependencies' : 'dependencies'
-  );
+  const useDev = Object.keys(pkg.dependencies ?? {}).length === 0;
+  const groups: DependencyGroup[] = [
+    'dependencies',
+    ...(useDev ? (['devDependencies'] as const) : []),
+    ...options.include.map((flag) => INCLUDED_GROUPS[flag]),
+  ];
+  // Precedence: dependencies, dev, peer, optional; a name is checked once.
+  const order: DependencyGroup[] = [
+    'dependencies',
+    'devDependencies',
+    'peerDependencies',
+    'optionalDependencies',
+  ];
+  const seen = new Set<string>();
+  const results = order
+    .filter((group) => groups.includes(group))
+    .map((group) => {
+      const names = Object.keys(pkg[group] ?? {}).filter((name) => !seen.has(name));
+
+      names.forEach((name) => seen.add(name));
+
+      return resolveDependencies(packageJsonPath, names, group);
+    });
+  const requirements = results.flatMap((r) => r.requirements);
+  const skipped = results.flatMap((r) => r.skipped);
   const floor = requiredFloor(requirements.map((r) => r.range));
   const filled: WorkspaceBase = {
     ...base,

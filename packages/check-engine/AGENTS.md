@@ -8,7 +8,9 @@
 check-engine
 ```
 
-No configuration file or flags required. Run it from the project root.
+No configuration file required. Run it from the project root.
+
+- `--include <list>` — also check these dependency groups, comma-separated: `dev` (`devDependencies`), `peer` (`peerDependencies`), `optional` (`optionalDependencies`). Any other value prints a one-line error to stderr and exits `1` without checking anything. A name in several groups is checked once (precedence: dependencies, dev, peer, optional).
 
 ## What it checks
 

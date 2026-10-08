@@ -244,3 +244,74 @@ describe('checkEngine', () => {
     expect(stderrSpy).not.toHaveBeenCalled();
   });
 });
+
+describe('checkEngine include option', () => {
+  const none = { include: [], lts: null } as const;
+  const names = (r: ReturnType<typeof checkEngine>): [string, string][] =>
+    r.requirements.map((q) => [q.name, q.group]);
+
+  it('adds devDependencies for include dev', () => {
+    mockWorkspace(
+      { dependencies: { a: '1' }, devDependencies: { b: '1' } },
+      { a: '>=18', b: '>=20' }
+    );
+
+    const result = checkEngine('./package.json', { include: ['dev'], lts: null });
+
+    expect(names(result)).toStrictEqual([
+      ['a', 'dependencies'],
+      ['b', 'devDependencies'],
+    ]);
+  });
+
+  it('adds peerDependencies and optionalDependencies with the matching group', () => {
+    mockWorkspace(
+      { dependencies: { a: '1' }, peerDependencies: { p: '1' }, optionalDependencies: { o: '1' } },
+      { a: '>=18', p: '>=20', o: '>=22' }
+    );
+
+    const peer = checkEngine('./package.json', { include: ['peer'], lts: null });
+    const optional = checkEngine('./package.json', { include: ['optional'], lts: null });
+
+    expect(names(peer)).toStrictEqual([
+      ['a', 'dependencies'],
+      ['p', 'peerDependencies'],
+    ]);
+    expect(names(optional)).toStrictEqual([
+      ['a', 'dependencies'],
+      ['o', 'optionalDependencies'],
+    ]);
+  });
+
+  it('keeps the devDependencies fallback alongside peers when dependencies is empty', () => {
+    mockWorkspace(
+      { devDependencies: { d: '1' }, peerDependencies: { p: '1' } },
+      { d: '>=18', p: '>=20' }
+    );
+
+    const result = checkEngine('./package.json', { include: ['peer'], lts: null });
+
+    expect(names(result)).toStrictEqual([
+      ['d', 'devDependencies'],
+      ['p', 'peerDependencies'],
+    ]);
+  });
+
+  it('lists a name present in several groups once, under the highest-precedence group', () => {
+    mockWorkspace({ dependencies: { a: '1' }, peerDependencies: { a: '1' } }, { a: '>=18' });
+
+    const result = checkEngine('./package.json', { include: ['peer'], lts: null });
+
+    expect(names(result)).toStrictEqual([['a', 'dependencies']]);
+  });
+
+  it('behaves as before when options are omitted', () => {
+    mockWorkspace(
+      { dependencies: { a: '1' }, devDependencies: { b: '1' }, peerDependencies: { c: '1' } },
+      { a: '>=18', b: '>=20', c: '>=22' }
+    );
+
+    expect(checkEngine('./package.json')).toStrictEqual(checkEngine('./package.json', none));
+    expect(names(checkEngine('./package.json'))).toStrictEqual([['a', 'dependencies']]);
+  });
+});

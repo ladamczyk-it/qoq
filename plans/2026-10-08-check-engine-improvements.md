@@ -118,11 +118,11 @@ Rules:
   - `2026-10-08 qoq fix PASS · tests approved`
   - `2026-10-08 done`
 
-**Commit:** PENDING
+**Commit:** 45ebc52
 
 ### Ticket 2.2: `--include` dependency groups
 
-- **Status:** todo
+- **Status:** done
 - **Size:** S
 - **Complexity:** moderate
 - **Agent tier:** `sonnet`
@@ -138,27 +138,31 @@ Rules:
 
 **Acceptance criteria:**
 
-- [ ] `checkEngine(path, { include: ['dev'], lts: null })` checks `devDependencies` in addition to `dependencies`, with `group: 'devDependencies'` on those entries — `<spec::>`
-- [ ] `include: ['peer']` and `include: ['optional']` add `peerDependencies` / `optionalDependencies` entries with the matching `group` — `<spec::>`
-- [ ] with no `dependencies` and `include: ['peer']`, `devDependencies` are still used (fallback preserved) alongside peers — `<spec::>`
-- [ ] a name present in `dependencies` and `peerDependencies` appears once, under `dependencies` — `<spec::>`
-- [ ] omitting `options` behaves exactly as Milestone 1 (spy-free equality with the no-flag result) — `<spec::>`
-- [ ] `--include dev,peer` calls `checkEngine` with `include: ['dev', 'peer']` for every workspace — `<spec::>`
-- [ ] `--include banana` writes one stderr line containing `banana`, sets `process.exitCode` to `1`, and does not call `checkEngine` — `<spec::>`
+- [x] `checkEngine(path, { include: ['dev'], lts: null })` checks `devDependencies` in addition to `dependencies`, with `group: 'devDependencies'` on those entries — `checkEngine.spec.ts::adds devDependencies for include dev`
+- [x] `include: ['peer']` and `include: ['optional']` add `peerDependencies` / `optionalDependencies` entries with the matching `group` — `checkEngine.spec.ts::adds peerDependencies and optionalDependencies with the matching group`
+- [x] with no `dependencies` and `include: ['peer']`, `devDependencies` are still used (fallback preserved) alongside peers — `checkEngine.spec.ts::keeps the devDependencies fallback alongside peers when dependencies is empty`
+- [x] a name present in `dependencies` and `peerDependencies` appears once, under `dependencies` — `checkEngine.spec.ts::lists a name present in several groups once, under the highest-precedence group`
+- [x] omitting `options` behaves exactly as Milestone 1 (spy-free equality with the no-flag result) — `checkEngine.spec.ts::behaves as before when options are omitted`
+- [x] `--include dev,peer` calls `checkEngine` with `include: ['dev', 'peer']` for every workspace — `index.spec.ts::should call checkEngine with the parsed include list for every workspace`
+- [x] `--include banana` writes one stderr line containing `banana`, sets `process.exitCode` to `1`, and does not call `checkEngine` — `index.spec.ts::should reject an unknown include value without running anything`
 
 **Definition of done:**
 
-- [ ] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
-- [ ] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
-- [ ] Every acceptance criterion ticked with its evidence pointer
-- [ ] Change committed after both gates; hash recorded in **Commit** below
-- [ ] Status set to `done`; advisories (if any) noted below
+- [x] `qoq fix <files above>` → PASS — Gate 1, run from the orchestrating thread
+- [x] `qoq-test-reviewer` over the spec files → `APPROVED` — Gate 2
+- [x] Every acceptance criterion ticked with its evidence pointer
+- [x] Change committed after both gates; hash recorded in **Commit** below
+- [x] Status set to `done`; advisories (if any) noted below
 
-**Advisories:** none
+**Advisories:** `CheckOptions.lts` uses an inline structural type until Ticket 2.3 declares `LtsInfo`; the no-flag path still calls `checkEngine(path)` with no options (Ticket 2.4 passes options unconditionally and updates those assertions, and index.spec.ts:126 hardcodes `lts: null`); `--include dev,` / empty value is rejected as unknown, untested; the unknown-value message is not asserted to list the allowed values; `CheckOptions` carries a line-level eslint-disable for its contract name.
 
 - **Log:**
+  - `2026-10-08 dispatched @ sonnet (attempt 1)`
+  - `2026-10-08 qoq fix FAIL — naming-convention on CheckOptions; formatting + lint fixed on the orchestrating thread`
+  - `2026-10-08 qoq fix PASS (knip skipped) · tests approved`
+  - `2026-10-08 done`
 
-**Commit:** none
+**Commit:** PENDING
 
 ### Ticket 2.3: Safe LTS fetch
 

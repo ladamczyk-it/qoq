@@ -117,4 +117,25 @@ describe('cli', () => {
     expect(exitMock).not.toHaveBeenCalled();
     expect(fetchNodeInfo).not.toHaveBeenCalled();
   });
+
+  it('should call checkEngine with the parsed include list for every workspace', async () => {
+    vi.mocked(findWorkspaces).mockReturnValue(['./package.json', 'a/package.json']);
+
+    await run('--include', 'dev,peer');
+
+    const options = { include: ['dev', 'peer'], lts: null };
+
+    expect(checkEngine).toHaveBeenCalledTimes(2);
+    expect(checkEngine).toHaveBeenNthCalledWith(1, './package.json', options);
+    expect(checkEngine).toHaveBeenNthCalledWith(2, 'a/package.json', options);
+  });
+
+  it('should reject an unknown include value without running anything', async () => {
+    await run('--include', 'banana');
+
+    expect(stderrMock).toHaveBeenCalledTimes(1);
+    expect(stderrMock.mock.calls[0]?.[0]).toMatch(/^[^\n]*banana[^\n]*\n?$/);
+    expect(process.exitCode).toBe(1);
+    expect(checkEngine).not.toHaveBeenCalled();
+  });
 });
