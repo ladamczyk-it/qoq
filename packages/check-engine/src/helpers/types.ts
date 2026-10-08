@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention -- names are fixed by the milestone contract */
-export type IncludeFlag = 'dev' | 'peer' | 'optional';
 export type DependencyGroup =
   'dependencies' | 'devDependencies' | 'peerDependencies' | 'optionalDependencies';
-export interface LtsInfo {
-  currentLts: string;
-  maintainedLts: string;
-}
-export type SkipReason = 'not-installed' | 'no-engines' | 'malformed-range';
+type SkipReason = 'not-installed' | 'no-engines' | 'malformed-range';
 
 /** Checked dependencies only. */
 export interface DependencyRequirement {

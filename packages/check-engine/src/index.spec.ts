@@ -88,11 +88,14 @@ describe('cli', () => {
 
   it('should pass every result to formatHuman and set exitCode 1 when any fail', async () => {
     vi.mocked(getPackageJson).mockReturnValue({ workspaces: ['libs/foo', 'libs/bar'] });
-    const results = [makeResult('fail'), makeResult('pass'), makeResult('fail')];
+    const first = makeResult('fail');
+    const second = makeResult('pass');
+    const third = makeResult('fail');
+    const results = [first, second, third];
     vi.mocked(checkEngine)
-      .mockReturnValueOnce(results[0])
-      .mockReturnValueOnce(results[1])
-      .mockReturnValueOnce(results[2]);
+      .mockReturnValueOnce(first)
+      .mockReturnValueOnce(second)
+      .mockReturnValueOnce(third);
 
     await run();
 

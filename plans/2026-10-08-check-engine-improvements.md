@@ -248,7 +248,7 @@ A failing `incompatible` workspace prints `✖ packages/foo  >=18  (…)` (red),
   - `2026-10-08 qoq fix PASS (knip skipped) · tests approved`
   - `2026-10-08 done`
 
-**Commit:** PENDING
+**Commit:** 2ab5fbd
 
 ### Milestone 1 — Definition of done
 
@@ -266,7 +266,7 @@ A failing `incompatible` workspace prints `✖ packages/foo  >=18  (…)` (red),
 **Size:** L
 **Goal:** `--include`, glob-based workspace discovery, a safe LTS lookup with an advisory and `--no-lts`, and `--json` / `--quiet`.
 **Depends on:** Milestone 1
-**Contracts:** Extends Milestone 1's `types.ts` / `report.ts` / `checkEngine.ts` (those files are the base; do not redefine the types).
+**Contracts:** Extends Milestone 1's `types.ts` / `report.ts` / `checkEngine.ts` (those files are the base; do not redefine the types). `IncludeFlag` and `LtsInfo` were removed from `types.ts` by the Milestone 1 gate (Knip: unused until consumed) — Ticket 2.2 re-adds `export type IncludeFlag = 'dev' | 'peer' | 'optional'` and Ticket 2.3 re-adds `export interface LtsInfo { currentLts: string; maintainedLts: string }` (exported, consumed in the same ticket).
 
 ```ts
 // checkEngine.ts
