@@ -1,6 +1,7 @@
 when:
   - event: push
     branch: master
+  - event: tag
 
 variables:
   - &default_image node:22-alpine
@@ -8,22 +9,30 @@ variables:
 steps:
   - name: install
     image: *default_image
+    when:
+      - event: push
     commands:
       - npm ci
 
   - name: build
     image: *default_image
+    when:
+      - event: push
     commands:
       - npm run build
 
   - name: config-inspector
     image: *default_image
+    when:
+      - event: push
     commands:
       - npm run config-inspector -- all
       - for d in ./packages/eslint-v9-*; do pkg=$(basename "$d"); mkdir -p "./build/packages/$pkg/stats"; cp -r "./packages/$pkg/stats/"* "./build/packages/$pkg/stats/"; done
 
   - name: deploy-artefact
     image: *default_image
+    when:
+      - event: push
     commands:
       - rm -rf /usr/build/*
       - mkdir -p /usr/build
@@ -31,9 +40,13 @@ steps:
     volumes:
       - /home/joke/artifacts/qoq:/usr/build
 
+  # A release tag asks cv to sync docs/qoq with this version.
   - name: trigger-downstream
     image: woodpeckerci/plugin-trigger
+    when:
+      - event: tag
     settings:
+      params: PROJECT=qoq
       repositories:
         - ladamczyk-it/cv@main
       token:
