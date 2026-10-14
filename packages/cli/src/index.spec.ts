@@ -32,6 +32,8 @@ const run = async (...argv: string[]): Promise<void> => {
 
 describe('cli', () => {
   beforeEach(() => {
+    // GitHub Actions sets CI=true, which flips getConfig/silent defaults.
+    vi.stubEnv('CI', undefined);
     vi.mocked(getConfig).mockResolvedValue(dummyConfig as never);
     vi.mocked(execute).mockResolvedValue(undefined);
     vi.mocked(initConfig).mockResolvedValue(undefined as never);
