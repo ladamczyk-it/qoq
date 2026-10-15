@@ -24,6 +24,7 @@ import { NpmConfigHandler } from './npm/NpmConfigHandler.ts';
 import { NpmExecutor } from './npm/NpmExecutor.ts';
 import { PrettierConfigHandler } from './prettier/PrettierConfigHandler.ts';
 import { PrettierExecutor } from './prettier/PrettierExecutor.ts';
+import { ScanExecutor } from './scan/ScanExecutor.ts';
 import { SkillslintConfigHandler } from './skillslint/SkillslintConfigHandler.ts';
 import { SkillslintExecutor } from './skillslint/SkillslintExecutor.ts';
 import { StructurelintConfigHandler } from './structurelint/StructurelintConfigHandler.ts';
@@ -273,5 +274,25 @@ export const execute = async (
     process.stdout.write(
       `${c.italic(c.gray(consoleTimeName))} ${formatExecutionTime(performance.now() - startTime)}\n`
     );
+  }
+};
+
+// scan is not a registry row on purpose; it may become an opt-in flag on `--check`
+// for pre-push use once real-world scan timing is validated.
+export const scan = async (
+  modulesConfig: IModulesConfig,
+  options: IExecutorOptions,
+  timeout?: number
+): Promise<void> => {
+  if (modulesConfig.stats && !options.warmup) {
+    void sendStats(getUsedOptions());
+  }
+
+  const result = await new ScanExecutor(modulesConfig, !!options.silent, false, timeout).run(
+    options
+  );
+
+  if (result !== EExitCode.OK) {
+    process.exitCode = EExitCode.ERROR;
   }
 };

@@ -7,7 +7,7 @@ import cac from 'cac';
 
 import { PACKAGE_JSON_PATH } from './helpers/constants.ts';
 import { resolveCliRelativePath } from './helpers/paths.ts';
-import { getConfig, initConfig, execute } from './modules/index.ts';
+import { getConfig, initConfig, execute, scan } from './modules/index.ts';
 import { IExecuteOptions, IExecuteStagedOptions } from './modules/types.ts';
 
 import type { Command } from 'cac';
@@ -104,6 +104,30 @@ withCommonOptions(
         ci: isCi(),
       },
       files
+    );
+  });
+
+cli
+  .command('scan', 'Scan dependencies for known vulnerabilities (OSV.dev by default)')
+  .option('--json', 'Write the scan report to a JSON file in --output')
+  .option('--output <path>', 'Directory for JSON reports (requires --json)', {
+    default: resolveCliRelativePath('/bin/report'),
+  })
+  .option('--timeout <ms>', 'Abort the scan after this many milliseconds')
+  .option('--production', 'Scan production dependencies only')
+  .option('--graph', 'Print the dependency paths from each finding up to your package.json files')
+  .option('--silent', 'Suppress all QoQ console output')
+  .action(async (options: IExecuteStagedOptions & { timeout?: number | string }) => {
+    const config = await getConfig(undefined, true);
+
+    if (options.json) {
+      mkdirSync(options.output, { recursive: true });
+    }
+
+    return await scan(
+      config,
+      { ...options, fix: false, disableCache: false, concurrency: 'off', silent: !!options.silent },
+      options.timeout === undefined ? undefined : Number(options.timeout)
     );
   });
 

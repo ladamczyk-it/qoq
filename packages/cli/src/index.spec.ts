@@ -1,7 +1,9 @@
+import { mkdirSync } from 'fs';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { cli } from './index.ts';
-import { execute, getConfig, initConfig } from './modules/index.ts';
+import { execute, getConfig, initConfig, scan } from './modules/index.ts';
 
 vi.mock('@npmcli/package-json/lib/read-package', () => ({
   readPackage: vi.fn().mockResolvedValue({ workspaces: ['packages/*'] }),
@@ -22,6 +24,7 @@ vi.mock('./modules/index.ts', () => ({
   getConfig: vi.fn(),
   initConfig: vi.fn(),
   execute: vi.fn(),
+  scan: vi.fn(),
 }));
 
 const run = async (...argv: string[]): Promise<void> => {
@@ -36,6 +39,7 @@ describe('cli', () => {
     vi.stubEnv('CI', undefined);
     vi.mocked(getConfig).mockResolvedValue(dummyConfig as never);
     vi.mocked(execute).mockResolvedValue(undefined);
+    vi.mocked(scan).mockResolvedValue(undefined);
     vi.mocked(initConfig).mockResolvedValue(undefined as never);
   });
 
@@ -51,6 +55,7 @@ describe('cli', () => {
     // cac exposes the catch-all default command under an empty name.
     expect(names).toContain('');
     expect(names).toContain('staged');
+    expect(names).toContain('scan');
   });
 
   describe('default command', () => {
@@ -194,6 +199,57 @@ describe('cli', () => {
       );
 
       process.env.CI = original;
+    });
+  });
+
+  describe('scan command', () => {
+    it('should load the config without the wizard and call scan, never execute', async () => {
+      await run('scan');
+
+      expect(getConfig).toHaveBeenCalledWith(undefined, true);
+      expect(scan).toHaveBeenCalledOnce();
+      expect(execute).not.toHaveBeenCalled();
+    });
+
+    it('should pass --timeout as a number and --production and --graph in the options', async () => {
+      await run('scan', '--timeout', '3000', '--production', '--graph');
+
+      expect(scan).toHaveBeenCalledWith(
+        dummyConfig,
+        expect.objectContaining({ production: true, graph: true }),
+        3000
+      );
+    });
+
+    it('should create the --output directory recursively under --json', async () => {
+      await run('scan', '--json', '--output', 'out/nested');
+
+      expect(mkdirSync).toHaveBeenCalledWith('out/nested', { recursive: true });
+    });
+
+    it('should not create a directory without --json', async () => {
+      await run('scan');
+
+      expect(mkdirSync).not.toHaveBeenCalled();
+    });
+
+    it('should not imply silent from CI=true', async () => {
+      vi.stubEnv('CI', 'true');
+
+      await run('scan');
+
+      expect(scan).toHaveBeenCalledWith(
+        dummyConfig,
+        expect.objectContaining({ silent: false }),
+        undefined
+      );
+    });
+
+    it('should not be called by the default or staged commands', async () => {
+      await run('--check');
+      await run('staged', 'a.ts');
+
+      expect(scan).not.toHaveBeenCalled();
     });
   });
 });

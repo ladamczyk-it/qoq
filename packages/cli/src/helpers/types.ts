@@ -2,6 +2,7 @@ import { IModuleEslintConfig } from '../modules/eslint/types.ts';
 import { TJscpdFormat } from '../modules/jscpd/types.ts';
 import { IModuleNpmConfig } from '../modules/npm/types.ts';
 import { IModulePrettierConfig } from '../modules/prettier/types.ts';
+import { IScanConfig } from '../modules/scan/types.ts';
 import { IModuleSkillslintConfig } from '../modules/skillslint/types.ts';
 import { TModuleStructurelintConfig } from '../modules/structurelint/types.ts';
 import { TModuleStylelintConfig } from '../modules/stylelint/types.ts';
@@ -23,6 +24,7 @@ export interface QoqConfig {
   // interactive run prompts once and writes the answer back here.
   stats?: boolean;
   npm?: IModuleNpmConfig;
+  scan?: IScanConfig;
   prettier?: IModulePrettierConfig;
   eslint?: IModuleEslintConfig[];
   jscpd?: {

@@ -1,6 +1,6 @@
 # @ladamczyk/qoq-cli — Agent Context
 
-`@ladamczyk/qoq-cli` orchestrates Prettier, ESLint, Knip, JSCPD, Stylelint, Structurelint, Skillslint, and npm-outdated checks behind three commands. It reads `qoq.config.js` from the consumer project root, generates tool-specific config files at runtime into its own `bin/` directory, and delegates to each tool.
+`@ladamczyk/qoq-cli` orchestrates Prettier, ESLint, Knip, JSCPD, Stylelint, Structurelint, Skillslint, and npm-outdated checks behind the commands below, plus an on-demand `scan`. It reads `qoq.config.js` from the consumer project root, generates tool-specific config files at runtime into its own `bin/` directory, and delegates to each tool.
 
 ## Commands
 
@@ -10,9 +10,10 @@ qoq --check             # full quality check (CI / pre-push)
 qoq staged [files]      # check staged files only (pre-commit / lint-staged)
 qoq --fix               # auto-fix across all tools
 qoq [tools...]          # run only the named tools, e.g. `qoq eslint prettier`
+qoq scan [flags]        # on-demand vulnerability scan of package-lock.json; never part of the checks
 ```
 
-All commands accept these flags:
+Check commands accept these flags (`scan` takes only `--json`, `--output`, `--timeout`, `--production`, `--graph`, `--silent`; see `docs/CONFIG.md#scan`):
 
 | Flag                                                                         | Effect                                                                |
 | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- |

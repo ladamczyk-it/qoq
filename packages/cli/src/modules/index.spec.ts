@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { dummyModulesConfig } from '__tests__/common.ts';
 
-import { execute } from './index.ts';
+import { sendStats } from '../helpers/stats.ts';
+
+import { execute, scan } from './index.ts';
 import { IExecutorOptions, IModulesConfig } from './types.ts';
 
 const executors = vi.hoisted(() => {
@@ -30,6 +32,15 @@ const executors = vi.hoisted(() => {
   };
 });
 
+const scanExecutor = vi.hoisted(() => {
+  const run = vi.fn();
+  const ctor = vi.fn(function () {
+    return { run };
+  });
+
+  return { run, ctor };
+});
+
 vi.mock('./npm/NpmExecutor.ts', () => ({ NpmExecutor: executors.npm.ctor }));
 vi.mock('./knip/KnipExecutor.ts', () => ({ KnipExecutor: executors.knip.ctor }));
 vi.mock('./prettier/PrettierExecutor.ts', () => ({ PrettierExecutor: executors.prettier.ctor }));
@@ -43,6 +54,14 @@ vi.mock('./structurelint/StructurelintExecutor.ts', () => ({
 }));
 vi.mock('./skillslint/SkillslintExecutor.ts', () => ({
   SkillslintExecutor: executors.skillslint.ctor,
+}));
+
+vi.mock('./scan/ScanExecutor.ts', () => ({ ScanExecutor: scanExecutor.ctor }));
+vi.mock('../helpers/stats.ts', () => ({
+  askStatsConsent: vi.fn(),
+  getUsedOptions: vi.fn().mockReturnValue([]),
+  sendStats: vi.fn(),
+  writeStatsConsent: vi.fn(),
 }));
 
 const baseOptions: IExecutorOptions = {
@@ -164,5 +183,58 @@ describe('execute', () => {
     await execute(configWithLinters, { ...baseOptions, silent: true });
 
     expect(stdoutMock).not.toHaveBeenCalledWith(expect.stringContaining('Total execution time:'));
+  });
+});
+
+describe('scan', () => {
+  beforeEach(() => {
+    scanExecutor.run.mockResolvedValue(EExitCode.OK);
+    process.exitCode = undefined;
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    process.exitCode = undefined;
+  });
+
+  it('should set exitCode to 1 when the scan resolves ERROR', async () => {
+    scanExecutor.run.mockResolvedValue(EExitCode.ERROR);
+
+    await scan(dummyModulesConfig, baseOptions);
+
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('should leave exitCode unset when the scan resolves OK', async () => {
+    await scan(dummyModulesConfig, baseOptions);
+
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it('should construct ScanExecutor with config, silent, false and timeout', async () => {
+    await scan(dummyModulesConfig, { ...baseOptions, silent: true }, 5000);
+
+    expect(scanExecutor.ctor).toHaveBeenCalledWith(dummyModulesConfig, true, false, 5000);
+    expect(scanExecutor.run).toHaveBeenCalledWith({ ...baseOptions, silent: true });
+  });
+
+  it('should send stats when stats is enabled', async () => {
+    await scan({ ...dummyModulesConfig, stats: true }, baseOptions);
+
+    expect(sendStats).toHaveBeenCalledOnce();
+  });
+
+  it('should not send stats when stats is disabled', async () => {
+    await scan({ ...dummyModulesConfig, stats: false }, baseOptions);
+
+    expect(sendStats).not.toHaveBeenCalled();
+  });
+
+  it('should never construct ScanExecutor from execute()', async () => {
+    Object.values(executors).forEach(({ run }) => run.mockResolvedValue(EExitCode.OK));
+
+    await execute(configWithLinters, { ...baseOptions, silent: true });
+
+    expect(scanExecutor.ctor).not.toHaveBeenCalled();
   });
 });

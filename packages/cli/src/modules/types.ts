@@ -21,7 +21,10 @@ export interface IModulesConfig {
   stats?: boolean;
   // Raw, user-authored qoq.config.* (before defaults are merged in). Kept so the
   // BasicExecutor self-health-check can tell which entries the user actually wrote
-  // versus values that getModulesFromConfig filled in from defaults.
+  // versus values that getModulesFromConfig filled in from defaults. ScanExecutor
+  // also reads rawConfig.scan: scan has no config handler (the wizard serialises
+  // config with JSON.stringify, which cannot carry an adapter's function), so it
+  // is not in `modules` below.
   rawConfig?: QoqConfig;
   modules: {
     npm?: IModuleNpmConfig;
@@ -50,6 +53,7 @@ export interface IExecuteStagedOptions {
   silent?: boolean;
   configHints?: boolean;
   production?: boolean;
+  graph?: boolean;
   json?: string;
   output: string;
   concurrency?: 'off' | 'auto';

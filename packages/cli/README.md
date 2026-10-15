@@ -11,6 +11,8 @@ To maintain high code quality and simplify the use of static code analysis tools
 - `qoq staged` – Checks only staged changes, typically used in the pre-commit hook.
 - `qoq --fix` – Fixes issues where possible, typically triggered manually after hooks or a CI failure to quickly correct problems.
 
+`qoq scan [--json] [--output <path>] [--timeout <ms>] [--production] [--graph] [--silent]` – On-demand vulnerability scan of `package-lock.json`. Not part of the checks above; see [scan docs](./docs/CONFIG.md#scan).
+
 With **QoQ CLI**, keeping your code clean and compliant is easier than ever.
 
 ## Orchestrated checks
