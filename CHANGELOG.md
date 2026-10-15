@@ -1,3 +1,19 @@
+# [6.3.0](https://github.com/ladamczyk-it/qoq/compare/v6.2.1...v6.3.0) (2026-10-15)
+
+
+### Bug Fixes
+
+* bump packages ([1c2b56d](https://github.com/ladamczyk-it/qoq/commit/1c2b56d4cb1ffac80d84a708df287746e6e82fbe))
+
+
+### Features
+
+* **cli:** add OSV.dev default scan adapter ([f7eda29](https://github.com/ladamczyk-it/qoq/commit/f7eda29d8277d0041ca51eaeb08f974a2ac5f88d))
+* **cli:** add package-lock.json dependency reader for scan ([b609185](https://github.com/ladamczyk-it/qoq/commit/b609185b8925f40fbcd05891e550525b9f67a910))
+* **cli:** add qoq scan subcommand and runner ([0f13d7f](https://github.com/ladamczyk-it/qoq/commit/0f13d7f9822b4b0b5179e31881e427e751e4b041))
+* **cli:** add scan types and public adapter type exports ([d211303](https://github.com/ladamczyk-it/qoq/commit/d2113035cc6385d55aab7601ec9d3055f5755b52))
+* **cli:** add ScanExecutor with timeout, status and exit policy ([43a24a2](https://github.com/ladamczyk-it/qoq/commit/43a24a2c4a12a16d148c36cef1d854eb3953cb73))
+
 ## [6.2.1](https://github.com/ladamczyk-it/qoq/compare/v6.2.0...v6.2.1) (2026-10-11)
 
 
