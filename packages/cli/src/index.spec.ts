@@ -211,12 +211,12 @@ describe('cli', () => {
       expect(execute).not.toHaveBeenCalled();
     });
 
-    it('should pass --timeout as a number and --production in the options', async () => {
-      await run('scan', '--timeout', '3000', '--production');
+    it('should pass --timeout as a number and --production and --graph in the options', async () => {
+      await run('scan', '--timeout', '3000', '--production', '--graph');
 
       expect(scan).toHaveBeenCalledWith(
         dummyConfig,
-        expect.objectContaining({ production: true }),
+        expect.objectContaining({ production: true, graph: true }),
         3000
       );
     });

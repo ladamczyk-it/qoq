@@ -60,6 +60,15 @@ describe('readDependencies', () => {
     });
   });
 
+  it('keeps dependencies nested under a workspace member', () => {
+    const path = v3({ 'packages/cli/node_modules/ts': pub('ts', '7.0.2') });
+    expect(readDependencies(path, false)).toStrictEqual({
+      ok: true,
+      dependencies: [{ name: 'ts', version: '7.0.2', dev: false }],
+      excludedPrivate: 0,
+    });
+  });
+
   it('derives scoped and aliased names', () => {
     const path = v3({
       'node_modules/a/node_modules/@s/b': pub('@s/b', '2.0.0'),

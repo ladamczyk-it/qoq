@@ -47,7 +47,7 @@ export const readDependencies = (lockfilePath: string, production: boolean): TRe
   let excludedPrivate = 0;
 
   for (const [key, entry] of Object.entries(packages)) {
-    if (!key.startsWith(PREFIX) || !entry || entry.link === true || !entry.version) {
+    if (!key.includes(PREFIX) || !entry || entry.link === true || !entry.version) {
       continue;
     }
     if (typeof entry.resolved !== 'string' || !entry.resolved.startsWith(REGISTRY)) {

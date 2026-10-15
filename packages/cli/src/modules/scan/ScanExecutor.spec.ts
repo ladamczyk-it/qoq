@@ -8,7 +8,7 @@ import { dummyModulesConfig } from '__tests__/common.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { readDependencies } from './readDependencies.ts';
-import { ScanExecutor } from './ScanExecutor.ts';
+import { formatTable, ScanExecutor } from './ScanExecutor.ts';
 
 import type { IScanAdapter, IScanConfig, IScanFinding, IScanReport } from './types.ts';
 
@@ -18,6 +18,7 @@ vi.mock('fs', async (importOriginal) => ({
 }));
 
 vi.mock('./readDependencies.ts', () => ({ readDependencies: vi.fn() }));
+vi.mock('./graph.ts', () => ({ formatGraph: vi.fn(() => 'GRAPH\n') }));
 
 const { osvScan } = vi.hoisted(() => ({ osvScan: vi.fn() }));
 
@@ -83,6 +84,17 @@ afterEach(() => {
 });
 
 describe('ScanExecutor exit code and output', () => {
+  it('should print the graph only under --graph and only with findings', async () => {
+    await executor({ adapter: resolving([highFinding]) }).run(baseOptions);
+    expect(stdout()).not.toContain('GRAPH');
+
+    await executor({ adapter: resolving([]) }).run({ ...baseOptions, graph: true });
+    expect(stdout()).not.toContain('GRAPH');
+
+    await executor({ adapter: resolving([highFinding]) }).run({ ...baseOptions, graph: true });
+    expect(stdout()).toContain('GRAPH');
+  });
+
   it('should fail on a high finding with failOn unset and print its row', async () => {
     const code = await executor({ adapter: resolving([highFinding]) }).run(baseOptions);
 
@@ -368,5 +380,17 @@ describe('ScanExecutor ordering and reports', () => {
     expect(writes).toStrictEqual([]);
     expect(scan).toHaveBeenCalled();
     expect(code).toBe(EExitCode.ERROR);
+  });
+
+  it('should link the ID to its url only when links are on, keeping alignment', () => {
+    const url = 'https://osv.dev/vulnerability/X';
+    const link = `\u001b]8;;${url}\u001b\\${highFinding.id}\u001b]8;;\u001b\\`;
+    const strip = (s: string) =>
+      s.replaceAll(`\u001b]8;;${url}\u001b\\`, '').replaceAll('\u001b]8;;\u001b\\', '');
+    const findings = [{ ...highFinding, url }];
+
+    expect(formatTable(findings, true)).toContain(link);
+    expect(strip(formatTable(findings, true))).toBe(formatTable(findings, false));
+    expect(formatTable(findings, false)).not.toContain('osv.dev');
   });
 });

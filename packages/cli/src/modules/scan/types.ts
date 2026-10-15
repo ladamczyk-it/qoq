@@ -14,6 +14,7 @@ export interface IScanFinding {
   id: string;
   severity: TScanSeverity;
   fixVersion?: string;
+  url?: string;
 }
 
 export interface IScanResult {

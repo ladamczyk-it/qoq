@@ -116,6 +116,7 @@ export const osvAdapter: IScanAdapter = {
         version: dep.version,
         id,
         severity,
+        url: `https://osv.dev/vulnerability/${encodeURIComponent(id)}`,
         ...(fixVersion && { fixVersion }),
       };
     });

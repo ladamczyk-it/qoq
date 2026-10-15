@@ -4,6 +4,7 @@ import c from 'picocolors';
 import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions, IModulesConfig } from '../types.ts';
 
+import { formatGraph } from './graph.ts';
 import { osvAdapter } from './osvAdapter.ts';
 import { readDependencies } from './readDependencies.ts';
 
@@ -15,6 +16,7 @@ import type {
   TScanSeverity,
 } from './types.ts';
 
+const LOCKFILE = () => resolveCwdPath('/package-lock.json');
 const DEFAULT_TIMEOUT = 10000;
 // ponytail: grace is fixed; make it configurable if adapters need longer to flush partials.
 const GRACE_MS = 1000;
@@ -35,10 +37,11 @@ const normaliseSeverity = (severity: unknown): TScanSeverity => {
   return mapped in RANK ? (mapped as TScanSeverity) : 'unknown';
 };
 
-const normalise = ({ fixVersion, ...finding }: IScanFinding): IScanFinding => ({
+const normalise = ({ fixVersion, url, ...finding }: IScanFinding): IScanFinding => ({
   ...finding,
   severity: normaliseSeverity(finding.severity),
   ...(typeof fixVersion === 'string' ? { fixVersion } : {}),
+  ...(typeof url === 'string' ? { url } : {}),
 });
 
 const compare = (a: IScanFinding, b: IScanFinding): number =>
@@ -46,7 +49,11 @@ const compare = (a: IScanFinding, b: IScanFinding): number =>
   a.package.localeCompare(b.package) ||
   a.id.localeCompare(b.id);
 
-const formatTable = (findings: IScanFinding[]): string => {
+// OSC 8 terminal hyperlink; the escape codes are zero-width, so padding is computed on plain text.
+const hyperlink = (url: string, text: string): string =>
+  `\u001b]8;;${url}\u001b\\${text}\u001b]8;;\u001b\\`;
+
+export const formatTable = (findings: IScanFinding[], links: boolean): string => {
   const rows = [
     ['package', 'version', 'ID', 'severity', 'fix'],
     ...findings.map((f) => [f.package, f.version, f.id, f.severity, f.fixVersion ?? '-']),
@@ -56,13 +63,18 @@ const formatTable = (findings: IScanFinding[]): string => {
     [] as number[]
   );
 
-  const line = (row: string[]) =>
+  // The header row has no finding, so findings[-1] leaves it unlinked.
+  const line = (row: string[], url?: string) =>
     row
-      .map((cell, i) => cell.padEnd(widths[i] ?? 0))
+      .map((cell, i) => {
+        const gap = ' '.repeat((widths[i] ?? 0) - cell.length);
+
+        return (links && url && i === 2 ? hyperlink(url, cell) : cell) + gap;
+      })
       .join('  ')
       .trimEnd();
 
-  return rows.map((row) => `${line(row)}\n`).join('');
+  return rows.map((row, r) => `${line(row, findings[r - 1]?.url)}\n`).join('');
 };
 
 const statusLine = ({ status, reason, findings }: IScanReport): string => {
@@ -113,7 +125,10 @@ export class ScanExecutor extends AbstractApiExecutor {
 
     if (!this.silent) {
       if (!options.json && full.findings.length > 0) {
-        process.stdout.write(formatTable(full.findings));
+        process.stdout.write(formatTable(full.findings, c.isColorSupported));
+      }
+      if (options.graph && full.findings.length > 0) {
+        process.stdout.write(`\n${formatGraph(LOCKFILE(), full.findings)}`);
       }
       process.stdout.write(`${statusLine(full)}\n`);
     }
@@ -133,7 +148,7 @@ export class ScanExecutor extends AbstractApiExecutor {
     cfgTimeout: unknown,
     production: boolean
   ): Promise<Omit<IScanReport, 'adapter'>> {
-    const read = readDependencies(resolveCwdPath('/package-lock.json'), production);
+    const read = readDependencies(LOCKFILE(), production);
 
     if (!read.ok) {
       return { status: 'skipped', reason: read.reason, findings: [] };

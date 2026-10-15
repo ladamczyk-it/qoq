@@ -13,7 +13,7 @@ qoq [tools...]          # run only the named tools, e.g. `qoq eslint prettier`
 qoq scan [flags]        # on-demand vulnerability scan of package-lock.json; never part of the checks
 ```
 
-Check commands accept these flags (`scan` takes only `--json`, `--output`, `--timeout`, `--production`, `--silent`; see `docs/CONFIG.md#scan`):
+Check commands accept these flags (`scan` takes only `--json`, `--output`, `--timeout`, `--production`, `--graph`, `--silent`; see `docs/CONFIG.md#scan`):
 
 | Flag                                                                         | Effect                                                                |
 | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- |

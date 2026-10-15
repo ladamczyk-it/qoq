@@ -184,12 +184,13 @@ where:
 `qoq scan` checks `package-lock.json` dependencies for known vulnerabilities. It is on-demand only: it never runs as part of `--check`, `--fix` or `staged`, and has no `--skip-*` flag.
 
 ```bash
-qoq scan [--json] [--output <path>] [--timeout <ms>] [--production] [--silent]
+qoq scan [--json] [--output <path>] [--timeout <ms>] [--production] [--graph] [--silent]
 ```
 
 - `--json` writes `scan-report.json` (`{ status, reason?, adapter, findings[] }`) to `--output`, default `bin/report`.
 - `--timeout` overrides `scan.timeout`.
 - `--production` scans production dependencies only.
+- `--graph` prints, under the table, each vulnerable `name@version` as an inverted tree of the packages that pull it in, up to the `package.json` (root or workspace) and dependency field that declares each chain. A package already expanded prints `(see above)`; a loop prints `(cycle)`. Built from `package-lock.json` alone — no network, no `npm ls`.
 - `--silent` suppresses the status line on the console.
 
 Limits:
@@ -205,24 +206,75 @@ Configured via a top-level `scan` block:
 - `timeout` — milliseconds, default `10000`.
 - `failOn` — `low`, `moderate`, `high`, `critical` or `none`, default `high`. Unrated advisories count as `critical`.
 
-An adapter's `scan` resolves to `{ findings, complete, reason? }`. A `severity` of `medium` is read as `moderate`; any other unrecognised severity as `unknown`. Findings are sorted critical → high → moderate → low → unknown.
+## Writing your own adapter
 
-`IScanAdapter`, `IScanDependency` and `IScanFinding` are exported from `@ladamczyk/qoq-cli`:
+An adapter swaps OSV.dev for any other source, such as an internal audit service or a commercial API. Everything outside `scan()` stays with qoq: reading the lockfile, the timeout, sorting, the table, `--graph`, the JSON report and the exit code.
+
+**1. Take the dependencies.** `scan(deps, { signal })` receives `IScanDependency[]`:
+
+| field     | type      | notes                                             |
+| --------- | --------- | ------------------------------------------------- |
+| `name`    | `string`  | real package name; aliases are already resolved   |
+| `version` | `string`  | exact installed version                           |
+| `dev`     | `boolean` | `true` only when every installed copy is dev-only |
+
+The list is already deduplicated by `name@version` and holds only packages from `https://registry.npmjs.org/`. Under `--production`, dev-only packages are already filtered out.
+
+**2. Query your source, passing `signal` to every request.** The signal aborts at `timeout`. qoq then waits 1s for the adapter to settle and returns a partial result. If nothing comes back, the run reports `skipped (timeout after Nms)`.
+
+**3. Map each advisory to an `IScanFinding`.** Each package × advisory pair is one finding:
+
+| field        | type     | notes                                                                                                                     |
+| ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `package`    | `string` | must match a `deps[].name` so `--graph` can find it                                                                       |
+| `version`    | `string` | must match the dependency's `version`                                                                                     |
+| `id`         | `string` | advisory ID shown in the table, e.g. `GHSA-…` or `CVE-…`                                                                  |
+| `severity`   | `string` | `low`, `moderate` (or `medium`), `high`, `critical`; anything else becomes `unknown`, which `failOn` treats as `critical` |
+| `fixVersion` | `string` | optional; lowest version that fixes it, shown in the `fix` column                                                         |
+| `url`        | `string` | optional; links the `ID` cell (OSC 8 hyperlink, only when colour is on) and is kept in `scan-report.json`                 |
+
+A missing optional field shows `-`, and a non-string value is dropped. Sorting, critical → high → moderate → low → unknown, happens after the adapter returns.
+
+**4. Resolve `{ findings, complete, reason? }`.**
+
+- `complete: true`: every dependency was checked, giving status `clean` or `findings`.
+- `complete: false` plus a `reason`: some queries failed. Return what you have; the run reports `inconclusive (<reason>)`, still prints the partial findings and exits `0`.
+
+A throw becomes `skipped (<error message>)`, and a result without a `findings` array becomes `skipped (adapter returned an invalid result)`. Both exit `0`, so a broken scanner never blocks a run. Only a complete scan with a finding at or above `failOn` exits `1`.
+
+**5. Register it** in the top-level `scan` block of `qoq.config.js`. The types are exported from `@ladamczyk/qoq-cli`:
 
 ```ts
 import type { IScanAdapter, IScanFinding, QoqConfig } from '@ladamczyk/qoq-cli';
 
 const adapter: IScanAdapter = {
-  name: 'internal-audit',
+  name: 'internal-audit', // written as `adapter` in scan-report.json
   async scan(deps, { signal }) {
     const res = await fetch('https://audit.example.com/query', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(deps),
+      body: JSON.stringify(deps.map(({ name, version }) => ({ name, version }))),
       signal,
     });
-    if (!res.ok) return { findings: [], complete: false, reason: `HTTP ${res.status}` };
-    return { findings: (await res.json()) as IScanFinding[], complete: true };
+    if (!res.ok) {
+      return { findings: [], complete: false, reason: `HTTP ${res.status}` };
+    }
+    const advisories = (await res.json()) as {
+      pkg: string;
+      ver: string;
+      id: string;
+      level: string;
+      fixed?: string;
+    }[];
+    const findings: IScanFinding[] = advisories.map((a) => ({
+      package: a.pkg,
+      version: a.ver,
+      id: a.id,
+      severity: a.level as IScanFinding['severity'],
+      ...(a.fixed && { fixVersion: a.fixed }),
+      url: `https://audit.example.com/advisories/${encodeURIComponent(a.id)}`,
+    }));
+    return { findings, complete: true };
   },
 };
 
@@ -234,5 +286,7 @@ export default {
   },
 } satisfies QoqConfig;
 ```
+
+**6. Check it.** Run `qoq scan --json --graph`. Every finding should show in the table, every one should have a tree under `--graph` (a finding with no tree means its `package`/`version` doesn't match a dependency), and `bin/report/scan-report.json` should name your adapter.
 
 Status line: `scan: clean`, `scan: 1 finding` / `scan: N findings`, `scan: skipped (<reason>)` or `scan: inconclusive (<reason>)`.

@@ -151,7 +151,14 @@ describe('osvAdapter', () => {
     const result = await scan([dep('a')]);
 
     expect(result.findings).toStrictEqual([
-      { package: 'a', version: '1.0.0', id: 'A', severity: 'unknown', fixVersion: '1.5.0' },
+      {
+        package: 'a',
+        version: '1.0.0',
+        id: 'A',
+        severity: 'unknown',
+        url: 'https://osv.dev/vulnerability/A',
+        fixVersion: '1.5.0',
+      },
     ]);
   });
 
@@ -200,7 +207,15 @@ describe('osvAdapter', () => {
     const result = await scan([dep('a')]);
 
     expect(result).toStrictEqual({
-      findings: [{ package: 'a', version: '1.0.0', id: 'A', severity: 'unknown' }],
+      findings: [
+        {
+          package: 'a',
+          version: '1.0.0',
+          id: 'A',
+          severity: 'unknown',
+          url: 'https://osv.dev/vulnerability/A',
+        },
+      ],
       complete: false,
       reason: 'boom',
     });

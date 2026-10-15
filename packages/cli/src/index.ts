@@ -115,6 +115,7 @@ cli
   })
   .option('--timeout <ms>', 'Abort the scan after this many milliseconds')
   .option('--production', 'Scan production dependencies only')
+  .option('--graph', 'Print the dependency paths from each finding up to your package.json files')
   .option('--silent', 'Suppress all QoQ console output')
   .action(async (options: IExecuteStagedOptions & { timeout?: number | string }) => {
     const config = await getConfig(undefined, true);
