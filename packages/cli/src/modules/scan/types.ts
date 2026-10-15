@@ -1,6 +1,6 @@
 export type TScanSeverity = 'low' | 'moderate' | 'high' | 'critical' | 'unknown';
-export type TScanFailOn = Exclude<TScanSeverity, 'unknown'> | 'none';
-export type TScanStatus = 'clean' | 'findings' | 'skipped' | 'inconclusive';
+type TScanFailOn = Exclude<TScanSeverity, 'unknown'> | 'none';
+type TScanStatus = 'clean' | 'findings' | 'skipped' | 'inconclusive';
 
 export interface IScanDependency {
   name: string;

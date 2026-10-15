@@ -98,8 +98,8 @@ export class ScanExecutor extends AbstractApiExecutor {
     super(modulesConfig, silent, hideTimer);
   }
 
-  // Advisory like NpmExecutor: every failure becomes a `skipped` status, since a
-  // throw out of execute() would process.exit(2) via run().
+  // Advisory like NpmExecutor: every failure becomes a `skipped` or `inconclusive`
+  // status, since a throw out of execute() would process.exit(2) via run().
   protected async execute(_args: string[], options: IExecutorOptions): Promise<EExitCode> {
     const cfg = this.modulesConfig.rawConfig?.scan ?? {};
     const adapter = cfg.adapter ?? osvAdapter;
