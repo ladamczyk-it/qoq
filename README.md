@@ -51,6 +51,8 @@ This will generate a `qoq.config.js` file with all necessary configurations.
 - `qoq staged` – Checks only staged changes, typically used in the pre-commit hook.
 - `qoq --fix` – Fixes issues where possible, typically triggered manually after hooks or a CI failure to quickly correct problems.
 
+`qoq scan [--json] [--output <path>] [--timeout <ms>] [--production] [--silent]` – On-demand vulnerability scan of `package-lock.json`. Not part of the checks above; see [scan docs](./packages/cli/docs/CONFIG.md#scan).
+
 ## 🏗 Project Structure
 
 QoQ is designed for flexibility and ease of use. Its core components include:

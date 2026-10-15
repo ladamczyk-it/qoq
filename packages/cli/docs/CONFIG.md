@@ -178,3 +178,61 @@ where:
 where:
 
 - `path` is `string` pointing at the directory of skill docs to lint. Defaults to `./skills`.
+
+# Scan
+
+`qoq scan` checks `package-lock.json` dependencies for known vulnerabilities. It is on-demand only: it never runs as part of `--check`, `--fix` or `staged`, and has no `--skip-*` flag.
+
+```bash
+qoq scan [--json] [--output <path>] [--timeout <ms>] [--production] [--silent]
+```
+
+- `--json` writes `scan-report.json` (`{ status, reason?, adapter, findings[] }`) to `--output`, default `bin/report`.
+- `--timeout` overrides `scan.timeout`.
+- `--production` scans production dependencies only.
+- `--silent` suppresses the status line on the console.
+
+Limits:
+
+- **Lockfile only.** Reads `package-lock.json` (`lockfileVersion` ≥ 2) from the current directory. No pnpm, yarn or shrinkwrap. Inside a workspace member there is no lockfile, so the scan reports `skipped (no package-lock.json)`.
+- **Registry only.** Only packages resolved from `https://registry.npmjs.org/` are sent to the scanner. Private registry names never leave the machine. Entries with no `version` are skipped.
+- **Proxy.** Node's `fetch` ignores `HTTPS_PROXY`, so behind a proxy the default OSV scan reports `inconclusive` (`<fetch error>` or `timeout after Nms`) and exits `0`.
+- **Exit codes.** Exit `1` only for a complete scan with a finding at or above `failOn`. `skipped` and `inconclusive` always exit `0`.
+
+Configured via a top-level `scan` block:
+
+- `adapter` — `{ name, scan(deps, { signal }) }`. Defaults to OSV.dev (`api.osv.dev`, no key).
+- `timeout` — milliseconds, default `10000`.
+- `failOn` — `low`, `moderate`, `high`, `critical` or `none`, default `high`. Unrated advisories count as `critical`.
+
+An adapter's `scan` resolves to `{ findings, complete, reason? }`. A `severity` of `medium` is read as `moderate`; any other unrecognised severity as `unknown`. Findings are sorted critical → high → moderate → low → unknown.
+
+`IScanAdapter`, `IScanDependency` and `IScanFinding` are exported from `@ladamczyk/qoq-cli`:
+
+```ts
+import type { IScanAdapter, IScanFinding, QoqConfig } from '@ladamczyk/qoq-cli';
+
+const adapter: IScanAdapter = {
+  name: 'internal-audit',
+  async scan(deps, { signal }) {
+    const res = await fetch('https://audit.example.com/query', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(deps),
+      signal,
+    });
+    if (!res.ok) return { findings: [], complete: false, reason: `HTTP ${res.status}` };
+    return { findings: (await res.json()) as IScanFinding[], complete: true };
+  },
+};
+
+export default {
+  scan: {
+    adapter,
+    timeout: 20000,
+    failOn: 'moderate',
+  },
+} satisfies QoqConfig;
+```
+
+Status line: `scan: clean`, `scan: 1 finding` / `scan: N findings`, `scan: skipped (<reason>)` or `scan: inconclusive (<reason>)`.
