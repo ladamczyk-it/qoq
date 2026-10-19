@@ -35,8 +35,8 @@
     "typecheck": "lerna run typecheck"
   },
   "devDependencies": {
-    "@commitlint/cli": "21.2.3",
-    "@commitlint/config-conventional": "21.2.3",
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
     "@ladamczyk/check-engine": "latest",
     "@ladamczyk/qoq-cli": "latest",
     "@ladamczyk/qoq-eslint-v9-ts": "latest",
