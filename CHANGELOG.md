@@ -1,3 +1,11 @@
+## [6.4.1](https://github.com/ladamczyk-it/qoq/compare/v6.4.0...v6.4.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* **cli:** advertise the qoq skill as a guarded delivery loop ([4dcbd01](https://github.com/ladamczyk-it/qoq/commit/4dcbd014152aa1aacc42dc3827165528c3d11a0e)), closes [hi#level](https://github.com/hi/issues/level)
+* **cli:** scope `qoq staged` correctly for lint-staged ([f347fe7](https://github.com/ladamczyk-it/qoq/commit/f347fe72c1c89b8e7ab69fc3ea795ba358ab89dd))
+
 # [6.4.0](https://github.com/ladamczyk-it/qoq/compare/v6.3.0...v6.4.0) (2026-10-21)
 
 
