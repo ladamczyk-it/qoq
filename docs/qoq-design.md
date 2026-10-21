@@ -714,6 +714,13 @@ the budget spent. Re-dispatching the same tier with the remaining attempts asks
 the same model the question it just answered. A gate FAIL is different: that's
 feedback the developer hasn't acted on yet, so it stays on the shared budget.
 
+**Why a same-tier re-dispatch carries the last return, not just the verdict.**
+Each attempt is a cold dispatch, and the verdict says only what is wrong; the
+return's prose is where the developer said why it went wrong. Without it attempt
+3 can retry attempt 1's idea. A dedicated `diagnoses` field was benchmarked and
+dropped: developers already name the cause in prose, and the rule changed neither
+attempts-to-green nor repeat rate.
+
 **Why the commit happens after the gate rather than inside the agent.** It falls
 out of the gate living with the caller — the only thread that has a digest and
 can re-dispatch — and it's the better place regardless: nothing reaches history

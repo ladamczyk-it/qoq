@@ -102,7 +102,7 @@ Every dispatch carries, verbatim:
 - the three-attempt budget, with explicit permission to hand the ticket back
   rather than narrow it
 - on a re-dispatch after a failed gate: the **digest or the verdict verbatim**,
-  plus which attempt this is
+  plus which attempt this is and the last return pasted in whole
 
 **Not the milestone's `Scenarios`.** Those are journey-level and a ticket is not
 — they'd be context the developer can't act on, and the one thing worse than
