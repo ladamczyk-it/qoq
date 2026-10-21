@@ -259,7 +259,7 @@ approved next week is estimated from it:
 node <skill>/scripts/estimate.mjs --record --tags <the ticket's tags> \
   --stack <the ticket's stack> --tier <the tier the plan assigned> \
   --outcome success|failure --attempts <n> \
-  --attribution estimation-miss|scope-expansion --summary "<the ticket title>"
+  --attribution as-estimated|scope-expansion --summary "<the ticket title>"
 ```
 
 On an imported plan the ticket's **External** field gets the same news — status
@@ -291,9 +291,9 @@ model.
 **The attribution is yours to judge, and it's the whole reason this signal is
 worth anything.** Two very different things make a ticket take three attempts:
 
-- `estimation-miss` — the ticket was what the plan said it was, and it still
-  took more than it was rated for. That's the sizing being wrong, and it belongs
-  in the record.
+- `as-estimated` — the ticket was what the plan said it was, so the estimate is
+  graded on it. This is the value for a clean first-try `done` too: it counts as
+  a miss only on `failure` or after more attempts than the budget.
 - `scope-expansion` — the developer found work nobody knew was there: a
   migration nothing mentioned, a broken assumption upstream. The ticket that got
   built isn't the ticket that got estimated, so grading the estimate on it

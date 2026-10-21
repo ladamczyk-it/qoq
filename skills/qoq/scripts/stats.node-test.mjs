@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/stats.spec.mjs
+// node --test skills/qoq/scripts/stats.node-test.mjs
 //
 // The contract is the exit code the skill branches on plus what gets written, so
 // the test drives the script as a subprocess with HOME pointed at a throwaway.

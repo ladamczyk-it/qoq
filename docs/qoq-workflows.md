@@ -504,7 +504,7 @@ flowchart TD
     EBLOCK --> ELOG
     ELOG --> EXBACK
     EXBACK["**imported plan only** — write the status<br/>**label** and the commit back to the item's<br/>**External** key. *the one state qoq writes:<br/>a run knows the transition as it happens,<br/>an export sets one and walks away.<br/>never the workflow column, never a list move.<br/>a rejected write is a report line, not a stop*"]
-    EDONE -->|"**success** — even after three<br/>rounds and an escalation"| EREC["**estimate.mjs --record** — against the tags<br/>and **the tier the plan assigned**, never the one<br/>that finally delivered it. attempts spent, plus<br/>**your attribution**: estimation-miss *(the pick was<br/>wrong)* vs scope-expansion *(a different ticket got<br/>built)* — only a miss reaches a verdict"]
+    EDONE -->|"**success** — even after three<br/>rounds and an escalation"| EREC["**estimate.mjs --record** — against the tags<br/>and **the tier the plan assigned**, never the one<br/>that finally delivered it. attempts spent, plus<br/>**your attribution**: as-estimated *(graded:<br/>a miss only if it failed or overran)* vs scope-expansion *(a different ticket got<br/>built)* — only a miss reaches a verdict"]
     EBLOCK -->|"**failure** — nothing delivered it<br/>*(the only thing that earns a split)*"| EREC
     EREC --> EMORE{"tickets left in<br/>the milestone?"}
     EMORE -->|yes| EWAVE

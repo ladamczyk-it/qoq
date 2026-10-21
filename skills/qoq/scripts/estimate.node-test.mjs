@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/estimate.spec.mjs
+// node --test skills/qoq/scripts/estimate.node-test.mjs
 //
 // The contract is the exit code `plan` branches on and the counts that produce
 // it, so the tests drive the script as a subprocess against a throwaway project
@@ -42,7 +42,7 @@ const world = () => {
       '--attempts',
       String(attempts),
       '--attribution',
-      'estimation-miss',
+      'as-estimated',
       ...extra
     );
 

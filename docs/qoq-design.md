@@ -240,7 +240,7 @@ gate exited 0 having fetched nothing.
 SKILL.md's frontmatter makes it hold, including inside agents, since skill hooks
 apply to every tool call for the rest of the session. It's inline `node -e`
 because hook commands get no `${CLAUDE_SKILL_DIR}`, and the plugin and the
-symlinked checkout keep the script in different places. `npx-guard.spec.mjs`
+symlinked checkout keep the script in different places. `npx-guard.node-test.mjs`
 runs the command exactly as the frontmatter ships it. It matches `npx` anywhere
 in the command string, so a commit message quoting `npx vitest` is blocked too;
 rare, and the message says why. It has no exception for an `npx` the project's

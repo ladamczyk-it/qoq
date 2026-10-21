@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/npx-guard.spec.mjs
+// node --test skills/qoq/scripts/npx-guard.node-test.mjs
 //
 // The guard is SKILL.md's own PreToolUse hook, inline because a hook command
 // gets no ${CLAUDE_SKILL_DIR} to find a script by. So this runs the command

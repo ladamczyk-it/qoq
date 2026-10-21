@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/discovery-check.spec.mjs
+// node --test skills/qoq/scripts/discovery-check.node-test.mjs
 //
 // The contract is the exit code plus stdout, so the test drives the script the
 // way the skill does: as a subprocess, reading only what a caller reads.
