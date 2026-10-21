@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 import { existsSync, mkdirSync } from 'fs';
+import { relative } from 'path';
 
 import { readPackage } from '@npmcli/package-json/lib/read-package';
 import cac from 'cac';
 
 import { PACKAGE_JSON_PATH } from './helpers/constants.ts';
-import { resolveCliRelativePath } from './helpers/paths.ts';
+import { resolveCliRelativePath, toPosix } from './helpers/paths.ts';
 import { getConfig, initConfig, execute, scan } from './modules/index.ts';
 import { IExecuteOptions, IExecuteStagedOptions } from './modules/types.ts';
 
@@ -34,7 +35,24 @@ const withCommonOptions = (command: Command): Command =>
     .option('--skip-eslint', 'Skip ESLint linting')
     .option('--skip-stylelint', 'Skip Stylelint CSS/SCSS linting')
     .option('--skip-structurelint', 'Skip Structurelint file/folder structure linting')
-    .option('--skip-skillslint', 'Skip Skillslint skill-doc linting');
+    .option('--skip-skillslint', 'Skip Skillslint skill-doc linting')
+    .option('--silent', 'Suppress all QoQ console output')
+    .option('--json', "Write each tool's output to a JSON file in --output")
+    .option('--output <path>', 'Directory for JSON reports (requires --json)', {
+      default: resolveCliRelativePath('/bin/report'),
+    });
+
+// cac 7.1.0 lists boolean flags for mri under their camelCase name while mri
+// sees `--skip-knip`, so the flag swallows the next positional as its value —
+// the first file lint-staged appends. Handing mri the camelCase spelling fixes it.
+export const camelFlags = (argv: string[]): string[] =>
+  argv.map((arg) =>
+    arg.replace(
+      /^--([a-z]+(?:-[a-z]+)+)$/,
+      (_, name: string) =>
+        `--${name.replace(/-([a-z])/g, (__, char: string) => char.toUpperCase())}`
+    )
+  );
 
 withCommonOptions(
   cli
@@ -44,12 +62,7 @@ withCommonOptions(
     .option('--fix', 'Re-run tools in fix mode to auto-correct issues where supported')
 )
   .option('--warmup', 'Pre-generate tool configs in bin/ without running any checks')
-  .option('--silent', 'Suppress all QoQ console output')
   .option('--production', 'Run tools in production mode (excludes dev-only rules)')
-  .option('--json', "Write each tool's output to a JSON file in --output")
-  .option('--output <path>', 'Directory for JSON reports (requires --json)', {
-    default: resolveCliRelativePath('/bin/report'),
-  })
 
   .action(async (tools: string[], options: IExecuteOptions) => {
     const { workspaces } = (await readPackage(PACKAGE_JSON_PATH)) as { workspaces?: string[] };
@@ -89,8 +102,27 @@ withCommonOptions(
 )
   // eslint-disable-next-line @typescript-eslint/default-param-last
   .action(async (files: string[] = [], options: IExecuteStagedOptions) => {
+    // Nothing to check is not a failure: say so and exit 0 rather than
+    // silently widening the run to the whole repo.
+    if (files.length === 0) {
+      process.stdout.write(
+        'No files given, nothing to check. Pass the file list, e.g. via lint-staged.\n'
+      );
+
+      return;
+    }
+
+    // lint-staged hands over absolute paths; every tool matches its globs
+    // against cwd-relative ones.
+    const targets = files.map((file) => toPosix(relative(process.cwd(), file)));
+
     const { workspaces } = (await readPackage(PACKAGE_JSON_PATH)) as { workspaces?: string[] };
-    const { disableCache, concurrency } = options;
+    const { disableCache, concurrency, json, output } = options;
+
+    if (json) {
+      mkdirSync(output, { recursive: true });
+    }
+
     const config = await getConfig(workspaces, true);
 
     return await execute(
@@ -103,7 +135,7 @@ withCommonOptions(
         silent: !!options.silent || isCi(),
         ci: isCi(),
       },
-      files
+      targets
     );
   });
 
@@ -136,5 +168,5 @@ cli.help();
 // Skip auto-parsing when imported under Vitest so the command wiring can be
 // exercised in isolation; the published bin still parses on startup.
 if (!process.env.VITEST) {
-  cli.parse();
+  cli.parse(camelFlags(process.argv));
 }

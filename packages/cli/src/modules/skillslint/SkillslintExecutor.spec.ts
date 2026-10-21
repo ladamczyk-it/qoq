@@ -81,6 +81,23 @@ describe('SkillslintExecutor', () => {
       expect(lint).toHaveBeenCalledWith({ path: 'skills', fix: false, stats: false });
     });
 
+    it('should skip a staged run that touches nothing under the configured path', async () => {
+      const executor = new SkillslintExecutor(configWithSkillslint, true, true);
+
+      const result = await executor.run(baseOptions, ['src/a.ts', 'skillsets/b.md']);
+
+      expect(lint).not.toHaveBeenCalled();
+      expect(result).toBe(EExitCode.OK);
+    });
+
+    it('should lint the whole path when a staged file sits under it', async () => {
+      const executor = new SkillslintExecutor(configWithSkillslint, true, true);
+
+      await executor.run(baseOptions, ['src/a.ts', 'skills/qoq/SKILL.md']);
+
+      expect(lint).toHaveBeenCalledWith(expect.objectContaining({ path: 'skills' }));
+    });
+
     it('should request a fix when fixing is enabled', async () => {
       const executor = new SkillslintExecutor(configWithSkillslint, true, true);
 

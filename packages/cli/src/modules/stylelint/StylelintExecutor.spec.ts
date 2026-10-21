@@ -7,7 +7,6 @@ import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 
 import { dummyModulesConfig } from '__tests__/common.ts';
 
-import { readIgnorePatterns } from '../../helpers/common.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { StylelintExecutor } from './StylelintExecutor.ts';
@@ -22,11 +21,6 @@ vi.mock('stylelint', () => ({ default: { lint } }));
 vi.mock('fs', async (importOriginal) => ({
   ...(await importOriginal<typeof import('fs')>()),
   writeFileSync: vi.fn(),
-}));
-
-vi.mock('../../helpers/common.ts', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../../helpers/common.ts')>()),
-  readIgnorePatterns: vi.fn(),
 }));
 
 const baseOptions: IExecutorOptions = {
@@ -101,28 +95,26 @@ describe('StylelintExecutor', () => {
       expect(arg.maxWarnings).toBeUndefined();
     });
 
-    it('should lint the caller-supplied files, dropping the gitignored ones', async () => {
-      vi.mocked(readIgnorePatterns).mockResolvedValue(['dist/**']);
+    it('should lint only the caller-supplied files the configured glob covers', async () => {
       const executor = new StylelintExecutor(
         configWith({ strict: false, pattern: 'src/**/*.css' }),
         true,
         true
       );
 
-      await executor.run(baseOptions, ['src/a.css', 'dist/b.css']);
+      await executor.run(baseOptions, ['src/a.css', 'src/b.ts', 'dist/c.css']);
 
       expect(lintArg().files).toStrictEqual(['src/a.css']);
     });
 
-    it('should terminate gracefully when every caller-supplied file is gitignored', async () => {
-      vi.mocked(readIgnorePatterns).mockResolvedValue(['dist/**']);
+    it('should terminate gracefully when the glob covers none of the caller-supplied files', async () => {
       const executor = new StylelintExecutor(
         configWith({ strict: false, pattern: 'src/**/*.css' }),
         true,
         true
       );
 
-      const result = await executor.run(baseOptions, ['dist/b.css']);
+      const result = await executor.run(baseOptions, ['src/a.ts', 'dist/b.css']);
 
       expect(lint).not.toHaveBeenCalled();
       expect(result).toBe(EExitCode.OK);

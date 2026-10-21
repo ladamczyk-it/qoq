@@ -7,7 +7,7 @@
 ```bash
 qoq --init              # interactive wizard — writes qoq.config.js, eslint.config.js, .prettierrc (+ stylelint.config.js if Stylelint is enabled)
 qoq --check             # full quality check (CI / pre-push)
-qoq staged [files]      # check staged files only (pre-commit / lint-staged)
+qoq staged [files]      # check the given files only (pre-commit / lint-staged)
 qoq --fix               # auto-fix across all tools
 qoq [tools...]          # run only the named tools, e.g. `qoq eslint prettier`
 qoq scan [flags]        # on-demand vulnerability scan of package-lock.json; never part of the checks
