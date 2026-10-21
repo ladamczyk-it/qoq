@@ -1,0 +1,10 @@
+{
+  "hash": "0000000000000000",
+  "test": "npm test",
+  "test:one": "npm run test:one -- {file}",
+  "build": null,
+  "runner": "vitest",
+  "globals": false,
+  "react": false,
+  "conventions": null
+}

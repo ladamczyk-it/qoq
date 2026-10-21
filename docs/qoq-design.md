@@ -243,7 +243,9 @@ because hook commands get no `${CLAUDE_SKILL_DIR}`, and the plugin and the
 symlinked checkout keep the script in different places. `npx-guard.spec.mjs`
 runs the command exactly as the frontmatter ships it. It matches `npx` anywhere
 in the command string, so a commit message quoting `npx vitest` is blocked too;
-rare, and the message says why.
+rare, and the message says why. It has no exception for an `npx` the project's
+docs give, either. Discovery used to record one as an answer, which left a field
+the hook would never let run. Now it asks for a script that wraps it.
 
 **Why the bumper starts at the repository URL.** `@ladamczyk/outdated` (run
 through `qoq`'s npm check, so the skill never needs a second `npx`) already hands over each package's `repository`, so the changelog is one shallow clone

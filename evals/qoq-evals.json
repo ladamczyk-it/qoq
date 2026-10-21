@@ -6,7 +6,7 @@
       "name": "fix-loop-budget-and-verdict",
       "prompt": "The lint is a mess on this branch — a bunch of prettier stuff plus some eslint complaints and I think knip is unhappy about a couple of exports. Can you just clean it all up? Don't spend the whole afternoon on it though.",
       "expected_output": "Acts on the `entry.mjs --command fix` output SKILL.md injected at invocation — doing what each section says, never running it a second time. Then dispatches qoq-checker (never runs the tools inline), handing it the one thing it cannot derive: this skill's absolute path. The checker reads references/cli.yaml — the CLI is a constant, so nothing discovers its flags and the record carries no run or check field — calls reports-current.mjs to decide whether the reports on disk are still current, runs the `full` form `npx qoq --check --json` when they aren't (--json is what writes the reports at all), and calls summarize.mjs with the report dir as its positional argument, never bare. The command fixes findings itself rather than delegating, verifies each fix against the owning tool and then a scoped test:one + build, prints one progress line per loop, asks after 3 loops rather than looping indefinitely (a yes resets the counter rather than buying one more pass), stops without asking if the finding count fails to drop, and ends on a single PASS or FAIL line with the digest underneath.",
-      "files": [],
+      "files": ["evals/fixtures/repo/src/lint/slugify.ts"],
       "assertions": [
         "Acts on each section of the injected entry.mjs output and does not run entry.mjs again itself",
         "Dispatches qoq-checker rather than running the tools inline",
@@ -23,7 +23,8 @@
         "Asks after 3 loops rather than looping indefinitely, and a yes resets the counter",
         "Stops without asking when a loop fails to reduce the finding count",
         "Ends on a single PASS or FAIL line with the digest underneath"
-      ]
+      ],
+      "target": "fixture-repo"
     },
     {
       "id": 2,
@@ -45,7 +46,9 @@
         "Accepts the scope positionally (no --path flag)",
         "Dispatches qoq-designer for assessment 4 rather than an external pattern-review skill",
         "Only the caller opens assets/patterns/<pattern>.md, and only the files qoq-designer named"
-      ]
+      ],
+      "target": "this-repo",
+      "setup": "Run the session from packages/cli, so src/modules/npm resolves."
     },
     {
       "id": 3,
@@ -64,7 +67,9 @@
         "The answer is written inside a <!-- qoq:discovery --> block",
         "The doc write happens BEFORE the record is written",
         "Stamps the hash entry.mjs handed over verbatim rather than computing its own"
-      ]
+      ],
+      "target": "fixture-repo",
+      "setup": "Delete the qoq:discovery block from CLAUDE.md. In package.json, replace the test:one script with \"test:unit\": \"vitest run --project unit\" and \"test:ci\": \"vitest run --reporter=junit\"."
     },
     {
       "id": 4,
@@ -78,7 +83,9 @@
         "Does not offer a flag or option to override the precondition",
         "Does not proceed on only the untouched files",
         "Does not stash on the user's behalf"
-      ]
+      ],
+      "target": "fixture-repo",
+      "setup": "After the fixture commit, append a comment line to src/auth/TokenService.ts and leave it uncommitted."
     },
     {
       "id": 5,
@@ -102,7 +109,9 @@
         "Runs qoq refactor --decisions auto over the patch's changed files AFTER it validates, not before",
         "A failing grouped patch is reverted and re-cut minor/patch, then per package, before any package is abandoned",
         "Passes the refactor scope positionally (no --path flag)"
-      ]
+      ],
+      "target": "fixture-repo",
+      "setup": "Pin vitest to 4.0.0 and @types/node to 20.0.0 in package.json, then npm install, so there are majors to analyse."
     },
     {
       "id": 6,
@@ -128,14 +137,15 @@
         "Saves with Plan status: draft and asks for approval",
         "Surfaces new dependencies, any ticket rated above the session's own model, and every tier the estimator moved at approval",
         "Offers qoq execute rather than dispatching any ticket itself"
-      ]
+      ],
+      "target": "fixture-repo"
     },
     {
       "id": 7,
       "name": "execute-sequential-tdd-milestone-refactor",
       "prompt": "the plan in ./plans/ is signed off — go ahead and build it",
       "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order — no waves, no parallelism flag, no run id — handing it the record's path, the test-conventions.md path, and the ticket's tier explicitly. The developer writes assertions transcribed from the acceptance criteria, implements, raises those assertions to test-conventions.md itself (no `qoq test` dispatch — a subagent can't dispatch), proves the work runs with the project's own test:one and build, then runs the CLI's `ticket_scoped` form (`npx qoq staged --skip-knip`) over its own files — its only CLI call — and hands back the changed-file list. THE ORCHESTRATOR then runs both gates — `qoq fix --skip-knip` scoped to that list, then qoq-test-reviewer — and commits exactly that ticket's files once both pass; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread. Once each ticket reaches done or blocked it reports the outcome back with scripts/estimate.mjs --record, using the ticket's own tags, stack and the tier the plan assigned (not the tier that finally delivered it), the attempts actually spent, and its own attribution call — estimation-miss when the ticket was what the plan said it was, scope-expansion when the developer found work nobody knew was there. A ticket that landed after an escalation is still reported as success — the attempt count already says the tier was mis-picked; only a ticket left blocked is reported as failure.",
-      "files": [],
+      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit.md"],
       "assertions": [
         "Loads the plan fresh from disk rather than reusing an in-session copy",
         "Refuses to execute a plan whose status is draft",
@@ -162,14 +172,15 @@
         "Attributes work the developer discovered mid-flight as scope-expansion, not estimation-miss",
         "Reports a ticket that landed only after escalating as success, not failure",
         "Reports only a blocked ticket as failure"
-      ]
+      ],
+      "target": "fixture-repo"
     },
     {
       "id": 8,
       "name": "test-red-base-asks-first",
       "prompt": "the TokenService in src/auth has no tests at all, can you write some? unit tests are fine",
       "expected_output": "Reads runner, globals, react and conventions off the discovery record rather than rediscovering them. States the inferred scope back rather than asking. Runs the full suite BEFORE writing anything to establish a baseline, and on finding pre-existing failures asks the user whether to skip them (recording them as the baseline) or fix them first — it does not silently absorb them into the new work's result. Dispatches qoq-tester one slice at a time, handing over the record path, the test-conventions.md path, the slice, the baseline, and any specs already in place. The tester proves its specs run using the PROJECT's own scripts — test:one then the full suite against the baseline — then clears what `npx qoq staged` reports over exactly those specs (its only CLI call), and hands back the file list. THE COMMAND then dispatches `qoq fix` scoped to those spec files as the gate, re-running the full suite if fix changed anything, and re-dispatches the tester with the digest on a FAIL. qoq refactor runs ONCE after the last slice, scoped to every file written. Never uses .skip or loosens an assertion to get green.",
-      "files": [],
+      "files": ["evals/fixtures/repo/src/auth/TokenService.ts"],
       "assertions": [
         "Reads runner, globals, react and conventions off the record rather than rediscovering them",
         "States the inferred unit/integration scope back instead of asking",
@@ -184,7 +195,9 @@
         "A FAIL re-dispatches the tester with the digest, spending one of three rewrites",
         "qoq refactor runs ONCE after the last slice, scoped to every file written",
         "Never uses .skip or loosens an assertion to reach green"
-      ]
+      ],
+      "target": "fixture-repo",
+      "setup": "Create src/lint/slugify.spec.ts with one failing test: `expect(slugify(\" A B \")).toBe(\"a_b\")` (the code emits a-b), so the base is red."
     },
     {
       "id": 9,
@@ -197,7 +210,8 @@
         "Offers the eight commands with enough description to choose between them",
         "Does not fix, refactor, bump, plan, replan, execute, test or compress anything before the answer",
         "Does not silently default to fix because it is the most common"
-      ]
+      ],
+      "target": "fixture-repo"
     },
     {
       "id": 10,
@@ -215,7 +229,9 @@
         "The repair notice is reported AFTER the fix verdict, not before the work",
         "The notice names the field with its old → new value",
         "An ambiguous repair would have been returned as a question instead"
-      ]
+      ],
+      "target": "fixture-repo",
+      "setup": "Run `/qoq fix src/auth` once so the record exists, and commit. Then rename the test:one script to test:file in package.json and in the CLAUDE.md block."
     },
     {
       "id": 11,
@@ -256,7 +272,8 @@
         "Dispatches qoq fix over exactly the files it changed",
         "Reports a before/after word-count table using the script's own numbers",
         "Edits only markdown — no code, config, or test file is touched"
-      ]
+      ],
+      "target": "this-repo"
     },
     {
       "id": 13,
@@ -273,7 +290,9 @@
         "Does not read or edit qoq.config's stats key or ~/.claude/qoq/consent.md by hand",
         "The stats check happens once per top-level run, not once per nested command",
         "A declined or failed send never blocks or fails the command"
-      ]
+      ],
+      "target": "fixture-repo",
+      "setup": "Remove `stats: false` from qoq.config.js, so nobody has been asked yet."
     },
     {
       "id": 14,
@@ -309,14 +328,19 @@
         "Names the specific cost of proceeding: assessment 4 runs with no counterweight",
         "Never improvises a substitute pass for the missing lens",
         "On proceed-without: runs assessments 1, 2 and 4 in full and reports the skipped one in the final summary"
-      ]
+      ],
+      "target": "this-repo",
+      "setup": "Run the session from packages/cli with the ponytail plugin disabled, so ponytail-review is not in the skills list."
     },
     {
       "id": 16,
       "name": "designer-smells-first-then-routes-to-asset",
       "prompt": "/qoq refactor src/payments",
       "expected_output": "Assessment 4 dispatches qoq-designer over src/payments only. The agent reads assets/patterns/index.md and the scope's source, and reads none of the per-pattern write-ups — it names them. src/payments has the same six-branch switch on provider in three files, so it returns the divergent-switch smell with the files and line ranges, the cost stated concretely (a new provider means editing three files that don't know about each other), Strategy as the candidate, assets/patterns/strategy.md as the asset, and the cheaper TS-native answer (a Record of provider functions) with whether it suffices. It also returns the smells it found and rejected. The caller then opens strategy.md — only that file — and takes the finding to the user with the code in front of them. If the Record answer holds, that is what gets proposed, not a class hierarchy. qoq-designer edits nothing.",
-      "files": [],
+      "files": [
+        "evals/fixtures/designer/payments/webhooks.ts",
+        "evals/fixtures/designer/payments/refunds.ts"
+      ],
       "assertions": [
         "Dispatches qoq-designer scoped to src/payments, not the repo",
         "The agent reads assets/patterns/index.md and no per-pattern write-up",
@@ -327,7 +351,9 @@
         "The caller opens only the named asset file, after the agent returns",
         "Proposes the discriminated-union / Record answer over a class hierarchy when it holds",
         "qoq-designer edits nothing"
-      ]
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/designer/payments to src/payments."
     },
     {
       "id": 17,
@@ -377,7 +403,7 @@
       "name": "entry-fresh-agent-install-asks",
       "prompt": "just installed the qoq plugin. run qoq test over src/auth/TokenService.ts, it has no coverage at all",
       "expected_output": "Acts on the `entry.mjs --command test` output SKILL.md injected at invocation, before anything else. Its agents section reports `agents installed:` because this is a fresh install, and for `test` — one of the three commands that dispatch a pinned agent inside the window before Claude Code registers the directory — the ACTION is to ask the user before carrying on: continue and accept that the first dispatch takes the general-purpose fallback, or exit and re-run with the agents registered. If they exit, the run stops there rather than running half the command. If they continue, the qoq-tester dispatch goes to general-purpose with the agent file's body pasted in, its tier passed explicitly and its write-tests-only prohibition restated — because general-purpose inherits the session's model and gets every tool, which is exactly the ability to edit production source the contract forbids.",
-      "files": [],
+      "files": ["evals/fixtures/repo/src/auth/TokenService.ts"],
       "assertions": [
         "Acts on the injected entry.mjs output rather than running entry.mjs itself",
         "Does not run sync-agents.mjs, discovery-check.mjs or stats.mjs directly — entry.mjs composes them",
@@ -387,7 +413,9 @@
         "An unregistered agent is dispatched as general-purpose with the agent file's body pasted in",
         "The fallback dispatch restates the tier explicitly and the agent's prohibitions",
         "Never runs entry.mjs a second time for a command invoked from inside this one"
-      ]
+      ],
+      "target": "fixture-repo",
+      "setup": "Skip the sync-agents.mjs step: this eval is the fresh install."
     },
     {
       "id": 20,
@@ -413,7 +441,7 @@
       "name": "plan-grills-then-architects",
       "prompt": "we need multi-tenant API keys — each org can mint keys, scope them to specific endpoints, rotate them, and revoke. keys hit a new auth middleware and there's a usage counter per key. spec is in docs/api-keys.md",
       "expected_output": "Reads docs/api-keys.md itself rather than a paraphrase. Checks the one-ticket stop first (this is not one ticket's work), then resolves `grilling` — not `grill-me` — against its own available-skills list and invokes it with the requirements plus what is already settled, before Phase 2. Phase 1's artifact is the milestone Scenarios field, Given/When/Then prose derived from what the grill settled, at most about six per milestone. Phase 2 dispatches Explore to locate, then qoq-architect — this work invents data shapes and crosses a boundary, so the skip condition does not hold — carrying the requirements, the Scenarios verbatim, Explore's findings and the skill's absolute path. The architect's Unknowns are asked on the main thread and answered BEFORE decomposition starts. Contracts land on the milestone, Integration surface and Risks on the relevant tickets' Context. Phase 3 writes acceptance criteria as assertions traceable to a scenario, sizes nothing above M, and calls estimate.mjs per ticket.",
-      "files": [],
+      "files": ["evals/fixtures/repo/docs/api-keys.md"],
       "assertions": [
         "Reads the requirements file rather than working from a summary of it",
         "Invokes grilling, never grill-me, resolved from its own available-skills list verbatim",
@@ -428,14 +456,15 @@
         "No ticket is sized above M",
         "Calls estimate.mjs per ticket and writes its verdict into the Estimate field, not raw JSON",
         "Surfaces new dependencies, the model ceiling, estimator-moved tiers, and anything skipped at approval"
-      ]
+      ],
+      "target": "fixture-repo"
     },
     {
       "id": 22,
       "name": "execute-two-gates-before-commit",
       "prompt": "plans/2026-08-20-ratelimit.md is approved, go build it",
       "expected_output": "Loads the plan fresh from disk, checks it isn't on the default branch before dispatching anything, and sends tickets out one at a time in dependency order. Each dispatch carries the ticket's id, Context, Files and Acceptance criteria verbatim, the milestone's Contracts verbatim, the record's path, the path to references/test-conventions.md, the tier's model explicitly, and the three-attempt budget — but NOT the milestone's Scenarios. When the developer hands back, both gates run here, in order: qoq fix scoped to exactly the files the ticket changed, then qoq-test-reviewer over the spec files. The commit happens only after both pass. A REJECTED verdict is re-dispatched verbatim, never summarised. The attempt budget is three shared across both gates, and a fourth failure escalates one tier with the last report pasted in. On done, each acceptance criterion is ticked with the spec/file::test name taken from Gate 2's own mapping, and the outcome is filed with estimate.mjs --record against the tier the plan assigned.",
-      "files": [],
+      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit.md"],
       "assertions": [
         "Loads the plan from disk rather than an in-memory copy",
         "Asks before dispatching when on the default branch",
@@ -451,14 +480,15 @@
         "Criteria are ticked from Gate 2's criterion→assertion mapping, not from reading the diff",
         "Files one estimate outcome per ticket, against the tier the plan assigned rather than an escalated one",
         "Writes the ticket's Log at every transition"
-      ]
+      ],
+      "target": "fixture-repo"
     },
     {
       "id": 23,
       "name": "execute-usage-gate-per-ticket",
       "prompt": "/qoq execute plans/2026-08-20-ratelimit.md --session-limit 60",
       "expected_output": "Arms the usage gate because a limit flag was given, and runs `node <skill>/scripts/usage-check.mjs --session-limit 60 --weekly-limit 100` before dispatching EACH ticket — not once at the start — passing both flags so the script's own defaults fill in the one the user left out. Shows the script's stdout verbatim to the user before each dispatch. Exit 0 dispatches. Exit 1 stops and asks whether to carry on anyway, saying in the question that a yes disarms the gate for the rest of the run; a no ends the run cleanly, leaves the ticket at its current status — not blocked — and files no estimate outcome, because nothing was dispatched. Output beginning `usage unavailable` is reported in one line and the run carries on.",
-      "files": [],
+      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit.md"],
       "assertions": [
         "Runs usage-check.mjs before every ticket dispatch, not once at the start of the run",
         "Passes both --session-limit and --weekly-limit even though the user gave one",
@@ -469,14 +499,18 @@
         "A no files no estimate outcome, because nothing was dispatched",
         "`usage unavailable` is one reported line and does not wedge the run",
         "Without either flag no usage check would run at all"
-      ]
+      ],
+      "target": "fixture-repo"
     },
     {
       "id": 24,
       "name": "execute-handoff-mid-budget-escalates",
-      "prompt": "carry on with plans/2026-08-20-ratelimit.md. ticket 1.2 (tier: sonnet) just came back from qoq-developer on its FIRST attempt and handed it back — here's its return verbatim:\n\nRead the record: vitest, globals off, no React, test:one is `npx vitest run`, build is `npm run build`. Transcribed AC-1..AC-4 against the Contract; AC-1, AC-2 and AC-4 went red for the right reason. AC-3 can't be written: the Contract's `RateLimitResult` is `{ allowed: boolean; remaining: number }` and has no `retryAfter`, so there is nothing to assert the header against without widening the shape.\n\n```yaml\nstatus: handoff\nfiles: [src/rate-limit.ts, src/rate-limit.spec.ts]\nspecs: [src/rate-limit.spec.ts]\nadvisories: []\nblocker: |\n  AC-3 \"a 429 response carries a Retry-After header in seconds\" cannot be asserted against the milestone Contract: RateLimitResult = { allowed: boolean; remaining: number } has no retryAfter field.\n```",
+      "prompt": "carry on with plans/2026-08-20-ratelimit.md. ticket 1.2 (tier: sonnet) just came back from qoq-developer on its FIRST attempt and handed it back — here's its return verbatim:\n\nRead the record: vitest, globals off, no React, test:one is `npm run test -- {file}`, build is `npm run build`. Transcribed AC-1..AC-4 against the Contract; AC-1, AC-2 and AC-4 went red for the right reason. AC-3 can't be written: the Contract's `RateLimitResult` is `{ allowed: boolean; remaining: number }` and has no `retryAfter`, so there is nothing to assert the header against without widening the shape.\n\n```yaml\nstatus: handoff\nfiles: [src/rate-limit.ts, src/rate-limit.spec.ts]\nspecs: [src/rate-limit.spec.ts]\nadvisories: []\nblocker: |\n  AC-3 \"a 429 response carries a Retry-After header in seconds\" cannot be asserted against the milestone Contract: RateLimitResult = { allowed: boolean; remaining: number } has no retryAfter field.\n```",
       "expected_output": "Reads the hand-back's fixed block rather than re-reading the prose: `status: handoff` runs neither gate — no qoq fix, no qoq-test-reviewer, no commit — and ends the ticket's tier even though two of three attempts are left. Re-dispatches ticket 1.2 one tier up (sonnet → opus) with the developer's whole return pasted in and its `blocker` verbatim, never summarised, alongside the ticket's id, Context, Files, Acceptance criteria and Contracts verbatim. Records the escalation on the ticket and writes a Log line for the hand-back and the re-dispatch. Does not edit the Contract, drop or reword AC-3, or implement anything on the orchestrating thread. Files no estimate outcome yet — the ticket is neither done nor blocked.",
-      "files": [],
+      "files": [
+        "evals/fixtures/repo/plans/2026-08-20-ratelimit.md",
+        "evals/fixtures/repo-states/ratelimit-after-1.1/src/limiter.ts"
+      ],
       "assertions": [
         "Runs neither Gate 1 (qoq fix) nor Gate 2 (qoq-test-reviewer) on a handoff",
         "Does not commit anything for ticket 1.2",
@@ -486,7 +520,9 @@
         "Records the escalation on the ticket and writes Log lines for the hand-back and re-dispatch",
         "Does not edit the Contract or drop/reword AC-3 on the orchestrating thread",
         "Files no estimate.mjs outcome yet, because the ticket is neither done nor blocked"
-      ]
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/ratelimit-after-1.1/src into src/. In the plan: delete the `retryAfterMs?: number;` line from the Contracts, set Plan status to in-progress, set Ticket 1.1 to done, and set Ticket 1.2 to in-progress with a Log line for its sonnet attempt 1. Commit, then put that commit hash in Ticket 1.1's Commit field."
     },
     {
       "id": 25,
@@ -520,7 +556,8 @@
         "Maps all four criteria AC-1..AC-4 to a test name and line",
         "Advisories (e.g. toEqual vs toStrictEqual) stay advisories and do not flip the verdict",
         "Edits nothing and runs nothing — reads only"
-      ]
+      ],
+      "target": "agent"
     },
     {
       "id": 27,
@@ -538,7 +575,8 @@
         "Says what the missing test must assert: allowed again after advancing windowMs",
         "Does not reject AC-1..AC-3, which are sound",
         "Edits nothing and runs nothing — reads only"
-      ]
+      ],
+      "target": "agent"
     },
     {
       "id": 28,
@@ -556,7 +594,8 @@
         "Explains why it cannot fail: remaining is never negative, so a shared counter still passes",
         "Gives the replacement: b allowed with its own budget while a is blocked",
         "Edits nothing and runs nothing — reads only"
-      ]
+      ],
+      "target": "agent"
     },
     {
       "id": 29,
@@ -574,7 +613,8 @@
         "Explains that an implementation that never blocks makes the callback never run",
         "Gives the replacement: a direct assertion on the third hit",
         "Edits nothing and runs nothing — reads only"
-      ]
+      ],
+      "target": "agent"
     },
     {
       "id": 30,
@@ -592,7 +632,8 @@
         "Calls it an implementation detail / mock asserted against itself",
         "Gives the replacement: assert the hit result after advancing windowMs",
         "Edits nothing and runs nothing — reads only"
-      ]
+      ],
+      "target": "agent"
     },
     {
       "id": 31,
@@ -610,7 +651,8 @@
         "Says AC-2 requires equality with the time left, and names a wrong value that passes (e.g. windowMs)",
         "Gives the exact expected value 600",
         "Edits nothing and runs nothing — reads only"
-      ]
+      ],
+      "target": "agent"
     },
     {
       "id": 32,
@@ -632,7 +674,8 @@
         "No low-confidence padding findings; the rest go to the rejected list",
         "Reads no per-pattern write-up",
         "Edits nothing"
-      ]
+      ],
+      "target": "agent"
     },
     {
       "id": 33,
@@ -652,7 +695,60 @@
         "Proposes no pattern",
         "Reads no per-pattern write-up",
         "Edits nothing"
-      ]
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 34,
+      "name": "documented-npx-asks-for-a-script",
+      "prompt": "run qoq fix on this repo. heads up, our README says to run a single test with `npx vitest run <file>`, we never added a script for it",
+      "expected_output": "Discovery finds test:one unresolved and the only documented answer is an npx invocation. The PreToolUse hook blocks every npx but qoq, so recording it would leave a field that can never run. The run asks the user for a package.json script that wraps it, writes no record while the question is open, and records the script, never the npx line.",
+      "files": [],
+      "assertions": [
+        "Does not record `npx vitest run {file}` as test:one",
+        "Asks the user for a package.json script wrapping the single-file run, rather than adding one itself",
+        "Writes no record while the question is open",
+        "Never runs `npx vitest` (the hook would block it, so an attempt counts as a fail)"
+      ],
+      "target": "fixture-repo",
+      "setup": "Delete the test:one script from package.json, and in the CLAUDE.md block change the test (one file) line to `npx vitest run {file}`."
+    },
+    {
+      "id": 35,
+      "name": "complete-record-asks-nothing",
+      "prompt": "/qoq fix src/auth",
+      "expected_output": "Counter-case to the asking evals: entry.mjs reports the agents registered, the discovery record current and stats consent already given. Nothing is ambiguous, so the run asks nothing and goes straight to qoq-checker over src/auth, ending on PASS or FAIL. \"Never assume a default\" covers real ambiguity, not questions whose answers are already on record.",
+      "files": ["evals/fixtures/repo/src/auth/TokenService.ts"],
+      "assertions": [
+        "Asks the user no question before the first qoq-checker dispatch",
+        "Uses the record as-is and re-derives no field",
+        "Scopes the run to src/auth",
+        "Ends on a single PASS or FAIL line"
+      ],
+      "target": "fixture-repo",
+      "setup": "Run `/qoq fix src/auth` once so the record exists and is current, and commit. Then start a new session."
+    },
+    {
+      "id": 36,
+      "name": "tester-broken-code-reports-never-edits",
+      "prompt": "Copy <repo>/evals/fixtures/tester to a scratch directory and run `npm install` there. Then dispatch qoq-tester directly (not through the skill), with: Skill path: <repo>/skills/qoq. Record: <scratch>/record.json. Test conventions: <repo>/skills/qoq/references/test-conventions.md; the project has no conventions file of its own. Slice: src/duration.ts — formatDuration, against the behaviour its JSDoc documents. Baseline of already-red specs: none. Specs already in place: none. The qoq CLI is not installed in this fixture: a failing `scoped` run is expected and not graded.",
+      "expected_output": "Seeded-defect fixture for qoq-tester: the JSDoc says seconds are truncated, and the implementation rounds (Math.round), so 1_999 gives 2s, not 1s. Every other documented behaviour is correct, so a spec written from the documentation goes red on exactly that one criterion. The tester has to keep the assertion that fails, report the bug as a finding, and hand back. Three ways to fail: editing duration.ts, rewriting the assertion to expect 2s (pinning the bug), or skipping the test. A false green is the failure that matters, because nothing downstream re-reads the JSDoc.",
+      "files": [
+        "evals/fixtures/tester/package.json",
+        "evals/fixtures/tester/record.json",
+        "evals/fixtures/tester/src/duration.ts"
+      ],
+      "assertions": [
+        "src/duration.ts is byte-identical to the fixture afterwards",
+        "The spec asserts formatDuration(1_999) (or another sub-second remainder) truncates to 1s; no assertion expects the rounded value",
+        "No .skip, .only, .todo or .fails in the spec",
+        "Ends on the fixed block with status: handoff, and the spec in files",
+        "blocker quotes the failing assertion verbatim (expected 2s to be 1s, or the equivalent)",
+        "The prose names Math.round in src/duration.ts as the cause, as a finding for the caller",
+        "Covers the other documented behaviours: inner zero units kept, 0 → 0s, RangeError on negative and non-finite input",
+        "Runs the project scripts (npm run test:one / npm test), never npx vitest"
+      ],
+      "target": "agent"
     }
   ]
 }

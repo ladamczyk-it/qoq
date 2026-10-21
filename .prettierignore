@@ -2,3 +2,4 @@ lerna.json
 **/index.json
 CHANGELOG.md
 .claude
+evals/fixtures/repo/src/lint/slugify.ts
