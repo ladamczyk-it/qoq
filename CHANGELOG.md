@@ -1,3 +1,19 @@
+# [6.4.0](https://github.com/ladamczyk-it/qoq/compare/v6.3.0...v6.4.0) (2026-10-21)
+
+
+### Bug Fixes
+
+* bump packages ([250349a](https://github.com/ladamczyk-it/qoq/commit/250349a19ed057909177b93f634f38e42ead3114))
+* bump packages ([88d7e02](https://github.com/ladamczyk-it/qoq/commit/88d7e0297ab6366f72ea5c8f6fc9e9b656187199))
+* **skill:** rename attribution to as-estimated; skill tests to *.node-test.mjs ([4cdffad](https://github.com/ladamczyk-it/qoq/commit/4cdffad35da2f02e3e8b086d961a863c045f2387))
+
+
+### Features
+
+* **skill:** blocker_kind on the developer hand-back; a plan blocker asks, never escalates ([68ec6c6](https://github.com/ladamczyk-it/qoq/commit/68ec6c62164189d979f2e3a07f5a8c41f967a105))
+* **skill:** fixed hand-back blocks for qoq-developer and qoq-tester ([3703f47](https://github.com/ladamczyk-it/qoq/commit/3703f470fb8d5b82c54689e1eeabfa3ac1460d86))
+* **skill:** forward the last return on a same-tier re-dispatch ([e61c71e](https://github.com/ladamczyk-it/qoq/commit/e61c71eeef4f7c85163fc0fb5bf607ad8ab87a43))
+
 # [6.3.0](https://github.com/ladamczyk-it/qoq/compare/v6.2.1...v6.3.0) (2026-10-15)
 
 
