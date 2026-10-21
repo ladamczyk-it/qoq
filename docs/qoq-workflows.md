@@ -478,17 +478,17 @@ flowchart TD
         TREF --> TADD["may **add** cases per test-conventions.md.<br/>**never change what a green assertion<br/>expects on your own judgment** — that is a<br/>hand-back with the criterion quoted.<br/>*a Gate 2 rejection is the one exception,<br/>and only for the assertions it cites*"]
         TADD --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`, then<br/>`npx qoq staged --skip-knip` over its files<br/>*scoped and report-less: the<br/>digest and the gate stay<br/>with the caller*"]
         T4 -->|"red, budget left"| T2
-        T4 -->|"red, budget spent"| THAND(["**handoff report** —<br/>never narrow the ticket,<br/>never weaken the gate"])
-        T4 -->|"green"| TRET["hand back **every file changed**,<br/>spec and source both"]
+        T4 -->|"can't finish — budget spent, wrong<br/>Contract, unassertable criterion"| THAND(["**`status: handoff`** + `blocker` verbatim,<br/>`files` on disk.<br/>never narrow the ticket,<br/>never weaken the gate"])
+        T4 -->|"green"| TRET["**`status: green`** — `files`: every file<br/>changed, spec and source both ·<br/>`specs` · `advisories`"]
     end
 
     CONTRA(["**a Contract that turns out wrong is a<br/>HAND-BACK, not an edit** — widening a<br/>payload to make your own test pass is<br/>the failure this rule exists for"])
     T1 -.-> CONTRA
 
     EDISP --> T0
-    TRET --> EGATE["**GATE 1 — qoq fix --skip-knip**, scoped<br/>to exactly the files it returned.<br/>*knip is the one tool that can't be scoped —<br/>it asks whether an export is reachable in a<br/>repo missing every ticket after this one, so<br/>it calls ticket 4's dependency dead code and<br/>the gate sends ticket 3 back to delete it*"]
+    TRET --> EGATE["**GATE 1 — qoq fix --skip-knip**, scoped<br/>to the developer's `files`.<br/>*knip is the one tool that can't be scoped —<br/>it asks whether an export is reachable in a<br/>repo missing every ticket after this one, so<br/>it calls ticket 4's dependency dead code and<br/>the gate sends ticket 3 back to delete it*"]
     EGATE -->|FAIL| EATT
-    EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the spec files.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
+    EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the developer's `specs`.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
     EGATE2 -->|"REJECTED — file:line per defect"| EATT
     EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files,<br/>**`--no-verify`**.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof its tests<br/>are real — the gates just ran, scoped, and a<br/>pre-commit hook would re-run them plus the<br/>knip that gate 1 dropped on purpose*"]
 
@@ -496,10 +496,10 @@ flowchart TD
     EATT -->|"no — re-dispatch with the<br/>digest or the verdict **verbatim**"| EDISP
     EATT -->|yes| EESC
     THAND --> EESC{"a tier<br/>above?"}
-    EESC -->|"yes — re-dispatch with<br/>the report pasted in"| EDISP
+    EESC -->|"yes — re-dispatch with the last<br/>return whole, `blocker` verbatim"| EDISP
     EESC -->|"no — top rung already"| EBLOCK(["**Status: blocked** — bring the<br/>user the report: bad ticket,<br/>or session model too small"])
 
-    TCOM --> EDONE["**Status: done** + commit hash, advisories.<br/>**tick each acceptance criterion and write<br/>its evidence pointer** from the reviewer's<br/>mapping — *never from your own reading<br/>of the diff*"]
+    TCOM --> EDONE["**Status: done** + commit hash, the<br/>developer's `advisories`.<br/>**tick each acceptance criterion and write<br/>its evidence pointer** from the reviewer's<br/>mapping — *never from your own reading<br/>of the diff*"]
     EDONE --> ELOG["**Log** — one line per transition:<br/>dispatch, each gate verdict,<br/>re-dispatch, done/blocked + hash"]
     EBLOCK --> ELOG
     ELOG --> EXBACK
@@ -557,16 +557,16 @@ flowchart TD
         A2 -->|"green"| A3["**the full suite** —<br/>against the baseline it was given"]
         A3 -->|"red"| A4{"3 rewrites<br/>spent?"}
         A4 -->|"no — rewrite, don't patch"| A1
-        A4 -->|"yes"| AHAND(["**hands back** — what it tried,<br/>the blocker verbatim, what's on disk.<br/>*a subagent can't ask*"])
-        A3 -->|"green"| ARET["return: **the files written**,<br/>what the suite says"]
+        A4 -->|"yes"| AHAND(["**`status: handoff`** — `blocker`<br/>verbatim, `files` on disk.<br/>*a subagent can't ask*"])
+        A3 -->|"green"| ARET["**`status: green`** — `files`:<br/>every spec written"]
     end
 
     TDISP --> A1
     AHAND --> TNARROW(["**ASK THE USER** — narrow this slice?<br/>fewer cases, one behaviour at a time —<br/>with the agent's blocker, quoted"])
     TNARROW -.->|"narrowed — counter resets"| TDISP
-    TNARROW -.->|"no"| TSTOP2(["**stop** — report the blocker,<br/>nothing half-written left behind"])
+    TNARROW -.->|"no"| TSTOP2(["**stop** — report the blocker, remove<br/>the handoff's `files` — nothing<br/>half-written left behind"])
 
-    ARET --> TGATE["**qoq fix**, scoped to<br/>the files it returned —<br/>*the gate, run from here*"]
+    ARET --> TGATE["**qoq fix**, scoped to<br/>the tester's `files` —<br/>*the gate, run from here*"]
     TGATE -->|FAIL| A4
     TGATE -->|"PASS, and fix changed files"| TRERUN["re-run the full suite —<br/>fix's own check is scoped"]
     TRERUN --> TMORE

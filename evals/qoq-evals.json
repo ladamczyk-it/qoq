@@ -134,7 +134,7 @@
       "id": 7,
       "name": "execute-sequential-tdd-milestone-refactor",
       "prompt": "the plan in ./plans/ is signed off — go ahead and build it",
-      "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order — no waves, no parallelism flag, no run id — handing it the record's path, the test-conventions.md path, and the ticket's tier explicitly. The developer writes assertions transcribed from the acceptance criteria, implements, raises those assertions to test-conventions.md itself (no `qoq test` dispatch — a subagent can't dispatch), proves the work runs with the project's own test:one and build, and hands back the changed-file list. It never invokes the qoq CLI. THE ORCHESTRATOR then dispatches `qoq fix` scoped to that list — the gate — and commits exactly that ticket's files on PASS; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread. Once each ticket reaches done or blocked it reports the outcome back with scripts/estimate.mjs --record, using the ticket's own tags, stack and the tier the plan assigned (not the tier that finally delivered it), the attempts actually spent, and its own attribution call — estimation-miss when the ticket was what the plan said it was, scope-expansion when the developer found work nobody knew was there. A ticket that landed after an escalation is still reported as success — the attempt count already says the tier was mis-picked; only a ticket left blocked is reported as failure.",
+      "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order — no waves, no parallelism flag, no run id — handing it the record's path, the test-conventions.md path, and the ticket's tier explicitly. The developer writes assertions transcribed from the acceptance criteria, implements, raises those assertions to test-conventions.md itself (no `qoq test` dispatch — a subagent can't dispatch), proves the work runs with the project's own test:one and build, then runs the CLI's `ticket_scoped` form (`npx qoq staged --skip-knip`) over its own files — its only CLI call — and hands back the changed-file list. THE ORCHESTRATOR then runs both gates — `qoq fix --skip-knip` scoped to that list, then qoq-test-reviewer — and commits exactly that ticket's files once both pass; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread. Once each ticket reaches done or blocked it reports the outcome back with scripts/estimate.mjs --record, using the ticket's own tags, stack and the tier the plan assigned (not the tier that finally delivered it), the attempts actually spent, and its own attribution call — estimation-miss when the ticket was what the plan said it was, scope-expansion when the developer found work nobody knew was there. A ticket that landed after an escalation is still reported as success — the attempt count already says the tier was mis-picked; only a ticket left blocked is reported as failure.",
       "files": [],
       "assertions": [
         "Loads the plan fresh from disk rather than reusing an in-session copy",
@@ -148,9 +148,9 @@
         "The developer writes failing assertions transcribed from the criteria before implementing",
         "The developer raises those assertions to test-conventions.md itself, with no qoq test dispatch",
         "The developer proves its work with the project's own test:one and build",
-        "The developer never invokes the qoq CLI",
-        "The orchestrator dispatches qoq fix scoped to the returned file list",
-        "The commit happens on the orchestrating thread, after PASS, one commit per ticket",
+        "The developer's only qoq CLI call is `npx qoq staged --skip-knip` over its own files — never --check or --fix",
+        "The orchestrator dispatches qoq fix --skip-knip scoped to the returned file list",
+        "The commit happens on the orchestrating thread, one per ticket, only after both gates pass",
         "A FAIL re-dispatches the developer with the digest and spends one of three attempts",
         "The refactor beat runs at the milestone over the union of its files, not per ticket",
         "The milestone gate also runs the project's full build and test suite",
@@ -168,7 +168,7 @@
       "id": 8,
       "name": "test-red-base-asks-first",
       "prompt": "the TokenService in src/auth has no tests at all, can you write some? unit tests are fine",
-      "expected_output": "Reads runner, globals, react and conventions off the discovery record rather than rediscovering them. States the inferred scope back rather than asking. Runs the full suite BEFORE writing anything to establish a baseline, and on finding pre-existing failures asks the user whether to skip them (recording them as the baseline) or fix them first — it does not silently absorb them into the new work's result. Dispatches qoq-tester one slice at a time, handing over the record path, the test-conventions.md path, the slice, the baseline, and any specs already in place. The tester proves its specs run using only the PROJECT's own scripts — test:one then the full suite against the baseline — never the qoq CLI, and hands back the file list. THE COMMAND then dispatches `qoq fix` scoped to those spec files as the gate, re-running the full suite if fix changed anything, and re-dispatches the tester with the digest on a FAIL. qoq refactor runs ONCE after the last slice, scoped to every file written. Never uses .skip or loosens an assertion to get green.",
+      "expected_output": "Reads runner, globals, react and conventions off the discovery record rather than rediscovering them. States the inferred scope back rather than asking. Runs the full suite BEFORE writing anything to establish a baseline, and on finding pre-existing failures asks the user whether to skip them (recording them as the baseline) or fix them first — it does not silently absorb them into the new work's result. Dispatches qoq-tester one slice at a time, handing over the record path, the test-conventions.md path, the slice, the baseline, and any specs already in place. The tester proves its specs run using the PROJECT's own scripts — test:one then the full suite against the baseline — then clears what `npx qoq staged` reports over exactly those specs (its only CLI call), and hands back the file list. THE COMMAND then dispatches `qoq fix` scoped to those spec files as the gate, re-running the full suite if fix changed anything, and re-dispatches the tester with the digest on a FAIL. qoq refactor runs ONCE after the last slice, scoped to every file written. Never uses .skip or loosens an assertion to get green.",
       "files": [],
       "assertions": [
         "Reads runner, globals, react and conventions off the record rather than rediscovering them",
@@ -178,7 +178,7 @@
         "Dispatches qoq-tester one slice at a time, never two in parallel",
         "The dispatch carries the record path, test-conventions.md path, slice, baseline, and any existing specs",
         "The tester proves its specs with the project's own test:one then the full suite",
-        "The tester never invokes the qoq CLI and never edits the code under test",
+        "The tester's only qoq CLI call is `npx qoq staged` over the specs it wrote, and it never edits the code under test",
         "The command dispatches qoq fix over the returned spec files as the gate",
         "Re-runs the full suite when fix changed anything",
         "A FAIL re-dispatches the tester with the digest, spending one of three rewrites",
@@ -190,12 +190,12 @@
       "id": 9,
       "name": "bare-invocation-asks-which-command",
       "prompt": "/qoq",
-      "expected_output": "Seven commands are seven different jobs and a bare invocation names none of them, so the skill asks which one rather than picking the most likely. Discovery may run first, but no command's work starts before the answer.",
+      "expected_output": "Eight commands are eight different jobs and a bare invocation names none of them, so the skill asks which one rather than picking the most likely. Discovery may run first, but no command's work starts before the answer.",
       "files": [],
       "assertions": [
         "Asks the user which command to run rather than guessing one",
-        "Offers the seven commands with enough description to choose between them",
-        "Does not fix, refactor, bump, plan, execute, test or compress anything before the answer",
+        "Offers the eight commands with enough description to choose between them",
+        "Does not fix, refactor, bump, plan, replan, execute, test or compress anything before the answer",
         "Does not silently default to fix because it is the most common"
       ]
     },
@@ -262,16 +262,16 @@
       "id": 13,
       "name": "stats-consent-asked-not-defaulted",
       "prompt": "clean up the lint on this repo",
-      "expected_output": "Before doing the work, runs node <skill>/scripts/stats.mjs fix once. On exit 1 it asks the user whether to send anonymous usage stats rather than assuming either answer, states honestly that the payload is the tool name plus the command and nothing else, then records the answer with --consent yes|no. It never composes the POST itself, never reads or writes the consent files by hand, and never re-asks within the run — a fix dispatched later from inside another command does not call the script again.",
+      "expected_output": "Acts on the stats section of the `entry.mjs` output SKILL.md injected at invocation rather than running stats.mjs itself. When that section says nobody has been asked, it asks the user with AskUserQuestion rather than assuming either answer, states honestly that the payload is the tool name plus the command and nothing else, then records the answer with `node <skill>/scripts/stats.mjs fix --project <dir> --consent yes|no`. It never composes the POST itself, never reads or writes qoq.config's `stats` key or ~/.claude/qoq/consent.md by hand, and never re-asks within the run — a fix dispatched later from inside another command does not trigger the check again.",
       "files": [],
       "assertions": [
-        "Runs scripts/stats.mjs with the command name before starting the work",
+        "Acts on entry.mjs's stats section rather than running stats.mjs itself before the work",
         "Does not assemble the POST, the URL, or the payload itself",
-        "On exit 1, asks the user rather than defaulting to yes or to no",
+        "When nobody has been asked, asks the user rather than defaulting to yes or to no",
         "The question states what is sent: tool name plus command, nothing else",
-        "Records the answer by calling the script again with --consent yes|no",
-        "Does not read or edit qoq.config.js or the consent lockfile by hand",
-        "Calls the script exactly once per top-level run, not once per nested command",
+        "Records the answer by calling stats.mjs with --consent yes|no",
+        "Does not read or edit qoq.config's stats key or ~/.claude/qoq/consent.md by hand",
+        "The stats check happens once per top-level run, not once per nested command",
         "A declined or failed send never blocks or fails the command"
       ]
     },
@@ -298,14 +298,14 @@
       "id": 15,
       "name": "refactor-missing-ponytail-lens-asks-before-green-base",
       "prompt": "/qoq refactor src/modules/npm",
-      "expected_output": "The discovery record's `skills` field maps `ponytail-review` to null. Before dispatching the green-base `qoq fix` — not after it, and not when assessment 3 comes up — the run tells the user assessment 3 cannot run, and asks with two real options: install the lens and re-run (recommended, with https://github.com/DietrichGebert/ponytail, the two-prompt install, and the note to delete the discovery record first, since the hash covers only package.json and the lockfile), or proceed with 3 of 4 assessments. It says why proceeding costs more than one pass — assessment 4 proposes structure and ponytail is its counterweight. It never improvises a substitute deletion pass, and if the user proceeds it runs assessments 1, 2 and 4 in full and names the skipped one in the final summary.",
+      "expected_output": "`ponytail-review` is absent from the run's own available-skills list. Before dispatching the green-base `qoq fix` — not after it, and not when assessment 3 comes up — the run tells the user assessment 3 cannot run, and asks with two real options: install the lens and re-run (recommended, with https://github.com/DietrichGebert/ponytail, the two-prompt install) — a re-run needs nothing cleaned up first, since the list is read afresh, or proceed with 3 of 4 assessments. It says why proceeding costs more than one pass — assessment 4 proposes structure and ponytail is its counterweight. It never improvises a substitute deletion pass, and if the user proceeds it runs assessments 1, 2 and 4 in full and names the skipped one in the final summary.",
       "files": [],
       "assertions": [
-        "Checks the record's skills field and asks BEFORE dispatching the green-base qoq fix",
+        "Resolves ponytail-review from its own available-skills list — not the record — and asks BEFORE dispatching the green-base qoq fix",
         "Asks once, naming ponytail-review and the assessment it costs",
         "Offers both install-and-re-run (marked recommended) and proceed-without as real choices",
         "Gives the GitHub source and the two-prompt install, not just the skill name",
-        "Says the discovery record must be deleted after installing, since the hash won't notice",
+        "Does not tell the user to delete the discovery record or clean anything up before re-running",
         "Names the specific cost of proceeding: assessment 4 runs with no counterweight",
         "Never improvises a substitute pass for the missing lens",
         "On proceed-without: runs assessments 1, 2 and 4 in full and reports the skipped one in the final summary"
@@ -469,6 +469,40 @@
         "A no files no estimate outcome, because nothing was dispatched",
         "`usage unavailable` is one reported line and does not wedge the run",
         "Without either flag no usage check would run at all"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "execute-handoff-mid-budget-escalates",
+      "prompt": "carry on with plans/2026-08-20-ratelimit.md. ticket 1.2 (tier: sonnet) just came back from qoq-developer on its FIRST attempt and handed it back — here's its return verbatim:\n\nRead the record: vitest, globals off, no React, test:one is `npx vitest run`, build is `npm run build`. Transcribed AC-1..AC-4 against the Contract; AC-1, AC-2 and AC-4 went red for the right reason. AC-3 can't be written: the Contract's `RateLimitResult` is `{ allowed: boolean; remaining: number }` and has no `retryAfter`, so there is nothing to assert the header against without widening the shape.\n\n```yaml\nstatus: handoff\nfiles: [src/rate-limit.ts, src/rate-limit.spec.ts]\nspecs: [src/rate-limit.spec.ts]\nadvisories: []\nblocker: |\n  AC-3 \"a 429 response carries a Retry-After header in seconds\" cannot be asserted against the milestone Contract: RateLimitResult = { allowed: boolean; remaining: number } has no retryAfter field.\n```",
+      "expected_output": "Reads the hand-back's fixed block rather than re-reading the prose: `status: handoff` runs neither gate — no qoq fix, no qoq-test-reviewer, no commit — and ends the ticket's tier even though two of three attempts are left. Re-dispatches ticket 1.2 one tier up (sonnet → opus) with the developer's whole return pasted in and its `blocker` verbatim, never summarised, alongside the ticket's id, Context, Files, Acceptance criteria and Contracts verbatim. Records the escalation on the ticket and writes a Log line for the hand-back and the re-dispatch. Does not edit the Contract, drop or reword AC-3, or implement anything on the orchestrating thread. Files no estimate outcome yet — the ticket is neither done nor blocked.",
+      "files": [],
+      "assertions": [
+        "Runs neither Gate 1 (qoq fix) nor Gate 2 (qoq-test-reviewer) on a handoff",
+        "Does not commit anything for ticket 1.2",
+        "Escalates exactly one tier (sonnet → opus) instead of spending the remaining attempts at sonnet",
+        "The escalated dispatch carries the developer's return with the blocker verbatim, not paraphrased",
+        "The escalated dispatch still carries id, Context, Files, Acceptance criteria and Contracts verbatim",
+        "Records the escalation on the ticket and writes Log lines for the hand-back and re-dispatch",
+        "Does not edit the Contract or drop/reword AC-3 on the orchestrating thread",
+        "Files no estimate.mjs outcome yet, because the ticket is neither done nor blocked"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "execute-three-attempts-escalate-a-tier",
+      "prompt": "resume plans/2026-08-04-reports.md. ticket 2.3 is rated haiku. attempt 1 failed Gate 1, attempt 2 got REJECTED at Gate 2, and the developer's attempt-3 return is below — I just ran Gate 1 on it and it FAILed again with: `FAIL — 1 finding left after 3 loops (1 unfixable: eslint/max-depth src/reports/cron.ts:41)`. what now?\n\nRe-dispatched on attempt 3 with the Gate 1 digest; fixed the import order and the unused variable, re-ran test:one and build, both green, `npx qoq staged --skip-knip` clean.\n\n```yaml\nstatus: green\nfiles: [src/reports/schedule.ts, src/reports/schedule.spec.ts, src/reports/cron.ts]\nspecs: [src/reports/schedule.spec.ts]\nadvisories: [\"cron.ts parses the expression twice; worth one helper at the milestone refactor\"]\nblocker: null\n```",
+      "expected_output": "Counts three attempts spent across both gates — the shared budget — so the tier is exhausted. Does not run Gate 2 after a Gate 1 FAIL and commits nothing. Re-dispatches one tier up (haiku → sonnet) with the last return pasted in whole and the Gate 1 digest verbatim, plus the ticket's id, Context, Files, Acceptance criteria and Contracts verbatim. Gate 1 on the next round is scoped to the developer's `files` — all three, including src/reports/cron.ts. Records the escalation on the ticket and writes Log lines. When the ticket later reaches done or blocked, the estimate is filed against haiku, the tier the plan assigned, with every attempt counted including those at sonnet.",
+      "files": [],
+      "assertions": [
+        "Treats the ticket as exhausted at haiku: three attempts shared across both gates",
+        "Does not dispatch qoq-test-reviewer after the Gate 1 FAIL",
+        "Commits nothing for ticket 2.3",
+        "Escalates exactly one tier, haiku → sonnet",
+        "The escalated dispatch carries the last return and the Gate 1 digest verbatim",
+        "Gate scope for the ticket is the developer's `files` list, including src/reports/cron.ts",
+        "Records the escalation on the ticket and writes Log lines for the FAIL and the re-dispatch",
+        "States the eventual estimate is filed against haiku (the plan's tier), counting attempts at both tiers"
       ]
     }
   ]

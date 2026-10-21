@@ -65,8 +65,17 @@ you return, and it re-dispatches you with the digest if it fails. The forms
 outside your `may_run` don't take a path — one of them would rewrite the
 production source you are forbidden to touch.
 
-So what you hand back is: **the files you wrote** — that list is what the gate
-runs on — and what the suite said.
+Then hand back, ending on exactly this block — your caller branches on it:
+
+```yaml
+status: green # or handoff — nothing else
+files: [src/auth/TokenService.spec.ts]
+blocker: null
+```
+
+`files` is every spec you wrote — the gate's scope, and on a handoff what's on
+disk, which your caller removes if the user stops. `blocker` is `null` when
+green; on a handoff, the failure **verbatim**.
 
 ## A red result rewrites, it doesn't patch
 
@@ -83,8 +92,8 @@ the file is cheap.
 
 ## Three rewrites, then hand back
 
-When the budget's spent, return: what you tried, the blocker **quoted verbatim**,
-and what's on disk right now.
+When the budget's spent, hand back with `status: handoff` — what you tried goes
+in the prose above the block.
 
 You can't ask the user anything, but your caller can — and the question it will
 ask is "should this slice be narrower?", because three failed attempts at one

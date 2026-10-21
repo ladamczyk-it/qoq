@@ -692,6 +692,28 @@ to recommend splitting the ticket. A ticket that was never dispatched has
 nothing to grade — filing it would teach the next plan to decompose work that
 was fine.
 
+**Why the developer's and the tester's returns end on a fixed block.** Their
+callers act on them mechanically — a status picks gate or escalation, a file list
+becomes a gate's scope and a commit, a blocker is forwarded to the next tier or
+quoted to the user. Free prose made the orchestrator re-read a report to find
+those, and a file list fished out of a paragraph can silently drop
+a spec, so the gate scopes short and the commit misses it. The block is defined
+once, in the agent that writes it, and the callers name fields without restating
+it, so the two can't drift. It holds only what a caller reads: "what the specs
+cover" went, because criteria are ticked from the reviewer's mapping, and "what
+the suite said" went, because `green` already means the suite agreed. The status
+stays binary: a `partial` would be a third branch every caller has to invent
+handling for, and nearly-green work is a handoff with what's on disk listed.
+`qoq-checker`, `qoq-test-reviewer` and `qoq-designer` were already shaped —
+`summarize.mjs` plus its exit code, `APPROVED`/`REJECTED`, a per-finding table —
+and were left alone.
+
+**Why a handoff escalates at any attempt.** The developer hands back only when
+it has decided it can't finish — a wrong Contract, an unassertable criterion, or
+the budget spent. Re-dispatching the same tier with the remaining attempts asks
+the same model the question it just answered. A gate FAIL is different: that's
+feedback the developer hasn't acted on yet, so it stays on the shared budget.
+
 **Why the commit happens after the gate rather than inside the agent.** It falls
 out of the gate living with the caller — the only thread that has a digest and
 can re-dispatch — and it's the better place regardless: nothing reaches history

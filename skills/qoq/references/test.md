@@ -76,8 +76,8 @@ produces.
    own slice. Then `npx qoq staged` over those specs, which costs seconds and
    spares a gate round on a lint finding.
 
-2. **`qoq fix` from here, scoped to exactly those spec files.** This is the gate.
-   Dispatched after the tester returns, over the file list it returned.
+2. **`qoq fix` from here, scoped to the tester's `files`.** This is the gate.
+   Dispatched after the tester returns `status: green`.
 
    It runs **last** rather than first, which inverts the obvious order for a
    reason: `fix` rewrites files — Prettier reformats, ESLint autofixes — so it
@@ -114,9 +114,9 @@ the file is cheap.
 isn't a report-and-stop; it's a question. Three attempts at one slice that all
 end red usually means the slice was too wide to write in one go, and the smallest
 useful thing to ask for is fewer cases or one behaviour at a time. The agent
-can't ask, so it hands back with the blocker quoted verbatim. A narrowed slice
-resets the counter; a no ends the run with the blocker reported and nothing
-half-written left behind.
+can't ask, so it returns `status: handoff`; ask with its `blocker` quoted
+verbatim. A narrowed slice resets the counter; a no ends the run with the blocker
+reported and the handoff's `files` removed — nothing half-written left behind.
 
 ## Conventions
 
