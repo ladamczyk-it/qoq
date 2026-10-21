@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/sync-agents.spec.mjs
+// node --test skills/qoq/scripts/sync-agents.node-test.mjs
 //
 // The contract is the line on stdout plus what ends up in .claude/agents, so
 // the test drives the script as a subprocess and then looks at the directory.

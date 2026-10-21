@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/entry.spec.mjs
+// node --test skills/qoq/scripts/entry.node-test.mjs
 //
 // The contract is the exit code plus the sections on stdout, so the test drives
 // the script as a subprocess. It composes three children that have their own

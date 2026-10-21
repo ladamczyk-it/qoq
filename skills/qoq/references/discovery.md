@@ -112,8 +112,9 @@ it, usually because a previous run asked, and it outranks anything
 
 **The commands are the project's own scripts, verbatim** — `npm test`,
 `npm run build`, `npm run test:execute -- {file}` — under the standing `npx` rule.
-The one case that rule doesn't cover: an `npx vitest …` or `npx tsc …` invocation
-the user already gave, written in the docs, is an answer — record it.
+An `npx vitest …` or `npx tsc …` the docs give is still not recordable: the hook
+blocks it, so the field would never run. Ask the user for a `package.json` script
+that wraps it, and record that script.
 
 **Anything still ambiguous is a question, and the file stays unwritten until it's
 answered.** Half a record is worse than none — the next run reads it as whole.

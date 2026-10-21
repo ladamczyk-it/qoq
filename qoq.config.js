@@ -25,6 +25,8 @@ export default {
       // Spawned as a subprocess by scripts/config-diff.js (by path string, and copied into a
       // temporary worktree to run there), so nothing imports it and knip can't see the use.
       'scripts/config-diff.resolver.mjs',
+      // Eval fixtures: code an agent reads, never code anything imports.
+      'evals/fixtures/**',
     ],
     ignoreDependencies: [
       // build specific

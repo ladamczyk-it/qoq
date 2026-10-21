@@ -55,11 +55,13 @@ second stale trigger blurb in every session's context.
 
 `packages/*/src/**/*.spec.{ts,js}`, Vitest across all packages.
 
-The `skills/qoq/scripts/*.spec.mjs` files are **`node:test`, not Vitest** —
+The `skills/qoq/scripts/*.node-test.mjs` files are **`node:test`, not Vitest** —
 `vitest.config.js`'s `projects: ['packages/*']` never sees them. `npm run
 test:skill` runs them, and `husky:pre-push` does too. Appending them to `npm
 test` would break the documented `npm test Name`, since npm puts extra args at
-the end of the script string.
+the end of the script string. Don't rename them `*.spec.mjs`: that matches
+vitest's default include, so a skill copied into a project's `.claude/skills/`
+would put them in that project's own suite.
 
 `npm run config:diff` compares what ESLint actually resolves (via `calculateConfigForFile`)
 for every `eslint-v9-*` package against a git ref, defaulting to `master` — it checks the ref

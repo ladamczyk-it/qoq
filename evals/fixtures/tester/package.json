@@ -1,0 +1,12 @@
+{
+  "name": "qoq-eval-tester-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:one": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "5.0.5"
+  }
+}

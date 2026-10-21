@@ -240,10 +240,12 @@ gate exited 0 having fetched nothing.
 SKILL.md's frontmatter makes it hold, including inside agents, since skill hooks
 apply to every tool call for the rest of the session. It's inline `node -e`
 because hook commands get no `${CLAUDE_SKILL_DIR}`, and the plugin and the
-symlinked checkout keep the script in different places. `npx-guard.spec.mjs`
+symlinked checkout keep the script in different places. `npx-guard.node-test.mjs`
 runs the command exactly as the frontmatter ships it. It matches `npx` anywhere
 in the command string, so a commit message quoting `npx vitest` is blocked too;
-rare, and the message says why.
+rare, and the message says why. It has no exception for an `npx` the project's
+docs give, either. Discovery used to record one as an answer, which left a field
+the hook would never let run. Now it asks for a script that wraps it.
 
 **Why the bumper starts at the repository URL.** `@ladamczyk/outdated` (run
 through `qoq`'s npm check, so the skill never needs a second `npx`) already hands over each package's `repository`, so the changelog is one shallow clone
@@ -261,6 +263,37 @@ because its dispatch never names the project's own conventions file, and
 ticket inherits. `qoq-developer` and `qoq-tester` cap `maxTurns` at 200: the
 longest developer run measured was 122 turns (median about 35 over 24 runs); no
 tester runs were on record, so it takes the same cap.
+
+**Why the read-only tiers are what they are (audited 2026-10-21).** A tier only
+moves on a measured difference, and none of these showed one:
+
+| Agent               | Tier       | Tested against              | Quality                                                                                                                                          | Cost (median context tokens, wall time) | Decision |
+| ------------------- | ---------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- | -------- |
+| `qoq-test-reviewer` | sonnet     | opus, 6 cases × 3 runs each | 0/15 seeded defects missed and 0/3 false rejections on both tiers                                                                                | sonnet 60.6k, 10.8s · opus 76.5k, 21.6s | keep     |
+| `qoq-designer`      | sonnet     | opus, 2 cases × 2 runs each | both tiers: the one real smell found (Strategy, Record as the cheaper fix), zero findings on the clean scope, no low-confidence padding          | sonnet 77.5k, 14.0s · opus 90.7k, 25.6s | keep     |
+| `qoq-checker`       | haiku, low | 46 real runs, transcripts   | 0 of 159 digest locations dropped. 1 miscounted in-scope total (`haiku-4-5`); 0 errors in 29 `haiku-5-5` runs. `summarize.mjs` does the grouping | median 1.7k output tokens               | keep     |
+
+The reviewer's cases are `evals/qoq-evals.json` 26–31, over
+`evals/fixtures/test-reviewer`. Each seeded spec survives a mutant of the
+implementation that the sound spec fails, so every defect is real. The cases are:
+a missing criterion, a tautological `>= 0`, an `expect` inside a callback over an
+empty filter, a mock asserted against itself, and a value pinned only by
+`toBeGreaterThan(0)`. That last one was added when the first four didn't separate
+the tiers, and it didn't separate them either. The designer's cases are 32–33.
+Production agrees: 41 real sonnet reviews, of which 9 were rejections, each fixed
+and then approved.
+
+**What this doesn't prove.** The fixtures are one small file each, and every case
+hit 100% on both tiers. That is a ceiling, not a margin. A harder fixture, such as
+a multi-file ticket or a contract that diverges from the implementation, is what
+would show a gap. Re-run 26–33 at both tiers whenever the reviewer's or the
+designer's prose changes.
+
+**No `effort` on the judgement agents.** Both tiers ran at default effort and hit
+the ceiling, so raising effort has no measured headroom to buy. `qoq-architect`'s
+`effort: high` stands on its own reasoning above.
+`qoq-bumper` (3 runs on record) and `qoq-tester` (none) weren't measured, so they
+keep their current tiers by default.
 
 **Why the stats disclosure is printed by the script.** It was prose in
 `SKILL.md`, describing the request body. Two problems: every run paid for text
@@ -691,6 +724,40 @@ couldn't be delivered at any tier, and it files a `failure` the estimator uses
 to recommend splitting the ticket. A ticket that was never dispatched has
 nothing to grade — filing it would teach the next plan to decompose work that
 was fine.
+
+**Why the developer's and the tester's returns end on a fixed block.** Their
+callers act on them mechanically — a status picks gate or escalation, a file list
+becomes a gate's scope and a commit, a blocker is forwarded to the next tier or
+quoted to the user. Free prose made the orchestrator re-read a report to find
+those, and a file list fished out of a paragraph can silently drop
+a spec, so the gate scopes short and the commit misses it. The block is defined
+once, in the agent that writes it, and the callers name fields without restating
+it, so the two can't drift. It holds only what a caller reads: "what the specs
+cover" went, because criteria are ticked from the reviewer's mapping, and "what
+the suite said" went, because `green` already means the suite agreed. The status
+stays binary: a `partial` would be a third branch every caller has to invent
+handling for, and nearly-green work is a handoff with what's on disk listed.
+`qoq-checker`, `qoq-test-reviewer` and `qoq-designer` were already shaped —
+`summarize.mjs` plus its exit code, `APPROVED`/`REJECTED`, a per-finding table —
+and were left alone.
+
+**Why a handoff escalates at any attempt.** The developer hands back only when
+it has decided it can't finish. Re-dispatching the same tier with the remaining
+attempts asks the same model the question it just answered.
+
+**Why a `plan` handoff doesn't escalate.** A wrong Contract or an unassertable
+criterion is a blocker no tier can lift, because no tier may change the ticket.
+Escalating spends an opus attempt to get the same blocker back. Eval 24's run on
+2026-10-21 showed it: the orchestrator refused the escalation the rule asked for
+and asked the user instead. `blocker_kind` makes that judgement call the rule. A gate FAIL is different: that's
+feedback the developer hasn't acted on yet, so it stays on the shared budget.
+
+**Why a same-tier re-dispatch carries the last return, not just the verdict.**
+Each attempt is a cold dispatch, and the verdict says only what is wrong; the
+return's prose is where the developer said why it went wrong. Without it attempt
+3 can retry attempt 1's idea. A dedicated `diagnoses` field was benchmarked and
+dropped: developers already name the cause in prose, and the rule changed neither
+attempts-to-green nor repeat rate.
 
 **Why the commit happens after the gate rather than inside the agent.** It falls
 out of the gate living with the caller — the only thread that has a digest and

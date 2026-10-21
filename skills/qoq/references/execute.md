@@ -102,7 +102,7 @@ Every dispatch carries, verbatim:
 - the three-attempt budget, with explicit permission to hand the ticket back
   rather than narrow it
 - on a re-dispatch after a failed gate: the **digest or the verdict verbatim**,
-  plus which attempt this is
+  plus which attempt this is and the last return pasted in whole
 
 **Not the milestone's `Scenarios`.** Those are journey-level and a ticket is not
 — they'd be context the developer can't act on, and the one thing worse than
@@ -141,9 +141,20 @@ tiers.
 developer hands back → qoq fix --skip-knip (scoped) → qoq-test-reviewer → commit
 ```
 
-**Gate 1 — `qoq fix --skip-knip`, scoped** to exactly the files the ticket
-changed, spec and source both. Scoped, because the verdict has to be about this
-ticket and nothing else.
+Read the block the developer's return ends on (`agents/qoq-developer.md`).
+`status: handoff` runs neither gate. With `blocker_kind: model` it goes straight
+to **Escalation**, and so does a return with no block, such as a `maxTurns` stop.
+With `blocker_kind: plan` it doesn't escalate, because the blocker is in the
+ticket and no tier is allowed to change the ticket. Bring the user the `blocker`
+verbatim and ask what the plan should say. Leave the ticket `in-progress` and
+write a Log line. Edit the plan only with the user's answer. Then re-dispatch at
+the ticket's own tier with a fresh three-attempt budget: it is a different
+ticket now. File its estimate as `scope-expansion`, since the ticket that got
+built isn't the one that was estimated.
+
+**Gate 1 — `qoq fix --skip-knip`, scoped** to the developer's `files`, spec and
+source both. Scoped, because the verdict has to be about this ticket and nothing
+else.
 
 **Knip is off here, and it's the only tool that is.** Scoping the others is just
 reading the digest for the ticket's files; Knip can't be scoped that way, because
@@ -157,8 +168,8 @@ That's true of the developer's own scoped run too, which is why it uses
 `ticket_scoped`. Everything else — Prettier, ESLint, JSCPD, the rest — is a
 property of the file in front of it and stays on.
 
-**Gate 2 — `qoq-test-reviewer`**, read-only, over the spec files. Its dispatch
-carries those files, the ticket's acceptance criteria, the milestone's
+**Gate 2 — `qoq-test-reviewer`**, read-only, over the developer's `specs`. Its
+dispatch carries those files, the ticket's acceptance criteria, the milestone's
 `Contracts`, and the path to `references/test-conventions.md`.
 
 **`qoq fix` runs first because it rewrites formatting**, and there's no point
@@ -228,7 +239,8 @@ to build to reach that verdict. Tick each acceptance criterion in the plan and
 write its `spec/file.ts::test name` beside it, **from that mapping** — never from
 your own reading of the diff, which is the reading the gate exists to replace.
 
-Without it a delivered plan reads identically to an undelivered one.
+Without it a delivered plan reads identically to an undelivered one. The
+developer's `advisories` go on the ticket's **Advisories** line.
 
 ### The test cycle stays the developer's own
 
@@ -254,7 +266,7 @@ approved next week is estimated from it:
 node <skill>/scripts/estimate.mjs --record --tags <the ticket's tags> \
   --stack <the ticket's stack> --tier <the tier the plan assigned> \
   --outcome success|failure --attempts <n> \
-  --attribution estimation-miss|scope-expansion --summary "<the ticket title>"
+  --attribution as-estimated|scope-expansion --summary "<the ticket title>"
 ```
 
 On an imported plan the ticket's **External** field gets the same news — status
@@ -286,9 +298,9 @@ model.
 **The attribution is yours to judge, and it's the whole reason this signal is
 worth anything.** Two very different things make a ticket take three attempts:
 
-- `estimation-miss` — the ticket was what the plan said it was, and it still
-  took more than it was rated for. That's the sizing being wrong, and it belongs
-  in the record.
+- `as-estimated` — the ticket was what the plan said it was, so the estimate is
+  graded on it. This is the value for a clean first-try `done` too: it counts as
+  a miss only on `failure` or after more attempts than the budget.
 - `scope-expansion` — the developer found work nobody knew was there: a
   migration nothing mentioned, a broken assumption upstream. The ticket that got
   built isn't the ticket that got estimated, so grading the estimate on it
@@ -301,13 +313,14 @@ data point.
 
 ## Escalation
 
-Three attempts spent — whether the agent handed back itself, or either gate
-rejected it, in any combination — exhausts the ticket at that tier. Re-dispatch
-one tier up with the last report and the digest or verdict pasted into the new
-prompt — it's the most useful context the
-next attempt can have. Record the escalation on the ticket even when the
-escalated run then passes: it's how a resume knows not to retry the tier that
-already failed, and how the user sees which tickets were mis-rated.
+Three attempts spent across both gates, or a `model` handoff at any attempt,
+exhausts the ticket at that tier. A `plan` handoff never gets here. Re-dispatch
+one tier up with the last return pasted in whole — its `blocker` verbatim on a
+handoff — plus the last digest or verdict;
+it's the most useful context the next attempt can have. Record the escalation on
+the ticket even when the escalated run then passes: it's how a resume knows not
+to retry the tier that already failed, and how the user sees which tickets were
+mis-rated.
 
 At the top rung there's nowhere to escalate to. Mark the ticket `blocked` and
 bring the user the report. Two things it could mean, and the report usually says

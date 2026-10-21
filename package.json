@@ -31,7 +31,7 @@
     "test": "npm run pre:test && vitest run",
     "test:coverage": "npm run pre:test && npm run test -- --coverage",
     "test:execute": "vitest run",
-    "test:skill": "node --test 'skills/qoq/scripts/*.spec.mjs'",
+    "test:skill": "node --test 'skills/qoq/scripts/*.node-test.mjs'",
     "typecheck": "lerna run typecheck"
   },
   "devDependencies": {

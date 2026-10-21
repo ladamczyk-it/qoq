@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/usage-check.spec.mjs
+// node --test skills/qoq/scripts/usage-check.node-test.mjs
 //
 // The two halves are tested the way they're used: the pure functions directly,
 // and the flag parsing through a subprocess, since exit 2 is the contract for a

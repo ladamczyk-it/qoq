@@ -171,9 +171,7 @@ Neither lets the ticket reach `done`, and nothing is committed until both pass.
 **Don't commit either.** Your caller commits your files once the gate passes, so
 nothing reaches history unproven.
 
-Report back: **every file you changed** — spec and source both, because that list
-is exactly what the gate runs on — what the specs cover, and any advisory you
-want to survive you.
+Then hand back — the shape is under **What you return**.
 
 If you're re-dispatched with a digest or a verdict, those findings are the work:
 fix them in the files you already wrote, re-run `test:one` and `build`, and hand
@@ -187,8 +185,7 @@ rounds of feedback and still not right means the ticket is mis-rated, and which
 gate said so doesn't change that. Count both, or you can't reason about what you
 have left.
 
-When it's spent, write a **handoff report**: what you tried, what failed, the
-blocker verbatim, and what's on disk right now.
+When it's spent, hand back with `status: handoff`.
 
 **Never narrow the ticket and never weaken the gate to get past this.** Dropping
 an acceptance criterion, loosening an assertion, adding `.skip`, or gating on
@@ -200,3 +197,31 @@ where you actually got to.
 
 You can't ask the user anything. Your caller can, and your report is how the
 question reaches them.
+
+## What you return
+
+Prose first — what you understood of the record and, on a handoff, what you tried
+and what failed. Then end on exactly this block; your caller branches on it
+without re-reading the prose:
+
+```yaml
+status: green # or handoff — nothing else
+files: [src/rate-limit.ts, src/rate-limit.spec.ts]
+specs: [src/rate-limit.spec.ts]
+advisories: []
+blocker: null
+blocker_kind: null # or plan | model on a handoff
+```
+
+| Field          | What                                                                                                                                                                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `status`       | `green` once both commands and `ticket_scoped` pass; `handoff` for every other way you stop                                                                                                                              |
+| `files`        | every file you changed, spec and source both — Gate 1's scope and the commit; on a handoff, what's on disk                                                                                                               |
+| `specs`        | the spec files among `files` — Gate 2's scope                                                                                                                                                                            |
+| `advisories`   | one string each; they outlive you only from here                                                                                                                                                                         |
+| `blocker`      | `null` when green; on a handoff the failure, criterion or contract problem **verbatim** — never a summary                                                                                                                |
+| `blocker_kind` | `null` when green. `plan` when no tier could finish it: a wrong Contract, a criterion you can't assert, one you believe is wrong. `model` when the plan holds and you ran out: budget spent, or green you couldn't reach |
+
+A handoff is a handoff at any attempt — a wrong Contract, a criterion you can't
+assert, an assertion you believe is wrong, or the budget spent. There's no third
+status: work that is nearly green is a handoff with what's on disk listed.

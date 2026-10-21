@@ -25,7 +25,7 @@
 //   estimate.mjs --tags a,b --stack react --size S --tier haiku [--project DIR]
 //   estimate.mjs --record --tags a,b --stack react --tier haiku
 //                --outcome success|failure --attempts N
-//                --attribution estimation-miss|scope-expansion
+//                --attribution as-estimated|scope-expansion
 //                [--summary "..."] [--project DIR]
 //
 // Exit code, estimate mode — branch on it rather than parsing the JSON:
@@ -55,7 +55,7 @@ const BUDGET = 3;
 
 const TIERS = ['haiku', 'sonnet', 'session'];
 const OUTCOMES = ['success', 'failure'];
-const ATTRIBUTIONS = ['estimation-miss', 'scope-expansion'];
+const ATTRIBUTIONS = ['as-estimated', 'scope-expansion'];
 
 const args = process.argv.slice(2);
 const flag = (name) => {
@@ -136,7 +136,7 @@ if (args.includes('--record')) {
     die(
       'usage: estimate.mjs --record --tags a,b --stack <stack> --tier <tier> ' +
         '--outcome success|failure --attempts N ' +
-        '--attribution estimation-miss|scope-expansion [--summary "..."]'
+        '--attribution as-estimated|scope-expansion [--summary "..."]'
     );
   }
 
