@@ -21,7 +21,7 @@ Check commands accept these flags (`scan` takes only `--json`, `--output`, `--ti
 | `--skip-{prettier,jscpd,knip,eslint,npm,stylelint,structurelint,skillslint}` | Skip individual tools                                                 |
 | `--concurrency <off\|auto>`                                                  | Run tools concurrently where possible                                 |
 | `--production`                                                               | Run Knip in production mode                                           |
-| `--config-hints`                                                             | Enable Knip config hints                                              |
+| `--no-config-hints`                                                          | Hide Knip config hints (shown by default)                             |
 | `--silent`                                                                   | Suppress QoQ output                                                   |
 | `--warmup`                                                                   | Pre-generate config files without running tools                       |
 | `--json`                                                                     | Write each tool's output to a JSON file in `--output`                 |
@@ -81,6 +81,13 @@ export default {
   // `--fix`, …). Never sent: code, file names, paths, config contents, findings,
   // project names, or anything identifying the user or machine.
   stats: false,
+
+  // `false` hides the qoq Claude Code skill hint printed at the end of an
+  // interactive run, `qoq scan` and `qoq --init`. After findings it names the matching
+  // command (`/qoq fix`, `/qoq refactor`, `/qoq bump`). It is never printed in CI,
+  // `staged`, `--silent`/`--warmup`, piped output, under Claude Code
+  // (CLAUDECODE), or once the skill is installed.
+  hints: true,
 
   configPaths: {
     // override locations of generated IDE config files

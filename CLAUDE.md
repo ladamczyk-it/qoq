@@ -4,7 +4,9 @@
 
 **QoQ (Quality over Quantity)** — a monorepo of npm packages published as
 `@ladamczyk/qoq-*`, orchestrating Prettier, ESLint, Knip, JSCPD, Stylelint,
-Structurelint, Skillslint and npm-outdated behind one CLI. Node >=22.15.0.
+Structurelint, Skillslint and npm-outdated behind one CLI. Node >=22.15.0. The
+`qoq` skill (`skills/qoq/`) is a guarded delivery loop (plan, execute, fix) that
+uses that CLI as its gate, so describe it that way and not as a lint helper.
 
 Structurelint and Skillslint are the separate `@ladamczyk/structurelint` and
 `@ladamczyk/skillslint` packages — not in this workspace.

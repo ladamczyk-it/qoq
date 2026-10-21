@@ -83,6 +83,10 @@ export class BasicConfigHandler extends AbstractConfigHandler {
       this.modulesConfig.stats = this.config.stats;
     }
 
+    if (this.config.hints !== undefined) {
+      this.modulesConfig.hints = this.config.hints;
+    }
+
     this.modulesConfig.configPaths = {
       eslint: this.config.configPaths?.eslint ?? EslintConfigHandler.CONFIG_FILE_PATH,
       prettier: this.config.configPaths?.prettier ?? PrettierConfigHandler.CONFIG_FILE_PATH,

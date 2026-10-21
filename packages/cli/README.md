@@ -15,6 +15,8 @@ To maintain high code quality and simplify the use of static code analysis tools
 
 With **QoQ CLI**, keeping your code clean and compliant is easier than ever.
 
+The same CLI is the gate behind the `qoq` Claude Code skill, a guarded delivery loop in which nothing lands until the CLI passes it. See the [root README](../../README.md#-the-qoq-skill--a-guarded-delivery-loop-on-top-of-the-cli). Interactive runs end with a short hint about the skill. `qoq scan` prints it too. When the run found something the skill handles, the hint names the command for it (`fix`, `refactor` or `bump`). The hint is skipped when the skill is already installed, inside Claude Code, or with `hints: false`.
+
 ## Orchestrated checks
 
 **Default checks** run on every command and need no configuration. Each can be skipped for a single run with its `--skip-*` flag:

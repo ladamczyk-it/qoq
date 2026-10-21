@@ -4,7 +4,7 @@
 
 # Quality over Quantity (QoQ)
 
-**A streamlined suite of tools to format, lint, and analyze any JavaScript/TypeScript project with minimal setup.**
+**A streamlined suite of tools to format, lint, and analyze any JavaScript/TypeScript project with minimal setup — and a Claude Code skill that turns those checks into a guarded delivery loop.**
 
 🚀 **Why QoQ?**
 
@@ -52,6 +52,41 @@ This will generate a `qoq.config.js` file with all necessary configurations.
 - `qoq --fix` – Fixes issues where possible, typically triggered manually after hooks or a CI failure to quickly correct problems.
 
 `qoq scan [--json] [--output <path>] [--timeout <ms>] [--production] [--silent]` – On-demand vulnerability scan of `package-lock.json`. Not part of the checks above; see [scan docs](./packages/cli/docs/CONFIG.md#scan).
+
+## 🤖 The qoq skill — a guarded delivery loop on top of the CLI
+
+The CLI is a gate. The `qoq` [Claude Code](https://claude.com/claude-code) skill is a small SDLC harness built on that gate: a guarded delivery loop that takes work from requirements to committed code. Every step has to clear the CLI's own verdict, read from its `--json` reports, so nothing lands that the CLI rejects.
+
+```mermaid
+flowchart LR
+    idea["💡 Idea or ticket"] --> plan["🗺 plan<br/>cut it into small tickets"]
+    plan --> build["🧱 execute<br/>build one ticket, tests first"]
+    build --> guard{"🚦 Guard<br/>qoq CLI green<br/>and tests reviewed?"}
+    guard -- "not yet" --> fix["🔧 fix"]
+    fix --> guard
+    guard -- "yes" --> done["✅ commit"]
+    done -- "next ticket" --> build
+    done -.-> care["🧹 refactor · 🧪 test · 📦 bump<br/>keep it healthy"]
+```
+
+- **Plan** – `/qoq plan` breaks a spec, or a Jira, Linear or Trello milestone, into milestones and tickets with contracts and acceptance criteria. `/qoq replan` reshapes the plan when the requirements or the codebase move.
+- **Execute** – `/qoq execute` delivers the plan one ticket at a time under TDD: red, green, tidy. A ticket is committed only after `/qoq fix` passes and an independent reviewer approves its tests.
+- **Keep it healthy** – `/qoq fix` loops on CLI findings until they pass. `refactor`, `test`, `bump` and `compress` handle duplication and code smells, missing coverage, dependency upgrades and agent-facing docs.
+
+Agent-written code meets the same standard as code you write by hand. Each run also leaves things the next one builds on: plans, specs and a clean lint baseline.
+
+```text
+/plugin marketplace add ladamczyk-it/qoq
+/plugin install qoq@qoq-agent-skills
+```
+
+In an interactive terminal, the CLI mentions the skill at the end of a run, including `qoq scan`, if it isn't installed yet. When the run found something the skill handles, the hint names the command for it:
+
+- ESLint or Stylelint findings `--fix` can't resolve, or Knip or Structurelint findings → `/qoq fix`
+- duplicated code (JSCPD) → `/qoq refactor`
+- outdated or deprecated dependencies, or `qoq scan` vulnerabilities → `/qoq bump`
+
+Set `hints: false` in `qoq.config.js` to hide it.
 
 ## 🏗 Project Structure
 

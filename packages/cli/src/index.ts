@@ -23,7 +23,8 @@ const isCi = (): boolean => process.env.CI === 'true';
 const withCommonOptions = (command: Command): Command =>
   command
     .option('--disable-cache', 'Bypass per-tool caches and force a full re-run')
-    .option('--config-hints', 'Print config suggestions alongside check results')
+    // cac defaults `configHints` to true once a `--no-` form is declared.
+    .option('--no-config-hints', 'Hide Knip config suggestions printed alongside check results')
     .option('--concurrency <type>', 'Run tools in parallel when possible. [off | auto]', {
       default: 'off',
     })

@@ -8,6 +8,7 @@ import prompts from 'prompts';
 import { formatExecutionTime } from '../helpers/common.ts';
 import { formatCode } from '../helpers/formatCode.ts';
 import { installPackages } from '../helpers/packages.ts';
+import { printSkillHint, shouldShowSkillHint, suggestSkill } from '../helpers/skillHint.ts';
 import { askStatsConsent, getUsedOptions, sendStats, writeStatsConsent } from '../helpers/stats.ts';
 import { QoqConfig } from '../helpers/types.ts';
 
@@ -124,6 +125,11 @@ export const initConfig = async (
 
   if (modulesConfig.stats) {
     void sendStats(getUsedOptions());
+  }
+
+  // Explicit --init only: a wizard reached from a run would print it twice.
+  if (!skipWarmup && shouldShowSkillHint()) {
+    printSkillHint();
   }
 
   return modulesConfig;
@@ -260,13 +266,27 @@ export const execute = async (
 
   responses[basicExecutor.getName()] = await basicExecutor.run(options, files);
 
-  Object.keys(responses)
-    .filter((key) => responses[key] !== EExitCode.OK)
-    .forEach((key) => {
-      process.exitCode = EExitCode.ERROR;
+  const failed = Object.keys(responses).filter((key) => responses[key] !== EExitCode.OK);
 
-      process.stderr.write(c.red(`\nQoQ found some ${key} errors!\n\n`));
-    });
+  failed.forEach((key) => {
+    process.exitCode = EExitCode.ERROR;
+
+    process.stderr.write(c.red(`\nQoQ found some ${key} errors!\n\n`));
+  });
+
+  // ESLint, Stylelint, npm and scan suggest from inside their executors, where the cause is known.
+  if (failed.some((key) => ['Knip', 'Structurelint'].includes(key))) {
+    suggestSkill('fix');
+  }
+
+  if (failed.includes('JSCPD')) {
+    suggestSkill('refactor');
+  }
+
+  // `staged` (files) runs as a hook, where nobody reads a pitch.
+  if (!hideMessages && !files && shouldShowSkillHint(modulesConfig.hints)) {
+    printSkillHint();
+  }
 
   if (!hideMessages) {
     process.stdout.write('\n-------------------------\n\n');
@@ -294,5 +314,9 @@ export const scan = async (
 
   if (result !== EExitCode.OK) {
     process.exitCode = EExitCode.ERROR;
+  }
+
+  if (!options.silent && shouldShowSkillHint(modulesConfig.hints)) {
+    printSkillHint();
   }
 };

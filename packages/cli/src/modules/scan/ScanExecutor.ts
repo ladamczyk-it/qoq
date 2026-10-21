@@ -1,6 +1,7 @@
 import { EExitCode, resolveCwdPath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
 
+import { suggestSkill } from '../../helpers/skillHint.ts';
 import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions, IModulesConfig } from '../types.ts';
 
@@ -131,6 +132,11 @@ export class ScanExecutor extends AbstractApiExecutor {
         process.stdout.write(`\n${formatGraph(LOCKFILE(), full.findings)}`);
       }
       process.stdout.write(`${statusLine(full)}\n`);
+    }
+
+    // Any advisory is worth a bump, even below the `failOn` threshold.
+    if (full.findings.length > 0) {
+      suggestSkill('bump');
     }
 
     const failing =
