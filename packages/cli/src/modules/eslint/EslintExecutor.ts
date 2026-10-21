@@ -1,12 +1,9 @@
 import { existsSync, writeFileSync } from 'fs';
 import { relative } from 'path';
-import { pathToFileURL } from 'url';
 
 import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
-import micromatch from 'micromatch';
 
 import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
-import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath, toPosix } from '../../helpers/paths.ts';
 import { suggestSkill } from '../../helpers/skillHint.ts';
@@ -75,6 +72,9 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor<IEslintConte
       cacheStrategy: 'metadata',
       fix: options.fix,
       concurrency: options.concurrency,
+      // An explicit file the config ignores, or that no `files` block matches,
+      // would otherwise come back as a warning and fail --max-warnings 0.
+      warnIgnored: false,
       ...(showProgress ? { overrideConfig: this.getProgressOverrideConfig(progressedFiles) } : {}),
     });
 
@@ -127,7 +127,7 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor<IEslintConte
     return errorCount > 0 || tooManyWarnings ? EExitCode.ERROR : EExitCode.OK;
   }
 
-  protected async prepare(
+  protected prepare(
     _args: string[],
     _options: IExecutorOptions,
     files: string[] = []
@@ -143,10 +143,12 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor<IEslintConte
 
       this.writeGeneratedConfig(configFilePath);
 
-      return {
+      return Promise.resolve({
         configFile: resolveCwdRelativePath(configPath),
-        targets: await this.resolveTargets(configFilePath, files),
-      };
+        // No explicit files: mirror the CLI's no-pattern default of linting the cwd
+        // and letting the flat config's own `files`/`ignores` decide the scope.
+        targets: files.length > 0 ? files : ['.'],
+      });
     } catch (e) {
       return this.handlePrepareError(e);
     }
@@ -250,45 +252,6 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor<IEslintConte
     writeFileSync(configFilePath, formatCode(configType, imports, content, exports));
   }
 
-  private async resolveTargets(configFilePath: string, files: string[]): Promise<string[]> {
-    // No explicit files: mirror the CLI's no-pattern default of linting the cwd
-    // and letting the flat config's own `files`/`ignores` decide the scope.
-    if (files.length === 0) {
-      return ['.'];
-    }
-
-    let eslintConfig: { default: IModuleEslintConfig[] };
-
-    try {
-      eslintConfig = (await import(pathToFileURL(configFilePath).toString())) as {
-        default: IModuleEslintConfig[];
-      };
-    } catch (cause) {
-      throw new Error(`Failed to import the generated ESLint config at ${configFilePath}`, {
-        cause,
-      });
-    }
-
-    const possibleFiles = eslintConfig.default.map((config) => ({
-      files: prepareCollection(config.files),
-      ignores: prepareCollection(config.ignores),
-    }));
-
-    const shouldLintFile = (file: string) =>
-      possibleFiles.some(
-        ({ files: filesPatterns, ignores: ignoresPatterns }) =>
-          micromatch.isMatch(file, filesPatterns) && !micromatch.isMatch(file, ignoresPatterns)
-      );
-
-    const filteredFiles = files.filter(shouldLintFile);
-
-    if (filteredFiles.length === 0) {
-      throw new TerminateExecutorGracefully();
-    }
-
-    return filteredFiles;
-  }
-
   // Cache hits skip rule execution (including the progress rule) for unchanged
   // files, so a warm-cache run would otherwise show no progress at all — unlike
   // Prettier, which has no cache and reports every target on every run. Prints
@@ -361,17 +324,6 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor<IEslintConte
     }));
   }
 }
-
-const mapCallback = (entry: string): string =>
-  entry.startsWith('**') || entry.startsWith('./') ? entry : `**/${entry}`;
-
-// A `files` entry may itself be an array — flat config AND-matches a nested
-// group — so flatten before matching; `ignores` is always flat but takes the
-// same path. Either may be omitted, hence the `?? []`. Flattening turns a
-// nested AND-group into ORed patterns, which only ever over-matches: this is a
-// prefilter, and ESLint's own cascade still decides what a target really is.
-const prepareCollection = (patterns: (string | string[])[] | undefined): string[] =>
-  ((patterns ?? []).flat(Infinity) as string[]).map(mapCallback);
 
 // The two destructuring shapes formatCode() expects for a template's named export:
 // `{ x as y }` renders as `import { x as y } from …` (ESM), `{ x: y }` as

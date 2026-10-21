@@ -1,8 +1,9 @@
 import { mkdirSync } from 'fs';
+import { join } from 'path';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { cli } from './index.ts';
+import { camelFlags, cli } from './index.ts';
 import { execute, getConfig, initConfig, scan } from './modules/index.ts';
 
 vi.mock('@npmcli/package-json/lib/read-package', () => ({
@@ -11,6 +12,7 @@ vi.mock('@npmcli/package-json/lib/read-package', () => ({
 
 vi.mock('./helpers/paths.ts', () => ({
   resolveCliRelativePath: (path: string): string => `./resolved${path}`,
+  toPosix: (path: string): string => path.replaceAll('\\', '/'),
 }));
 
 vi.mock('fs', () => ({
@@ -28,7 +30,7 @@ vi.mock('./modules/index.ts', () => ({
 }));
 
 const run = async (...argv: string[]): Promise<void> => {
-  cli.parse(['node', 'qoq', ...argv], { run: false });
+  cli.parse(camelFlags(['node', 'qoq', ...argv]), { run: false });
 
   await cli.runMatchedCommand();
 };
@@ -179,10 +181,39 @@ describe('cli', () => {
       );
     });
 
-    it('should pass an empty file list when no files are given', async () => {
+    it('should say there is nothing to check and run no tool when no files are given', async () => {
+      const stdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
       await run('staged');
 
-      expect(execute).toHaveBeenCalledWith(dummyConfig, expect.anything(), []);
+      expect(stdoutWrite).toHaveBeenCalledWith(expect.stringContaining('No files given'));
+      expect(getConfig).not.toHaveBeenCalled();
+      expect(execute).not.toHaveBeenCalled();
+      expect(process.exitCode).toBeUndefined();
+
+      stdoutWrite.mockRestore();
+    });
+
+    it('should keep the first file when a boolean flag precedes the list', async () => {
+      await run('staged', '--skip-knip', 'src/a.ts', 'src/b.ts');
+
+      expect(execute).toHaveBeenCalledWith(
+        dummyConfig,
+        expect.objectContaining({ skipKnip: true }),
+        ['src/a.ts', 'src/b.ts']
+      );
+    });
+
+    it('should turn absolute paths into cwd-relative ones', async () => {
+      await run('staged', join(process.cwd(), 'src', 'a.ts'));
+
+      expect(execute).toHaveBeenCalledWith(dummyConfig, expect.anything(), ['src/a.ts']);
+    });
+
+    it('should create the --output directory under --json', async () => {
+      await run('staged', '--json', '--output', 'out/nested', 'src/a.ts');
+
+      expect(mkdirSync).toHaveBeenCalledWith('out/nested', { recursive: true });
     });
 
     it('should treat CI=true as --silent', async () => {
@@ -190,13 +221,11 @@ describe('cli', () => {
 
       process.env.CI = 'true';
 
-      await run('staged');
+      await run('staged', 'src/a.ts');
 
-      expect(execute).toHaveBeenCalledWith(
-        dummyConfig,
-        expect.objectContaining({ silent: true }),
-        []
-      );
+      expect(execute).toHaveBeenCalledWith(dummyConfig, expect.objectContaining({ silent: true }), [
+        'src/a.ts',
+      ]);
 
       process.env.CI = original;
     });

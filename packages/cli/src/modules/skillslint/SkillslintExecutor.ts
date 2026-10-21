@@ -1,3 +1,5 @@
+import { relative, resolve } from 'path';
+
 import { EExitCode } from '@ladamczyk/qoq-utils';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
@@ -11,12 +13,25 @@ export class SkillslintExecutor extends AbstractApiExecutor {
     return 'skillslint';
   }
 
-  protected prepare(): Promise<void> {
+  protected prepare(
+    _args: string[],
+    _options: IExecutorOptions,
+    files: string[] = []
+  ): Promise<void> {
     const {
       modules: { skillslint },
     } = this.modulesConfig;
 
     if (!skillslint) {
+      throw new TerminateExecutorGracefully();
+    }
+
+    // Skills are scored as a whole, so a staged run can't narrow the lint — but
+    // a commit that touches nothing under `path` has nothing for it to judge.
+    const isUnderPath = (file: string): boolean =>
+      !relative(resolve(skillslint.path), resolve(file)).startsWith('..');
+
+    if (files.length > 0 && !files.some(isUnderPath)) {
       throw new TerminateExecutorGracefully();
     }
 

@@ -6,8 +6,6 @@ import { StylelintConfig } from '@ladamczyk/qoq-stylelint-css';
 import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import micromatch from 'micromatch';
 
-import { readIgnorePatterns } from '../../helpers/common.ts';
-import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath } from '../../helpers/paths.ts';
@@ -103,7 +101,7 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor<IStylelin
     return result.errored || result.maxWarningsExceeded ? EExitCode.ERROR : EExitCode.OK;
   }
 
-  protected async prepare(
+  protected prepare(
     _args: string[],
     _options: IExecutorOptions,
     files: string[] = []
@@ -141,6 +139,15 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor<IStylelin
       throw new Error('Bad config!');
     }
 
+    // Staged files arrive unfiltered (lint-staged may hand over every staged
+    // path), so keep only what the configured glob covers; stylelint would
+    // otherwise parse a .ts file as CSS.
+    const targets = files.length > 0 ? micromatch(files, glob) : [glob];
+
+    if (targets.length === 0) {
+      throw new TerminateExecutorGracefully();
+    }
+
     try {
       const configFilePath = resolveCliPackagePath(
         `/bin/stylelint.config.${configType === EConfigType.ESM ? 'm' : 'c'}js`
@@ -163,11 +170,11 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor<IStylelin
         formatCode(configType, {}, [`const config = ${JSON.stringify(config)}`], 'config')
       );
 
-      return {
+      return Promise.resolve({
         strict: !!strict,
         configFile: resolveCwdRelativePath(configPath),
-        targets: files.length > 0 ? await filterIgnored(files) : [glob],
-      };
+        targets,
+      });
     } catch (e) {
       return this.handlePrepareError(e);
     }
@@ -227,24 +234,3 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor<IStylelin
     }));
   }
 }
-
-// Drops caller-supplied files that .gitignore covers. An unreadable ignore file
-// is thrown bare so prepare()'s catch reports it as a config-load failure; every
-// file being ignored is a graceful no-op, not an error.
-const filterIgnored = async (files: string[]): Promise<string[]> => {
-  let filteredFiles: string[];
-
-  try {
-    const ignores = await readIgnorePatterns(GITIGNORE_FILE_PATH);
-
-    filteredFiles = files.filter((file) => !micromatch.isMatch(file, ignores));
-  } catch {
-    throw new Error();
-  }
-
-  if (filteredFiles.length === 0) {
-    throw new TerminateExecutorGracefully();
-  }
-
-  return filteredFiles;
-};
