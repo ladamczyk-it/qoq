@@ -495,7 +495,9 @@ flowchart TD
     EATT{"**3 attempts spent?**<br/>*shared across BOTH gates —<br/>an attempt is an attempt*"}
     EATT -->|"no — re-dispatch with the<br/>digest or the verdict **verbatim**<br/>+ the last return whole"| EDISP
     EATT -->|yes| EESC
-    THAND --> EESC{"a tier<br/>above?"}
+    THAND -->|"`blocker_kind: plan`"| EPLAN(["**ASK THE USER** — `blocker` verbatim.<br/>ticket stays in-progress; edit the plan<br/>only with the answer, then re-dispatch<br/>at its own tier, fresh budget<br/>*no tier may change the ticket*"])
+    EPLAN -.-> EDISP
+    THAND -->|"`blocker_kind: model`<br/>or no block"| EESC{"a tier<br/>above?"}
     EESC -->|"yes — re-dispatch with the last<br/>return whole, `blocker` verbatim"| EDISP
     EESC -->|"no — top rung already"| EBLOCK(["**Status: blocked** — bring the<br/>user the report: bad ticket,<br/>or session model too small"])
 

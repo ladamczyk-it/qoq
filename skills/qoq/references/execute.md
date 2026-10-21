@@ -142,8 +142,15 @@ developer hands back → qoq fix --skip-knip (scoped) → qoq-test-reviewer → 
 ```
 
 Read the block the developer's return ends on (`agents/qoq-developer.md`).
-`status: handoff` runs neither gate — it goes straight to **Escalation**. So does
-a return with no block, such as a `maxTurns` stop.
+`status: handoff` runs neither gate. With `blocker_kind: model` it goes straight
+to **Escalation**, and so does a return with no block, such as a `maxTurns` stop.
+With `blocker_kind: plan` it doesn't escalate, because the blocker is in the
+ticket and no tier is allowed to change the ticket. Bring the user the `blocker`
+verbatim and ask what the plan should say. Leave the ticket `in-progress` and
+write a Log line. Edit the plan only with the user's answer. Then re-dispatch at
+the ticket's own tier with a fresh three-attempt budget: it is a different
+ticket now. File its estimate as `scope-expansion`, since the ticket that got
+built isn't the one that was estimated.
 
 **Gate 1 — `qoq fix --skip-knip`, scoped** to the developer's `files`, spec and
 source both. Scoped, because the verdict has to be about this ticket and nothing
@@ -306,9 +313,10 @@ data point.
 
 ## Escalation
 
-Three attempts spent across both gates, or a `handoff` at any attempt, exhausts
-the ticket at that tier. Re-dispatch one tier up with the last return pasted in
-whole — its `blocker` verbatim on a handoff — plus the last digest or verdict;
+Three attempts spent across both gates, or a `model` handoff at any attempt,
+exhausts the ticket at that tier. A `plan` handoff never gets here. Re-dispatch
+one tier up with the last return pasted in whole — its `blocker` verbatim on a
+handoff — plus the last digest or verdict;
 it's the most useful context the next attempt can have. Record the escalation on
 the ticket even when the escalated run then passes: it's how a resume knows not
 to retry the tier that already failed, and how the user sees which tickets were

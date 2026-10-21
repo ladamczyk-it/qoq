@@ -210,15 +210,17 @@ files: [src/rate-limit.ts, src/rate-limit.spec.ts]
 specs: [src/rate-limit.spec.ts]
 advisories: []
 blocker: null
+blocker_kind: null # or plan | model on a handoff
 ```
 
-| Field        | What                                                                                                       |
-| ------------ | ---------------------------------------------------------------------------------------------------------- |
-| `status`     | `green` once both commands and `ticket_scoped` pass; `handoff` for every other way you stop                |
-| `files`      | every file you changed, spec and source both — Gate 1's scope and the commit; on a handoff, what's on disk |
-| `specs`      | the spec files among `files` — Gate 2's scope                                                              |
-| `advisories` | one string each; they outlive you only from here                                                           |
-| `blocker`    | `null` when green; on a handoff the failure, criterion or contract problem **verbatim** — never a summary  |
+| Field          | What                                                                                                                                                                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `status`       | `green` once both commands and `ticket_scoped` pass; `handoff` for every other way you stop                                                                                                                              |
+| `files`        | every file you changed, spec and source both — Gate 1's scope and the commit; on a handoff, what's on disk                                                                                                               |
+| `specs`        | the spec files among `files` — Gate 2's scope                                                                                                                                                                            |
+| `advisories`   | one string each; they outlive you only from here                                                                                                                                                                         |
+| `blocker`      | `null` when green; on a handoff the failure, criterion or contract problem **verbatim** — never a summary                                                                                                                |
+| `blocker_kind` | `null` when green. `plan` when no tier could finish it: a wrong Contract, a criterion you can't assert, one you believe is wrong. `model` when the plan holds and you ran out: budget spent, or green you couldn't reach |
 
 A handoff is a handoff at any attempt — a wrong Contract, a criterion you can't
 assert, an assertion you believe is wrong, or the budget spent. There's no third

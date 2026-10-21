@@ -742,9 +742,14 @@ handling for, and nearly-green work is a handoff with what's on disk listed.
 and were left alone.
 
 **Why a handoff escalates at any attempt.** The developer hands back only when
-it has decided it can't finish — a wrong Contract, an unassertable criterion, or
-the budget spent. Re-dispatching the same tier with the remaining attempts asks
-the same model the question it just answered. A gate FAIL is different: that's
+it has decided it can't finish. Re-dispatching the same tier with the remaining
+attempts asks the same model the question it just answered.
+
+**Why a `plan` handoff doesn't escalate.** A wrong Contract or an unassertable
+criterion is a blocker no tier can lift, because no tier may change the ticket.
+Escalating spends an opus attempt to get the same blocker back. Eval 24's run on
+2026-10-21 showed it: the orchestrator refused the escalation the rule asked for
+and asked the user instead. `blocker_kind` makes that judgement call the rule. A gate FAIL is different: that's
 feedback the developer hasn't acted on yet, so it stays on the shared budget.
 
 **Why a same-tier re-dispatch carries the last return, not just the verdict.**
