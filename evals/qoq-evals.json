@@ -504,6 +504,155 @@
         "Records the escalation on the ticket and writes Log lines for the FAIL and the re-dispatch",
         "States the eventual estimate is filed against haiku (the plan's tier), counting attempts at both tiers"
       ]
+    },
+    {
+      "id": 26,
+      "name": "test-reviewer-sound-spec-approves",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/m7/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. Control: every criterion is pinned by an exact assertion against the contract shape. The spec fails each of three mutants (never blocks, shared keys, never resets). The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
+      "files": [
+        "evals/fixtures/test-reviewer/ticket.md",
+        "evals/fixtures/test-reviewer/rateLimit.ts",
+        "evals/fixtures/test-reviewer/specs/m7/rateLimit.spec.ts"
+      ],
+      "assertions": [
+        "Returns APPROVED",
+        "Maps all four criteria AC-1..AC-4 to a test name and line",
+        "Advisories (e.g. toEqual vs toStrictEqual) stay advisories and do not flip the verdict",
+        "Edits nothing and runs nothing — reads only"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "test-reviewer-missing-criterion-rejects",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/k3/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. AC-4 (window reset) has no test at all. The spec still passes against a limiter that never resets. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
+      "files": [
+        "evals/fixtures/test-reviewer/ticket.md",
+        "evals/fixtures/test-reviewer/rateLimit.ts",
+        "evals/fixtures/test-reviewer/specs/k3/rateLimit.spec.ts"
+      ],
+      "assertions": [
+        "Returns REJECTED",
+        "Names AC-4 as the criterion with no assertion",
+        "Says what the missing test must assert: allowed again after advancing windowMs",
+        "Does not reject AC-1..AC-3, which are sound",
+        "Edits nothing and runs nothing — reads only"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "test-reviewer-tautology-rejects",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/w9/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. AC-3's only assertion is `remaining >= 0`, which no implementation of the contract can fail. A shared-counter mutant passes it. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
+      "files": [
+        "evals/fixtures/test-reviewer/ticket.md",
+        "evals/fixtures/test-reviewer/rateLimit.ts",
+        "evals/fixtures/test-reviewer/specs/w9/rateLimit.spec.ts"
+      ],
+      "assertions": [
+        "Returns REJECTED",
+        "Cites the AC-3 assertion by file:line",
+        "Explains why it cannot fail: remaining is never negative, so a shared counter still passes",
+        "Gives the replacement: b allowed with its own budget while a is blocked",
+        "Edits nothing and runs nothing — reads only"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "test-reviewer-vacuous-callback-rejects",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/p2/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. AC-2's expect sits inside forEach over a filter for blocked hits. A never-blocking limiter yields an empty array and the test passes with zero assertions. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
+      "files": [
+        "evals/fixtures/test-reviewer/ticket.md",
+        "evals/fixtures/test-reviewer/rateLimit.ts",
+        "evals/fixtures/test-reviewer/specs/p2/rateLimit.spec.ts"
+      ],
+      "assertions": [
+        "Returns REJECTED",
+        "Cites the AC-2 filter/forEach by file:line",
+        "Explains that an implementation that never blocks makes the callback never run",
+        "Gives the replacement: a direct assertion on the third hit",
+        "Edits nothing and runs nothing — reads only"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "test-reviewer-mock-against-itself-rejects",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/r5/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. AC-4's only assertion is `expect(now).toHaveBeenCalledTimes(2)` — a mock asserted against itself. A never-resetting limiter still calls now() twice. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
+      "files": [
+        "evals/fixtures/test-reviewer/ticket.md",
+        "evals/fixtures/test-reviewer/rateLimit.ts",
+        "evals/fixtures/test-reviewer/specs/r5/rateLimit.spec.ts"
+      ],
+      "assertions": [
+        "Returns REJECTED",
+        "Cites the toHaveBeenCalledTimes assertion by file:line",
+        "Calls it an implementation detail / mock asserted against itself",
+        "Gives the replacement: assert the hit result after advancing windowMs",
+        "Edits nothing and runs nothing — reads only"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "test-reviewer-weak-value-assertion-rejects",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/x4/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. The subtlest case. AC-2 checks `allowed: false` exactly but `retryAfterMs` only with toBeGreaterThan(0), so a limiter that returns windowMs instead of the time left passes. Added because the other four defects didn't separate sonnet from opus. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
+      "files": [
+        "evals/fixtures/test-reviewer/ticket.md",
+        "evals/fixtures/test-reviewer/rateLimit.ts",
+        "evals/fixtures/test-reviewer/specs/x4/rateLimit.spec.ts"
+      ],
+      "assertions": [
+        "Returns REJECTED",
+        "Cites the toBeGreaterThan(0) assertion by file:line",
+        "Says AC-2 requires equality with the time left, and names a wrong value that passes (e.g. windowMs)",
+        "Gives the exact expected value 600",
+        "Edits nothing and runs nothing — reads only"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "designer-real-smell-one-finding",
+      "prompt": "Dispatch qoq-designer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Project root: <repo>. Scope: <repo>/evals/fixtures/designer/payments. `qoq refactor` assessment 4. Assessments 1–3 (JSCPD, consistency, ponytail) are done and left this scope unchanged.",
+      "expected_output": "Plain-TS scope with one real smell: the same divergent switch on TProvider across fees.ts, refunds.ts and webhooks.ts. A stronger tier should earn its cost here by finding something the weaker one misses, or by dropping a low-confidence finding the weaker one pads with.",
+      "files": [
+        "evals/fixtures/designer/payments/types.ts",
+        "evals/fixtures/designer/payments/fees.ts",
+        "evals/fixtures/designer/payments/refunds.ts",
+        "evals/fixtures/designer/payments/webhooks.ts"
+      ],
+      "assertions": [
+        "Opens with stack: none / plain TypeScript, from the scope's files",
+        "Exactly one finding: divergent switch, across all three files",
+        "Cost is concrete: a new provider means editing three files that don't know about each other",
+        "Candidate Strategy, asset assets/patterns/strategy.md",
+        "Cheaper answer: a Record<TProvider, …> of handlers, judged sufficient",
+        "No low-confidence padding findings; the rest go to the rejected list",
+        "Reads no per-pattern write-up",
+        "Edits nothing"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "designer-clean-scope-no-findings",
+      "prompt": "Dispatch qoq-designer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Project root: <repo>. Scope: <repo>/evals/fixtures/designer/invoicing. `qoq refactor` assessment 4. Assessments 1–3 (JSCPD, consistency, ponytail) are done and left this scope unchanged.",
+      "expected_output": "Plain-TS scope that is already well-shaped. Its one switch returns a single value per branch next to a Record, so it is a decoy. 'No findings' is the correct answer, and any finding is padding.",
+      "files": [
+        "evals/fixtures/designer/invoicing/types.ts",
+        "evals/fixtures/designer/invoicing/tax.ts",
+        "evals/fixtures/designer/invoicing/totals.ts",
+        "evals/fixtures/designer/invoicing/format.ts"
+      ],
+      "assertions": [
+        "Opens with stack: none / plain TypeScript",
+        "Returns no findings, stated plainly",
+        "Lists the tax.ts switch as found and rejected, because the branches differ by one value",
+        "Proposes no pattern",
+        "Reads no per-pattern write-up",
+        "Edits nothing"
+      ]
     }
   ]
 }

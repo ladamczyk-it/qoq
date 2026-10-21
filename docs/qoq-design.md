@@ -262,6 +262,37 @@ ticket inherits. `qoq-developer` and `qoq-tester` cap `maxTurns` at 200: the
 longest developer run measured was 122 turns (median about 35 over 24 runs); no
 tester runs were on record, so it takes the same cap.
 
+**Why the read-only tiers are what they are (audited 2026-10-21).** A tier only
+moves on a measured difference, and none of these showed one:
+
+| Agent               | Tier       | Tested against              | Quality                                                                                                                                          | Cost (median context tokens, wall time) | Decision |
+| ------------------- | ---------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- | -------- |
+| `qoq-test-reviewer` | sonnet     | opus, 6 cases × 3 runs each | 0/15 seeded defects missed and 0/3 false rejections on both tiers                                                                                | sonnet 60.6k, 10.8s · opus 76.5k, 21.6s | keep     |
+| `qoq-designer`      | sonnet     | opus, 2 cases × 2 runs each | both tiers: the one real smell found (Strategy, Record as the cheaper fix), zero findings on the clean scope, no low-confidence padding          | sonnet 77.5k, 14.0s · opus 90.7k, 25.6s | keep     |
+| `qoq-checker`       | haiku, low | 46 real runs, transcripts   | 0 of 159 digest locations dropped. 1 miscounted in-scope total (`haiku-4-5`); 0 errors in 29 `haiku-5-5` runs. `summarize.mjs` does the grouping | median 1.7k output tokens               | keep     |
+
+The reviewer's cases are `evals/qoq-evals.json` 26–31, over
+`evals/fixtures/test-reviewer`. Each seeded spec survives a mutant of the
+implementation that the sound spec fails, so every defect is real. The cases are:
+a missing criterion, a tautological `>= 0`, an `expect` inside a callback over an
+empty filter, a mock asserted against itself, and a value pinned only by
+`toBeGreaterThan(0)`. That last one was added when the first four didn't separate
+the tiers, and it didn't separate them either. The designer's cases are 32–33.
+Production agrees: 41 real sonnet reviews, of which 9 were rejections, each fixed
+and then approved.
+
+**What this doesn't prove.** The fixtures are one small file each, and every case
+hit 100% on both tiers. That is a ceiling, not a margin. A harder fixture, such as
+a multi-file ticket or a contract that diverges from the implementation, is what
+would show a gap. Re-run 26–33 at both tiers whenever the reviewer's or the
+designer's prose changes.
+
+**No `effort` on the judgement agents.** Both tiers ran at default effort and hit
+the ceiling, so raising effort has no measured headroom to buy. `qoq-architect`'s
+`effort: high` stands on its own reasoning above.
+`qoq-bumper` (3 runs on record) and `qoq-tester` (none) weren't measured, so they
+keep their current tiers by default.
+
 **Why the stats disclosure is printed by the script.** It was prose in
 `SKILL.md`, describing the request body. Two problems: every run paid for text
 that matters on the one run in a user's life where somebody is actually asked,
