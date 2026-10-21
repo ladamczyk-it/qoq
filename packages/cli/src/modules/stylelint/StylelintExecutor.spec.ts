@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { dummyModulesConfig } from '__tests__/common.ts';
 
 import { readIgnorePatterns } from '../../helpers/common.ts';
+import { suggestSkill } from '../../helpers/skillHint.ts';
 import { IExecutorOptions } from '../types.ts';
 
 import { StylelintExecutor } from './StylelintExecutor.ts';
@@ -23,6 +24,8 @@ vi.mock('fs', async (importOriginal) => ({
   ...(await importOriginal<typeof import('fs')>()),
   writeFileSync: vi.fn(),
 }));
+
+vi.mock('../../helpers/skillHint.ts', () => ({ suggestSkill: vi.fn() }));
 
 vi.mock('../../helpers/common.ts', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../helpers/common.ts')>()),
@@ -181,6 +184,23 @@ describe('StylelintExecutor', () => {
         'out/stylelint-report.json',
         expect.stringContaining('"fixable":true')
       );
+    });
+
+    it.each([
+      ['every warning is autofixable', { text: 'x', fix: { range: [0, 1], text: '' } }, false],
+      ['a warning has no fix', { text: 'x' }, true],
+    ])('should suggest /qoq fix only when %s', async (_, warning, suggested) => {
+      lint.mockResolvedValue({ ...passingResult, results: [{ warnings: [warning] }] });
+      const executor = new StylelintExecutor(
+        configWith({ strict: false, template: EModulesStylelint.STYLELINT_CSS }),
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(lintArg().computeEditInfo).toBe(true);
+      expect(vi.mocked(suggestSkill).mock.calls.length > 0).toBe(suggested);
     });
 
     it('should return ERROR when stylelint reports errors', async () => {

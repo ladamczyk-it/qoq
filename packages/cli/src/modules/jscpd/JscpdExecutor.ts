@@ -46,7 +46,7 @@ export class JscpdExecutor extends AbstractApiExecutor {
       absolute: true,
       format,
       threshold: threshold ?? JscpdConfigHandler.DEFAULT_THRESHOLD,
-      noTips: !options.configHints,
+      noTips: true,
       silent: Boolean(options.json),
       reporters: options.json ? [] : ['console'],
       ...(ignore?.length ? { ignore } : {}),

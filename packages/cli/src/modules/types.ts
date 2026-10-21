@@ -19,6 +19,7 @@ export interface IModulesConfig {
   };
   workspaces?: string[];
   stats?: boolean;
+  hints?: boolean;
   // Raw, user-authored qoq.config.* (before defaults are merged in). Kept so the
   // BasicExecutor self-health-check can tell which entries the user actually wrote
   // versus values that getModulesFromConfig filled in from defaults. ScanExecutor

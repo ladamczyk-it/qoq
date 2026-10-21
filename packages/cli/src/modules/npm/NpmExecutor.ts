@@ -5,6 +5,7 @@ import c from 'picocolors';
 
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { resolveCliPackagePath } from '../../helpers/paths.ts';
+import { suggestSkill } from '../../helpers/skillHint.ts';
 import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions, IModulesConfig } from '../types.ts';
 
@@ -37,6 +38,14 @@ export class NpmExecutor extends AbstractApiExecutor {
 
     try {
       const result = await check();
+
+      if (
+        result.packages.some(
+          ({ flags }) => flags.includes('outdated') || flags.includes('deprecated')
+        )
+      ) {
+        suggestSkill('bump');
+      }
 
       if (options.json) {
         this.writeReport(result, options.output);
