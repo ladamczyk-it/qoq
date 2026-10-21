@@ -9,6 +9,7 @@ import micromatch from 'micromatch';
 import { TerminateExecutorGracefully } from '../../helpers/exceptions/TerminateExecutorGracefully.ts';
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath } from '../../helpers/paths.ts';
+import { suggestSkill } from '../../helpers/skillHint.ts';
 import { EConfigType } from '../../helpers/types.ts';
 import {
   AbstractApiWithProgressExecutor,
@@ -78,11 +79,17 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor<IStylelin
       cacheStrategy: 'metadata',
       formatter: 'string',
       allowEmptyInput: true,
+      // Adds `fix` to each autofixable warning, so the skill hint can tell the rest apart.
+      computeEditInfo: true,
       ...(strict ? { maxWarnings: 0 } : {}),
     });
 
     if (showProgress) {
       this.finishProgress(!result.errored && !result.maxWarningsExceeded);
+    }
+
+    if (result.results.some(({ warnings }) => warnings.some(({ fix }) => !fix))) {
+      suggestSkill('fix');
     }
 
     if (options.json) {

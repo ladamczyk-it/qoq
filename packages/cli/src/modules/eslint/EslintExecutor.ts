@@ -6,6 +6,7 @@ import { EExitCode, resolveCwdRelativePath } from '@ladamczyk/qoq-utils';
 import { GITIGNORE_FILE_PATH } from '../../helpers/constants.ts';
 import { formatCode } from '../../helpers/formatCode.ts';
 import { resolveCliPackagePath, resolveCliRelativePath, toPosix } from '../../helpers/paths.ts';
+import { suggestSkill } from '../../helpers/skillHint.ts';
 import { EConfigType } from '../../helpers/types.ts';
 import {
   AbstractApiWithProgressExecutor,
@@ -91,6 +92,16 @@ export class EslintExecutor extends AbstractApiWithProgressExecutor<IEslintConte
 
     // Mirrors the spawned CLI's `--max-warnings 0`: any warning fails the run.
     const tooManyWarnings = warningCount > 0;
+
+    if (
+      results.some(
+        (result) =>
+          result.errorCount + result.warningCount >
+          result.fixableErrorCount + result.fixableWarningCount
+      )
+    ) {
+      suggestSkill('fix');
+    }
 
     if (showProgress) {
       this.finishProgress(errorCount === 0 && !tooManyWarnings);

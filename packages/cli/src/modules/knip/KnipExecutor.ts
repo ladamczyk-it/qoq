@@ -20,7 +20,7 @@ export class KnipExecutor extends AbstractCommandExecutor {
   }
 
   protected getCommandArgs(): string[] {
-    return ['--exclude', 'enumMembers'];
+    return ['--exclude', 'enumMembers', '--no-config-hints'];
   }
 
   protected getCachePath(): string {
@@ -91,10 +91,6 @@ export class KnipExecutor extends AbstractCommandExecutor {
       }
 
       args.push('-c', getRelativePath(configFilePath));
-
-      if (!options.configHints) {
-        args.push('--no-config-hints');
-      }
 
       if (options.production) {
         args.push('--production');

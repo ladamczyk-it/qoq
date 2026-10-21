@@ -23,6 +23,8 @@ export interface QoqConfig {
   // Consent for anonymous usage stats. Undefined means "not asked yet" — an
   // interactive run prompts once and writes the answer back here.
   stats?: boolean;
+  // `false` hides the qoq skill hint printed after a failing run and the wizard.
+  hints?: boolean;
   npm?: IModuleNpmConfig;
   scan?: IScanConfig;
   prettier?: IModulePrettierConfig;

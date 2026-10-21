@@ -60,6 +60,10 @@ record; `undefined` means "not asked yet".
   name is the whole payload, so no path, filename or config value can leak.
 - Sent from `execute()` (skipped on `--warmup`) and at the end of `initConfig()`.
 
+## Skill hint
+
+`src/helpers/skillHint.ts` prints the `qoq` skill pitch at the end of `initConfig()`, `execute()` and `scan()`. `suggestSkill()` adds a finding-specific step. `EslintExecutor` calls it when a result has non-fixable problems, and `StylelintExecutor` when a warning has no `fix` from `computeEditInfo` (both → `fix`). `NpmExecutor` calls it on outdated or deprecated flags (→ `bump`), and `ScanExecutor` on any advisory (→ `bump`). `execute()` calls it itself for failed Knip or Structurelint runs (→ `fix`) and a failed JSCPD run (→ `refactor`). It is skipped for `staged` (any `files`), when `hideMessages` is set, when output is not a TTY, under `CLAUDECODE`, with `hints: false`, and when the skill is already in `./.claude/skills/qoq`, `~/.claude/skills/qoq` or the `qoq-agent-skills` marketplace. Keep the copy framed as a guarded delivery loop, not as a list of commands or a lint helper.
+
 ## Cache behavior
 
 All tools except npm and Prettier use `--cache` by default; Prettier is fast enough to re-check every target, and a per-file cache made staged-vs-full runs report stale results. Cache files land in `bin/.<toolname>cache`. `--warmup` clears existing caches before pre-generating config files.

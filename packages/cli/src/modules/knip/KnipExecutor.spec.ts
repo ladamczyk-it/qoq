@@ -88,14 +88,6 @@ describe('KnipExecutor', () => {
       expect(args).toContain('--no-config-hints');
     });
 
-    it('should keep config hints when requested', async () => {
-      const executor = new KnipExecutor(configWithKnip, true, true);
-
-      await executor.run({ ...baseOptions, configHints: true });
-
-      expect(getArgs()).not.toContain('--no-config-hints');
-    });
-
     it('should append --production, --fix and the json reporter when requested', async () => {
       const executor = new KnipExecutor(configWithKnip, true, true);
 
