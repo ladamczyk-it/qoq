@@ -50,7 +50,7 @@ export class NpmExecutor extends AbstractApiExecutor {
       if (options.json) {
         this.writeReport(result, options.output);
       } else if (!this.silent) {
-        process.stdout.write(formatTable(result, { onlyProblems: true, now: new Date() }));
+        process.stdout.write(formatTable(result, { now: new Date() }));
       }
     } catch (error) {
       if (!this.silent) {

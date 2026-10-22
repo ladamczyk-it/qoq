@@ -115,7 +115,6 @@ describe('NpmExecutor', () => {
       const code = await executor.run(baseOptions);
 
       expect(formatTable).toHaveBeenCalledWith(result, {
-        onlyProblems: true,
         now: expect.any(Date),
       });
       expect(stdoutMock).toHaveBeenCalledWith('TABLE\n');
