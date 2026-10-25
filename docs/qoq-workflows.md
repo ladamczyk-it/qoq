@@ -443,12 +443,13 @@ flowchart TD
     FHAND --> X0
     subgraph FX["qoq execute on the manifest"]
         direction TB
-        X0["**the board** — every component plan<br/>read fresh from disk: next milestone,<br/>ready or waiting on X, done.<br/>*the manifest holds no status*"]
+        X0["**progress.mjs [manifest]** — every<br/>component plan read fresh from disk:<br/>its board + next milestone, ready or<br/>waiting on X, done. shown verbatim.<br/>*the manifest holds no status*"]
         X0 --> XMODE(["**ASK** — drive here,<br/>or fan out?"])
         XMODE -->|"fan out"| XFAN["print one **qoq execute** line per<br/>component — a session each, in parallel.<br/>*a waiting track stops itself at its barrier*"]
         XMODE -->|"drive here"| XPICK{"a ready track?<br/>*the one others wait on first*"}
         XPICK -->|yes| XRUN["**qoq execute** for its next milestone,<br/>from inside it — unchanged"]
-        XRUN --> XPICK
+        XRUN --> XB["**progress.mjs [manifest]** again,<br/>shown verbatim"]
+        XB --> XPICK
         XPICK -->|"none ready, some not done"| XSTOP(["**stop** — say which track<br/>waits on what"])
         XPICK -->|"all done"| XDONE["manifest **complete** — the only<br/>write to it after approval"]
     end
@@ -523,8 +524,10 @@ flowchart TD
     EPROG -->|no| EBRANCH
     ERECON --> EBRANCH{"on the default<br/>branch?"}
     EBRANCH -->|yes| EASK(["**ASK THE USER**<br/>branch first? plan/[name]"])
-    EASK -.-> EWAVE
-    EBRANCH -->|no| EWAVE
+    EASK -.-> EBOARD
+    EBRANCH -->|no| EBOARD
+    EBOARD["**progress.mjs [plan]** — the board,<br/>shown verbatim: milestones delivered,<br/>tickets done / in-progress / blocked.<br/>*again after every ticket reaches done or<br/>blocked, and after every milestone gate —<br/>read from the file, never from memory*"]
+    EBOARD --> EWAVE
 
     EWAVE["**next ticket** — the first whose<br/>deps are all done, in plan order"]
     EWAVE --> EBAR{"first ticket of a milestone that<br/>**Depends on** another component?"}

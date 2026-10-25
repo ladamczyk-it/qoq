@@ -646,6 +646,15 @@ step `execute` would have to learn.
 
 ## `execute`
 
+**Why progress is a script and not a summary.** A plan run is long and mostly
+silent, and the plan file already holds the answer to "how far along is it". A
+board composed by the orchestrating thread is composed from its recollection,
+which drifts from the file the first time a write fails — and for a fullstack
+manifest the answer lives in several repos that other sessions are writing. So
+`progress.mjs` reads the files fresh and prints one board for a single plan or a
+manifest alike, at load, after every ticket outcome and after every milestone
+gate: the beats where the answer actually changes, and no others.
+
 **Why `--source jira` imports to a plan file instead of executing against the
 tracker.** The plan file is already the execution state — resume reconciles
 against it, the estimate loopback reads `Estimate` off it, the milestone gate

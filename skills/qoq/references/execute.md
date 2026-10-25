@@ -41,6 +41,24 @@ rather than executing an unapproved plan.
 run produces a commit per ticket, and that's not something to discover on
 `master` afterwards. Suggest `plan/<name>`.
 
+## Progress
+
+Show the user where the plan stands — the board, from the file, never from
+memory:
+
+```bash
+node <skill>/scripts/progress.mjs <plan>
+```
+
+Run it **after loading**, before the first dispatch; **after every ticket
+reaches `done` or `blocked`**; and **after every milestone gate**, once the
+archive has moved. Show its stdout verbatim. It reads the plan as it is on
+disk, which is the only state there is — a board composed from this thread's
+recollection drifts from the file the first time a write fails.
+
+The same script takes a fullstack manifest and prints every component's board;
+[fullstack-execute.md](fullstack-execute.md) uses it that way.
+
 ## One ticket at a time
 
 Tickets go out singly, in dependency order then plan order — the first whose

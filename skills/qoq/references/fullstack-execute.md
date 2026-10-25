@@ -7,18 +7,18 @@ file only decides **which track runs next, and where**.
 
 ## The board
 
-Load every component plan **fresh from disk**, through the manifest's
-Components table, every time you need the answer — another session may have
-archived a milestone a minute ago. Per track:
+```bash
+node <skill>/scripts/progress.mjs <root>/plans/<file>.md
+```
 
-- its **next milestone** — the first not under `## Completed`
-- **ready**, or **waiting on** `<component>:Milestone <N>` — a milestone whose
-  `Depends on` names another component is ready only once that milestone sits
-  under the other plan's `## Completed`
-- **done**, when its plan is `complete`
+It reads every component plan **fresh from disk** through the manifest's
+Components table — another session may have archived a milestone a minute ago —
+and prints, per track, the same board `execute.md` shows for one plan, headed by
+its **next milestone**: **ready**, **waiting on** `<component>:Milestone <N>`
+(not under that plan's `## Completed` yet), or **done**.
 
-Print it before anything else, one line per track. It is the whole status of
-the feature; the manifest itself holds none.
+Show it verbatim before anything else, and again whenever the next track is
+chosen. It is the whole status of the feature; the manifest itself holds none.
 
 ## Ask how to run it
 
@@ -29,7 +29,7 @@ Never assume one:
   `cd <component> && claude`, then `/qoq execute plans/<file>.md`. Waiting
   tracks get their line too, marked with what they wait on — `execute.md`'s
   barrier check stops them there by itself. Re-running this command later just
-  shows the board again.
+  shows the board again — the way to watch a fan-out from the root.
 
 Fan-out is the only parallel path. A single session never has two tracks in
 flight: each repo's gates answer "did _this_ change break it?" only while one
@@ -45,7 +45,9 @@ Loop until every track is done, or none is ready:
    its discovery (`discovery-check.mjs --project <component>`), its branch
    check, its tickets, its milestone gate and archive. Everything `execute.md`
    says holds there exactly; the component's plan file is the state.
-3. Re-derive the board and go again.
+3. Re-run the board — on the manifest, not the component — show it, and go
+   again. Inside the milestone, `execute.md`'s own progress beats show that
+   component's board as usual.
 
 **An `in-progress` ticket on a track you're about to drive is a question**, not
 a dead run to reconcile: in a fan-out it may be a live session in that repo.
