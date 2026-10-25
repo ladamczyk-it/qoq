@@ -203,12 +203,12 @@
       "id": 9,
       "name": "bare-invocation-asks-which-command",
       "prompt": "/qoq",
-      "expected_output": "Eight commands are eight different jobs and a bare invocation names none of them, so the skill asks which one rather than picking the most likely. Discovery may run first, but no command's work starts before the answer.",
+      "expected_output": "Nine commands are nine different jobs and a bare invocation names none of them, so the skill asks which one rather than picking the most likely. Discovery may run first, but no command's work starts before the answer.",
       "files": [],
       "assertions": [
         "Asks the user which command to run rather than guessing one",
-        "Offers the eight commands with enough description to choose between them",
-        "Does not fix, refactor, bump, plan, replan, execute, test or compress anything before the answer",
+        "Offers the nine commands with enough description to choose between them",
+        "Does not fix, refactor, bump, plan, fullstack-plan, replan, execute, test or compress anything before the answer",
         "Does not silently default to fix because it is the most common"
       ],
       "target": "fixture-repo"
