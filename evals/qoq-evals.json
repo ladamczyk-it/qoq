@@ -749,6 +749,96 @@
         "Runs the project scripts (npm run test:one / npm test), never npx vitest"
       ],
       "target": "agent"
+    },
+    {
+      "id": 37,
+      "name": "fullstack-plan-contract-first-providers-first",
+      "prompt": "/qoq fullstack-plan Users should be able to tag their trips and filter the trip list by tag. Tags live on the server so they sync between devices.",
+      "expected_output": "Run from a parent directory holding two repos, `api/` and `web/`, each with its own qoq.config and .git; the parent has neither. Acts on entry's `components` section, which lists api and web and skips root discovery, and asks which take part rather than assuming both. Grills at journey level (what the user sees, which component owns which part), writes cross-component Scenarios, then one Explore over boundary code only and one qoq-architect scoped to the interface, and asks its Unknowns before planning any component. The tag API lands on the manifest as Contracts, with api as provider and web as consumer. It plans api first, running its discovery with `--project api` and `plan`'s three phases on a brief, then web, whose architect gets the contract as fixed input. web's plan ends on an E2E delivery milestone that depends on api's last milestone. Barriers are drawn only where web needs api's delivered behaviour, each with a reason. One approval covers the set and shows the barrier table and which tracks can start now. After approval it offers `qoq execute` on the manifest and dispatches no ticket.",
+      "files": [],
+      "assertions": [
+        "Asks which components take part before any grilling; never assumes both",
+        "Runs no discovery and no npx qoq at the parent root",
+        "A manifest is written under the parent's plans/ with Contracts, Scenarios, a Components table and a Barriers table, and no per-track or per-ticket status",
+        "api's plan is written before web's, and the transcript shows api planned first",
+        "Both component plans carry the Orchestration header pointing at the manifest",
+        "web's last milestone is E2E delivery, with Depends on: api:Milestone <N> naming api's last milestone",
+        "No ticket in either plan lists files from both repos",
+        "Every Barriers row has a reason, and a consumer milestone that only needs the contract's shape has no cross-component Depends on",
+        "A single approval question covers all plans; no ticket is dispatched"
+      ],
+      "setup": "A parent dir with two sibling repos, api/ (an Express service with a trips router) and web/ (a React app with a trips API client), each with git init, its own qoq.config.js and package.json scripts. Not ./artifacts."
+    },
+    {
+      "id": 38,
+      "name": "fullstack-plan-one-component-redirects",
+      "prompt": "/qoq fullstack-plan Add CSV export of the trips list.",
+      "expected_output": "The parent holds only one child repo with a qoq.config. entry's components section says a fullstack plan needs at least two components, and the run says this is a `plan` run inside that repo and stops. It writes no manifest and runs no grill.",
+      "files": [],
+      "assertions": [
+        "Says a fullstack plan needs at least two components",
+        "Suggests running qoq plan inside the one component",
+        "No file is written under plans/"
+      ],
+      "setup": "A parent dir with a single child repo (own .git and qoq.config.js). Not ./artifacts."
+    },
+    {
+      "id": 39,
+      "name": "fullstack-execute-drive-switches-tracks-at-barrier",
+      "prompt": "/qoq execute plans/2026-10-25-trip-tags.md",
+      "expected_output": "The file is an approved fullstack manifest over api and web. Every component plan is read fresh from disk, and a board is printed with one line per track: api M1 ready, web M1 ready (shape only), web M2 waiting on api:Milestone 1. The run asks whether to drive here or fan out. On drive, it runs execute.md for api M1 from inside api, using its own discovery, branch check, gates and archive. It re-derives the board, sees web M2 is now ready, and continues one milestone at a time, with never two tracks in flight. At the end, with every component plan complete, it sets the manifest to complete.",
+      "files": [],
+      "assertions": [
+        "Prints the board before dispatching anything",
+        "Asks drive vs fan out; never assumes",
+        "Runs discovery-check with --project <component> for each track, never at the root",
+        "Never has two developer dispatches in flight at once",
+        "Does not start web Milestone 2 before api Milestone 1 is under api's ## Completed",
+        "The only edit to the manifest is Plan status: complete, made after all component plans are complete"
+      ],
+      "setup": "The workspace from eval 37 with its manifest and both component plans approved and nothing delivered. Not ./artifacts."
+    },
+    {
+      "id": 40,
+      "name": "fullstack-execute-fan-out-prints-sessions",
+      "prompt": "/qoq execute plans/2026-10-25-trip-tags.md — I'll run the repos in separate terminals",
+      "expected_output": "The run reads the board and takes fan-out as the user's stated choice. It prints one `cd <component> && claude` plus `/qoq execute plans/<file>.md` line per component, marking which are ready and which wait on what. It dispatches nothing and writes nothing to any plan or to the manifest.",
+      "files": [],
+      "assertions": [
+        "One launch line per component, each naming that component's own plan path",
+        "Waiting tracks are marked with the exact <component>:Milestone they wait on",
+        "No agent is dispatched and no file changes"
+      ],
+      "setup": "Same as eval 39. Not ./artifacts."
+    },
+    {
+      "id": 41,
+      "name": "component-execute-stops-at-undelivered-barrier",
+      "prompt": "/qoq execute plans/2026-10-25-trip-tags.md",
+      "expected_output": "Run inside web/, where Milestone 1 is delivered and Milestone 2 has Depends on: api:Milestone 1. The run reads api's plan through the manifest's Components table, fresh from disk. api M1 is not under ## Completed, so it stops this track before dispatching. It says that the track waits on api:Milestone 1 and that `qoq execute <plan>` resumes it. Tickets stay todo, none are marked blocked, no estimate is recorded, and the manifest is not touched.",
+      "files": [],
+      "assertions": [
+        "Reads api's plan file before the first web M2 dispatch",
+        "No qoq-developer is dispatched",
+        "No web ticket changes status, and none is blocked",
+        "No estimate.mjs --record call",
+        "The manifest file is unchanged"
+      ],
+      "setup": "Eval 37's workspace, web/ on a plan branch with M1 archived, api M1 still in progress. Session opened in web/. Not ./artifacts."
+    },
+    {
+      "id": 42,
+      "name": "component-architect-contract-change-is-unknown",
+      "prompt": "/qoq fullstack-plan Users should be able to tag their trips and filter the trip list by tag. Tags live on the server so they sync between devices.",
+      "expected_output": "Same workspace as eval 37, but web's list view needs tag counts per tag, and the manifest's contract does not carry them. During web's sub-plan, the component architect returns the need as an Unknown and does not widen the contract itself. The main thread asks the user. On a yes, it updates the manifest's Contracts first and re-checks api's already-drafted plan against the new shape before continuing with web. No plan edits the contract locally.",
+      "files": [],
+      "assertions": [
+        "The contract gap is asked as a question, not silently added",
+        "The manifest's Contracts are updated before web's plan is written against the new shape",
+        "api's draft plan is revisited after the contract change",
+        "Neither component plan carries a Contracts shape that differs from the manifest's"
+      ],
+      "setup": "As eval 37; answer the grill so that tag counts are only discovered at web's level. Not ./artifacts."
     }
   ]
 }

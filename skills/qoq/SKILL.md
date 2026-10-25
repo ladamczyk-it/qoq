@@ -1,7 +1,7 @@
 ---
 name: qoq
-description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
-argument-hint: '[fix|refactor|bump|plan|replan|execute|test|compress] [scope]'
+description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `fullstack-plan`, `replan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, one feature planned end to end across several repos that ship together (a UI and its API), an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
+argument-hint: '[fix|refactor|bump|plan|fullstack-plan|replan|execute|test|compress] [scope]'
 allowed-tools:
   - Read
   - Write
@@ -51,21 +51,22 @@ hooks:
 
 # QoQ — quality over quantity
 
-Eight commands, one shared discovery record, seven agents.
+Nine commands, one shared discovery record, seven agents.
 
 **This file routes.** Each command's reference owns its rules — read the one you
 need, not all of them.
 
-| Command    | Does                                                       | Reference                                        |
-| ---------- | ---------------------------------------------------------- | ------------------------------------------------ |
-| `fix`      | check/fix loop over tool findings, ends on PASS/FAIL       | [references/fix.md](references/fix.md)           |
-| `refactor` | green base, then four judgement assessments over a scope   | [references/refactor.md](references/refactor.md) |
-| `bump`     | analyse dependencies, pick, then apply one patch at a time | [references/bump.md](references/bump.md)         |
-| `plan`     | requirements → an approved plan file under `./plans/`      | [references/plan.md](references/plan.md)         |
-| `replan`   | an existing plan, reshaped — delivered work stays frozen   | [references/replan.md](references/replan.md)     |
-| `execute`  | an approved plan, local or imported → delivered milestones | [references/execute.md](references/execute.md)   |
-| `test`     | unit/integration coverage for code that already exists     | [references/test.md](references/test.md)         |
-| `compress` | strip agent-facing markdown to what an agent acts on       | [references/compress.md](references/compress.md) |
+| Command          | Does                                                       | Reference                                                    |
+| ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| `fix`            | check/fix loop over tool findings, ends on PASS/FAIL       | [references/fix.md](references/fix.md)                       |
+| `refactor`       | green base, then four judgement assessments over a scope   | [references/refactor.md](references/refactor.md)             |
+| `bump`           | analyse dependencies, pick, then apply one patch at a time | [references/bump.md](references/bump.md)                     |
+| `plan`           | requirements → an approved plan file under `./plans/`      | [references/plan.md](references/plan.md)                     |
+| `fullstack-plan` | one feature across repos → a manifest + a plan per repo    | [references/fullstack-plan.md](references/fullstack-plan.md) |
+| `replan`         | an existing plan, reshaped — delivered work stays frozen   | [references/replan.md](references/replan.md)                 |
+| `execute`        | an approved plan, local or imported → delivered milestones | [references/execute.md](references/execute.md)               |
+| `test`           | unit/integration coverage for code that already exists     | [references/test.md](references/test.md)                     |
+| `compress`       | strip agent-facing markdown to what an agent acts on       | [references/compress.md](references/compress.md)             |
 
 Two files sit under every command rather than beside them. What this skill knows
 about the _project_ is one cached record, derived once per top-level run:
@@ -77,7 +78,7 @@ file states neither, so there is one copy of each to go stale.
 
 ## Usage
 
-**Scope is positional, everywhere.** One spelling across all eight commands, so
+**Scope is positional, everywhere.** One spelling across all nine commands, so
 nobody has to remember which one took a flag.
 
 | Invocation                                     | Scope                                                  |
@@ -90,8 +91,10 @@ nobody has to remember which one took a flag.
 | `/qoq bump`                                    | every outdated dependency                              |
 | `/qoq plan <requirements file or description>` | —                                                      |
 | `/qoq plan <requirements> --tool jira`         | also raise the tickets there; default `local`          |
+| `/qoq fullstack-plan <requirements>`           | from the parent of the repos; each one gets a plan     |
 | `/qoq replan plans/<file>.md`                  | that plan only — refuses on uncommitted changes        |
 | `/qoq execute [plans/<file>.md]`               | omitted → ask, unless exactly one plan is approved     |
+| `/qoq execute plans/<manifest>.md`             | a fullstack manifest: drive the repos here, or fan out |
 | `/qoq execute --source jira`                   | ask which epic/milestone/list, import it, then run it  |
 | `/qoq execute <plan> --session-limit 60`       | stop before spending past 60% of the 5-hour limit      |
 | `/qoq execute <plan> --weekly-limit 80`        | same for the 7-day limit; both default to 100          |
@@ -148,16 +151,17 @@ Invoked with: `$ARGUMENTS`
 
 Commands compose, but **only on the main thread**.
 
-| Command    | Calls                              | Called by                                                     |
-| ---------- | ---------------------------------- | ------------------------------------------------------------- |
-| `fix`      | its own `qoq-checker`              | `refactor`, `bump`, `execute`, `test`, `compress`             |
-| `refactor` | `fix`                              | `bump`, `execute`, `test`                                     |
-| `bump`     | `fix`, `refactor` — both per patch | —                                                             |
-| `plan`     | `grilling` (external)              | —                                                             |
-| `replan`   | `grilling` (external)              | —                                                             |
-| `execute`  | `fix`, `refactor`                  | `plan` — offered at approval, never dispatched from inside it |
-| `test`     | `fix`, `refactor`                  | —                                                             |
-| `compress` | `fix`                              | —                                                             |
+| Command          | Calls                                          | Called by                                                                       |
+| ---------------- | ---------------------------------------------- | ------------------------------------------------------------------------------- |
+| `fix`            | its own `qoq-checker`                          | `refactor`, `bump`, `execute`, `test`, `compress`                               |
+| `refactor`       | `fix`                                          | `bump`, `execute`, `test`                                                       |
+| `bump`           | `fix`, `refactor` — both per patch             | —                                                                               |
+| `plan`           | `grilling` (external)                          | —                                                                               |
+| `fullstack-plan` | `grilling`, then `plan`'s phases per component | —                                                                               |
+| `replan`         | `grilling` (external)                          | —                                                                               |
+| `execute`        | `fix`, `refactor`                              | `plan`, `fullstack-plan` — offered at approval, never dispatched from inside it |
+| `test`           | `fix`, `refactor`                              | —                                                                               |
+| `compress`       | `fix`                                          | —                                                                               |
 
 `compress` changes what future runs read, never what this one does, so no
 command should be reaching for it mid-task.

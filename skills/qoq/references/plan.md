@@ -206,6 +206,10 @@ Say so and write separate plans — a plan with two unrelated halves can never b
 milestone-ordered sensibly, and half of it blocks on the other half for no
 reason.
 
+The opposite case — separate repos coupled by a contract, a UI and its API — is
+not two plans either: it's `qoq fullstack-plan`, run from their parent
+([fullstack-plan.md](fullstack-plan.md)).
+
 ### Acceptance criteria are assertions
 
 This is the rule everything else in decomposition follows from. `execute` opens

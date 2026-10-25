@@ -16,19 +16,20 @@ in the reference file too.
 Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 — also outside the skill, and for the same reason these diagrams are.
 
-| Diagram                                     | Prose it reflects                                                                        |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| [Entry and discovery](#entry-and-discovery) | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)   |
-| [`fix`](#fix)                               | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml) |
-| [`refactor`](#refactor)                     | [refactor.md](../skills/qoq/references/refactor.md)                                      |
-| [`bump`](#bump)                             | [bump.md](../skills/qoq/references/bump.md)                                              |
-| [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                              |
-| [`replan`](#replan)                         | [replan.md](../skills/qoq/references/replan.md)                                          |
-| [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                        |
-| [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                              |
-| [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                      |
+| Diagram                                     | Prose it reflects                                                                                                                      |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| [Entry and discovery](#entry-and-discovery) | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)                                                 |
+| [`fix`](#fix)                               | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml)                                               |
+| [`refactor`](#refactor)                     | [refactor.md](../skills/qoq/references/refactor.md)                                                                                    |
+| [`bump`](#bump)                             | [bump.md](../skills/qoq/references/bump.md)                                                                                            |
+| [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                                                                            |
+| [`fullstack-plan`](#fullstack-plan)         | [fullstack-plan.md](../skills/qoq/references/fullstack-plan.md), [fullstack-execute.md](../skills/qoq/references/fullstack-execute.md) |
+| [`replan`](#replan)                         | [replan.md](../skills/qoq/references/replan.md)                                                                                        |
+| [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                                                                      |
+| [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                                                                            |
+| [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                                                                    |
 
-**Legend, shared by all nine.** Purple = a subagent and everything it does.
+**Legend, shared by all ten.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
 invoked from inside another.
 
@@ -57,7 +58,10 @@ flowchart TD
         SYNC["**1. sync-agents.mjs** —<br/>copy the skill's agent files into<br/>&lt;root&gt;/.claude/agents<br/>*an agent inside a skill is registered<br/>by nothing; symlinked ones are left alone*<br/>*did the SKILL move? — a separate<br/>question from the hash's did the<br/>PROJECT move, so it gets its own check*<br/>*tracks what it wrote in .qoq-agents.json:<br/>a body that isn't the one it installed is<br/>the user's, and is kept, never reverted*<br/>*deletes the copies of agents the skill<br/>stopped shipping — same proof, plus any<br/>symlink with nothing behind it*"]
         SYNC --> CISC{"command =<br/>compress?"}
         CISC -->|"yes — edits prose, runs no tool,<br/>dispatches no agent"| STATSN
-        CISC -->|"no"| CHECK
+        CISC -->|"no"| CWS
+        CWS{"**a workspace root?** — fullstack-plan,<br/>or execute where the root has no<br/>qoq.config and 2+ child repos do"}
+        CWS -->|"yes — a **components** section<br/>instead; each component runs its<br/>own discovery when its track starts"| STATSN
+        CWS -->|"no"| CHECK
 
         CHECK["**2. discovery-check.mjs** —<br/>hash the package.json scripts block +<br/>the watched deps (vitest/jest,<br/>@testing-library/react) named in<br/>package.json and the lockfile,<br/>compare it to the record's hash field<br/>*the scripts too: a renamed script<br/>moves no lockfile, and every command<br/>field on the record quotes one*<br/>*those parts only: a version bump or an<br/>unrelated transitive dependency changes<br/>no word of the record*<br/>*the qoq CLI is not watched: its<br/>invocation is a constant, not a field*"]
         CHECK --> STATSN
@@ -114,6 +118,7 @@ flowchart TD
     OPT -->|refactor| RREF["**qoq refactor**<br/>green base, four assessments"]
     OPT -->|bump| RBUMP["**qoq bump**<br/>analyse, choose, apply"]
     OPT -->|plan| RPLAN["**qoq plan**<br/>requirements → approved plan file"]
+    OPT -->|fullstack-plan| RFS["**qoq fullstack-plan**<br/>one feature across repos →<br/>a manifest + a plan per repo"]
     OPT -->|execute| REXEC["**qoq execute**<br/>approved plan file → delivered"]
     OPT -->|test| RTEST["**qoq test**<br/>coverage for code that exists"]
     OPT -->|compress| RCOMP["**qoq compress**<br/>*no discovery — no line of the<br/>record describes a markdown file*"]
@@ -122,6 +127,7 @@ flowchart TD
     RREF --> NOTE
     RBUMP --> NOTE
     RPLAN --> NOTE
+    RFS --> NOTE
     REXEC --> NOTE
     RTEST --> NOTE
     RCOMP --> NOTE
@@ -130,7 +136,7 @@ flowchart TD
     classDef command fill:#f59e0b1a,stroke:#f59e0b,stroke-width:2px,stroke-dasharray:4 3
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
 
-    class RFIX,RREF,RBUMP,RPLAN,REXEC,RTEST,RCOMP command
+    class RFIX,RREF,RBUMP,RPLAN,RFS,REXEC,RTEST,RCOMP command
     class ASK,OASK,SASK,AASK,NOTE user
 ```
 
@@ -399,6 +405,65 @@ flowchart TD
 
 ---
 
+## `fullstack-plan`
+
+```mermaid
+flowchart TD
+    F0["**qoq fullstack-plan** [requirements]<br/>*run from the parent of the repos —<br/>no CLI there, no record of its own*"]
+    F0 --> FCOMP{"entry's **components** section:<br/>child dirs with their own<br/>qoq.config **and** .git"}
+    FCOMP -->|"fewer than two"| FONE(["**stop** — it's a **plan**,<br/>run inside that component"])
+    FCOMP -->|"two or more"| FASK(["**ASK** which take part —<br/>never assume all of them"])
+    FASK --> FG
+
+    subgraph FP["the manifest — journey and boundary"]
+        direction TB
+        FG["**grilling** at journey level —<br/>what the user observes end to end,<br/>which component owns which part.<br/>*component gaps wait for that<br/>component's own round*"]
+        FG --> FSC["**Scenarios** + ownership<br/>→ the manifest"]
+        FSC --> FEX["**Explore** over the boundary code only<br/>*provider routes · consumer client*"]
+        FEX --> FAR["**qoq-architect**, scoped to the<br/>interface between components"]
+        FAR --> FUNK(["**ASK the Unknowns** — a contract<br/>changed after both sides plan<br/>against it is two replans"])
+        FUNK -.-> FCON["**Contracts** + provider/consumer roles<br/>→ the manifest. *settled here only*"]
+        FCON --> FSL["one **brief** per component ·<br/>**providers first** ·<br/>**barriers** only where a consumer needs<br/>delivered behaviour, not a shape ·<br/>name the **E2E owner**"]
+    end
+
+    FSL --> FC
+    subgraph FCP["per component, in that order"]
+        direction TB
+        FC["its own **discovery**"]
+        FC --> FPL["**qoq plan**'s three phases,<br/>the brief as the requirements.<br/>*the manifest's Contracts are fixed input —<br/>a change comes back as an Unknown*"]
+        FPL --> FSAVE["save [component]/plans/[file].md, draft,<br/>**Orchestration** header · barriers as<br/>**Depends on: [component]:Milestone N**"]
+        FSAVE --> FMORE{"components<br/>left?"}
+        FMORE -->|yes| FC
+    end
+
+    FMORE -->|no| FE2E["the E2E owner's plan ends on<br/>**E2E delivery** — the manifest's<br/>Scenarios, depends on every other<br/>component's last milestone"]
+    FE2E --> FAPP(["**ASK ONCE** — approve the set.<br/>plan's veto items per component +<br/>the barrier table + which tracks<br/>can start now"])
+    FAPP -.->|approved| FHAND["every plan approved with its own<br/>Commands · offer **qoq execute** on<br/>the manifest"]
+
+    FHAND --> X0
+    subgraph FX["qoq execute on the manifest"]
+        direction TB
+        X0["**the board** — every component plan<br/>read fresh from disk: next milestone,<br/>ready or waiting on X, done.<br/>*the manifest holds no status*"]
+        X0 --> XMODE(["**ASK** — drive here,<br/>or fan out?"])
+        XMODE -->|"fan out"| XFAN["print one **qoq execute** line per<br/>component — a session each, in parallel.<br/>*a waiting track stops itself at its barrier*"]
+        XMODE -->|"drive here"| XPICK{"a ready track?<br/>*the one others wait on first*"}
+        XPICK -->|yes| XRUN["**qoq execute** for its next milestone,<br/>from inside it — unchanged"]
+        XRUN --> XPICK
+        XPICK -->|"none ready, some not done"| XSTOP(["**stop** — say which track<br/>waits on what"])
+        XPICK -->|"all done"| XDONE["manifest **complete** — the only<br/>write to it after approval"]
+    end
+
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
+    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
+
+    class FONE,FASK,FUNK,FAPP,XMODE,XSTOP user
+    class FG,FPL,XRUN skill
+    class FEX,FAR agent
+```
+
+---
+
 ## `replan`
 
 ```mermaid
@@ -449,7 +514,9 @@ flowchart TD
     ECASK -.-> ELOAD
     ECRIT -->|yes| ELOAD
     ELOAD["**load the plan, fresh from disk**<br/>every time, resume or not<br/>*(./plans/[file].md — imported or not,<br/>nothing below knows the difference)*"]
-    ELOAD --> EDRAFT{"Plan status<br/>approved?"}
+    ELOAD --> EMAN{"a fullstack manifest?<br/>*(a Components table)*"}
+    EMAN -->|yes| EFS["hand to **fullstack-execute** —<br/>it picks the component, and each<br/>milestone comes back here"]
+    EMAN -->|no| EDRAFT{"Plan status<br/>approved?"}
     EDRAFT -->|draft| EBACK["back to **qoq plan** —<br/>it was never signed off"]
     EDRAFT -->|approved| EPROG{"any ticket<br/>in-progress?"}
     EPROG -->|"yes — a dead run"| ERECON["reconcile against git log:<br/>committed → done,<br/>otherwise re-dispatch"]
@@ -460,7 +527,9 @@ flowchart TD
     EBRANCH -->|no| EWAVE
 
     EWAVE["**next ticket** — the first whose<br/>deps are all done, in plan order"]
-    EWAVE --> ELIM{"--session-limit or<br/>--weekly-limit given?"}
+    EWAVE --> EBAR{"first ticket of a milestone that<br/>**Depends on** another component?"}
+    EBAR -->|"yes — not under that plan's<br/>Completed yet"| EWAIT(["**stop this track** — say what it<br/>waits on. tickets stay todo, nothing<br/>blocked, **no estimate filed**.<br/>*the manifest is never written here*"])
+    EBAR -->|"no, or delivered"| ELIM{"--session-limit or<br/>--weekly-limit given?"}
     ELIM -->|"neither — no gate,<br/>nothing fetched"| EDISP
     ELIM -->|"either — the other<br/>defaults to 100"| EUSE["**usage-check.mjs** — before *each*<br/>ticket, headroom shown to the user<br/>verbatim. *`usage unavailable`<br/>→ say so and carry on*"]
     EUSE -->|"exit 0 — under both"| EDISP
@@ -526,7 +595,8 @@ flowchart TD
 
     class EDEV,EGATE2 agent
     class EASK,EPERM,EIMP,ECASK user
-    class EBACK,EMGATE,EGATE skill
+    class EBACK,EMGATE,EGATE,EFS skill
+    class EWAIT user
     class CONTRA note
 ```
 
