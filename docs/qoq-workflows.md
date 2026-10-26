@@ -258,8 +258,19 @@ flowchart TD
 flowchart TD
     CLEAN{"worktree<br/>clean?"}
     CLEAN -->|no| BSTOP(["**stop** — commit or<br/>stash first"])
-    CLEAN -->|yes| PLAN["**impact analysis** — what's outdated<br/>*(`npx qoq npm --json` →<br/>`@ladamczyk/outdated` report:<br/>majorBump, deprecated, stale, blocked,<br/>repository)*, minor/patch grouped,<br/>**one major step per package**<br/>*(nothing written, no patches yet)*"]
-    PLAN --> MAJ{"majors, or queued<br/>failures, among them?"}
+    CLEAN -->|yes| PLAN["**impact analysis** — what's outdated<br/>*(`npx qoq npm --json` →<br/>`@ladamczyk/outdated` report:<br/>majorBump, latestInMajor, deprecated,<br/>stale, blocked, repository)*, minor/patch grouped,<br/>**one major step per package**<br/>*(nothing written, no patches yet)*"]
+    PLAN --> SCAN["**what's vulnerable** — `npx qoq scan --json`<br/>*(OSV: severity, fixVersion, dev, via)*<br/>vulnerable joins the plan even if not outdated,<br/>**fixVersion is the floor**<br/>*skipped / inconclusive → one line,<br/>never shown as clean*"]
+    SCAN --> TRANS{"transitive?<br/>*(via has a parent)*"}
+    TRANS -->|no| MAJ
+    TRANS -->|yes| TPAR{"a release of **via.direct**<br/>pulls in ≥ fixVersion?<br/>*(latestInMajor, its range checked by npm view —<br/>provable only when direct is the parent;<br/>else unproven latestInMajor/latest)*"}
+    TPAR -->|"yes, or unproven<br/>when they differ"| TBUMP["plan it as a bump<br/>of via.direct<br/>*latestInMajor, else latest;<br/>unproven still flagged at the re-scan →<br/>override next round*"]
+    TPAR -->|no| TOVR{"fixVersion inside the<br/>parent's range?<br/>*(parent's package-lock.json entry)*"}
+    TOVR -->|yes| TSUG["**suggest an override** —<br/>fixVersion,<br/>scoped to the parent<br/>*(global only when several<br/>parents, and named)*"]
+    TOVR -->|no| TOUT["offer fixVersion<br/>**outside** the range<br/>as a separate choice — or<br/>*no fix available*"]
+    TBUMP --> MAJ
+    TSUG --> MAJ
+    TOUT --> MAJ
+    MAJ{"majors, or queued<br/>failures, among them?"}
     MAJ -->|yes| BUMPER["dispatch **qoq-bumper**<br/>(Sonnet, one per package)<br/>*(name, current version,<br/>repository URL)*"]
     MAJ -->|no| BAPPR
 
@@ -278,11 +289,12 @@ flowchart TD
     MB3 --> BAPPR(["**ASK THE USER**<br/>here's the impact —<br/>**pick / exclude**, then approve"])
 
     BAPPR -.->|"nothing picked"| BSTOP
-    BAPPR -.->|"the chosen set"| MAKE["**now** write the git patches —<br/>one per bump, selected only<br/>*`package.json` only — never<br/>the lockfile*"]
-    MAKE --> BAPPLY
+    BAPPR -.->|"the chosen set"| MAKE["**now** write the git patches —<br/>one per bump or picked override,<br/>selected only<br/>*`package.json` only — never<br/>the lockfile*"]
+    MAKE --> BBASE["**baseline** — one check, nothing fixed<br/>*test or build already red → stop*"]
+    BBASE --> BAPPLY
 
     BAPPLY["apply next patch<br/>+ reinstall<br/>*the install alone regenerates<br/>the lockfile; a failed install<br/>is a failed patch*"]
-    BAPPLY --> BVAL["**validate** — all three, in order<br/>`qoq fix` · `test` full suite · `build`<br/>*(commands from the record)*"]
+    BAPPLY --> BVAL["**validate** — all three, in order<br/>`qoq fix` · `test` full suite · `build`<br/>*(commands from the record;<br/>fix acts only on findings<br/>not in the baseline)*"]
     BVAL -->|passes| PREF["**qoq refactor --decisions auto**<br/>scope = this patch's files —<br/>*applies the safe tier,<br/>advises the rest*"]
     PREF -->|"changed nothing"| BMORE{"patches left?"}
     PREF -->|"changed something"| BREVAL["**re-validate** — test + build<br/>*(the refactor's own fix already ran)*"]
@@ -297,7 +309,14 @@ flowchart TD
     BQ --> BMORE
     BREV --> BMORE
     BMORE -->|yes| BAPPLY
-    BMORE -->|no| BEHIND{"a major still behind,<br/>or a queued failure?"}
+    BMORE -->|no| OVR{"picked overrides<br/>to test?<br/>*(only those touching the<br/>chosen packages' subtree)*"}
+    OVR -->|yes| OTRY["remove **one**, reinstall,<br/>validate (all three) + re-scan"]
+    OTRY -->|"both clean"| ODROP["drop it"]
+    OTRY -->|"either fails"| OKEEP["restore it **exactly as it was**,<br/>report kept + why<br/>*out of the new parent's range →<br/>offer to recompute, own yes*"]
+    ODROP --> OVR
+    OKEEP --> OVR
+    OVR -->|no| RESCAN["**one re-scan**<br/>report what's still there —<br/>*a flagged override goes<br/>back to the user*"]
+    RESCAN --> BEHIND{"a major still behind,<br/>or a queued failure?"}
     BEHIND -->|"yes — re-plan,<br/>re-approve"| PLAN
     BEHIND -->|no| BDONE(["**done** — applied,<br/>reverted, skipped"])
 
@@ -307,7 +326,7 @@ flowchart TD
 
     class BUMPFLOW agent
     class BAPPR user
-    class PREF,BVAL skill
+    class PREF,BVAL,OTRY skill
 ```
 
 ---

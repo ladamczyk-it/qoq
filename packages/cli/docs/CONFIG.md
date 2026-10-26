@@ -188,7 +188,9 @@ where:
 qoq scan [--json] [--output <path>] [--timeout <ms>] [--production] [--graph] [--silent]
 ```
 
-- `--json` writes `scan-report.json` (`{ status, reason?, adapter, findings[] }`) to `--output`, default `bin/report`.
+- `--json` writes `scan-report.json` (`{ status, reason?, adapter, findings[] }`) to `--output`, default `bin/report`. qoq adds two fields from `package-lock.json` to each finding, overwriting anything the adapter set:
+  - `dev`: `true` when every installed copy is dev-only.
+  - `via`: one `{ manifest, direct, parent? }` per distinct way the package is installed. `manifest` is the `package.json` (root or workspace) that declares `direct`, and `parent` is the package that requires the vulnerable one. `parent` is omitted when the vulnerable package is itself `direct`. These are the same chains `--graph` draws, as data.
 - `--timeout` overrides `scan.timeout`.
 - `--production` scans production dependencies only.
 - `--graph` prints, under the table, each vulnerable `name@version` as an inverted tree of the packages that pull it in, up to the `package.json` (root or workspace) and dependency field that declares each chain. A package already expanded prints `(see above)`; a loop prints `(cycle)`. Built from `package-lock.json` alone — no network, no `npm ls`.

@@ -11,6 +11,7 @@ run:
   scoped: npx qoq staged <file>...
   ticket_scoped: npx qoq staged --skip-knip <file>...
   tools: npx qoq <tool>...
+  scan: npx qoq scan --json
 
 tool_names: [prettier, eslint, jscpd, knip, npm, stylelint, structurelint, skillslint]
 narrow: --skip-<tool>
@@ -22,6 +23,7 @@ facts:
   - staged takes no --json and no --fix, and writes no reports
   - no --json, no reports, no digest
   - never pass --output
+  - scan is a subcommand, not a tool name; it reads package-lock.json, needs the network, and is never part of --check
   - knip ignores the file list; staged runs it repo-wide like every other form
   - ticket forms drop knip because half the milestone does not exist yet
   - ticket deletes knip-report.json first — summarize.mjs reads that file whatever ran, so a leftover would re-report a skipped tool from stale data
@@ -37,6 +39,7 @@ reuse:
   note: never reuse across the ticket/full boundary — a ticket run left no knip report, so a full verdict built on it would be missing a tool
 
 may_run:
+  bump: [tools, scan]
   fix: [full, ticket, fix, digest, reuse]
   qoq-checker: [full, ticket, digest, reuse]
   qoq-developer: [ticket_scoped]

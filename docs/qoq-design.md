@@ -403,6 +403,59 @@ approved bumps are sliced, not which ones were approved. The cost is many more
 validate cycles than one grouped patch, which is the trade: the alternative is
 skipping fourteen good bumps because a fifteenth was bad.
 
+**Why `bump` runs `qoq scan` at all.** The CLI already sends people to `/qoq
+bump` when `scan` finds something, and before this `bump` only read the
+outdated report, so a vulnerable package with nothing newer in range never made
+the plan. `scan` stays out of `--check` because it's a network call with no
+throttle. `bump` is already on-demand, so the cost lands where someone asked
+for it.
+
+**Why the parent bump comes before an override.** A newer parent that already
+depends on the fixed version is a combination its author released and tested.
+An override forces a version under a parent that never declared it, which is
+the usual way overrides break things at runtime with nothing failing at
+install. Scoping the override to the parent and keeping it inside the parent's
+declared range limits that, but doesn't remove it, so it stays the fallback.
+
+**Why `npm view` only for declared ranges.** `npm-report.json` already has
+`current`, `latestInMajor` and `latest` for every direct dependency, and the lockfile
+already has each installed parent's declared ranges. Asking the registry for
+either again is a second, possibly disagreeing, answer to a question already
+answered. What neither holds is the range a release that isn't installed
+declares, and that's the only thing that proves a parent bump fixes a
+transitive finding. One `npm view` of `latestInMajor` answers it, and that's
+the target the minor/patch group already plans, so a security fix and an
+ordinary update never disagree about where a package goes.
+
+**Why `via` carries both `direct` and `parent`.** They answer two different
+questions. `direct` is what `bump` can edit, the name in a `package.json`.
+`parent` is what a scoped override is keyed on. They're the same only one level
+down. `manifest` comes along because in a workspace the `direct` to bump is
+declared in the member's `package.json`, not the root's.
+
+**Why existing overrides are tested after the bumps, not stripped first.** An
+override nobody re-checks outlives its reason: the parent ships the fix and the
+pin keeps holding the tree back. Stripping them all up front and re-adding the
+needed ones would catch that too, but a red patch would then have two possible
+causes, the bump or the missing pin. Testing each one alone, once the bumps are
+green, keeps every failure attributable. Only those in the chosen packages'
+subtree are tested, because removing any other re-resolves a part of the tree
+the user didn't pick.
+
+**Why validation compares against a baseline.** "`qoq fix` green after every
+patch" assumed a clean project. With existing lint debt, green can't be reached
+without fixing code the bump never touched. An eval run on the fixture, which
+starts with three findings, showed what happens next: the agent ran `qoq fix`
+once, saw findings in untouched files, and quietly stopped running it. A
+baseline keeps the check running on every patch and keeps the patch's edits
+its own. `test` and `build` don't get one: a red suite before the first patch
+can't attribute anything, so it's a precondition like the clean tree.
+
+**Why dropping an override needs both a clean scan and green validation.**
+Overrides aren't all security. A pin for compatibility or deduplication has no
+advisory to clear, so a clean scan alone would drop it, and the breakage would
+show up later with no obvious cause.
+
 ## `plan`
 
 **Why an external interview skill instead of `plan` asking its own questions.**

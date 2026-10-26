@@ -34,10 +34,25 @@ export interface IScanConfig {
   failOn?: TScanFailOn;
 }
 
+// One way a vulnerable package gets installed: the package.json that declares
+// `direct`, and the package that requires the vulnerable one. `parent` is
+// omitted when the vulnerable package is `direct` itself.
+export interface IScanPath {
+  manifest: string;
+  direct: string;
+  parent?: string;
+}
+
+// What qoq adds to an adapter's finding from the lockfile; adapters never set these.
+export interface IScanReportFinding extends IScanFinding {
+  dev: boolean;
+  via: IScanPath[];
+}
+
 // scan-report.json, written through AbstractExecutor.writeReport()
 export interface IScanReport {
   status: TScanStatus;
   reason?: string;
   adapter: string;
-  findings: IScanFinding[];
+  findings: IScanReportFinding[];
 }

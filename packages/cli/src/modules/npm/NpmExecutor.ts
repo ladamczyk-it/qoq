@@ -31,7 +31,7 @@ export class NpmExecutor extends AbstractApiExecutor {
 
   // The check is advisory: whatever goes wrong (offline, a registry error) warns
   // and returns OK, and the lock file is left unwritten so the next run tries
-  // again. `--json` writes @ladamczyk/outdated's schema v1 result verbatim for
+  // again. `--json` writes @ladamczyk/outdated's schema v3 result verbatim for
   // summarize.mjs; a plain run prints its table of problems.
   protected async execute(_args: string[], options: IExecutorOptions): Promise<EExitCode> {
     const { check, formatTable } = await import('@ladamczyk/outdated');

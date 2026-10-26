@@ -296,7 +296,7 @@ if (jscpd && !jscpd.__parseError) {
 }
 
 // ---------- npm outdated ----------
-// Report is written by NpmExecutor's --json path: @ladamczyk/outdated's schema v1
+// Report is written by NpmExecutor's --json path: @ladamczyk/outdated's schema v3
 // verbatim. `packages` always lists the ok ones too, so they are filtered here.
 // `blocked` is informational (latest needs a newer Node) — shown, never counted.
 const npm = read('npm-report.json');

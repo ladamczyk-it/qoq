@@ -5,14 +5,16 @@ import { suggestSkill } from '../../helpers/skillHint.ts';
 import { AbstractApiExecutor } from '../abstract/AbstractApiExecutor.ts';
 import { IExecutorOptions, IModulesConfig } from '../types.ts';
 
-import { formatGraph } from './graph.ts';
+import { formatGraph, traceVia } from './graph.ts';
 import { osvAdapter } from './osvAdapter.ts';
 import { readDependencies } from './readDependencies.ts';
 
 import type {
   IScanAdapter,
+  IScanDependency,
   IScanFinding,
   IScanReport,
+  IScanReportFinding,
   IScanResult,
   TScanSeverity,
 } from './types.ts';
@@ -44,6 +46,21 @@ const normalise = ({ fixVersion, url, ...finding }: IScanFinding): IScanFinding 
   ...(typeof fixVersion === 'string' ? { fixVersion } : {}),
   ...(typeof url === 'string' ? { url } : {}),
 });
+
+// `dev` and `via` come from the lockfile, overwriting anything an adapter put there.
+const enrich = (findings: IScanFinding[], deps: IScanDependency[]): IScanReportFinding[] => {
+  if (findings.length === 0) {
+    return [];
+  }
+  const dev = new Map(deps.map((d) => [`${d.name}@${d.version}`, d.dev]));
+  const via = traceVia(LOCKFILE());
+
+  return findings.map((f) => ({
+    ...f,
+    dev: dev.get(`${f.package}@${f.version}`) ?? false,
+    via: via(f.package, f.version),
+  }));
+};
 
 const compare = (a: IScanFinding, b: IScanFinding): number =>
   RANK[b.severity] - RANK[a.severity] ||
@@ -202,7 +219,7 @@ export class ScanExecutor extends AbstractApiExecutor {
       return { status: 'skipped', reason: 'adapter returned an invalid result', findings: [] };
     }
 
-    const findings = result.findings.map(normalise).sort(compare);
+    const findings = enrich(result.findings.map(normalise).sort(compare), read.dependencies);
 
     if (!result.complete) {
       const reason = signal.aborted
