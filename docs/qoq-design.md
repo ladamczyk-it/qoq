@@ -585,27 +585,14 @@ shaped. Stated explicitly so nobody adds the work.
 
 ## `execute`
 
-**Why progress is a script and not a summary.** A plan run is long and mostly
-silent, and the plan file already holds the answer to "how far along is it". A
-board composed by the orchestrating thread is composed from its recollection,
-which drifts from the file the first time a write fails. So `progress.mjs` reads
-the file fresh and prints the board at load, after every ticket outcome and
-after every milestone gate: the beats where the answer actually changes, and no
-others.
-
-**Why the board is emoji squares and not ANSI colour.** Its look follows
-skillslint's score bars — a heading per section, a bar under it — but the board
-reaches the user as the Bash tool's output, read by the agent too, and escape
-codes there either print as junk or are stripped. 🟩🟦🟨🟫 render the same in a
-terminal, on claude.ai and pasted into a ticket. One square per ticket, not a
-scaled fixed-width bar: scaling rounds a single blocked ticket away, and the
-square's position says which ticket it is.
-
-**Why the board isn't copied into the reply.** An earlier rule asked the agent
-to paste it there. Eval 43 failed that five times, on Sonnet and Opus, under
-three wordings and a reminder printed by the script itself: the agent reads the
-board as its own context and dispatches. The tool output already shows it, so
-the rule asks only that the script run as its own command.
+**Why progress is a plugin band and nothing in the skill.** A first version had
+the agent run a board script at each ticket and milestone. Eval runs showed it
+treated the output as its own context: it never relayed the board, chained the
+call with other reads, and each call cost a tool turn. `hooks/register.tsx`
+needs no agent: it starts when the session touches an approved, in-progress or
+complete `plans/*.md`, rereads it after every tool call, and draws above the
+prompt. A host without plugin bands, or a skill copied into `.claude/skills/`,
+shows no progress, and the skill loses nothing it relied on.
 
 **Why `--source jira` imports to a plan file instead of executing against the
 tracker.** The plan file is already the execution state — resume reconciles

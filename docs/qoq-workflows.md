@@ -456,10 +456,8 @@ flowchart TD
     EPROG -->|no| EBRANCH
     ERECON --> EBRANCH{"on the default<br/>branch?"}
     EBRANCH -->|yes| EASK(["**ASK THE USER**<br/>branch first? plan/[name]"])
-    EASK -.-> EBOARD
-    EBRANCH -->|no| EBOARD
-    EBOARD["**progress.mjs [plan]** — the board,<br/>as its own command — its output is what<br/>the user sees, never a gate: a section per<br/>milestone, one square per ticket —<br/>🟩 done · 🟦 in-progress · 🟨 blocked · 🟫 todo<br/>*again after every ticket reaches done or<br/>blocked, and after every milestone gate —<br/>read from the file, never from memory*"]
-    EBOARD --> EWAVE
+    EASK -.-> EWAVE
+    EBRANCH -->|no| EWAVE
 
     EWAVE["**next ticket** — the first whose<br/>deps are all done, in plan order"]
     EWAVE --> ELIM{"--session-limit or<br/>--weekly-limit given?"}
