@@ -85,8 +85,8 @@ exactly what it will be waiting for.
 contract's _shape_ builds against it — fixtures, a typed fake — and waits on
 nothing. A barrier is a consumer milestone that needs the provider's
 **delivered behaviour**, and it's written as `Depends on: <component>:Milestone
-<N>`. Every barrier added is a point where the tracks stop running in parallel,
-so each one gets a reason on the manifest.
+<N>`. Every barrier added is a point where the tracks stop running in parallel;
+each one gets a reason on the manifest.
 
 **Name the E2E owner** — the most-dependent component, the one whose journeys
 can't be shown without the others (the UI, for UI↔API).
@@ -99,7 +99,9 @@ Per component, the full `plan.md`, from inside it:
    record per [discovery.md](discovery.md) if stale.
 2. Phases 1–3 with the **brief as the requirements**. The grill is handed
    everything the manifest settled, so it opens only on what this codebase
-   raises. Explore and the architect are scoped to the component.
+   raises. A **fresh** `Explore` and a **fresh** `qoq-architect`, scoped to the
+   component — never the boundary architect continued, whose context sits at
+   the wrong altitude and grows with every component.
 3. **The manifest's Contracts are fixed input** to this architect. A change it
    needs comes back as an **Unknown**; ask it, and if the answer changes the
    contract, update the manifest and re-check every component already planned
@@ -107,7 +109,9 @@ Per component, the full `plan.md`, from inside it:
 4. Estimates with `estimate.mjs --project <component>` — calibration is per
    repo, and so is its store.
 5. Save `<component>/plans/YYYY-MM-DD-<feature>.md`, `Plan status: draft`, with
-   the template's **Orchestration** header pointing at the manifest.
+   the template's **Orchestration** header pointing at the manifest. Every
+   **Files** path is relative to the component (`src/…`, never `api/src/…`):
+   its plan executes from inside it.
 
 The E2E owner's plan ends on one more milestone, **E2E delivery**: the
 manifest's Scenarios as its own, `Depends on` every other component's last

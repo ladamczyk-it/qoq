@@ -287,8 +287,9 @@ On an imported plan the ticket's **External** field gets the same news — statu
 label, commit hash as a comment — in the same beat, so the two never drift.
 
 Tags and stack come from the ticket's **Estimate** field verbatim, the tier from
-its **Agent tier**. The estimate being graded is _this much work at that tier_,
-and an outcome filed under a different tier grades a decision nobody made. On an
+its **Agent tier** — `session` when that's a model ID. The estimate being
+graded is _this much work at that tier_, and an outcome filed under a different
+tier grades a decision nobody made. On an
 escalated ticket that still means the tier the **plan** assigned: the rung that
 was picked is the thing that turned out to be wrong.
 

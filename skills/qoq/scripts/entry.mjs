@@ -117,7 +117,21 @@ const components = () =>
 
 const found = command === 'fullstack-plan' || command === 'execute' ? components() : [];
 const atWorkspaceRoot =
-  command === 'fullstack-plan' || (command === 'execute' && !hasConfig(project) && found.length >= 2);
+  command === 'fullstack-plan' ||
+  (command === 'execute' && !hasConfig(project) && found.length >= 2);
+
+const componentsAction = () => {
+  if (found.length < 2) {
+    return 'ACTION: a fullstack plan needs at least two components — say so and stop; one is a `plan` run inside it.';
+  }
+
+  // The manifest's Components table already settled the set.
+  if (command === 'execute') {
+    return "ACTION: nothing — the manifest's Components table says which take part; don't re-ask. Each one runs its own discovery when its track starts (references/fullstack-execute.md).";
+  }
+
+  return 'ACTION: confirm with the user which of these take part — never assume all of them. Each one runs its own discovery when its track starts (references/fullstack-plan.md).';
+};
 
 if (atWorkspaceRoot) {
   section(
@@ -125,9 +139,7 @@ if (atWorkspaceRoot) {
     found.length
       ? `candidates — child repos with their own qoq.config: ${found.join(', ')}`
       : 'none — no child directory has both its own qoq.config and its own .git.',
-    found.length >= 2
-      ? 'ACTION: confirm with the user which of these take part — never assume all of them. Each one runs its own discovery when its track starts (references/fullstack-plan.md).'
-      : 'ACTION: a fullstack plan needs at least two components — say so and stop; one is a `plan` run inside it.'
+    componentsAction()
   );
 }
 

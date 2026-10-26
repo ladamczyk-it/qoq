@@ -142,6 +142,8 @@ test('execute at a workspace root skips discovery and lists the components', () 
 
   assert.match(stdout, /^## components$/m);
   assert.match(discoverySection(stdout), /^\nskipped/);
+  // The manifest's Components table already settled the set.
+  assert.doesNotMatch(stdout, /confirm with the user/);
 });
 
 // A qoq project that merely contains sub-repos is still a qoq project.

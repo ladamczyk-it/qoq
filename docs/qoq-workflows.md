@@ -430,8 +430,8 @@ flowchart TD
     subgraph FCP["per component, in that order"]
         direction TB
         FC["its own **discovery**"]
-        FC --> FPL["**qoq plan**'s three phases,<br/>the brief as the requirements.<br/>*the manifest's Contracts are fixed input —<br/>a change comes back as an Unknown*"]
-        FPL --> FSAVE["save [component]/plans/[file].md, draft,<br/>**Orchestration** header · barriers as<br/>**Depends on: [component]:Milestone N**"]
+        FC --> FPL["**qoq plan**'s three phases,<br/>the brief as the requirements ·<br/>a **fresh** Explore + architect.<br/>*the manifest's Contracts are fixed input —<br/>a change comes back as an Unknown*"]
+        FPL --> FSAVE["save [component]/plans/[file].md, draft,<br/>**Orchestration** header · barriers as<br/>**Depends on: [component]:Milestone N**.<br/>*Files paths relative to the component*"]
         FSAVE --> FMORE{"components<br/>left?"}
         FMORE -->|yes| FC
     end
@@ -447,7 +447,7 @@ flowchart TD
         X0 --> XMODE(["**ASK** — drive here,<br/>or fan out?"])
         XMODE -->|"fan out"| XFAN["print one **qoq execute** line per<br/>component — a session each, in parallel.<br/>*a waiting track stops itself at its barrier*"]
         XMODE -->|"drive here"| XPICK{"a ready track?<br/>*the one others wait on first*"}
-        XPICK -->|yes| XRUN["**qoq execute** for its next milestone,<br/>from inside it — unchanged"]
+        XPICK -->|yes| XRUN["**qoq execute** for its next milestone,<br/>from inside it — unchanged.<br/>*every script call: --project &lt;component&gt;,<br/>estimate --record included*"]
         XRUN --> XPICK
         XPICK -->|"none ready, some not done"| XSTOP(["**stop** — say which track<br/>waits on what"])
         XPICK -->|"all done"| XDONE["manifest **complete** — the only<br/>write to it after approval"]
@@ -575,7 +575,7 @@ flowchart TD
     EBLOCK --> ELOG
     ELOG --> EXBACK
     EXBACK["**imported plan only** — write the status<br/>**label** and the commit back to the item's<br/>**External** key. *the one state qoq writes:<br/>a run knows the transition as it happens,<br/>an export sets one and walks away.<br/>never the workflow column, never a list move.<br/>a rejected write is a report line, not a stop*"]
-    EDONE -->|"**success** — even after three<br/>rounds and an escalation"| EREC["**estimate.mjs --record** — against the tags<br/>and **the tier the plan assigned**, never the one<br/>that finally delivered it. attempts spent, plus<br/>**your attribution**: as-estimated *(graded:<br/>a miss only if it failed or overran)* vs scope-expansion *(a different ticket got<br/>built)* — only a miss reaches a verdict"]
+    EDONE -->|"**success** — even after three<br/>rounds and an escalation"| EREC["**estimate.mjs --record** — against the tags<br/>and **the tier the plan assigned** (*session* for a<br/>model ID), never the one that finally delivered it. attempts spent, plus<br/>**your attribution**: as-estimated *(graded:<br/>a miss only if it failed or overran)* vs scope-expansion *(a different ticket got<br/>built)* — only a miss reaches a verdict"]
     EBLOCK -->|"**failure** — nothing delivered it<br/>*(the only thing that earns a split)*"| EREC
     EREC --> EMORE{"tickets left in<br/>the milestone?"}
     EMORE -->|yes| EWAVE

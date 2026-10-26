@@ -32,3 +32,4 @@ eslint.config.local.bundled_*.cjs
 
 .claude/*
 plans
+!evals/fixtures/**/plans

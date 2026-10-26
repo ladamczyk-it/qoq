@@ -767,7 +767,8 @@
         "Every Barriers row has a reason, and a consumer milestone that only needs the contract's shape has no cross-component Depends on",
         "A single approval question covers all plans; no ticket is dispatched"
       ],
-      "setup": "A parent dir with two sibling repos, api/ (an Express service with a trips router) and web/ (a React app with a trips API client), each with git init, its own qoq.config.js and package.json scripts. Not ./artifacts."
+      "setup": "evals/prepare-workspace.sh <dir> 37 — api/ (node:http trips router) and web/ (React trips client), each its own repo with qoq.config.js; the parent has neither. Session opens in <dir>.",
+      "target": "workspace"
     },
     {
       "id": 38,
@@ -780,7 +781,8 @@
         "Suggests running qoq plan inside the one component",
         "No file is written under plans/"
       ],
-      "setup": "A parent dir with a single child repo (own .git and qoq.config.js). Not ./artifacts."
+      "setup": "evals/prepare-workspace.sh <dir> 38 — only api/. Session opens in <dir>.",
+      "target": "workspace"
     },
     {
       "id": 39,
@@ -796,7 +798,8 @@
         "Does not start web Milestone 2 before api Milestone 1 is under api's ## Completed",
         "The only edit to the manifest is Plan status: complete, made after all component plans are complete"
       ],
-      "setup": "The workspace from eval 37 with its manifest and both component plans approved and nothing delivered. Not ./artifacts."
+      "setup": "evals/prepare-workspace.sh <dir> 39 — eval 37's workspace plus fixtures/workspace-states/trip-tags-approved: the manifest and both component plans approved, nothing delivered. Session opens in <dir>.",
+      "target": "workspace"
     },
     {
       "id": 40,
@@ -809,7 +812,8 @@
         "Waiting tracks are marked with the exact <component>:Milestone they wait on",
         "No agent is dispatched and no file changes"
       ],
-      "setup": "Same as eval 39. Not ./artifacts."
+      "setup": "evals/prepare-workspace.sh <dir> 40 — same as eval 39. Session opens in <dir>.",
+      "target": "workspace"
     },
     {
       "id": 41,
@@ -824,7 +828,8 @@
         "No estimate.mjs --record call",
         "The manifest file is unchanged"
       ],
-      "setup": "Eval 37's workspace, web/ on a plan branch with M1 archived, api M1 still in progress. Session opened in web/. Not ./artifacts."
+      "setup": "evals/prepare-workspace.sh <dir> 41 — eval 39's state plus trip-tags-web-m1-delivered: web on feat/trip-tags with Milestone 1 under ## Completed, api not started. Session opens in <dir>/web.",
+      "target": "workspace"
     },
     {
       "id": 42,
@@ -838,7 +843,8 @@
         "api's draft plan is revisited after the contract change",
         "Neither component plan carries a Contracts shape that differs from the manifest's"
       ],
-      "setup": "As eval 37; answer the grill so that tag counts are only discovered at web's level. Not ./artifacts."
+      "setup": "evals/prepare-workspace.sh <dir> 42 — as eval 37; answer the grill so that tag counts are only discovered at web's level. Session opens in <dir>.",
+      "target": "workspace"
     }
   ]
 }

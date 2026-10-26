@@ -38,10 +38,10 @@ component that keeps it (`be/openapi.yaml`). Settled here only.>
 
 ## Barriers
 
-| Waits                   | On                                  | Why                                |
-| ----------------------- | ----------------------------------- | ---------------------------------- |
-| <component>:Milestone N | <component>:Milestone M             | <the delivered behaviour it needs> |
-| <E2E owner>:Milestone K | every other component's last one    | E2E delivery                       |
+| Waits                   | On                               | Why                                |
+| ----------------------- | -------------------------------- | ---------------------------------- |
+| <component>:Milestone N | <component>:Milestone M          | <the delivered behaviour it needs> |
+| <E2E owner>:Milestone K | every other component's last one | E2E delivery                       |
 ```
 
 ## Field notes

@@ -17,6 +17,7 @@ narrow: --skip-<tool>
 exit: { 0: clean, 1: findings }
 
 facts:
+  - every command runs from the project root — prefix `cd <project root> &&`; a dispatched shell starts wherever its caller's last was, which in a workspace is another repo
   - positional args are tool names, never paths
   - staged is the only path-scoped form
   - staged takes no --json and no --fix, and writes no reports

@@ -44,7 +44,10 @@ Loop until every track is done, or none is ready:
 2. Run `execute.md` for **that component's next milestone**, from inside it:
    its discovery (`discovery-check.mjs --project <component>`), its branch
    check, its tickets, its milestone gate and archive. Everything `execute.md`
-   says holds there exactly; the component's plan file is the state.
+   says holds there exactly; the component's plan file is the state. This
+   thread still sits at the root, so **every script call carries `--project
+<component>`** — `estimate.mjs --record` included, or the outcome lands in
+   whichever directory the shell is in, not that repo's calibration store.
 3. Re-derive the board and go again.
 
 **An `in-progress` ticket on a track you're about to drive is a question**, not
