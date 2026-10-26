@@ -20,7 +20,8 @@ package queued from a previous round's failure) get a `qoq-bumper` dispatch,
 which is the analysis itself and has to happen before the choice.
 
 Read the report, not just the version gap: `majorBump` separates the majors,
-`wanted` is what the current range already allows, `deprecated` and `stale`
+`latestInMajor` is the minor/patch target (above `current`, it's a bump even
+when an exact pin leaves `wanted` equal to `current`), `deprecated` and `stale`
 packages are worth raising even when no bump is pending, and `blocked` means
 the newest release needs a newer Node than this one — not a bump to attempt.
 `packages` also lists the ok ones; skip anything flagged `ok`. Each package's
@@ -69,8 +70,8 @@ can't hold: the range a given release declares. Try, in order:
      lowest whose range admits `fixVersion` or above. None does → `latest` from
      the report, if it's newer.
    - They differ: `via` doesn't record the packages between them, so nothing
-     proves it. Plan the report's `wanted` if it's above `current`, else
-     `latest`, and say it's unproven. A finding still there at the final
+     proves it. Plan the report's `latestInMajor` if it's above `current`,
+     else `latest`, and say it's unproven. A finding still there at the final
      re-scan goes to step 2 next round.
 2. **Otherwise suggest an override**, and say why step 1 didn't work (no
    release of `direct` pulls in a fixed copy, or a previous round's bump didn't

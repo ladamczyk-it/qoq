@@ -418,7 +418,7 @@ install. Scoping the override to the parent and keeping it inside the parent's
 declared range limits that, but doesn't remove it, so it stays the fallback.
 
 **Why `npm view` only for declared ranges.** `npm-report.json` already has
-`current`, `wanted` and `latest` for every direct dependency, and the lockfile
+`current`, `latestInMajor` and `latest` for every direct dependency, and the lockfile
 already has each installed parent's declared ranges. Asking the registry for
 either again is a second, possibly disagreeing, answer to a question already
 answered. What neither holds is the range a release that isn't installed

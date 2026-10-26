@@ -754,7 +754,7 @@
       "id": 37,
       "name": "bump-scan-transitive-parent-first",
       "prompt": "worktree is clean. we got a security alert on our deps — can you sort it out?",
-      "expected_output": "Plans from both reports: `npx qoq npm --json` and `npx qoq scan --json`, read from the reports rather than the exit code. The vulnerable packages under express are transitive (`via` has a parent), and express is their parent, so it runs one `npm view express@\"^4.17.1\" dependencies.<package> --json` per vulnerable package and plans the lowest 4.x release whose declared range admits each fixVersion. It takes current/wanted/latest from npm-report.json, never from `npm view` or `npm outdated`. It does not suggest an override for anything a parent bump fixes, and never edits package.json to declare a transitive package. Vulnerabilities are presented first, highest severity first, with their IDs. After the patches, it runs one final re-scan and reports anything still there.",
+      "expected_output": "Plans from both reports: `npx qoq npm --json` and `npx qoq scan --json`, read from the reports rather than the exit code. The vulnerable packages under express are transitive (`via` has a parent), and express is their parent, so it runs one `npm view express@\"^4.17.1\" dependencies.<package> --json` per vulnerable package and plans the lowest 4.x release whose declared range admits each fixVersion. It takes current/latestInMajor/latest from npm-report.json, never from `npm view` or `npm outdated`. It does not suggest an override for anything a parent bump fixes, and never edits package.json to declare a transitive package. Vulnerabilities are presented first, highest severity first, with their IDs. After the patches, it runs one final re-scan and reports anything still there.",
       "files": [],
       "assertions": [
         "Runs `npx qoq scan --json` during planning, alongside `npx qoq npm --json`",
@@ -812,7 +812,8 @@
       "assertions": [
         "States that the vulnerability scan didn't run, with the reason (offline)",
         "Continues with the outdated dependencies instead of stopping",
-        "Never describes the dependencies as having no known vulnerabilities"
+        "Never describes the dependencies as having no known vulnerabilities",
+        "Plans vitest's minor/patch bump to its `latestInMajor` from npm-report.json, although the exact pin leaves `wanted` at 4.0.0"
       ],
       "target": "fixture-repo",
       "setup": "Pin vitest to 4.0.0 in package.json, then npm install. Add to qoq.config.js: scan: { adapter: { name: 'offline', scan: async () => { throw new Error('offline'); } } }."
