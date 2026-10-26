@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 
-import type { IScanFinding } from './types.ts';
+import type { IScanFinding, IScanPath } from './types.ts';
 
 interface ILockEntry {
   name?: string;
@@ -67,16 +67,81 @@ const dependents = (packages: TPackages): Map<string, IEdge[]> => {
   return parents;
 };
 
-// Each vulnerable name@version as an inverted tree, walked up to the manifests that
-// declare it. A package expanded once is printed `(see above)` after, as npm ls dedupes.
-export const formatGraph = (lockfilePath: string, findings: IScanFinding[]): string => {
+interface IGraph {
+  packages: TPackages;
+  parents: Map<string, IEdge[]>;
+  realName: (key: string) => string;
+}
+
+const loadGraph = (lockfilePath: string): IGraph => {
   const { packages = {} } = JSON.parse(readFileSync(lockfilePath, 'utf8')) as {
     packages?: TPackages;
   };
-  const parents = dependents(packages);
-  const realName = (key: string): string => packages[key]?.name ?? nameOf(key);
+
+  return {
+    packages,
+    parents: dependents(packages),
+    realName: (key) => packages[key]?.name ?? nameOf(key),
+  };
+};
+
+const manifest = (key: string): string => (key ? `${key}/package.json` : 'package.json');
+
+// Every installed copy of name@version; a nested copy is its own lockfile key.
+const copiesOf = ({ packages, realName }: IGraph, name: string, version: string): string[] =>
+  Object.keys(packages).filter(
+    (key) => !isManifest(key) && realName(key) === name && packages[key]?.version === version
+  );
+
+// The distinct (manifest, direct, parent) triples behind each copy of name@version,
+// for scan-report.json. Ancestors are walked breadth-first with a visited set per
+// parent, so a shared subtree or a cycle costs one visit instead of one per path.
+export const traceVia = (lockfilePath: string) => {
+  const graph = loadGraph(lockfilePath);
+  const { parents, realName } = graph;
+
+  return (name: string, version: string): IScanPath[] => {
+    const found = new Map<string, IScanPath>();
+    const add = (path: IScanPath) =>
+      found.set(`${path.manifest}\0${path.direct}\0${path.parent ?? ''}`, path);
+
+    for (const key of copiesOf(graph, name, version)) {
+      for (const { from } of parents.get(key) ?? []) {
+        if (isManifest(from)) {
+          add({ manifest: manifest(from), direct: name });
+          continue;
+        }
+        const parent = realName(from);
+        const queue = [from];
+        const visited = new Set(queue);
+        for (const node of queue) {
+          for (const edge of parents.get(node) ?? []) {
+            if (isManifest(edge.from)) {
+              add({ manifest: manifest(edge.from), direct: realName(node), parent });
+            } else if (!visited.has(edge.from)) {
+              visited.add(edge.from);
+              queue.push(edge.from);
+            }
+          }
+        }
+      }
+    }
+
+    return [...found.values()].sort(
+      (a, b) =>
+        a.manifest.localeCompare(b.manifest) ||
+        a.direct.localeCompare(b.direct) ||
+        (a.parent ?? '').localeCompare(b.parent ?? '')
+    );
+  };
+};
+
+// Each vulnerable name@version as an inverted tree, walked up to the manifests that
+// declare it. A package expanded once is printed `(see above)` after, as npm ls dedupes.
+export const formatGraph = (lockfilePath: string, findings: IScanFinding[]): string => {
+  const graph = loadGraph(lockfilePath);
+  const { packages, parents, realName } = graph;
   const label = (key: string): string => `${realName(key)}@${packages[key]?.version ?? '?'}`;
-  const manifest = (key: string): string => (key ? `${key}/package.json` : 'package.json');
   const out: string[] = [];
 
   const walk = (key: string, indent: string, path: Set<string>, seen: Set<string>): void => {
@@ -110,10 +175,8 @@ export const formatGraph = (lockfilePath: string, findings: IScanFinding[]): str
     const count = `${group.length} ${group.length === 1 ? 'advisory' : 'advisories'}`;
     out.push(`${id}  (${count}, ${severity})`);
     const seen = new Set<string>();
-    for (const key of Object.keys(packages)) {
-      if (!isManifest(key) && realName(key) === name && packages[key]?.version === version) {
-        walk(key, '', new Set([key]), seen);
-      }
+    for (const key of copiesOf(graph, name, version)) {
+      walk(key, '', new Set([key]), seen);
     }
     out.push('');
   }

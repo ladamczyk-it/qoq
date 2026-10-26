@@ -7,6 +7,7 @@ import { dummyModulesConfig } from '__tests__/common.ts';
 
 import { IExecutorOptions } from '../types.ts';
 
+import { traceVia } from './graph.ts';
 import { readDependencies } from './readDependencies.ts';
 import { formatTable, ScanExecutor } from './ScanExecutor.ts';
 
@@ -18,7 +19,10 @@ vi.mock('fs', async (importOriginal) => ({
 }));
 
 vi.mock('./readDependencies.ts', () => ({ readDependencies: vi.fn() }));
-vi.mock('./graph.ts', () => ({ formatGraph: vi.fn(() => 'GRAPH\n') }));
+vi.mock('./graph.ts', () => ({
+  formatGraph: vi.fn(() => 'GRAPH\n'),
+  traceVia: vi.fn(() => (name: string) => [{ manifest: 'package.json', direct: name }]),
+}));
 
 const { osvScan } = vi.hoisted(() => ({ osvScan: vi.fn() }));
 
@@ -81,6 +85,7 @@ afterEach(() => {
   vi.mocked(readDependencies).mockReset();
   osvScan.mockReset();
   vi.mocked(writeFileSync).mockReset();
+  vi.mocked(traceVia).mockClear();
 });
 
 describe('ScanExecutor exit code and output', () => {
@@ -339,10 +344,44 @@ describe('ScanExecutor ordering and reports', () => {
     expect(writtenReport()).toStrictEqual({
       status: 'findings',
       adapter: 'fake',
-      findings: [highFinding],
+      findings: [
+        { ...highFinding, dev: false, via: [{ manifest: 'package.json', direct: 'lodash' }] },
+      ],
     });
     expect(stdout()).toContain('scan: 1 finding');
     expect(stdout()).not.toContain('GHSA-35jh-r3h4-6jhm');
+  });
+
+  it('should take dev and via from the lockfile, not the adapter', async () => {
+    vi.mocked(readDependencies).mockReturnValue({
+      ok: true,
+      dependencies: [{ name: 'lodash', version: '4.17.20', dev: true }],
+      excludedPrivate: 0,
+    });
+
+    await executor({
+      adapter: resolving([
+        { ...highFinding, dev: false, via: [] },
+        { ...highFinding, package: 'ghost' },
+      ]),
+    }).run({ ...baseOptions, json: 'true' });
+
+    const enriched = writtenReport().findings.map(({ package: name, dev, via }) => ({
+      name,
+      dev,
+      via,
+    }));
+
+    expect(enriched).toStrictEqual([
+      { name: 'ghost', dev: false, via: [{ manifest: 'package.json', direct: 'ghost' }] },
+      { name: 'lodash', dev: true, via: [{ manifest: 'package.json', direct: 'lodash' }] },
+    ]);
+  });
+
+  it('should not read the lockfile graph when there are no findings', async () => {
+    await executor({ adapter: resolving([]) }).run({ ...baseOptions, json: 'true' });
+
+    expect(traceVia).not.toHaveBeenCalled();
   });
 
   it('should write a skipped report', async () => {
