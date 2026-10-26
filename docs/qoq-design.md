@@ -585,6 +585,22 @@ shaped. Stated explicitly so nobody adds the work.
 
 ## `execute`
 
+**Why progress is a script and not a summary.** A plan run is long and mostly
+silent, and the plan file already holds the answer to "how far along is it". A
+board composed by the orchestrating thread is composed from its recollection,
+which drifts from the file the first time a write fails. So `progress.mjs` reads
+the file fresh and prints the board at load, after every ticket outcome and
+after every milestone gate: the beats where the answer actually changes, and no
+others.
+
+**Why the board is emoji squares and not ANSI colour.** Its look follows
+skillslint's score bars — a heading per section, a bar under it — but the board
+reaches the user through the agent's reply, not raw tool output, and escape
+codes there either print as junk or are stripped. 🟩🟦🟨⬜ render the same in a
+terminal, on claude.ai and pasted into a ticket. One square per ticket, not a
+scaled fixed-width bar: scaling rounds a single blocked ticket away, and the
+square's position says which ticket it is.
+
 **Why `--source jira` imports to a plan file instead of executing against the
 tracker.** The plan file is already the execution state — resume reconciles
 against it, the estimate loopback reads `Estimate` off it, the milestone gate
