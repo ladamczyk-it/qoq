@@ -18,6 +18,8 @@ them the other way. It's simply absent on a plan that never met a tracker.
 **Tool:** local | jira | linear | trello · <destination — project key, team, or
 board; omit the whole field on a local plan>
 **Plan status:** draft | approved | in-progress | complete
+**Orchestration:** <path to the fullstack manifest> · component <name> — omit
+the whole field on a plan that isn't part of one
 
 ---
 
@@ -43,7 +45,7 @@ done>` · suite `<the full build + suite result, as reported>`
 **Size:** S | M | L | XL
 **Goal:** <what this milestone delivers on its own — should be independently
 shippable/testable>
-**Depends on:** none | Milestone <N>
+**Depends on:** none | Milestone <N> | <component>:Milestone <N>
 **Contracts:** none | <the interface this milestone's tickets share — inline when
 small (a type, a payload shape, an error shape), or a path when the project
 already keeps `openapi.yaml` / `.proto` / a zod schema>
@@ -252,6 +254,11 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
   writes each ticket's status label and commit back to. A local plan carries
   neither field, which is the point: the file is the state in either direction,
   and `qoq execute` never treats a tracker as one.
+- **Orchestration** and a **`<component>:Milestone <N>`** dependency exist only
+  on a component of a fullstack plan (`references/fullstack-plan.md`). The
+  dependency is a barrier: `qoq execute` won't start the milestone until that
+  one sits under the other component's `## Completed`. Its **Contracts** are the
+  manifest's, copied — changed only there.
 - **Completed** is absent from a fresh plan and grows one short block per
   delivered milestone, so the plan shrinks as work lands. If a block starts
   turning into a narrative, move the detail to the archive file. **Decisions that

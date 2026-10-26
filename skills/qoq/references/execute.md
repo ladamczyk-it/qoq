@@ -20,6 +20,10 @@ One thing from there reaches into the loop below: on an imported plan, a ticket
 arriving at `done` or `blocked` also writes its status label and commit back to
 the tracker. That is the only write, and it's a label, never a workflow column.
 
+**A fullstack manifest** — a plan with a **Components** table — is run by
+[fullstack-execute.md](fullstack-execute.md), which picks the component and
+hands each milestone back to this file.
+
 ## Loading and resuming
 
 **Load the plan fresh from disk every time**, resume or not. The file is the
@@ -46,6 +50,16 @@ No parallel mode exists, and no flag for one: two subagents committing into one
 index is a failure no gate catches. Because only one ticket is ever in flight,
 there's also no disjoint-**Files** constraint to maintain and no per-ticket
 scratch directory to isolate.
+
+**Cross-component barriers.** A plan with an **Orchestration** header is one
+component of a fullstack plan. Before the first ticket of a milestone whose
+`Depends on` names another component, read that component's plan fresh from
+disk — its path is in the manifest's Components table. Delivered means that
+milestone sits under its `## Completed`. Not delivered → stop here and say what
+this track waits on and that `qoq execute <plan>` resumes it: tickets stay
+`todo`, nothing is `blocked`, no estimate is filed — nothing was dispatched.
+Never write the manifest. A `plan` handoff whose answer would change the
+manifest's **Contracts** goes back to `qoq fullstack-plan`, not into this plan.
 
 ## Spending limits, when the user asks for them
 
@@ -273,8 +287,9 @@ On an imported plan the ticket's **External** field gets the same news — statu
 label, commit hash as a comment — in the same beat, so the two never drift.
 
 Tags and stack come from the ticket's **Estimate** field verbatim, the tier from
-its **Agent tier**. The estimate being graded is _this much work at that tier_,
-and an outcome filed under a different tier grades a decision nobody made. On an
+its **Agent tier** — `session` when that's a model ID. The estimate being
+graded is _this much work at that tier_, and an outcome filed under a different
+tier grades a decision nobody made. On an
 escalated ticket that still means the tier the **plan** assigned: the rung that
 was picked is the thing that turned out to be wrong.
 

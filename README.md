@@ -69,7 +69,7 @@ flowchart LR
     done -.-> care["🧹 refactor · 🧪 test · 📦 bump<br/>keep it healthy"]
 ```
 
-- **Plan** – `/qoq plan` breaks a spec, or a Jira, Linear or Trello milestone, into milestones and tickets with contracts and acceptance criteria. `/qoq replan` reshapes the plan when the requirements or the codebase move.
+- **Plan** – `/qoq plan` breaks a spec, or a Jira, Linear or Trello milestone, into milestones and tickets with contracts and acceptance criteria. `/qoq replan` reshapes the plan when the requirements or the codebase move. `/qoq fullstack-plan` plans one feature across several repos that ship together, such as a UI and its API: one contract, one plan per repo, executed in parallel up to the points where one repo needs another's delivered work.
 - **Execute** – `/qoq execute` delivers the plan one ticket at a time under TDD: red, green, tidy. A ticket is committed only after `/qoq fix` passes and an independent reviewer approves its tests.
 - **Keep it healthy** – `/qoq fix` loops on CLI findings until they pass. `refactor`, `test`, `bump` and `compress` handle duplication and code smells, missing coverage, dependency upgrades and agent-facing docs.
 

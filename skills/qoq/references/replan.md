@@ -46,6 +46,11 @@ Two stops, both cheaper than the reshape:
   a replan. Archive the file and run `qoq plan` fresh; there's nothing to carry
   forward but a shape that was answering a different question.
 
+A component of a fullstack plan — one with an **Orchestration** header — is
+replanned here only while the reshape stays inside it. Touching the manifest's
+**Contracts** or a cross-component barrier is `qoq fullstack-plan` over the
+manifest ([fullstack-plan.md](fullstack-plan.md)).
+
 ## Refuse on uncommitted changes
 
 If the plan file has uncommitted changes, **refuse and say why**: commit or stash

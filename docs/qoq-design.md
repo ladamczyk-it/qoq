@@ -15,16 +15,17 @@ argument about a decision that has already been made.
 here.** A design note describing a rule that no longer exists is worse than no
 note — it reads as current and nothing contradicts it.
 
-| Topic                                         | Spec                      |
-| --------------------------------------------- | ------------------------- |
-| [The discovery record](#the-discovery-record) | `references/discovery.md` |
-| [`fix`](#fix)                                 | `references/fix.md`       |
-| [`refactor`](#refactor)                       | `references/refactor.md`  |
-| [`bump`](#bump)                               | `references/bump.md`      |
-| [`plan`](#plan)                               | `references/plan.md`      |
-| [`replan`](#replan)                           | `references/replan.md`    |
-| [`execute`](#execute)                         | `references/execute.md`   |
-| [`test`](#test)                               | `references/test.md`      |
+| Topic                                         | Spec                                                              |
+| --------------------------------------------- | ----------------------------------------------------------------- |
+| [The discovery record](#the-discovery-record) | `references/discovery.md`                                         |
+| [`fix`](#fix)                                 | `references/fix.md`                                               |
+| [`refactor`](#refactor)                       | `references/refactor.md`                                          |
+| [`bump`](#bump)                               | `references/bump.md`                                              |
+| [`plan`](#plan)                               | `references/plan.md`                                              |
+| [`fullstack-plan`](#fullstack-plan)           | `references/fullstack-plan.md`, `references/fullstack-execute.md` |
+| [`replan`](#replan)                           | `references/replan.md`                                            |
+| [`execute`](#execute)                         | `references/execute.md`                                           |
+| [`test`](#test)                               | `references/test.md`                                              |
 
 ## The discovery record
 
@@ -582,6 +583,66 @@ is the worst possible place to start owning it.
 **Why calibration is untouched.** A recorded outcome means "this shape of work at
 this tier went this way", which stays true regardless of how the plan is now
 shaped. Stated explicitly so nobody adds the work.
+
+## `fullstack-plan`
+
+**Why it's a command and not a flag on `plan`.** The same argument as `replan`'s,
+harder: `plan.md` is the longest reference in the skill, and a fullstack run is
+the rare case. As its own command, a single-repo plan never loads a line of it,
+and the new reference names `plan`'s phases instead of restating them. The
+boundary is also real rather than cosmetic — the root it runs from has no
+record, no CLI and no estimator store, which no other command can say.
+
+**Why the problem is the contract, not the tickets.** Two plans written
+separately for a UI and its API settle the API's shape twice, once from each
+side, and nothing notices when they disagree until the integration. Tickets
+never span repos — they can't even be committed across two — so what has to be
+planned once is the interface, and everything else stays an ordinary `plan` per
+component. That's also why the component architect gets the manifest's
+Contracts as fixed input: a change it needs is a question, because answering it
+inside one component leaves the other side asserting a shape that no longer
+exists.
+
+**Why the sub-plans run on the same thread, in sequence.** A subagent can't ask
+the user, and each component's plan opens with a grill and ends with an
+approval; it also can't dispatch Explore or the architect. So the sub-plans
+can't be delegated, and the cost is context: the main thread holds the journey
+grill and then each component's. The order recovers most of it — providers
+first, each handed a brief carrying everything settled, so a component's grill
+opens only on what its own code raises.
+
+**Why barriers are drawn narrowly.** Parallelism is only worth anything if the
+tracks rarely wait, and most consumer work only needs the contract's _shape_ —
+it builds against fixtures or a typed fake. A barrier exists only where a
+consumer needs the provider's _delivered behaviour_, and each one carries its
+reason on the manifest, so an extra one is visible as the cost it is.
+
+**Why parallel means one session per repo, not a parallel `execute`.** The
+standing rule is that nothing runs in parallel, because every gate is an
+attribution question — did _this_ change break it — that a second writer makes
+unanswerable. Across separate repos that question stays answerable: each repo
+has one writer, its own index and its own gates. So parallelism comes from
+sessions, never from one thread holding two tracks in flight, and the rule
+doesn't grow its first exception. Drive mode exists for whoever doesn't want
+several terminals, and it is strictly one milestone at a time.
+
+**Why a monorepo with one `.git` is refused.** Two sessions in one index is
+exactly the failure the no-parallel rule names, and isolating it — a worktree
+per component, merging back — is a second feature with its own failure modes.
+Refusing is honest about it until someone needs it.
+
+**Why the manifest holds no status.** In a fan-out several sessions are writing
+component plans at once; a status field on the manifest would be a shared write
+with no lock. Status is derived by reading the component plans fresh, every
+time, which is also what makes the barrier check correct the moment another
+session archives a milestone. The one write after approval — `complete` — is
+made when nothing else can be writing.
+
+**Why E2E delivery is a milestone in the most-dependent component.** It needs
+everything else delivered, and the most-dependent component is where the
+journeys are observable — the UI, for UI↔API. As an ordinary milestone it gets
+tickets, gates and an archive entry like any other, rather than a new kind of
+step `execute` would have to learn.
 
 ## `execute`
 

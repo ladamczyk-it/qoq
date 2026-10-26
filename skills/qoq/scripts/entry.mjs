@@ -14,6 +14,11 @@
 //   - `compress` skips discovery. It edits prose, runs no tool and dispatches no
 //     agent, so nothing on the record bears on it. (It ends by calling `qoq
 //     fix`, which does its own discovery: deferred, not skipped.)
+//   - a workspace root has no record of its own. `fullstack-plan` always runs
+//     at one, and `execute` does when it is handed a manifest there — a root
+//     with no `qoq.config.*` and at least two child repos that have one. Both
+//     get a `components` section instead, and each component's discovery runs
+//     when its own track starts.
 //   - a fresh agent install is a question for `fix`, `test` and `execute`, and a
 //     line in the end-of-run notice for everything else. Those three dispatch a
 //     pinned agent inside the window before Claude Code registers the directory,
@@ -24,17 +29,30 @@
 //     question in front of a command whose next move is another command's
 //     question is the noise this narrowing exists to remove.
 //
-// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress>
+// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|fullstack-plan|replan|execute|test|compress>
 //
 // Exit code: always 0 — stdout is a section per check, each with what to do, or
 // a single `command` section asking for one.
 
 import { spawnSync } from 'node:child_process';
+import { existsSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const COMMANDS = ['fix', 'refactor', 'bump', 'plan', 'replan', 'execute', 'test', 'compress'];
+const COMMANDS = [
+  'fix',
+  'refactor',
+  'bump',
+  'plan',
+  'fullstack-plan',
+  'replan',
+  'execute',
+  'test',
+  'compress',
+];
 const ASKS_ON_INSTALL = ['fix', 'test', 'execute'];
-const SKIPS_DISCOVERY = ['compress'];
+const SKIPS_DISCOVERY = ['compress', 'fullstack-plan'];
+const CONFIG_FILES = ['qoq.config.ts', 'qoq.config.js', 'qoq.config.cjs', 'qoq.config.mjs'];
 
 const args = process.argv.slice(2);
 const flag = (name) => {
@@ -88,9 +106,48 @@ const agentAction = () => {
 
 section('agents', ...agentLines, agentAction());
 
-// 2. The record.
-if (SKIPS_DISCOVERY.includes(command)) {
-  section('discovery', `skipped — \`${command}\` reads nothing on the record.`, 'ACTION: nothing.');
+// 2. The record — or, at a workspace root, the components that each have one.
+const hasConfig = (dir) => CONFIG_FILES.some((name) => existsSync(join(dir, name)));
+const components = () =>
+  readdirSync(project, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
+    .map((entry) => entry.name)
+    .filter((name) => hasConfig(join(project, name)) && existsSync(join(project, name, '.git')))
+    .sort();
+
+const found = command === 'fullstack-plan' || command === 'execute' ? components() : [];
+const atWorkspaceRoot =
+  command === 'fullstack-plan' ||
+  (command === 'execute' && !hasConfig(project) && found.length >= 2);
+
+const componentsAction = () => {
+  if (found.length < 2) {
+    return 'ACTION: a fullstack plan needs at least two components — say so and stop; one is a `plan` run inside it.';
+  }
+
+  // The manifest's Components table already settled the set.
+  if (command === 'execute') {
+    return "ACTION: nothing — the manifest's Components table says which take part; don't re-ask. Each one runs its own discovery when its track starts (references/fullstack-execute.md).";
+  }
+
+  return 'ACTION: confirm with the user which of these take part — never assume all of them. Each one runs its own discovery when its track starts (references/fullstack-plan.md).';
+};
+
+if (atWorkspaceRoot) {
+  section(
+    'components',
+    found.length
+      ? `candidates — child repos with their own qoq.config: ${found.join(', ')}`
+      : 'none — no child directory has both its own qoq.config and its own .git.',
+    componentsAction()
+  );
+}
+
+if (SKIPS_DISCOVERY.includes(command) || atWorkspaceRoot) {
+  const why = atWorkspaceRoot
+    ? 'a workspace root has no record of its own; each component has one.'
+    : `\`${command}\` reads nothing on the record.`;
+  section('discovery', `skipped — ${why}`, 'ACTION: nothing.');
 } else {
   const discovery = run('discovery-check.mjs');
 

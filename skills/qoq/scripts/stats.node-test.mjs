@@ -56,6 +56,13 @@ test('replan is an accepted command, not a usage error', () => {
   assert.ok(stdout.includes(JSON.stringify({ tool: 'qoq-skill', options: ['replan'] })));
 });
 
+test('fullstack-plan is an accepted command, not a usage error', () => {
+  const { status, stdout } = run(project(), home(), 'fullstack-plan');
+
+  assert.notEqual(status, 2);
+  assert.ok(stdout.includes(JSON.stringify({ tool: 'qoq-skill', options: ['fullstack-plan'] })));
+});
+
 // The disclosure quotes the request body rather than describing it, so it cannot
 // come to promise less than what is sent. That only holds while it is generated
 // from the same object, which is what this asserts.

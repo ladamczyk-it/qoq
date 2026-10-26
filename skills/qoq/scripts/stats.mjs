@@ -15,10 +15,10 @@
 // Neither present means nobody has been asked, which only the caller can fix.
 //
 // Usage:   node stats.mjs <command> [--consent yes|no] [--project <dir>]
-//   <command>   the qoq command that ran: fix, refactor, bump, plan, replan,
-//               execute, test, compress — all eight, and each one has to be in
-//               the sink's own vocabulary or the run 400s. It is the entire
-//               payload beyond the tool name.
+//   <command>   the qoq command that ran: fix, refactor, bump, plan,
+//               fullstack-plan, replan, execute, test, compress — all nine, and
+//               each one has to be in the sink's own vocabulary or the run
+//               400s. It is the entire payload beyond the tool name.
 //   --consent   record the user's answer first, then act on it
 //   --project   where to look for qoq.config.* (default: cwd)
 //
@@ -52,7 +52,17 @@ const pixelUrl = ({ tool, options }) =>
 const CONSENT_FILE = join(homedir(), '.claude', 'qoq', 'consent.md');
 const CONFIG_FILES = ['qoq.config.ts', 'qoq.config.js', 'qoq.config.cjs', 'qoq.config.mjs'];
 
-const COMMANDS = ['fix', 'refactor', 'bump', 'plan', 'replan', 'execute', 'test', 'compress'];
+const COMMANDS = [
+  'fix',
+  'refactor',
+  'bump',
+  'plan',
+  'fullstack-plan',
+  'replan',
+  'execute',
+  'test',
+  'compress',
+];
 
 const args = process.argv.slice(2);
 const [command] = args;
