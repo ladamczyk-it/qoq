@@ -93,6 +93,24 @@ const copiesOf = ({ packages, realName }: IGraph, name: string, version: string)
     (key) => !isManifest(key) && realName(key) === name && packages[key]?.version === version
   );
 
+// Every (manifest, direct) pair above `from`, breadth-first with one visited set.
+const declarers = ({ parents, realName }: IGraph, from: string): IScanPath[] => {
+  const out: IScanPath[] = [];
+  const queue = [from];
+  const visited = new Set(queue);
+  for (const node of queue) {
+    for (const edge of parents.get(node) ?? []) {
+      if (isManifest(edge.from)) {
+        out.push({ manifest: manifest(edge.from), direct: realName(node) });
+      } else if (!visited.has(edge.from)) {
+        visited.add(edge.from);
+        queue.push(edge.from);
+      }
+    }
+  }
+  return out;
+};
+
 // The distinct (manifest, direct, parent) triples behind each copy of name@version,
 // for scan-report.json. Ancestors are walked breadth-first with a visited set per
 // parent, so a shared subtree or a cycle costs one visit instead of one per path.
@@ -112,17 +130,8 @@ export const traceVia = (lockfilePath: string) => {
           continue;
         }
         const parent = realName(from);
-        const queue = [from];
-        const visited = new Set(queue);
-        for (const node of queue) {
-          for (const edge of parents.get(node) ?? []) {
-            if (isManifest(edge.from)) {
-              add({ manifest: manifest(edge.from), direct: realName(node), parent });
-            } else if (!visited.has(edge.from)) {
-              visited.add(edge.from);
-              queue.push(edge.from);
-            }
-          }
+        for (const path of declarers(graph, from)) {
+          add({ ...path, parent });
         }
       }
     }
