@@ -262,11 +262,11 @@ flowchart TD
     PLAN --> SCAN["**what's vulnerable** — `npx qoq scan --json`<br/>*(OSV: severity, fixVersion, dev, via)*<br/>vulnerable joins the plan even if not outdated,<br/>**fixVersion is the floor**<br/>*skipped / inconclusive → one line,<br/>never shown as clean*"]
     SCAN --> TRANS{"transitive?<br/>*(via has a parent)*"}
     TRANS -->|no| MAJ
-    TRANS -->|yes| TPAR{"a release of **via.direct**<br/>pulls in ≥ fixVersion?<br/>*(npm view — provable only when<br/>direct is the parent)*"}
-    TPAR -->|"yes, or unproven<br/>when they differ"| TBUMP["plan it as a bump<br/>of via.direct<br/>*unproven → latest in major;<br/>still flagged at the re-scan →<br/>override next round*"]
-    TPAR -->|no| TOVR{"a fixed version inside<br/>the parent's range?"}
-    TOVR -->|yes| TSUG["**suggest an override** —<br/>lowest fixed in range,<br/>scoped to the parent<br/>*(global only when several<br/>parents, and named)*"]
-    TOVR -->|no| TOUT["offer the lowest fixed one<br/>**outside** the range<br/>as a separate choice — or<br/>*no fix available*"]
+    TRANS -->|yes| TPAR{"**via.direct** has anything newer<br/>in npm-report.json?<br/>*(wanted above current, else latest)*"}
+    TPAR -->|yes| TBUMP["plan it as a bump<br/>of via.direct<br/>*unproven until the re-scan;<br/>still flagged →<br/>override next round*"]
+    TPAR -->|no| TOVR{"fixVersion inside the<br/>parent's range?<br/>*(parent's package-lock.json entry)*"}
+    TOVR -->|yes| TSUG["**suggest an override** —<br/>fixVersion,<br/>scoped to the parent<br/>*(global only when several<br/>parents, and named)*"]
+    TOVR -->|no| TOUT["offer fixVersion<br/>**outside** the range<br/>as a separate choice — or<br/>*no fix available*"]
     TBUMP --> MAJ
     TSUG --> MAJ
     TOUT --> MAJ

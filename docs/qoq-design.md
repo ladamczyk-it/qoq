@@ -417,6 +417,13 @@ the usual way overrides break things at runtime with nothing failing at
 install. Scoping the override to the parent and keeping it inside the parent's
 declared range limits that, but doesn't remove it, so it stays the fallback.
 
+**Why the transitive rules use no `npm view`.** Proving that a parent release
+pulls in the fixed copy needs that release's dependency ranges, and only `npm
+view` has them. `npm-report.json` already says what's newer for every direct
+dependency, the lockfile already holds each parent's declared ranges, and the
+final re-scan proves or disproves the bump anyway. One unproven round is
+cheaper than a second registry client the skill's allowed tools don't cover.
+
 **Why `via` carries both `direct` and `parent`.** They answer two different
 questions. `direct` is what `bump` can edit, the name in a `package.json`.
 `parent` is what a scoped override is keyed on. They're the same only one level
