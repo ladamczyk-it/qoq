@@ -91,6 +91,12 @@ each one gets a reason on the manifest.
 **Name the E2E owner** — the most-dependent component, the one whose journeys
 can't be shown without the others (the UI, for UI↔API).
 
+**Write the manifest now** — `<root>/plans/YYYY-MM-DD-<feature>.md`, from
+[../assets/fullstack-template.md](../assets/fullstack-template.md), `Plan
+status: draft`. Every component plan's **Orchestration** header points at it,
+and a contract change in Phase 4 lands in it first, so it has to exist on disk
+before the first component is planned.
+
 ## Phase 4 — Each component, in that order
 
 Per component, the full `plan.md`, from inside it:
@@ -104,7 +110,7 @@ Per component, the full `plan.md`, from inside it:
    the wrong altitude and grows with every component.
 3. **The manifest's Contracts are fixed input** to this architect. A change it
    needs comes back as an **Unknown**; ask it, and if the answer changes the
-   contract, update the manifest and re-check every component already planned
+   contract, update the manifest file and re-check every component already planned
    against it before going on. Never edit a contract inside one component.
 4. Estimates with `estimate.mjs --project <component>` — calibration is per
    repo, and so is its store.
@@ -120,9 +126,7 @@ it's planned and gated like any other milestone.
 
 ## Approval, once, for the set
 
-Write the manifest — `<root>/plans/YYYY-MM-DD-<feature>.md`, from
-[../assets/fullstack-template.md](../assets/fullstack-template.md) — and ask
-once. Surface `plan.md`'s approval items per component, plus the **barrier
+Ask once. Surface `plan.md`'s approval items per component, plus the **barrier
 table** and **which tracks can start immediately**.
 
 On approval, every component plan gets `Plan status: approved` and its own

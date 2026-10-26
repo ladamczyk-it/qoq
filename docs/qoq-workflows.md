@@ -423,7 +423,7 @@ flowchart TD
         FEX --> FAR["**qoq-architect**, scoped to the<br/>interface between components"]
         FAR --> FUNK(["**ASK the Unknowns** — a contract<br/>changed after both sides plan<br/>against it is two replans"])
         FUNK -.-> FCON["**Contracts** + provider/consumer roles<br/>→ the manifest. *settled here only*"]
-        FCON --> FSL["one **brief** per component ·<br/>**providers first** ·<br/>**barriers** only where a consumer needs<br/>delivered behaviour, not a shape ·<br/>name the **E2E owner**"]
+        FCON --> FSL["one **brief** per component ·<br/>**providers first** ·<br/>**barriers** only where a consumer needs<br/>delivered behaviour, not a shape ·<br/>name the **E2E owner** ·<br/>write the **manifest**, draft"]
     end
 
     FSL --> FC
