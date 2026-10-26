@@ -27,6 +27,9 @@ export default {
       'scripts/config-diff.resolver.mjs',
       // Eval fixtures: code an agent reads, never code anything imports.
       'evals/fixtures/**',
+      // The plugin's hooks module: Claude Code loads it through hooks/hooks.json and
+      // provides 'claude-code' itself, so nothing here imports it or installs that.
+      'hooks/**',
     ],
     ignoreDependencies: [
       // build specific

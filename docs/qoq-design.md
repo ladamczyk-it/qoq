@@ -619,6 +619,15 @@ shaped. Stated explicitly so nobody adds the work.
 
 ## `execute`
 
+**Why progress is a plugin band and nothing in the skill.** A first version had
+the agent run a board script at each ticket and milestone. Eval runs showed it
+treated the output as its own context: it never relayed the board, chained the
+call with other reads, and each call cost a tool turn. `hooks/register.tsx`
+needs no agent: it starts when the session touches an approved, in-progress or
+complete `plans/*.md`, rereads it after every tool call, and draws above the
+prompt. A host without plugin bands, or a skill copied into `.claude/skills/`,
+shows no progress, and the skill loses nothing it relied on.
+
 **Why `--source jira` imports to a plan file instead of executing against the
 tracker.** The plan file is already the execution state — resume reconciles
 against it, the estimate loopback reads `Estimate` off it, the milestone gate
