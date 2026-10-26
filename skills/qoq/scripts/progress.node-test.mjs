@@ -274,7 +274,7 @@ test('a plan without a title or status still prints a board', () => {
 test('no ANSI escape codes reach stdout', () => {
   const { stdout } = board({ live: [{ number: 1, tickets: [['1.1', 'blocked']] }] });
 
-  assert.doesNotMatch(stdout, /\u001b\[/);
+  assert.ok(!stdout.includes('\u001b['));
 });
 
 // It reads; the plan file's status is execute's to change.

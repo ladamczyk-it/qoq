@@ -751,7 +751,7 @@
       "target": "agent"
     },
     {
-      "id": 37,
+      "id": 43,
       "name": "execute-shows-progress-board",
       "prompt": "/qoq execute plans/2026-08-20-ratelimit.md",
       "expected_output": "After loading the plan, and before the first dispatch, the run calls `node <skill>/scripts/progress.mjs plans/2026-08-20-ratelimit.md` and shows its stdout verbatim in a fenced code block: the plan's status and milestones delivered, the colour legend, then one section per milestone with one square per ticket (🟩 done, 🟦 in-progress, 🟨 blocked, 🟫 todo) and the in-progress and blocked tickets named. It shows the board again after every ticket reaches done or blocked, and after the milestone gate once the archive has moved. Each board comes from the script reading the file, never from the thread's own summary.",
@@ -762,6 +762,7 @@
         "progress.mjs runs after the milestone gate and archive",
         "The board shown to the user matches the script's stdout inside a code block, not a paraphrase or a recoloured copy"
       ],
+      "setup": "Start the run on a feature branch, so the default-branch question doesn't end it before the first board.",
       "target": "fixture-repo"
     }
   ]

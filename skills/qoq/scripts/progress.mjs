@@ -55,15 +55,15 @@ const delivered = [];
 const live = [];
 let section;
 let ticket;
-for (const line of text.split('\n')) {
-  const summary = line.match(/^### Milestone (\d+): (.+?) — delivered (\S+)\s*$/);
+for (const line of text.split('\n').map((l) => l.trimEnd())) {
+  const summary = line.match(/^### Milestone (\d+): (.+?) — delivered (\S+)$/);
   if (summary) {
     section = { number: Number(summary[1]), name: summary[2], date: summary[3], tickets: [] };
     delivered.push(section);
     ticket = undefined;
     continue;
   }
-  const heading = line.match(/^## Milestone (\d+): (.+?)\s*$/);
+  const heading = line.match(/^## Milestone (\d+): (.+)$/);
   if (heading) {
     section = { number: Number(heading[1]), name: heading[2], tickets: [] };
     live.push(section);
@@ -78,12 +78,12 @@ for (const line of text.split('\n')) {
   if (!section) {
     continue;
   }
-  const tickets = section.date && line.match(/^\*\*Tickets:\*\*\s*(.+)$/);
+  const tickets = section.date && line.match(/^\*\*Tickets:\*\*(.+)$/);
   if (tickets) {
     section.tickets = tickets[1].split(' · ').map(() => ({ status: 'done' }));
     continue;
   }
-  const ticketHeading = !section.date && line.match(/^### Ticket (\d+\.\d+): (.+?)\s*$/);
+  const ticketHeading = !section.date && line.match(/^### Ticket (\d+\.\d+): (.+)$/);
   if (ticketHeading) {
     ticket = { id: ticketHeading[1], name: ticketHeading[2], status: 'todo' };
     section.tickets.push(ticket);
@@ -91,7 +91,7 @@ for (const line of text.split('\n')) {
   }
   const status = ticket && line.match(/^- \*\*Status:\*\*\s*([\w-]+)/);
   if (status) {
-    ticket.status = status[1] in SQUARES ? status[1] : 'todo';
+    ticket.status = Object.hasOwn(SQUARES, status[1]) ? status[1] : 'todo';
   }
 }
 
