@@ -423,8 +423,9 @@ already has each installed parent's declared ranges. Asking the registry for
 either again is a second, possibly disagreeing, answer to a question already
 answered. What neither holds is the range a release that isn't installed
 declares, and that's the only thing that proves a parent bump fixes a
-transitive finding. One `npm view` over the current major answers it for every
-release at once.
+transitive finding. One `npm view` of `latestInMajor` answers it, and that's
+the target the minor/patch group already plans, so a security fix and an
+ordinary update never disagree about where a package goes.
 
 **Why `via` carries both `direct` and `parent`.** They answer two different
 questions. `direct` is what `bump` can edit, the name in a `package.json`.

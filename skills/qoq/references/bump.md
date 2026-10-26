@@ -67,10 +67,11 @@ can't hold: the range a given release declares. Try, in order:
 
 1. **Bump `via.direct`**, in the `manifest` that declares it. A major goes to
    `qoq-bumper` like any other.
-   - `direct` is `parent`: `npm view <direct>@"^<current>" dependencies.<package> --json`
-     lists the range each release in the current major declares. Plan the
-     lowest whose range admits `fixVersion` or above. None does → `latest` from
-     the report, if it's newer.
+   - `direct` is `parent`: the target is the report's `latestInMajor`, the
+     same one the minor/patch group uses.
+     `npm view <direct>@<latestInMajor> dependencies.<package>` gives the range
+     it declares. It admits `fixVersion` or above → plan it. It doesn't, or
+     `latestInMajor` is `current` → `latest` from the report, if it's newer.
    - They differ: `via` doesn't record the packages between them, so nothing
      proves it. Plan the report's `latestInMajor` if it's above `current`,
      else `latest`, and say it's unproven. A finding still there at the final
