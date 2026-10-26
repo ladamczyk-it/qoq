@@ -124,6 +124,15 @@ build             →  green
 and all. In that order, cheapest signal first, so a formatting-level break
 doesn't cost a full suite run.
 
+**Green means no worse than the baseline.** Before the first patch, run the
+check once (`qoq-checker`, nothing fixed) and keep its findings as the
+baseline: tool, rule, file. After each patch, `qoq fix` runs as always, but its
+loop acts only on findings the baseline doesn't have, and it passes when none
+are left. A baseline finding is never fixed here: it isn't the patch's, and
+fixing it mixes unrelated edits into the patch. List the baseline once, in the
+final report. `test` and `build` get no baseline: either one red before the
+first patch → stop and say so, the same as a dirty tree.
+
 No per-patch reasoning about which checks are safe to skip for this kind of
 dependency. A dependency bump can break anything — the command exists because you
 can't predict what — and a narrowed check that passes tells you nothing about

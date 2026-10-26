@@ -798,7 +798,8 @@
         "Applies and validates the express bump before touching any override",
         "Removes and tests overrides one at a time, never all at once",
         "Drops an override only after both validation and the re-scan are clean",
-        "Says what was dropped and what was kept, with a reason for each kept one"
+        "Says what was dropped and what was kept, with a reason for each kept one",
+        "Takes a check baseline before the first patch, runs `qoq fix` after every patch including the override removal, and never fixes the fixture's baseline findings in src/lint/slugify.ts"
       ],
       "target": "fixture-repo",
       "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies and \"overrides\": { \"express\": { \"qs\": \"6.13.0\" }, \"semver\": \"7.6.3\" } to package.json, then npm install."

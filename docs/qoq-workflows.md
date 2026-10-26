@@ -290,10 +290,11 @@ flowchart TD
 
     BAPPR -.->|"nothing picked"| BSTOP
     BAPPR -.->|"the chosen set"| MAKE["**now** write the git patches —<br/>one per bump or picked override,<br/>selected only<br/>*`package.json` only — never<br/>the lockfile*"]
-    MAKE --> BAPPLY
+    MAKE --> BBASE["**baseline** — one check, nothing fixed<br/>*test or build already red → stop*"]
+    BBASE --> BAPPLY
 
     BAPPLY["apply next patch<br/>+ reinstall<br/>*the install alone regenerates<br/>the lockfile; a failed install<br/>is a failed patch*"]
-    BAPPLY --> BVAL["**validate** — all three, in order<br/>`qoq fix` · `test` full suite · `build`<br/>*(commands from the record)*"]
+    BAPPLY --> BVAL["**validate** — all three, in order<br/>`qoq fix` · `test` full suite · `build`<br/>*(commands from the record;<br/>fix acts only on findings<br/>not in the baseline)*"]
     BVAL -->|passes| PREF["**qoq refactor --decisions auto**<br/>scope = this patch's files —<br/>*applies the safe tier,<br/>advises the rest*"]
     PREF -->|"changed nothing"| BMORE{"patches left?"}
     PREF -->|"changed something"| BREVAL["**re-validate** — test + build<br/>*(the refactor's own fix already ran)*"]

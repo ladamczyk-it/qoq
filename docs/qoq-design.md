@@ -442,6 +442,15 @@ green, keeps every failure attributable. Only those in the chosen packages'
 subtree are tested, because removing any other re-resolves a part of the tree
 the user didn't pick.
 
+**Why validation compares against a baseline.** "`qoq fix` green after every
+patch" assumed a clean project. With existing lint debt, green can't be reached
+without fixing code the bump never touched. An eval run on the fixture, which
+starts with three findings, showed what happens next: the agent ran `qoq fix`
+once, saw findings in untouched files, and quietly stopped running it. A
+baseline keeps the check running on every patch and keeps the patch's edits
+its own. `test` and `build` don't get one: a red suite before the first patch
+can't attribute anything, so it's a precondition like the clean tree.
+
 **Why dropping an override needs both a clean scan and green validation.**
 Overrides aren't all security. A pin for compatibility or deduplication has no
 advisory to clear, so a clean scan alone would drop it, and the breakage would
