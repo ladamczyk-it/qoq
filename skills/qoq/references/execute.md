@@ -48,10 +48,9 @@ node <skill>/scripts/progress.mjs <plan>
 
 Run it **after loading**, before the first dispatch; **after every ticket
 reaches `done` or `blocked`**; and **after every milestone gate**, once the
-archive has moved. Run it as a command of its own, then copy its stdout
-verbatim into your reply, inside a fenced code block, legend included — the
-user never sees tool output, so a board left there was never shown, and outside
-a code block markdown folds each heading into its bar. It reads the plan as it is on
+archive has moved. Run it as a command of its own — its output is the board the
+user sees, and folded into another command it drowns. Don't copy it into your
+reply or wait on it: it's a report, not a gate. It reads the plan as it is on
 disk, which is the only state there is — a board composed from this thread's
 recollection drifts from the file the first time a write fails.
 
@@ -59,11 +58,6 @@ recollection drifts from the file the first time a write fails.
 
 Tickets go out singly, in dependency order then plan order — the first whose
 dependencies are all `done`.
-
-**No dispatch before the board.** The message that announces the first
-dispatch, and each one after a ticket reached `done` or `blocked`, opens with
-that moment's `progress.mjs` stdout in a fenced code block ([Progress](#progress)).
-A board that ran but stayed in a tool result was never shown.
 
 No parallel mode exists, and no flag for one: two subagents committing into one
 index is a failure no gate catches. Because only one ticket is ever in flight,

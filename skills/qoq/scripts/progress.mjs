@@ -12,7 +12,7 @@
 // named after it. A delivered milestone's tickets are its summary's
 // `**Tickets:**` entries, all done.
 //
-// Emoji, not ANSI colour: the board is relayed through the agent's reply, where
+// Emoji, not ANSI colour: the board is read in the Bash tool's output, where
 // escape codes either show as junk or are stripped, and emoji render the same
 // in a terminal, on claude.ai and pasted anywhere.
 //
@@ -21,7 +21,7 @@
 // Usage:   node progress.mjs <plan.md>
 //
 // Exit code: 0 board printed, 2 usage error or a file that can't be read.
-// stdout is the board, meant to be shown to the user verbatim.
+// stdout is the board; the user reads it in the tool output.
 
 import { existsSync, readFileSync } from 'node:fs';
 

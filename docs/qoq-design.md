@@ -595,11 +595,17 @@ others.
 
 **Why the board is emoji squares and not ANSI colour.** Its look follows
 skillslint's score bars — a heading per section, a bar under it — but the board
-reaches the user through the agent's reply, not raw tool output, and escape
+reaches the user as the Bash tool's output, read by the agent too, and escape
 codes there either print as junk or are stripped. 🟩🟦🟨🟫 render the same in a
 terminal, on claude.ai and pasted into a ticket. One square per ticket, not a
 scaled fixed-width bar: scaling rounds a single blocked ticket away, and the
 square's position says which ticket it is.
+
+**Why the board isn't copied into the reply.** An earlier rule asked the agent
+to paste it there. Eval 43 failed that five times, on Sonnet and Opus, under
+three wordings and a reminder printed by the script itself: the agent reads the
+board as its own context and dispatches. The tool output already shows it, so
+the rule asks only that the script run as its own command.
 
 **Why `--source jira` imports to a plan file instead of executing against the
 tracker.** The plan file is already the execution state — resume reconciles
