@@ -1,3 +1,29 @@
+# [6.5.0](https://github.com/ladamczyk-it/qoq/compare/v6.4.2...v6.5.0) (2026-10-26)
+
+
+### Bug Fixes
+
+* bump packages ([bb257d2](https://github.com/ladamczyk-it/qoq/commit/bb257d2fd9decf179a95a7d4e53c88c121d8da1b))
+* **skill:** brown todo squares and the legend under the board's head ([9fb472d](https://github.com/ladamczyk-it/qoq/commit/9fb472dd3b305e50a222c158df9ce163ee5e21ec))
+* **skill:** draw todo tickets as a filled square, same width as the others ([f483420](https://github.com/ladamczyk-it/qoq/commit/f4834205a790d9ced65a7e7c30d034f1e987b170))
+* **skill:** latestInMajor joins the minor/patch group even with a major pending ([71abc88](https://github.com/ladamczyk-it/qoq/commit/71abc8876a77dc2279753193d98d4e6b6b128308))
+* **skill:** progress board passes the gate; eval renumbered to 43 ([05c7d67](https://github.com/ladamczyk-it/qoq/commit/05c7d67d7d59c5d4a698518a8f94920e2575e36b)), closes [#15](https://github.com/ladamczyk-it/qoq/issues/15)
+* **skill:** the progress board goes in the reply, before the dispatch ([321820a](https://github.com/ladamczyk-it/qoq/commit/321820ac856697c365ebb1c6db31483831873f88))
+* **skill:** the progress board is the script's output, not a relay ([e44fa68](https://github.com/ladamczyk-it/qoq/commit/e44fa686f41264857116cf321555bece872cda2c))
+
+
+### Features
+
+* **cli:** add dev and via to scan-report.json findings ([7e15fc1](https://github.com/ladamczyk-it/qoq/commit/7e15fc1da5e56e7a4d3b07f965070dfa8e40fb9e))
+* **plugin:** show qoq execute progress in a band above the prompt ([1e2864c](https://github.com/ladamczyk-it/qoq/commit/1e2864ce97daf49fd7d3db8294f53fdd5f835119))
+* **skill:** a transitive fix targets latestInMajor, checked with one npm view ([75ba0c9](https://github.com/ladamczyk-it/qoq/commit/75ba0c99a66cad0680a76b0586b68f817853f15c))
+* **skill:** bump validates against a check baseline taken before the first patch ([0017dd6](https://github.com/ladamczyk-it/qoq/commit/0017dd60d1696b74d2d704babe114d95dd637fe8))
+* **skill:** make qoq bump plan from qoq scan as well as qoq npm ([e064c3c](https://github.com/ladamczyk-it/qoq/commit/e064c3cf6dfe0777c6117d6b0c1dcd1941efecd0))
+* **skill:** npm view only for declared ranges, npm-report.json for the overview ([9f31ee3](https://github.com/ladamczyk-it/qoq/commit/9f31ee3b06d1cfdfb861e3794c22990f1ee0dc7e))
+* **skill:** plan minor/patch and unproven transitive bumps to outdated's latestInMajor ([4e54c15](https://github.com/ladamczyk-it/qoq/commit/4e54c1502a0aa7b284942e332003d9b97297a5f0))
+* **skill:** plan transitive fixes from npm-report.json and the lockfile, not npm view ([d884843](https://github.com/ladamczyk-it/qoq/commit/d88484395e808be1bc319c8348d47a58dd7e0e8a))
+* **skill:** show a progress board during qoq execute ([175f886](https://github.com/ladamczyk-it/qoq/commit/175f8861570f3f8086345662ac12363c314582ad))
+
 ## [6.4.2](https://github.com/ladamczyk-it/qoq/compare/v6.4.1...v6.4.2) (2026-10-22)
 
 
