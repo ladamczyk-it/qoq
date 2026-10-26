@@ -48,7 +48,7 @@
     "@ladamczyk/structurelint": "1.1.5",
     "@types/node": "^22",
     "@vitest/coverage-v8": "5.0.5",
-    "dotenv": "18.0.8",
+    "dotenv": "18.0.9",
     "husky": "9.1.7",
     "lerna": "10.1.1",
     "npm-run-all2": "9.0.4",
