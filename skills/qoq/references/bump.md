@@ -21,7 +21,9 @@ which is the analysis itself and has to happen before the choice.
 
 Read the report, not just the version gap: `majorBump` separates the majors,
 `latestInMajor` is the minor/patch target (above `current`, it's a bump even
-when an exact pin leaves `wanted` equal to `current`), `deprecated` and `stale`
+when an exact pin leaves `wanted` equal to `current`, and it joins the
+minor/patch group even when the package also has a major pending, which is
+planned separately), `deprecated` and `stale`
 packages are worth raising even when no bump is pending, and `blocked` means
 the newest release needs a newer Node than this one — not a bump to attempt.
 `packages` also lists the ok ones; skip anything flagged `ok`. Each package's
