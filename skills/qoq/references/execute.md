@@ -48,8 +48,8 @@ node <skill>/scripts/progress.mjs <plan>
 
 Run it **after loading**, before the first dispatch; **after every ticket
 reaches `done` or `blocked`**; and **after every milestone gate**, once the
-archive has moved. Show its stdout verbatim inside a fenced code block — outside
-one, markdown folds each heading into its bar. It reads the plan as it is on
+archive has moved. Show its stdout verbatim inside a fenced code block, legend
+included — outside one, markdown folds each heading into its bar. It reads the plan as it is on
 disk, which is the only state there is — a board composed from this thread's
 recollection drifts from the file the first time a write fails.
 

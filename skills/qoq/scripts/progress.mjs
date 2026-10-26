@@ -6,10 +6,11 @@
 // on every transition is how the board comes to disagree with the file. So one
 // script reads the file fresh and prints the board.
 //
-// One section per milestone, delivered ones first: a heading, then a bar with
-// one square per ticket in plan order — 🟩 done, 🟦 in-progress, 🟨 blocked,
-// ⬛️ todo — and the in-progress and blocked tickets named after it. A delivered
-// milestone's tickets are its summary's `**Tickets:**` entries, all done.
+// The head, a legend, then one section per milestone, delivered ones first: a
+// heading, then a bar with one square per ticket in plan order — 🟩 done,
+// 🟦 in-progress, 🟨 blocked, 🟫 todo — and the in-progress and blocked tickets
+// named after it. A delivered milestone's tickets are its summary's
+// `**Tickets:**` entries, all done.
 //
 // Emoji, not ANSI colour: the board is relayed through the agent's reply, where
 // escape codes either show as junk or are stripped, and emoji render the same
@@ -38,8 +39,8 @@ if (!existsSync(planPath)) {
   fail(`progress.mjs: no such plan: ${planPath}`);
 }
 
-const SQUARES = { done: '🟩', 'in-progress': '🟦', blocked: '🟨', todo: '⬛️' };
-const LEGEND = '🟩 done · 🟦 in progress · 🟨 blocked · ⬛️ to do';
+const SQUARES = { done: '🟩', 'in-progress': '🟦', blocked: '🟨', todo: '🟫' };
+const LEGEND = '🟩 done · 🟦 in progress · 🟨 blocked · 🟫 to do';
 
 const text = readFileSync(planPath, 'utf8');
 
@@ -118,4 +119,4 @@ const head = [
 ].join(' · ');
 
 const sections = [...delivered, ...live].map((m) => milestoneSection(m).join('\n'));
-process.stdout.write(`${[head, ...sections, LEGEND].join('\n\n')}\n`);
+process.stdout.write(`${[head, LEGEND, ...sections].join('\n\n')}\n`);

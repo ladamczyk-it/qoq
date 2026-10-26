@@ -103,7 +103,7 @@ test('one square per ticket, in plan order, coloured by status', () => {
     ],
   });
 
-  assert.match(section(stdout, 'M1 Live 1'), /^🟩🟦🟨⬛️🟩 {2}2\/5 · /);
+  assert.match(section(stdout, 'M1 Live 1'), /^🟩🟦🟨🟫🟩 {2}2\/5 · /);
 });
 
 test('in-progress and blocked tickets are named after the bar, in plan order', () => {
@@ -122,7 +122,7 @@ test('in-progress and blocked tickets are named after the bar, in plan order', (
 
   assert.equal(
     section(stdout, 'M1 Live 1'),
-    '🟨⬛️🟦  0/3 · blocked 1.1 Ticket 1.1 · in-progress 1.3 Ticket 1.3'
+    '🟨🟫🟦  0/3 · blocked 1.1 Ticket 1.1 · in-progress 1.3 Ticket 1.3'
   );
 });
 
@@ -139,7 +139,7 @@ test('a milestone with only todo and done tickets names none', () => {
     ],
   });
 
-  assert.equal(section(stdout, 'M1 Live 1'), '🟩⬛️  1/2');
+  assert.equal(section(stdout, 'M1 Live 1'), '🟩🟫  1/2');
 });
 
 test('a delivered milestone is all green, one square per ticket in its summary', () => {
@@ -200,13 +200,10 @@ test('no blocked count in the head when nothing is blocked', () => {
   assert.doesNotMatch(stdout.split('\n')[0], /blocked/);
 });
 
-test('the legend closes the board', () => {
+test('the legend comes right after the head, before any bar', () => {
   const { stdout } = board({ live: [{ number: 1, tickets: [['1.1', 'todo']] }] });
 
-  assert.equal(
-    stdout.trimEnd().split('\n').at(-1),
-    '🟩 done · 🟦 in progress · 🟨 blocked · ⬛️ to do'
-  );
+  assert.equal(stdout.split('\n\n')[1], '🟩 done · 🟦 in progress · 🟨 blocked · 🟫 to do');
 });
 
 // The definition-of-done heading has no colon and must not read as a milestone.
@@ -221,7 +218,7 @@ test('a milestone definition of done is not counted as a milestone', () => {
 test('a status the board does not know counts as todo', () => {
   const { stdout } = board({ live: [{ number: 1, tickets: [['1.1', 'todo | in-progress']] }] });
 
-  assert.equal(section(stdout, 'M1 Live 1'), '⬛️  0/1');
+  assert.equal(section(stdout, 'M1 Live 1'), '🟫  0/1');
 });
 
 test('a ticket without a Status line counts as todo', () => {
@@ -236,7 +233,7 @@ test('a ticket without a Status line counts as todo', () => {
 - **Size:** S
 `);
 
-  assert.equal(section(stdout, 'M1 Bare'), '⬛️  0/1');
+  assert.equal(section(stdout, 'M1 Bare'), '🟫  0/1');
 });
 
 // A Status line belongs to the ticket above it, never to the next milestone.
@@ -249,7 +246,7 @@ test('ticket statuses do not leak across milestones', () => {
   });
 
   assert.equal(section(stdout, 'M1 Live 1'), '🟩  1/1');
-  assert.equal(section(stdout, 'M2 Live 2'), '⬛️  0/1');
+  assert.equal(section(stdout, 'M2 Live 2'), '🟫  0/1');
 });
 
 test('a complete plan reports every milestone delivered', () => {

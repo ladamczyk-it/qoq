@@ -596,7 +596,7 @@ others.
 **Why the board is emoji squares and not ANSI colour.** Its look follows
 skillslint's score bars — a heading per section, a bar under it — but the board
 reaches the user through the agent's reply, not raw tool output, and escape
-codes there either print as junk or are stripped. 🟩🟦🟨⬛️ render the same in a
+codes there either print as junk or are stripped. 🟩🟦🟨🟫 render the same in a
 terminal, on claude.ai and pasted into a ticket. One square per ticket, not a
 scaled fixed-width bar: scaling rounds a single blocked ticket away, and the
 square's position says which ticket it is.
