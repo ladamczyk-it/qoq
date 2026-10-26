@@ -8,7 +8,7 @@
 //
 // One section per milestone, delivered ones first: a heading, then a bar with
 // one square per ticket in plan order — 🟩 done, 🟦 in-progress, 🟨 blocked,
-// ⬜ todo — and the in-progress and blocked tickets named after it. A delivered
+// ⬛️ todo — and the in-progress and blocked tickets named after it. A delivered
 // milestone's tickets are its summary's `**Tickets:**` entries, all done.
 //
 // Emoji, not ANSI colour: the board is relayed through the agent's reply, where
@@ -38,8 +38,8 @@ if (!existsSync(planPath)) {
   fail(`progress.mjs: no such plan: ${planPath}`);
 }
 
-const SQUARES = { done: '🟩', 'in-progress': '🟦', blocked: '🟨', todo: '⬜' };
-const LEGEND = '🟩 done · 🟦 in progress · 🟨 blocked · ⬜ to do';
+const SQUARES = { done: '🟩', 'in-progress': '🟦', blocked: '🟨', todo: '⬛️' };
+const LEGEND = '🟩 done · 🟦 in progress · 🟨 blocked · ⬛️ to do';
 
 const text = readFileSync(planPath, 'utf8');
 
