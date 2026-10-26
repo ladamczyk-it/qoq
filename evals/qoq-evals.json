@@ -749,6 +749,73 @@
         "Runs the project scripts (npm run test:one / npm test), never npx vitest"
       ],
       "target": "agent"
+    },
+    {
+      "id": 37,
+      "name": "bump-scan-transitive-parent-first",
+      "prompt": "worktree is clean. we got a security alert on our deps — can you sort it out?",
+      "expected_output": "Plans from both reports: `npx qoq npm --json` and `npx qoq scan --json`, read from the reports rather than the exit code. The vulnerable packages under express are transitive (`via` has a parent), so it checks with `npm view` whether a newer express pulls in fixed versions, finds that it does, and plans an express bump with each finding's fixVersion as the floor. It does not suggest an override for anything a parent bump fixes, and never edits package.json to declare a transitive package. Vulnerabilities are presented first, highest severity first, with their IDs. After the patches, it runs one final re-scan and reports anything still there.",
+      "files": [],
+      "assertions": [
+        "Runs `npx qoq scan --json` during planning, alongside `npx qoq npm --json`",
+        "Reads scan-report.json rather than treating scan's exit code as the result",
+        "Maps each transitive finding to express through `via`, not by guessing from the package name",
+        "Checks with `npm view` that a newer express pulls in the fixed versions before planning the bump",
+        "Plans an express bump; suggests no override for a finding the express bump fixes",
+        "Never adds a transitive package to package.json as a direct dependency",
+        "Lists vulnerabilities first, by severity, with their advisory IDs",
+        "The planning phase writes nothing",
+        "Runs one re-scan after the last patch and reports what's left"
+      ],
+      "target": "fixture-repo",
+      "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies, then npm install."
+    },
+    {
+      "id": 38,
+      "name": "bump-scan-override-suggestion",
+      "prompt": "worktree is clean, run a bump. heads up: the scan flags `inner-lib` deep under `wrapper-sdk`, and wrapper-sdk hasn't shipped a release with the fixed inner-lib yet",
+      "expected_output": "Treats the finding as transitive and first checks whether any wrapper-sdk release pulls in inner-lib at or above fixVersion. None does, so it says so and suggests an override instead: the lowest fixed inner-lib that satisfies the range wrapper-sdk declares, scoped to it as `\"overrides\": { \"wrapper-sdk\": { \"inner-lib\": \"<version>\" } }` in the root package.json. It's a pick like any bump, never implied by picking the package. If no fixed version fits wrapper-sdk's range, the out-of-range one is offered as a separate choice with a warning. A picked override goes through the normal patch path: package.json, reinstall, validate, refactor, revert on failure.",
+      "files": [],
+      "assertions": [
+        "Checks whether a wrapper-sdk release fixes it before suggesting an override, and says why that didn't work",
+        "Suggests the lowest fixed inner-lib inside wrapper-sdk's declared range, not the latest",
+        "Scopes the override to wrapper-sdk rather than making it global",
+        "Puts the override in the root package.json",
+        "The override is the user's separate pick, not applied because the package was picked",
+        "An out-of-range fixed version, if offered, is a separate choice with the range break stated",
+        "A picked override is applied as an ordinary patch: package.json, reinstall, validate"
+      ]
+    },
+    {
+      "id": 39,
+      "name": "bump-existing-override-tested-after",
+      "prompt": "worktree is clean. bump express please, just that one",
+      "expected_output": "Plans the express bump and lists, for the user to pick, only the override inside express's subtree (`express > qs`); the top-level `semver` override is outside the chosen packages and is neither listed nor touched. Applies and validates the express bump first, with the override still in place. Then tests the qs override alone: removes it, reinstalls, validates with all three checks and re-scans. Both are clean, so it is dropped. Had either failed, it would be restored exactly as it was and reported as kept, with the reason.",
+      "files": [],
+      "assertions": [
+        "Lists the `express > qs` override in the plan for the user to pick or exclude",
+        "Does not list, remove or test the top-level `semver` override",
+        "Applies and validates the express bump before touching any override",
+        "Removes and tests overrides one at a time, never all at once",
+        "Drops an override only after both validation and the re-scan are clean",
+        "Says what was dropped and what was kept, with a reason for each kept one"
+      ],
+      "target": "fixture-repo",
+      "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies and \"overrides\": { \"express\": { \"qs\": \"6.13.0\" }, \"semver\": \"7.6.3\" } to package.json, then npm install."
+    },
+    {
+      "id": 40,
+      "name": "bump-scan-skipped-not-clean",
+      "prompt": "worktree is clean. update dependencies",
+      "expected_output": "`qoq scan` reports `skipped (offline)` because the adapter throws. The plan carries one line saying the vulnerability scan didn't run, with the reason, and continues with the outdated set. Nothing in the plan or the final report presents the dependencies as free of vulnerabilities, and the run doesn't stop over it.",
+      "files": [],
+      "assertions": [
+        "States that the vulnerability scan didn't run, with the reason (offline)",
+        "Continues with the outdated dependencies instead of stopping",
+        "Never describes the dependencies as having no known vulnerabilities"
+      ],
+      "target": "fixture-repo",
+      "setup": "Pin vitest to 4.0.0 in package.json, then npm install. Add to qoq.config.js: scan: { adapter: { name: 'offline', scan: async () => { throw new Error('offline'); } } }."
     }
   ]
 }

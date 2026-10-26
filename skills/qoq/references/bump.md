@@ -26,15 +26,63 @@ the newest release needs a newer Node than this one — not a bump to attempt.
 `packages` also lists the ok ones; skip anything flagged `ok`. Each package's
 `repository` URL goes into its `qoq-bumper` dispatch.
 
+Alongside it, `npx qoq scan --json` writes `scan-report.json` to the same
+directory: known vulnerabilities in the lockfile, from OSV. Exit `1` only means a
+finding reached `scan.failOn`, so read the report, not the exit code. A package
+that's vulnerable joins the plan even when `npm-report.json` flags it `ok`. One
+entry per package, whichever report raised it.
+
+- **`skipped` or `inconclusive`** (offline, a timeout, no `package-lock.json`
+  under pnpm/yarn): one line in the plan, `vulnerability scan didn't run:
+  <reason>`, then carry on with the outdated set. Never present it as clean.
+- **Every finding**, whatever `failOn` says, highest severity first, with its
+  `id` and `url`. `dev: true` is labelled `dev`.
+- **`fixVersion` is the floor** for that package's target.
+- **No `fixVersion`**: listed as `no fix published` with its link. Nothing is
+  planned for it.
+- **Transitive** (`via` has a `parent`): see below. It's planned as a bump of
+  `via.direct` or an override. Never add the vulnerable package to
+  `package.json` as a direct dependency.
+
 Then present, per package: current → target, minor/patch or major, and for majors
 what `qoq-bumper` found — the breaking changes that actually land here, with the
-files they land in. That's the material for a decision.
+files they land in. Vulnerabilities go first, each with the finding that put it
+there. That's the material for a decision.
 
 The user **picks and excludes**. Only then are patches written, for the chosen
 set. Writing every patch up front materialises diffs for bumps that are about to
 be rejected, and frames the question as yes/no on a finished artifact when the
 real question is _which of these_. An empty selection is a valid answer and ends
 the run.
+
+## A transitive vulnerability: the parent first, an override last
+
+`via` names each way the vulnerable package is installed: `manifest` declares
+`direct`, and `parent` requires the vulnerable package. Try, in order:
+
+1. **Bump `via.direct`**, in the `manifest` that declares it. A major goes to
+   `qoq-bumper` like any other.
+   - `direct` is `parent`: `npm view <direct>@<candidate> dependencies` shows
+     the range each release declares. Plan the lowest release whose range
+     admits a version at or above `fixVersion`.
+   - They differ: `via` doesn't record the packages between them, so `npm view`
+     can't prove it. Plan `direct`'s latest release in the current major as a
+     candidate, and say it's unproven. If the finding is still there at the
+     final re-scan, it goes to step 2 next round.
+2. **Otherwise suggest an override**, and say why step 1 didn't work (no
+   release of `direct` pulls in a fixed version yet). The version is the lowest
+   one at or above `fixVersion` that satisfies the range `parent` declares for it
+   (`npm view`). Scope it to the parent:
+   `"overrides": { "<parent>": { "<package>": "<version>" } }`. Global only when
+   several parents pull in the vulnerable copy, and the suggestion names them.
+   If no version inside `parent`'s range is fixed, offer the lowest fixed one
+   outside it as a separate choice, saying it breaks `parent`'s declared range.
+3. **Otherwise** it's `no fix available` with the reason.
+
+Overrides go in the root `package.json` only; npm ignores them in a workspace's.
+An override is pinned without the parent's author ever having tested it, which
+is why it's last and why it's always the user's pick, never implied by picking
+the package.
 
 ## A patch is `package.json`; the lockfile comes only from a reinstall
 
@@ -130,6 +178,44 @@ changelog to get the same answer is a loop, not a retry.
 
 Re-cutting never needs re-approval. It changes how the approved bumps are sliced,
 not which ones were approved.
+
+An override suggested by the plan is a patch like any other: `package.json`,
+reinstall, validate, refactor. It's one change, so it can't split; a failure
+reverts it and reports it.
+
+## Existing overrides: tested for removal after the bumps, one at a time
+
+**Which ones.** Only overrides whose target or scoping parent is in the
+dependency subtree of the chosen packages. Every other override stays untouched
+and unmentioned: testing it would re-resolve parts of the tree the user didn't
+pick. The plan lists the ones in scope, and the user picks and excludes them
+with everything else; that pick is the approval.
+
+**When.** After every bump patch is green, never before. Removing overrides
+first means a red patch could be the bump or the missing pin, and attribution
+is the whole point of this command.
+
+**How**, for each one:
+
+1. Remove that override, reinstall.
+2. Validate (all three) and re-scan.
+3. **Drop it only when both are clean**: no finding for its package, and
+   validation green. Either failing → restore it **exactly as it was**,
+   reinstall, report `kept: <the finding | the failing check>`.
+
+Overrides aren't all security; a compatibility or dedupe pin shows up as a red
+validation, not a scan finding, which is why both have to pass.
+
+A kept override whose value now falls outside the bumped parent's declared range
+is reported as such, with an offer to recompute it by the rule above. That's a
+new change and needs its own yes.
+
+## One re-scan at the end
+
+After the last patch, `npx qoq scan --json` once more. Report each finding that
+was planned for and is still there. A suggested override whose version turns out
+to have its own advisory comes back to the user; never step it up to the next
+version unasked.
 
 ## One major step per package, per round
 

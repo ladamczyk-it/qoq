@@ -403,6 +403,40 @@ approved bumps are sliced, not which ones were approved. The cost is many more
 validate cycles than one grouped patch, which is the trade: the alternative is
 skipping fourteen good bumps because a fifteenth was bad.
 
+**Why `bump` runs `qoq scan` at all.** The CLI already sends people to `/qoq
+bump` when `scan` finds something, and before this `bump` only read the
+outdated report, so a vulnerable package with nothing newer in range never made
+the plan. `scan` stays out of `--check` because it's a network call with no
+throttle. `bump` is already on-demand, so the cost lands where someone asked
+for it.
+
+**Why the parent bump comes before an override.** A newer parent that already
+depends on the fixed version is a combination its author released and tested.
+An override forces a version under a parent that never declared it, which is
+the usual way overrides break things at runtime with nothing failing at
+install. Scoping the override to the parent and keeping it inside the parent's
+declared range limits that, but doesn't remove it, so it stays the fallback.
+
+**Why `via` carries both `direct` and `parent`.** They answer two different
+questions. `direct` is what `bump` can edit, the name in a `package.json`.
+`parent` is what a scoped override is keyed on. They're the same only one level
+down. `manifest` comes along because in a workspace the `direct` to bump is
+declared in the member's `package.json`, not the root's.
+
+**Why existing overrides are tested after the bumps, not stripped first.** An
+override nobody re-checks outlives its reason: the parent ships the fix and the
+pin keeps holding the tree back. Stripping them all up front and re-adding the
+needed ones would catch that too, but a red patch would then have two possible
+causes, the bump or the missing pin. Testing each one alone, once the bumps are
+green, keeps every failure attributable. Only those in the chosen packages'
+subtree are tested, because removing any other re-resolves a part of the tree
+the user didn't pick.
+
+**Why dropping an override needs both a clean scan and green validation.**
+Overrides aren't all security. A pin for compatibility or deduplication has no
+advisory to clear, so a clean scan alone would drop it, and the breakage would
+show up later with no obvious cause.
+
 ## `plan`
 
 **Why an external interview skill instead of `plan` asking its own questions.**

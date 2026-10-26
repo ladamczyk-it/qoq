@@ -1,6 +1,6 @@
 ---
 name: qoq
-description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped, a spec broken into tickets, an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
+description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped or known vulnerabilities in them fixed, a spec broken into tickets, an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
 argument-hint: '[fix|refactor|bump|plan|replan|execute|test|compress] [scope]'
 allowed-tools:
   - Read
@@ -87,7 +87,7 @@ nobody has to remember which one took a flag.
 | `/qoq refactor`                                | `qoq.config`'s `srcPath`                               |
 | `/qoq refactor src/modules/npm`                | those paths only                                       |
 | `/qoq refactor --decisions auto <paths>`       | unattended: apply the mechanical tier, advise the rest |
-| `/qoq bump`                                    | every outdated dependency                              |
+| `/qoq bump`                                    | every outdated or vulnerable dependency                |
 | `/qoq plan <requirements file or description>` | —                                                      |
 | `/qoq plan <requirements> --tool jira`         | also raise the tickets there; default `local`          |
 | `/qoq replan plans/<file>.md`                  | that plan only — refuses on uncommitted changes        |
