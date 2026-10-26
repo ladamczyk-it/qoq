@@ -15,6 +15,7 @@ allowed-tools:
   - Bash(npm test:*)
   - Bash(npm install:*)
   - Bash(npm ci:*)
+  - Bash(npm view:*)
   - Bash(npx qoq:*)
   - Bash(git clone:*)
   - Bash(node:*)

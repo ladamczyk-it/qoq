@@ -58,23 +58,28 @@ the run.
 ## A transitive vulnerability: the parent first, an override last
 
 `via` names each way the vulnerable package is installed: `manifest` declares
-`direct`, and `parent` requires the vulnerable package. Everything below comes
-from the two reports and `package-lock.json`; nothing else is queried. Try, in
-order:
+`direct`, and `parent` requires the vulnerable package. What's newer comes from
+`npm-report.json`; never re-query it. `npm view` is only for what the report
+can't hold: the range a given release declares. Try, in order:
 
-1. **Bump `via.direct`**, in the `manifest` that declares it, when its
-   `npm-report.json` entry has anything newer: `wanted` if it's above `current`,
-   else `latest`. A major goes to `qoq-bumper` like any other. Whether the new
-   release pulls in a fixed copy is unproven until the final re-scan, and the
-   plan says so. A finding still there at the re-scan goes to step 2 next
-   round.
-2. **Otherwise suggest an override**, and say why step 1 didn't apply (nothing
-   newer of `direct`, or a previous round's bump didn't clear it). The version
+1. **Bump `via.direct`**, in the `manifest` that declares it. A major goes to
+   `qoq-bumper` like any other.
+   - `direct` is `parent`: `npm view <direct>@"^<current>" dependencies.<package> --json`
+     lists the range each release in the current major declares. Plan the
+     lowest whose range admits `fixVersion` or above. None does → `latest` from
+     the report, if it's newer.
+   - They differ: `via` doesn't record the packages between them, so nothing
+     proves it. Plan the report's `wanted` if it's above `current`, else
+     `latest`, and say it's unproven. A finding still there at the final
+     re-scan goes to step 2 next round.
+2. **Otherwise suggest an override**, and say why step 1 didn't work (no
+   release of `direct` pulls in a fixed copy, or a previous round's bump didn't
+   clear it). The version
    is `fixVersion`, the lowest fixed one. Scope it to the parent:
    `"overrides": { "<parent>": { "<package>": "<fixVersion>" } }`. Global only
    when several parents pull in the vulnerable copy, and the suggestion names
    them. Check it against the range `parent` declares for the package, which is
-   in `parent`'s `package-lock.json` entry. If `fixVersion` falls outside that
+   already in `parent`'s `package-lock.json` entry. If `fixVersion` falls outside that
    range, offer it as a separate choice that says it breaks `parent`'s declared
    range.
 3. **Otherwise** it's `no fix available` with the reason.

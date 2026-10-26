@@ -417,12 +417,14 @@ the usual way overrides break things at runtime with nothing failing at
 install. Scoping the override to the parent and keeping it inside the parent's
 declared range limits that, but doesn't remove it, so it stays the fallback.
 
-**Why the transitive rules use no `npm view`.** Proving that a parent release
-pulls in the fixed copy needs that release's dependency ranges, and only `npm
-view` has them. `npm-report.json` already says what's newer for every direct
-dependency, the lockfile already holds each parent's declared ranges, and the
-final re-scan proves or disproves the bump anyway. One unproven round is
-cheaper than a second registry client the skill's allowed tools don't cover.
+**Why `npm view` only for declared ranges.** `npm-report.json` already has
+`current`, `wanted` and `latest` for every direct dependency, and the lockfile
+already has each installed parent's declared ranges. Asking the registry for
+either again is a second, possibly disagreeing, answer to a question already
+answered. What neither holds is the range a release that isn't installed
+declares, and that's the only thing that proves a parent bump fixes a
+transitive finding. One `npm view` over the current major answers it for every
+release at once.
 
 **Why `via` carries both `direct` and `parent`.** They answer two different
 questions. `direct` is what `bump` can edit, the name in a `package.json`.
