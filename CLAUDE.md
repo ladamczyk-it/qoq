@@ -44,6 +44,7 @@ second stale trigger blurb in every session's context.
 
 ## Monorepo Layout
 
+- `hooks/` — the plugin's Claude Code hooks module (`execute`'s progress band), loaded through the marketplace entry's `hooks`; `claude plugin test` runs its `*.test.tsx`, not vitest
 - `packages/cli` — the `qoq` CLI binary; main orchestrator
 - `packages/utils` — shared utilities
 - `packages/check-engine` — node version enforcement
