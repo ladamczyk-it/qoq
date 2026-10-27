@@ -28,8 +28,9 @@ Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 | [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                                           |
 | [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                                   |
 | [`document`](#document)                     | [document.md](../skills/qoq/references/document.md), [qoq-scribe](../skills/qoq/agents/qoq-scribe.md) |
+| [`mermaid`](#mermaid)                       | [mermaid.md](../skills/qoq/references/mermaid.md), [qoq-artist](../skills/qoq/agents/qoq-artist.md)   |
 
-**Legend, shared by all ten.** Purple = a subagent and everything it does.
+**Legend, shared by all eleven.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
 invoked from inside another.
 
@@ -397,7 +398,10 @@ flowchart TD
     end
 
     PREV --> PSAVE["save → ./plans/YYYY-MM-DD-[feature].md"]
-    PSAVE --> PAPPR(["**ASK THE USER** — approve.<br/>surfaced here: new deps *(incl. any the<br/>architect flagged)*, the model ceiling,<br/>every tier the estimator moved, and<br/>**what was skipped** — the grill,<br/>the architect, or both"])
+    PSAVE --> PDIAGQ{"diagrams on?<br/>*--diagrams, or qoq.config<br/>future.unstable_skill_diagrams*"}
+    PDIAGQ -->|"no — the default"| PAPPR
+    PDIAGQ -->|yes| PDIAG["**qoq mermaid — plan mode**<br/>*experimental*<br/>qoq-artist charts the drafted plan<br/>into its **## Diagrams** section —<br/>never a milestone, never a ticket"]
+    PDIAG --> PAPPR(["**ASK THE USER** — approve.<br/>surfaced here: new deps *(incl. any the<br/>architect flagged)*, the model ceiling,<br/>every tier the estimator moved,<br/>**what was skipped** — the grill,<br/>the architect, or both — and what<br/>the artist drew or declined"])
     PAPPR -.->|"changes"| PDEC
     PAPPR -.->|"approved"| PMARK["**Plan status: approved**<br/>+ Commands header,<br/>copied from the record"]
     PMARK --> PTOOL{"which `--tool`?"}
@@ -418,7 +422,7 @@ flowchart TD
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
 
     class PAPPR,GASK,PXOFF,PXWHERE,PXSTOP,PDASK user
-    class EG2,ERP,PHAND,GRILL skill
+    class EG2,ERP,PHAND,GRILL,PDIAG skill
     class P2 agent
 ```
 
@@ -448,12 +452,13 @@ flowchart TD
     ORPH -->|yes| ORPT(["**report the orphans at approval** — a<br/>re-decomposed ticket loses its External and<br/>the tracker item it was is now dangling.<br/>*replan never syncs: the export writes once<br/>and never syncs back, and syncing is the<br/>problem this skill refuses to own*"])
     ORPT -.-> WRITE
     ORPH -->|no| WRITE["**overwrite in place**.<br/>*the calibration store is untouched — a<br/>recorded outcome means 'this shape of work<br/>at that tier went this way', which stays<br/>true however the plan is now shaped*"]
+    WRITE --> RDIAG["**diagrams on** → qoq-artist redraws<br/>the live part's charts before approval.<br/>*charts of frozen milestones stay<br/>as they were approved*"]
 
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
 
     class RSTOP,RFIN,RFRESH,ORPT user
-    class GRILL,PH23 skill
+    class GRILL,PH23,RDIAG skill
 ```
 
 ---
@@ -541,7 +546,7 @@ flowchart TD
     ENEW --> EWAVE
     EMSUITE -->|green| EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
     EDOCQ -->|"no — the default"| EARCH
-    EDOCQ -->|yes| EDOC["**qoq document — plan mode**<br/>*experimental*<br/>qoq-scribe at sonnet over the milestone<br/>text + its ticket-commit range ·<br/>prettier · **docs(mN)** commit.<br/>*never stops the run: a question,<br/>drift or marker becomes a Docs<br/>advisory, walked through at the end*"]
+    EDOCQ -->|yes| EDOC["**qoq document — plan mode**<br/>*experimental*<br/>qoq-scribe at sonnet over the milestone<br/>text + its ticket-commit range ·<br/>**qoq-artist** on its candidates when<br/>diagrams are on too · prettier ·<br/>**docs(mN)** commit.<br/>*never stops the run: a question,<br/>drift or marker becomes a Docs<br/>advisory, walked through at the end*"]
     EDOC --> EARCH["**archive with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Completed summary, not just 'green'.<br/>milestone text to .completed.md, summary<br/>stays, downstream Context updated first"]
     EARCH --> EMS{"milestones<br/>left?"}
     EMS -->|yes| EWAVE
@@ -689,16 +694,65 @@ flowchart TD
     DMODE -->|path| DASK["ask the user"] --> DDISP
     DMODE -->|plan| DSKIP["**docs skipped** advisory ·<br/>asked at end of run · answer →<br/>plan's Docs conventions"]
 
-    DQS -->|done| DFMT["npx qoq prettier --fix<br/>*the only gate a comments-only<br/>change can trip*"]
+    DQS -->|done| DARTQ{"plan mode **and**<br/>diagrams on?"}
+    DARTQ -->|yes| DART["**qoq-artist** — docs mode, over<br/>diagram_candidates + its own<br/>charts in the scribe's files"] --> DFMT
+    DARTQ -->|no| DFMT["npx qoq prettier --fix<br/>*the only gate a comments-only<br/>change can trip*"]
     DFMT --> DMODE2{"mode"}
-    DMODE2 -->|path| DWALK["walk through markers ·<br/>readme: missing → ask.<br/>answers replace markers"] --> DSTOP(["**stop — uncommitted**"])
+    DMODE2 -->|path| DWALK["walk through markers ·<br/>readme: missing → ask.<br/>answers replace markers ·<br/>**offer** to draw diagram_candidates"] --> DSTOP(["**stop — uncommitted**"])
     DMODE2 -->|plan| DCOMMIT["commit **only** the report's files —<br/>docs(mN): name. drift + markers →<br/>**Docs advisories**"] --> DARCH(["back to execute → archive"])
 
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
     classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
 
-    class DSCRIBE agent
+    class DSCRIBE,DART agent
     class DASK,DWALK user
     class DFMT,DDEF note
+```
+
+---
+
+## `mermaid`
+
+```mermaid
+flowchart TD
+    MQ["/qoq mermaid &lt;description&gt; [--to path[#slug]]"] --> MTO{"--to?"}
+    MTO -->|none| MPRINT["target: **print**"]
+    MTO -->|path| MPATH["target: the file —<br/>created, or appended"]
+    MTO -->|"path#slug"| MSLUG{"slug in<br/>the file?"}
+    MSLUG -->|no| MSTOP(["**stop** — list the slugs<br/>it does have. never a guess,<br/>never a new heading"])
+    MSLUG -->|yes| MSEC["target: end of that section —<br/>its chart is replaced, any id"]
+    MPRINT --> MDISP
+    MPATH --> MDISP
+    MSEC --> MDISP["dispatch — **standalone mode**<br/>*ungated: typing it is the opt-in*"]
+
+    MPLAN["plan · replan — after self-review,<br/>before approval. **only with --diagrams<br/>or future.unstable_skill_diagrams**"] --> MPD["dispatch — **plan mode**<br/>the drafted plan file"]
+    MEXEC["execute's milestone gate, after the scribe —<br/>**diagrams and docs both on**<br/>· /qoq document's offer, on a yes"] --> MDD["dispatch — **docs mode**<br/>diagram_candidates + the<br/>scribe's file lists"]
+
+    MDISP --> MART
+    MPD --> MART
+    MDD --> MART
+
+    MART["**qoq-artist** at sonnet — conventions first ·<br/>pipeline default is **not to draw** ·<br/>chart type from the content's shape ·<br/>1 per heading, 3 per file · split or<br/>collapse past ~15 nodes · finds its own<br/>charts by **qoq-artist id**, never<br/>touches hand-drawn Mermaid or prose"]
+    MART --> MCHECK["node scripts/mermaid-check.mjs<br/>*mermaid.parse under jsdom, pinned,<br/>installed once into the OS temp dir*"]
+    MCHECK -->|"1 — FAIL"| MFIX{"3 attempts<br/>spent?"}
+    MFIX -->|no| MART
+    MFIX -->|yes| MDECL["remove it · **declined**<br/>with the parse error"]
+    MCHECK -->|"2 — unavailable"| MUNV["keep it, marker gains<br/>**unvalidated**"]
+    MCHECK -->|"0 — parses"| MRET
+    MDECL --> MRET
+    MUNV --> MRET["typed report — diagrams · declined ·<br/>stale_hand_drawn · printed"]
+
+    MRET --> MMODE{"mode"}
+    MMODE -->|standalone| MSHOW(["prettier if a file was written ·<br/>show it · **stop — uncommitted**"])
+    MMODE -->|plan| MAPPR(["listed at approval · **drop** → main<br/>thread deletes it · **wrong** → re-dispatch<br/>with the correction and the id"])
+    MMODE -->|docs| MDOCS(["joins the **docs(mN)** commit ·<br/>unvalidated + stale hand-drawn →<br/>**Docs advisories**"])
+
+    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
+
+    class MART agent
+    class MSTOP,MAPPR,MSHOW user
+    class MCHECK note
 ```

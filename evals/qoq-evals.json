@@ -876,6 +876,36 @@
       ],
       "target": "fixture-repo",
       "setup": "Pin vitest to 4.0.0 in package.json, then npm install."
+    },
+    {
+      "id": 44,
+      "name": "mermaid-standalone-print",
+      "prompt": "/qoq mermaid login with up to 3 password attempts, then a 15-minute lockout; a correct password at any point signs the user in, and the lockout ends on its own",
+      "expected_output": "Dispatches qoq-artist in standalone mode with target print. A lifecycle with guarded transitions, so it picks stateDiagram-v2 (a flowchart is acceptable) and says why in one sentence. It validates the chart with scripts/mermaid-check.mjs on stdin before returning, and the main thread prints the fenced block. Nothing is written to disk, nothing is committed, and no prose is produced around the chart beyond the report lines.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-artist in standalone mode rather than drawing inline",
+        "Runs `node <skill>/scripts/mermaid-check.mjs` on the chart before it is shown",
+        "Prints exactly one fenced ```mermaid block, and it parses",
+        "Chooses stateDiagram-v2 or flowchart and gives a one-sentence reason",
+        "The chart has a lockout state or node and an edge back out of it",
+        "Writes no file and makes no commit"
+      ],
+      "target": "fixture-repo"
+    },
+    {
+      "id": 45,
+      "name": "artist-declines-linear-prose",
+      "prompt": "Copy <repo>/evals/fixtures/artist to a scratch directory and git init it with one commit. Then dispatch qoq-artist directly (not through the skill), with: mode: docs. Skill path: <repo>/skills/qoq. diagram_candidates: [{doc: docs/release.md, section: Publishing, why: release pipeline}]. Scribe files_written: []. Scribe files_changed: [docs/release.md].",
+      "expected_output": "The only candidate is a two-step linear process the paragraph already states in full, with no branch, state or interaction. The artist declines it with a one-line reason, writes no chart, and returns status: done with files_changed empty and the decline listed. docs/release.md is byte-identical.",
+      "files": ["evals/fixtures/artist/docs/release.md"],
+      "assertions": [
+        "Returns status: done with `declined` naming docs/release.md#publishing and a reason",
+        "`diagrams` is empty and `files_changed` is empty",
+        "docs/release.md is byte-identical (git diff is empty)",
+        "Never edits the prose of docs/release.md"
+      ],
+      "target": "agent"
     }
   ]
 }

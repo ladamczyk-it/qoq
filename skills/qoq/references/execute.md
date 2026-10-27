@@ -358,7 +358,8 @@ Red → write the failure up as a new ticket: sized, rated, dispatched like any
 other. Don't patch it on this thread; the lead doesn't implement.
 
 Green → **document**, when docs are on (Setup), then **archive**. `qoq-scribe`
-runs in plan mode over the milestone — [document.md](document.md) owns how — and
+runs in plan mode over the milestone — [document.md](document.md) owns how,
+followed by `qoq-artist` when diagrams are on too ([mermaid.md](mermaid.md)) — and
 its `docs(m<N>)` commit lands before the text moves, because the milestone text
 is its input. Docs off → straight to archive, no Docs advisories line. It never
 stops the run: a question or a finding becomes a **Docs advisory** in the
@@ -391,6 +392,9 @@ invoked with `--docs`, or when the project's `qoq.config.*` sets
 `future: { unstable_skill_docs: true }` — one Grep for
 `unstable_skill_docs\s*:\s*true` over the config file, read as source text and
 never evaluated. Decide it once here and say which in the run's opening line.
+**Diagrams** are the same kind of switch — `--diagrams`, or
+`future.unstable_skill_diagrams: true` — and need docs on to do anything
+([mermaid.md](mermaid.md)).
 
 Commands come from the record. The plan's **Commands** header is a convenience
 copy for a session that has one and not the other — there's no `package.json`

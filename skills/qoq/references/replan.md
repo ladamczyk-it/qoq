@@ -88,6 +88,12 @@ approval beat so the user can close them by hand.
 the skill's position everywhere, and syncing is the entire problem it deliberately
 refuses to own. Reporting the orphans is the whole of the obligation.
 
+## Diagrams, when switched on
+
+The same pre-approval `qoq-artist` dispatch as `plan`, under the same switch
+([mermaid.md](mermaid.md)). It redraws charts of the live part only; charts of
+frozen milestones stay as they were approved.
+
 ## Calibration is untouched
 
 Do nothing to `.claude/qoq-estimator.json`. A recorded outcome means "this shape

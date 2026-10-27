@@ -38,8 +38,9 @@ root, like any other repo.
    `readme: missing` (ask whether to create a README holding only a title and
    `## Contents`). For a marker the user explains, replace the marker with their
    explanation, worded as a comment — no re-dispatch. Unanswered markers stay.
-5. **Stop.** Changes stay in the working tree for the user to review. Mention
-   `diagram_candidates` in one line, and any file prettier changed outside the
+5. **Stop.** Changes stay in the working tree for the user to review. Non-empty
+   `diagram_candidates` → offer to draw them ([mermaid.md](mermaid.md)); mention
+   any file prettier changed outside the
    scribe's lists.
 
 ## Plan mode — from `execute`'s milestone gate
@@ -62,8 +63,10 @@ here stops the run.
    the milestone's **Docs advisories**, archive, carry on. The question goes to
    the user at the end of the run, and the answer becomes the plan header's
    `**Docs conventions:**` line, passed to every later dispatch.
-3. **`npx qoq prettier --fix`.**
-4. **Commit** exactly `files_written` + `files_changed` — never `git add -A`,
+3. **Diagrams on** → `qoq-artist` in docs mode ([mermaid.md](mermaid.md)).
+   Then **`npx qoq prettier --fix`.**
+4. **Commit** exactly `files_written` + `files_changed`, plus the artist's
+   `files_changed` — never `git add -A`,
    because prettier formats the whole repo. Message
    `docs(m<N>): <milestone name>`, with the run's usual trailer. A file prettier
    changed outside those lists is a report line, not part of the commit.

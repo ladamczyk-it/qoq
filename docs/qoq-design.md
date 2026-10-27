@@ -26,6 +26,7 @@ note — it reads as current and nothing contradicts it.
 | [`execute`](#execute)                         | `references/execute.md`          |
 | [`test`](#test)                               | `references/test.md`             |
 | [`document`](#document)                       | `references/document.md`         |
+| [`mermaid`](#mermaid)                         | `references/mermaid.md`          |
 | [Code conventions](#code-conventions)         | `references/code-conventions.md` |
 
 ## The discovery record
@@ -873,9 +874,10 @@ bug or a better decision, and only the user knows which. Writing it into `docs/`
 would make the docs carry an argument the user hadn't had yet, and would outlive
 whichever way it went.
 
-**Why diagram candidates live in the report.** `qoq-artist` doesn't exist yet. A
-marker in the docs would pile up with nobody to consume it; a report field costs
-nothing until something reads it.
+**Why diagram candidates live in the report.** A marker in the docs would be
+something the scribe writes and a second agent deletes, and it would outlive the
+run whenever diagrams are off. A report field costs nothing until `qoq-artist`
+reads it, and nothing at all when it doesn't run.
 
 **Why opt-in inside `execute`.** It's experimental: the scribe's judgement about
 what deserves a comment hasn't been tested across many codebases yet, and
@@ -889,6 +891,66 @@ opt-in.
 **Monorepos are a pilot limit.** One root `docs/` and one `Contents`, like any
 repo. Per-package docs are a real design question — where a cross-package
 workflow lives — that waits for a project that needs it.
+
+## `mermaid`
+
+**Why the default is not to draw.** A chart that restates its paragraph is a
+second copy of it that the reader has to check against the first, and the first
+copy is the one that gets updated. The artist earns its place on structure prose
+handles badly — a branch, a lifecycle, five components over time — and a
+pipeline run that declines everything has done its job. Standalone is the
+opposite because a person asked for the picture.
+
+**Why sonnet, pinned.** Deciding whether to draw and which chart fits is
+judgement, but it's judgement over prose that's already structured — a plan or a
+scribe doc — not archaeology. Emitting valid syntax is the mechanical half, and
+the validator owns it, so the tier doesn't have to. Splitting the two across a
+strong and a cheap agent would cost two dispatches per chart to save on the
+cheaper half.
+
+**Why the validator is a skill script, not a CLI command.** The qoq CLI
+orchestrates linters over a codebase; Mermaid is a concern of one skill command.
+A CLI dependency on mermaid and jsdom would be downloaded by every qoq user,
+diagrams or not. The script installs a pinned pair once per machine into the OS
+temp dir — `npm install`, because the skill's hook blocks every `npx` but qoq —
+and runs offline after. `mermaid.parse()` is GitHub's grammar without the
+browser; the CLI renderer would add a headless Chromium for layout fidelity
+nobody needs to know a chart renders. What parse-only misses — a label starting
+with a backtick parses and then breaks GitHub's render — is in the agent's list
+of traps.
+
+**Why an unvalidated chart is still written.** Exit 2 means the validator
+couldn't be installed, not that the chart is wrong, and a machine offline on its
+first run would otherwise never get a chart. The marker says `unvalidated`, the
+report says so, and the next run that can validate clears it. A chart that
+_failed_ to parse is never written.
+
+**Why an id marker, and never a hand-drawn chart.** A rerun has to find its own
+chart to replace it, or every run appends a duplicate. The marker is that handle,
+and it's also the only way a fresh-context agent can tell its chart from a
+person's. A person's chart encodes a choice the artist can't see, so it's read
+for style and reported when stale, never edited — the same line the scribe draws
+around hand-written docs.
+
+**Why a budget.** One chart per heading, three per file. Without a cap a long
+doc gets a chart per section, and a page of charts is read like a page of text:
+not at all. The cap forces the choice the restraint rule asks for.
+
+**Why plan charts sit above the milestones and freeze.** `execute` passes
+milestone text into every developer dispatch; a chart there is paid for in each
+one and acted on by none. Above the milestones it's read once, at approval,
+where the user approves the shape along with the text. It then records what was
+approved; the docs charts drawn after each milestone record what was delivered,
+and the difference is information `replan` uses rather than noise `execute`
+should erase.
+
+**Why one switch, and why execute also needs docs.** `--diagrams` and
+`future.unstable_skill_diagrams` turn on every pipeline call site — the same
+experimental, opt-in reasoning as docs. In `execute` the artist's input is the
+scribe's report, so diagrams without docs has nothing to draw from; it says so
+in the opening line rather than asking, because nothing breaks. `/qoq document`
+only offers: path mode is attended, and a chart the user didn't ask for is a
+second review they didn't sign up for.
 
 ## Code conventions
 

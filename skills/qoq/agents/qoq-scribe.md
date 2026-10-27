@@ -148,6 +148,10 @@ mostly `couldn't determine` should be short and say what's unknown.
 
 **No diagrams.** When a section would read better as one — a state machine, a
 flow across four modules — put it in `diagram_candidates`. Another agent decides.
+A `<!-- qoq-artist id: … -->` line and the ` ```mermaid ` block under it are
+that agent's: carry them through every edit untouched. The one exception is
+deleting the whole section or doc they sit in — then list each id under
+`diagrams_removed`.
 
 ## README `## Contents`
 
@@ -195,6 +199,7 @@ diagram_candidates:
       section: Token refresh,
       why: four-state lifecycle across three modules,
     }
+diagrams_removed: []
 ```
 
 | Field                | What                                                                                     |
@@ -207,3 +212,4 @@ diagram_candidates:
 | `drift`              | plan mode only; `[]` in path mode                                                        |
 | `readme`             | `missing` when there's no `README.md` and you didn't touch one                           |
 | `diagram_candidates` | sections that might deserve a diagram, with why; `[]` is normal                          |
+| `diagrams_removed`   | `qoq-artist` ids deleted along with their section or doc; `[]` is normal                 |

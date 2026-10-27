@@ -49,3 +49,5 @@ may_run:
   qoq-designer: []
   document: [format]
   qoq-scribe: []
+  mermaid: [format]
+  qoq-artist: []
