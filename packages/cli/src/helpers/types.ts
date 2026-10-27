@@ -32,6 +32,14 @@ export interface QoqConfig {
     unstable_skill_docs?: boolean;
     // `qoq bump` plans from `qoq scan` too, not just the outdated report.
     unstable_skill_bump_with_scan?: boolean;
+    // `qoq plan`/`replan` chart the plan before approval, and `qoq execute` charts
+    // the scribe's docs when docs are on too — through qoq-artist.
+    unstable_skill_diagrams?: boolean;
+    // `qoq plan --tool <tracker>` may raise the approved plan in that tracker. The
+    // flag alone is refused: only `local` is tested.
+    unstable_skill_plan_jira?: boolean;
+    unstable_skill_plan_linear?: boolean;
+    unstable_skill_plan_trello?: boolean;
   };
   npm?: IModuleNpmConfig;
   scan?: IScanConfig;

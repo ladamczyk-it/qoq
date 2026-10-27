@@ -7,6 +7,8 @@ General settings:
 - `future` – opt-ins for experimental features, all off by default. The CLI reads none of them; the `qoq` skill does.
   - `unstable_skill_docs` – set to `true` to have `/qoq execute` document every delivered milestone (JSDoc, `./docs`, README `Contents`), as if it were run with `--docs`.
   - `unstable_skill_bump_with_scan` – set to `true` to have `/qoq bump` also plan fixes for known vulnerabilities from `qoq scan`, as if it were run with `--scan`.
+  - `unstable_skill_diagrams` – set to `true` to have `qoq-artist` draw validated Mermaid charts: into the plan before approval in `/qoq plan` and `/qoq replan`, and into each milestone's docs in `/qoq execute` when docs are on too, as if run with `--diagrams`. Standalone `/qoq mermaid` needs no switch.
+  - `unstable_skill_plan_jira`, `unstable_skill_plan_linear`, `unstable_skill_plan_trello` – set to `true` to allow `/qoq plan --tool jira|linear|trello` to raise the approved plan in that tracker. Unlike the others, the flag alone is not enough: without the matching switch the run stops before it starts, because only `local` is tested.
 - `configPaths` via:
 
 ```js
