@@ -47,7 +47,7 @@
     "@ladamczyk/qoq-eslint-v9-js": "^6.5.0",
     "@ladamczyk/qoq-utils": "^6.5.0",
     "eslint-import-resolver-typescript": "4.4.5",
-    "typescript-eslint": "8.72.0"
+    "typescript-eslint": "8.72.1"
   },
   "devDependencies": {
     "rimraf": "6.1.3",
