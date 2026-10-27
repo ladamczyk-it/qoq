@@ -94,7 +94,7 @@ not a path.
 | `/qoq bump`                                    | every outdated dependency                              |
 | `/qoq bump --scan`                             | also vulnerable ones, via `qoq scan` — experimental    |
 | `/qoq plan <requirements file or description>` | —                                                      |
-| `/qoq plan <requirements> --tool jira`         | also raise the tickets there; default `local`          |
+| `/qoq plan <requirements> --tool jira`         | also raise the tickets there — experimental            |
 | `/qoq plan <requirements> --diagrams`          | also chart the plan before approval — experimental     |
 | `/qoq replan plans/<file>.md`                  | that plan only — refuses on uncommitted changes        |
 | `/qoq execute [plans/<file>.md]`               | omitted → ask, unless exactly one plan is approved     |
@@ -127,7 +127,9 @@ for `bump`'s experimental vulnerability scan, and
 
 `--tool` and `--source` are the two ends of the same road, and both default to
 `local`. `--tool` is `plan`'s: `jira`, `linear` or `trello` offer to raise the
-approved tickets there. `--source` is `execute`'s: those same three values ask
+approved tickets there — experimental, so each needs its
+`future.unstable_skill_plan_<tool>: true` in `qoq.config` as well
+([references/plan.md](references/plan.md)). `--source` is `execute`'s: those same three values ask
 which milestone to run, import it into a plan file, and then execute that file
 like any other. Neither makes a tracker authoritative — the plan file is the
 state in both directions ([references/export.md](references/export.md)).

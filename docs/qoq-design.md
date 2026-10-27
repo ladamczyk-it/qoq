@@ -574,6 +574,14 @@ after an approval, so it lives where the approval is. If it ever grows a
 re-export-the-changed-ones mode, that's the point to reconsider — the
 **External** field already makes it re-runnable.
 
+**Why the trackers are experimental, and switched per project.** Only `local`
+has evals behind it; the Jira, Linear and Trello paths run against MCP servers
+nobody here has exercised end to end, and they write to people's real trackers.
+So each needs `future.unstable_skill_plan_<tool>: true` in `qoq.config` — a
+project's decision, checked in — and the `--tool` flag alone is never enough.
+It's checked before the grill, not at the export beat: a stop after approval
+would spend a whole planning session to find out.
+
 **Why the export is offered rather than folded into approval.** Approving a plan
 and publishing it into a team's tracker are two different acts with two different
 blast radii: one writes a file this repo owns, the other notifies real people and

@@ -352,6 +352,16 @@ and the veto.
 and tickets in that tool. Any other value is a typo rather than a fourth tool —
 ask, don't map it to the nearest one.
 
+**The three trackers are experimental; only `local` is tested.** Each is on only
+when the project's `qoq.config.*` sets its own switch —
+`future: { unstable_skill_plan_jira: true }`, `…_linear`, `…_trello` — one Grep
+for `unstable_skill_plan_<tool>\s*:\s*true`, read as source text and never
+evaluated. Check it **before Phase 1**: switch off is a one-line stop that names
+the switch, with nothing grilled and nothing written, because finding out after
+approval would throw away the whole session. The flag alone never turns it on —
+an untested write into a team's tracker is a per-project decision, not a
+per-run one.
+
 **The plan file is the source of truth in every mode.** `qoq execute` runs off
 `./plans/*.md` and nothing else — even `--source jira`, which imports a
 milestone into one first. So the export is a projection for the people who live

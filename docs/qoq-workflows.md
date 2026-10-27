@@ -343,7 +343,9 @@ flowchart TD
 ```mermaid
 flowchart TD
     REQ["requirements — spec, PRD,<br/>or a rough description<br/>*(read the file itself, never a paraphrase)*"]
-    REQ --> EXIST{"already a plan<br/>under ./plans/?"}
+    REQ --> PTGATE{"--tool jira · linear · trello<br/>**without** its qoq.config<br/>future.unstable_skill_plan_&lt;tool&gt;?"}
+    PTGATE -->|"yes — experimental, off"| PTOFF(["**stop** — name the switch.<br/>*nothing grilled, nothing written:<br/>after approval it would cost<br/>the whole session*"])
+    PTGATE -->|"no — local, or switched on"| EXIST{"already a plan<br/>under ./plans/?"}
     EXIST -->|"yes — resume / execute"| EG2["hand to **qoq execute**<br/>*(not this command's job)*"]
     EXIST -->|"yes — but the shape is wrong"| ERP["hand to **qoq replan**<br/>*(delivered work stays frozen)*"]
     EXIST -->|no| SMALL
@@ -421,7 +423,7 @@ flowchart TD
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
 
-    class PAPPR,GASK,PXOFF,PXWHERE,PXSTOP,PDASK user
+    class PAPPR,GASK,PXOFF,PXWHERE,PXSTOP,PDASK,PTOFF user
     class EG2,ERP,PHAND,GRILL,PDIAG skill
     class P2 agent
 ```
