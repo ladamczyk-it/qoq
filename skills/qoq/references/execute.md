@@ -96,8 +96,9 @@ Every dispatch carries, verbatim:
 - the **milestone's `Contracts`**, verbatim — the shape its specs assert against.
   `none` is a normal value and is worth passing as such.
 - the **record's path**, so the agent reads it rather than trusting a pasted copy
-- the **path to `references/test-conventions.md`** in this skill — a subagent has
-  no way to work out where the skill lives
+- the **paths to `references/test-conventions.md` and
+  `references/code-conventions.md`** in this skill — a subagent has no way to
+  work out where the skill lives
 - the **model** for the ticket's tier, passed explicitly
 - the three-attempt budget, with explicit permission to hand the ticket back
   rather than narrow it
@@ -192,6 +193,11 @@ work — the project's `test:one` and `build`, then the CLI's `scoped` form over
 the files it touched — and hands back that list. A `FAIL` or a `REJECTED`
 re-dispatches it, and the commit happens here after both gates pass, so nothing
 reaches history unproven.
+
+**The commit body quotes every `comments_removed` entry** — location, the
+comment verbatim, the reason. A comment that predates the ticket may be the only
+record of a decision ([code-conventions.md](code-conventions.md)); once it leaves
+the code, the commit is the only place left that holds it.
 
 ### The commit passes `--no-verify` — and so does any push
 
@@ -351,7 +357,14 @@ write.
 Red → write the failure up as a new ticket: sized, rated, dispatched like any
 other. Don't patch it on this thread; the lead doesn't implement.
 
-Green → **archive**. Move the milestone's full text to
+Green → **document**, when docs are on (Setup), then **archive**. `qoq-scribe`
+runs in plan mode over the milestone — [document.md](document.md) owns how — and
+its `docs(m<N>)` commit lands before the text moves, because the milestone text
+is its input. Docs off → straight to archive, no Docs advisories line. It never
+stops the run: a question or a finding becomes a **Docs advisory** in the
+summary, walked through with the user at the end of the run.
+
+Then **archive**. Move the milestone's full text to
 `<plan-name>.completed.md`, leave the summary block under `## Completed`, and
 update downstream tickets' **Context** with anything this milestone established
 — _before_ the text moves, while it's still in front of you. Gate advisories go
@@ -372,6 +385,12 @@ file's body pasted in — for the developer, with the tier passed explicitly, si
 the rating the plan made; for the reviewer, with its read-only prohibition
 restated, since `general-purpose` gets every tool and would arrive holding the
 ability to fix what it was dispatched to report.
+
+**Docs are experimental and off by default.** They're on only when the run was
+invoked with `--docs`, or when the project's `qoq.config.*` sets
+`future: { unstable_skill_docs: true }` — one Grep for
+`unstable_skill_docs\s*:\s*true` over the config file, read as source text and
+never evaluated. Decide it once here and say which in the run's opening line.
 
 Commands come from the record. The plan's **Commands** header is a convenience
 copy for a session that has one and not the other — there's no `package.json`

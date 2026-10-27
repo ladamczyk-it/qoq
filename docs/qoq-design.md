@@ -15,16 +15,18 @@ argument about a decision that has already been made.
 here.** A design note describing a rule that no longer exists is worse than no
 note — it reads as current and nothing contradicts it.
 
-| Topic                                         | Spec                      |
-| --------------------------------------------- | ------------------------- |
-| [The discovery record](#the-discovery-record) | `references/discovery.md` |
-| [`fix`](#fix)                                 | `references/fix.md`       |
-| [`refactor`](#refactor)                       | `references/refactor.md`  |
-| [`bump`](#bump)                               | `references/bump.md`      |
-| [`plan`](#plan)                               | `references/plan.md`      |
-| [`replan`](#replan)                           | `references/replan.md`    |
-| [`execute`](#execute)                         | `references/execute.md`   |
-| [`test`](#test)                               | `references/test.md`      |
+| Topic                                         | Spec                             |
+| --------------------------------------------- | -------------------------------- |
+| [The discovery record](#the-discovery-record) | `references/discovery.md`        |
+| [`fix`](#fix)                                 | `references/fix.md`              |
+| [`refactor`](#refactor)                       | `references/refactor.md`         |
+| [`bump`](#bump)                               | `references/bump.md`             |
+| [`plan`](#plan)                               | `references/plan.md`             |
+| [`replan`](#replan)                           | `references/replan.md`           |
+| [`execute`](#execute)                         | `references/execute.md`          |
+| [`test`](#test)                               | `references/test.md`             |
+| [`document`](#document)                       | `references/document.md`         |
+| [Code conventions](#code-conventions)         | `references/code-conventions.md` |
 
 ## The discovery record
 
@@ -841,3 +843,71 @@ discipline.
 **Why N slices means N full-suite runs.** Each slice ends with a run whose whole
 purpose is attribution. It's the same trade `bump` makes one patch at a time,
 for the same reason: a check that can't say which change broke it isn't a check.
+
+## `document`
+
+**Why the tier follows the mode.** Plan mode is handed the intent — the
+milestone text says why — so its work is translation and sonnet does it. Path
+mode is archaeology on code nobody explained, and an inference error there is a
+confident wrong reason written into the repo, where the next reader has no cause
+to doubt it. Same agent, same contract, different difficulty; the caller knows
+which, so the caller passes it — the `qoq-developer` mechanism, not a pin.
+
+**Why after the milestone gate and before archive.** Docs written before the
+gate describe code the gate may still change. After archive, the milestone text
+— the scribe's whole source of intent — has moved out of the plan. The gap
+between them is the one moment both the final code and the plan are in hand.
+
+**Why only prettier, not `qoq fix`.** The scribe adds comments and Markdown and
+nothing else. The only tool that has an opinion about either is prettier, which
+reflows JSDoc; a full fix loop would spend a checker dispatch to rediscover that.
+
+**Why the ownership marker names its sources.** A fresh-context scribe can't
+tell its docs from a human's, nor which code a doc describes — and "touch only
+docs whose source changed" needs both. One first-line comment answers both and
+stays greppable. Hand-written docs are listed in Contents but never edited: the
+scribe may read them, and that's all.
+
+**Why drift is report-only.** A delivery that diverged from the plan is either a
+bug or a better decision, and only the user knows which. Writing it into `docs/`
+would make the docs carry an argument the user hadn't had yet, and would outlive
+whichever way it went.
+
+**Why diagram candidates live in the report.** `qoq-artist` doesn't exist yet. A
+marker in the docs would pile up with nobody to consume it; a report field costs
+nothing until something reads it.
+
+**Why opt-in inside `execute`.** It's experimental: the scribe's judgement about
+what deserves a comment hasn't been tested across many codebases yet, and
+`execute` runs unattended, committing what it writes. A bad comment that lands
+nine milestones deep is expensive to find. So the step is off unless someone
+asked for it: `--docs` for one run, `future.unstable_skill_docs` in `qoq.config`
+for a project that has decided. The `unstable_` prefix says the contract can still
+change. Standalone `/qoq document` needs no switch, because typing it is the
+opt-in.
+
+**Monorepos are a pilot limit.** One root `docs/` and one `Contents`, like any
+repo. Per-package docs are a real design question — where a cross-package
+workflow lives — that waits for a project that needs it.
+
+## Code conventions
+
+**Why names, not comments, carry the what.** A comment that restates the code is
+a second copy of it, and only one of the two copies gets updated. A name is the
+one copy that the compiler, the reviewer and every call site see. So the skill
+pushes meaning into names, and `qoq-scribe` is left with what only prose can
+hold: decisions, edge cases, constraints. That's also why the scribe's docs can
+stay short.
+
+**Why the principle and not a rulebook.** Casing, allowed abbreviations and name
+length are mechanics, and mechanics belong to ESLint, where they're checked on
+every run instead of re-read by every agent. The skill states the intent and lets
+the project's config own the details.
+
+**Why an old comment is evidence.** The commit, ticket or conversation that
+explains a decision is often gone by the time someone reads the code, and the
+comment is what's left. Every deletion pass — a developer's tidy,
+`ponytail-review`'s whole job, a compress instinct — sees it as clutter. So
+removal needs a reason that holds on its own (false, or now carried by a name,
+type or test), the text is quoted into the commit body so history keeps it, and
+nobody removes one unattended.

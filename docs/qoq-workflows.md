@@ -16,19 +16,20 @@ in the reference file too.
 Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 — also outside the skill, and for the same reason these diagrams are.
 
-| Diagram                                     | Prose it reflects                                                                        |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| [Entry and discovery](#entry-and-discovery) | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)   |
-| [`fix`](#fix)                               | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml) |
-| [`refactor`](#refactor)                     | [refactor.md](../skills/qoq/references/refactor.md)                                      |
-| [`bump`](#bump)                             | [bump.md](../skills/qoq/references/bump.md)                                              |
-| [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                              |
-| [`replan`](#replan)                         | [replan.md](../skills/qoq/references/replan.md)                                          |
-| [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                        |
-| [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                              |
-| [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                      |
+| Diagram                                     | Prose it reflects                                                                                     |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| [Entry and discovery](#entry-and-discovery) | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)                |
+| [`fix`](#fix)                               | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml)              |
+| [`refactor`](#refactor)                     | [refactor.md](../skills/qoq/references/refactor.md)                                                   |
+| [`bump`](#bump)                             | [bump.md](../skills/qoq/references/bump.md)                                                           |
+| [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                                           |
+| [`replan`](#replan)                         | [replan.md](../skills/qoq/references/replan.md)                                                       |
+| [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                                     |
+| [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                                           |
+| [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                                   |
+| [`document`](#document)                     | [document.md](../skills/qoq/references/document.md), [qoq-scribe](../skills/qoq/agents/qoq-scribe.md) |
 
-**Legend, shared by all nine.** Purple = a subagent and everything it does.
+**Legend, shared by all ten.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
 invoked from inside another.
 
@@ -233,7 +234,8 @@ flowchart TD
     DREAD -.-> AQ
     ASSESS --> AQ{"findings?"}
     AQ -->|none| NEXT
-    AQ -->|yes| APPR(["**ASK THE USER**<br/>apply these?"])
+    AQ -->|yes| ACC["**through code-conventions.md first** —<br/>ponytail's deletions included. a comment<br/>older than the run goes only if false or now<br/>carried by a name/type/test, quoted verbatim<br/>with why. *under --decisions auto it is<br/>never removed — an advisory*"]
+    ACC --> APPR(["**ASK THE USER**<br/>apply these?"])
     APPR -.->|no| NEXT
     APPR -.->|yes| APPLY["apply the fixes"]
     APPLY --> REGREEN["dispatch **qoq fix**<br/>re-green before the next one"]
@@ -490,14 +492,14 @@ flowchart TD
     EUSE -->|"exit 1 — limit reached"| EPERM(["**ASK THE USER**<br/>dispatch anyway? a yes disarms<br/>the gate for the rest of the run —<br/>the number only climbs"])
     EPERM -->|yes| EDISP
     EPERM -->|no| EPAUSE(["**pause, not blocked** — ticket status<br/>untouched, **no estimate filed**<br/>*(nothing was dispatched to grade)*.<br/>qoq execute [plan] resumes it"])
-    EDISP["dispatch **one qoq-developer** — model = the<br/>ticket's tier. carries **verbatim**: id · Context ·<br/>Files · Acceptance criteria · **the milestone's<br/>Contracts** · the record's path ·<br/>test-conventions.md's path.<br/>*not the Scenarios — journey-level context<br/>a single ticket cannot act on*"]
+    EDISP["dispatch **one qoq-developer** — model = the<br/>ticket's tier. carries **verbatim**: id · Context ·<br/>Files · Acceptance criteria · **the milestone's<br/>Contracts** · the record's path ·<br/>test-conventions.md and<br/>code-conventions.md paths.<br/>*not the Scenarios — journey-level context<br/>a single ticket cannot act on*"]
 
     subgraph EDEV["qoq-developer — red · green · refactor"]
         direction TB
         T0["**read the record** — runner · globals ·<br/>React? · conventions file · commands ·<br/>how to invoke qoq. *first move*"]
         T0 --> T1["**RED** — transcribe **every** criterion into<br/>an assertion **against the Contract**, in the<br/>project's dialect. **one run**: each must<br/>fail, and for the right reason.<br/>*the runner names every failing test — that<br/>is the isolation a per-criterion cycle<br/>would have bought. the reviewer cannot run<br/>anything, so this is the empirical half*"]
         T1 --> T2["**GREEN** — one criterion at a time, the<br/>minimum that turns that one assertion.<br/>*re-run a single one when you want to<br/>check it — permitted, never required*"]
-        T2 --> TREF["**REFACTOR** — tidy inside the ticket's own<br/>**Files**, while green, no interface change,<br/>re-run after. *not the milestone refactor*"]
+        T2 --> TREF["**REFACTOR** — tidy inside the ticket's own<br/>**Files**, while green, no interface change,<br/>re-run after. *not the milestone refactor*<br/>a name that needs a comment gets renamed.<br/>**a comment older than the ticket goes only<br/>if false or now carried by a name/type/test —<br/>listed verbatim in comments_removed**"]
         TREF --> TADD["may **add** cases per test-conventions.md.<br/>**never change what a green assertion<br/>expects on your own judgment** — that is a<br/>hand-back with the criterion quoted.<br/>*a Gate 2 rejection is the one exception,<br/>and only for the assertions it cites*"]
         TADD --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`, then<br/>`npx qoq staged --skip-knip` over its files<br/>*scoped and report-less: the<br/>digest and the gate stay<br/>with the caller*"]
         T4 -->|"red, budget left"| T2
@@ -513,14 +515,14 @@ flowchart TD
     EGATE -->|FAIL| EATT
     EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the developer's `specs`.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
     EGATE2 -->|"REJECTED — file:line per defect"| EATT
-    EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files,<br/>**`--no-verify`**.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof its tests<br/>are real — the gates just ran, scoped, and a<br/>pre-commit hook would re-run them plus the<br/>knip that gate 1 dropped on purpose*"]
+    EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files,<br/>**`--no-verify`**. the body quotes every<br/>comments_removed entry verbatim + why.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof its tests<br/>are real — the gates just ran, scoped, and a<br/>pre-commit hook would re-run them plus the<br/>knip that gate 1 dropped on purpose*"]
 
     EATT{"**3 attempts spent?**<br/>*shared across BOTH gates —<br/>an attempt is an attempt*"}
     EATT -->|"no — re-dispatch with the<br/>digest or the verdict **verbatim**<br/>+ the last return whole"| EDISP
     EATT -->|yes| EESC
-    THAND -->|"`blocker_kind: plan`"| EPLAN(["**ASK THE USER** — `blocker` verbatim.<br/>ticket stays in-progress; edit the plan<br/>only with the answer, then re-dispatch<br/>at its own tier, fresh budget<br/>*no tier may change the ticket*"])
+    THAND -->|"on `blocker_kind: plan`"| EPLAN(["**ASK THE USER** — `blocker` verbatim.<br/>ticket stays in-progress; edit the plan<br/>only with the answer, then re-dispatch<br/>at its own tier, fresh budget<br/>*no tier may change the ticket*"])
     EPLAN -.-> EDISP
-    THAND -->|"`blocker_kind: model`<br/>or no block"| EESC{"a tier<br/>above?"}
+    THAND -->|"on `blocker_kind: model`<br/>or no block"| EESC{"a tier<br/>above?"}
     EESC -->|"yes — re-dispatch with the last<br/>return whole, `blocker` verbatim"| EDISP
     EESC -->|"no — top rung already"| EBLOCK(["**Status: blocked** — bring the<br/>user the report: bad ticket,<br/>or session model too small"])
 
@@ -537,10 +539,14 @@ flowchart TD
     EMGATE --> EMSUITE["**milestone 2 — the project's<br/>full build + full test suite**"]
     EMSUITE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
     ENEW --> EWAVE
-    EMSUITE -->|green| EARCH["**archive with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Completed summary, not just 'green'.<br/>milestone text to .completed.md, summary<br/>stays, downstream Context updated first"]
+    EMSUITE -->|green| EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
+    EDOCQ -->|"no — the default"| EARCH
+    EDOCQ -->|yes| EDOC["**qoq document — plan mode**<br/>*experimental*<br/>qoq-scribe at sonnet over the milestone<br/>text + its ticket-commit range ·<br/>prettier · **docs(mN)** commit.<br/>*never stops the run: a question,<br/>drift or marker becomes a Docs<br/>advisory, walked through at the end*"]
+    EDOC --> EARCH["**archive with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Completed summary, not just 'green'.<br/>milestone text to .completed.md, summary<br/>stays, downstream Context updated first"]
     EARCH --> EMS{"milestones<br/>left?"}
     EMS -->|yes| EWAVE
-    EMS -->|no| EFIN(["**done** — plan delivered"])
+    EMS -->|no| EDWALK["**walk the user through every<br/>milestone's Docs advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
+    EDWALK --> EFIN(["**done** — plan delivered"])
 
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
@@ -548,8 +554,8 @@ flowchart TD
     classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
 
     class EDEV,EGATE2 agent
-    class EASK,EPERM,EIMP,ECASK user
-    class EBACK,EMGATE,EGATE skill
+    class EASK,EPERM,EIMP,ECASK,EDWALK user
+    class EBACK,EMGATE,EGATE,EDOC skill
     class CONTRA note
 ```
 
@@ -658,3 +664,41 @@ flowchart TD
 **No purple on this one.** `compress` dispatches nothing — it is judgement about
 meaning applied to one file at a time, and two agents rewriting sibling docs are
 how the same fact ends up disagreeing with itself in two places.
+
+---
+
+## `document`
+
+```mermaid
+flowchart TD
+    DQ["/qoq document [paths]"] --> DSCOPE{"paths<br/>given?"}
+    DSCOPE -->|yes| DLIST["those paths"]
+    DSCOPE -->|no| DDEF["git diff --name-only &lt;merge-base&gt;<br/>*empty → one-line stop*"]
+    DDEF --> DLIST
+    DLIST --> DDISP
+
+    DEXEC["execute's milestone gate, green —<br/>**only with --docs or<br/>future.unstable_skill_docs: true**"] --> DDISPP["dispatch at **sonnet** — plan mode<br/>milestone text · ticket-commit range ·<br/>Docs conventions line"]
+
+    DDISP["dispatch at the **session's** model —<br/>path mode. *inference on code<br/>nobody explained*"] --> DSCRIBE
+    DDISPP --> DSCRIBE
+
+    DSCRIBE["**qoq-scribe** — conventions first ·<br/>JSDoc on exported + non-trivial only,<br/>no types in TS · owned docs carry<br/>**qoq-scribe sources:** · Source line per<br/>section · README **Contents** last ·<br/>**@todo qoq-scribe:** where purpose is unknown.<br/>*comments only — never behaviour,<br/>never refactor advice, never diagrams*"]
+    DSCRIBE --> DQS{"status"}
+
+    DQS -->|"question — wrote nothing"| DMODE{"mode"}
+    DMODE -->|path| DASK["ask the user"] --> DDISP
+    DMODE -->|plan| DSKIP["**docs skipped** advisory ·<br/>asked at end of run · answer →<br/>plan's Docs conventions"]
+
+    DQS -->|done| DFMT["npx qoq prettier --fix<br/>*the only gate a comments-only<br/>change can trip*"]
+    DFMT --> DMODE2{"mode"}
+    DMODE2 -->|path| DWALK["walk through markers ·<br/>readme: missing → ask.<br/>answers replace markers"] --> DSTOP(["**stop — uncommitted**"])
+    DMODE2 -->|plan| DCOMMIT["commit **only** the report's files —<br/>docs(mN): name. drift + markers →<br/>**Docs advisories**"] --> DARCH(["back to execute → archive"])
+
+    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
+
+    class DSCRIBE agent
+    class DASK,DWALK user
+    class DFMT,DDEF note
+```

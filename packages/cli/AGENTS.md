@@ -91,6 +91,7 @@ export default {
 
   // Experimental opt-ins, off by default. Read by the qoq skill, not the CLI.
   future: {
+    unstable_skill_docs: false, // `/qoq execute` documents each milestone, as with --docs
     unstable_skill_bump_with_scan: false, // `/qoq bump` plans from `qoq scan` too, as with --scan
   },
 

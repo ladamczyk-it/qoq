@@ -821,6 +821,47 @@
       "setup": "Pin vitest to 4.0.0 in package.json, then npm install. Add to qoq.config.js: future: { unstable_skill_bump_with_scan: true }, scan: { adapter: { name: 'offline', scan: async () => { throw new Error('offline'); } } }."
     },
     {
+      "id": 41,
+      "name": "document-path-mode-auth-flow",
+      "prompt": "/qoq document src/auth",
+      "expected_output": "Dispatches qoq-scribe at the session's model in path mode over src/auth. The scribe reads conventions first, then adds JSDoc to the exported, non-trivial declarations in TokenService.ts and authenticate.ts — intent and non-obvious behaviour, never TS types in JSDoc, and only where a reader would otherwise get something wrong (ms-not-seconds `exp`, no revocation, the length check guarding timingSafeEqual) — nothing on helpers or bodies whose code already says it — and leaves `@todo qoq-scribe:` markers with a specific question where purpose can't be inferred: why the legacy `Token ` prefix is still accepted, and why EXPIRED returns null while other token errors throw. Because authenticate → TokenService.verify is a flow across two files, it writes one workflow doc plus docs/index.md, each starting with `<!-- qoq-scribe sources: ... -->` and a `> Source:` line under every section, and never touches the hand-written docs/api-keys.md. README.md gains `## Contents` as its last section, linking index.md first and then the rest alphabetically — api-keys.md included — with relative links; the rest of the README is byte-identical. The main thread runs `npx qoq prettier --fix`, walks the user through the markers, and stops with everything uncommitted. No behaviour change, no refactor advice, no diagram.",
+      "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
+      "assertions": [
+        "Dispatches qoq-scribe in path mode at the session's model rather than documenting inline",
+        "No JSDoc on the trivial helpers `encode`/`decode`, the private `sign` method, or `issue`",
+        "Adds at most 25 comment lines across src/auth — the code carries most of its own meaning",
+        "No JSDoc block in a .ts file contains a type annotation ({...} or @type)",
+        "Leaves a `@todo qoq-scribe:` marker with a specific question about the legacy `Token ` prefix",
+        "Leaves a `@todo qoq-scribe:` marker or explanation request about EXPIRED returning null while other errors throw, rather than inventing a reason",
+        "git diff of src/ shows only added or changed comment lines — no code line changed",
+        "Writes docs/index.md and one workflow doc, each with `<!-- qoq-scribe sources: ` as the first line",
+        "Every section of the written docs starts with a `> Source:` line using one of the three levels",
+        "docs/api-keys.md is unchanged",
+        "README.md ends with a `## Contents` section linking docs/index.md first, then docs/api-keys.md and the workflow doc, with relative links",
+        "Everything in README.md above `## Contents` is unchanged",
+        "Runs `npx qoq prettier --fix` and not `npx qoq --fix` or a qoq fix loop",
+        "Presents the markers to the user and leaves the changes uncommitted",
+        "Suggests no refactoring and writes no Mermaid diagram"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts and a README.md)."
+    },
+    {
+      "id": 42,
+      "name": "document-no-readme-asks",
+      "prompt": "/qoq document src/auth",
+      "expected_output": "Same documentation pass as the auth-flow eval, but the repo has no README.md. The scribe writes the JSDoc and the docs, does not create a README, and returns `readme: missing`. The main thread then asks the user whether to create a README holding only a title and `## Contents`, rather than creating one itself or silently skipping it.",
+      "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
+      "assertions": [
+        "Writes the docs under docs/ with the ownership marker",
+        "Does not create README.md before the user answers",
+        "Asks the user whether to create a README holding only a title and the Contents section",
+        "Leaves the changes uncommitted"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts), then delete the copied README.md."
+    },
+    {
       "id": 43,
       "name": "bump-scan-off-by-default",
       "prompt": "worktree is clean. update dependencies",

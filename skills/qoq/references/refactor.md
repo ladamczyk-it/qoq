@@ -105,6 +105,14 @@ shape, where errors are handled, how config is threaded through. Assessment 4
 asks the different question of whether it's the right shape at all — code can be
 consistently wrong, or textbook and unlike everything around it.
 
+**Every assessment's findings pass through
+[code-conventions.md](code-conventions.md) before you apply them** — `ponytail`'s
+included, whose whole job is deletion. Names are part of assessment 2's
+consistency question, and a name that needs a comment is a name to change. A
+finding that removes or rewrites a pre-existing comment needs a reason that file
+accepts, or the comment stays; each removal is reported verbatim with its reason,
+and it goes into the commit body if the run is committed.
+
 **A missing lens is a reported gap**, not a reason to improvise a substitute
 pass.
 
@@ -178,6 +186,7 @@ and there's one flag.
 | ----------------------------------------------------------------- | ------------------------- | --------------------------------------------- |
 | mechanical finding — formatting-shaped, one obvious rewrite       | asked about with the rest | **applied**                                   |
 | judgement finding — a different shape, a pattern swap, a deletion | asked about               | **returned as an advisory, nothing changed**  |
+| removing or rewriting a comment that predates the run             | asked about               | **returned as an advisory, nothing changed**  |
 | what the caller gets                                              | what it applied           | what it applied, plus every advisory verbatim |
 
 The split is the same line `fix` and `refactor` already draw between them: a

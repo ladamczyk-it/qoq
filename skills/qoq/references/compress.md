@@ -139,8 +139,9 @@ recover from the diff.
 ## What this command will not do
 
 **It never edits code, config, or tests.** A `.md` file is the whole surface. A
-comment in a source file is compressed by `refactor`, under its conventions
-assessment, where the tests can catch a mistake — here nothing can.
+comment in a source file is not prose to compress. It may be the only record of a
+decision, and it goes only under `refactor`, for a reason
+[code-conventions.md](code-conventions.md) accepts.
 
 **It never rewrites the specification of a behaviour to be terser than it is
 true.** "Stops to ask after 3 loops rather than looping indefinitely" does not

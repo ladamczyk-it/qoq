@@ -42,6 +42,8 @@ copy that can go stale between the dispatch and now.
 
 Then read `test-conventions.md` at the path you were handed, for the house style
 — one Read, and it's the same rulebook the rest of the project's specs follow.
+And `code-conventions.md` beside it, for the production code: names say what,
+comments say why, and a comment that was already there is evidence, not clutter.
 
 ## Red — transcribe every criterion, once
 
@@ -87,7 +89,11 @@ your list is not yours to chase; report it and carry on.
 
 The third beat is real and it is yours: with everything green, tidy what you just
 wrote — naming, a duplicated block, a function that grew two jobs. **Inside the
-ticket's own `Files` only, no interface change, and re-run after.**
+ticket's own `Files` only, no interface change, and re-run after.** Names are
+where the code explains itself, so a name that needs a comment to be understood
+gets renamed rather than commented. A comment that predates this ticket goes only
+for a reason `code-conventions.md` accepts, and every one that goes is listed in
+`comments_removed`.
 
 This is not the milestone refactor. That one is `qoq refactor --decisions auto`
 over the union of every ticket's files, and it is the only scope where
@@ -208,19 +214,21 @@ without re-reading the prose:
 status: green # or handoff — nothing else
 files: [src/rate-limit.ts, src/rate-limit.spec.ts]
 specs: [src/rate-limit.spec.ts]
+comments_removed: []
 advisories: []
 blocker: null
 blocker_kind: null # or plan | model on a handoff
 ```
 
-| Field          | What                                                                                                                                                                                                                     |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `status`       | `green` once both commands and `ticket_scoped` pass; `handoff` for every other way you stop                                                                                                                              |
-| `files`        | every file you changed, spec and source both — Gate 1's scope and the commit; on a handoff, what's on disk                                                                                                               |
-| `specs`        | the spec files among `files` — Gate 2's scope                                                                                                                                                                            |
-| `advisories`   | one string each; they outlive you only from here                                                                                                                                                                         |
-| `blocker`      | `null` when green; on a handoff the failure, criterion or contract problem **verbatim** — never a summary                                                                                                                |
-| `blocker_kind` | `null` when green. `plan` when no tier could finish it: a wrong Contract, a criterion you can't assert, one you believe is wrong. `model` when the plan holds and you ran out: budget spent, or green you couldn't reach |
+| Field              | What                                                                                                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `status`           | `green` once both commands and `ticket_scoped` pass; `handoff` for every other way you stop                                                                                                                              |
+| `files`            | every file you changed, spec and source both — Gate 1's scope and the commit; on a handoff, what's on disk                                                                                                               |
+| `specs`            | the spec files among `files` — Gate 2's scope                                                                                                                                                                            |
+| `comments_removed` | each pre-existing comment you deleted or rewrote: `file:line`, the text **verbatim**, and the reason — it goes into the commit body, the only place the text survives                                                    |
+| `advisories`       | one string each; they outlive you only from here                                                                                                                                                                         |
+| `blocker`          | `null` when green; on a handoff the failure, criterion or contract problem **verbatim** — never a summary                                                                                                                |
+| `blocker_kind`     | `null` when green. `plan` when no tier could finish it: a wrong Contract, a criterion you can't assert, one you believe is wrong. `model` when the plan holds and you ran out: budget spent, or green you couldn't reach |
 
 A handoff is a handoff at any attempt — a wrong Contract, a criterion you can't
 assert, an assertion you believe is wrong, or the budget spent. There's no third

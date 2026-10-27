@@ -28,6 +28,8 @@ export interface QoqConfig {
   // Opt-ins for experimental features. The CLI itself reads none of them; the qoq
   // skill reads them from this file's source text.
   future?: {
+    // `qoq execute` documents each delivered milestone through qoq-scribe.
+    unstable_skill_docs?: boolean;
     // `qoq bump` plans from `qoq scan` too, not just the outdated report.
     unstable_skill_bump_with_scan?: boolean;
   };

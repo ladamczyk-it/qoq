@@ -84,6 +84,9 @@ a `.proto`, or a zod schema. The one rule: it must be something a spec can
 assert against, because acceptance criteria will be written against it and a
 developer will transcribe those into assertions before writing any code.
 `none` is a real and common answer — say it rather than inventing a schema.
+Every name a Contract fixes becomes an exported name that nobody renames later,
+so it follows `<skill>/references/code-conventions.md`: spelled out, saying what
+it means.
 
 **Integration surface** — every existing thing this work touches: the callers of
 what changes, the shared types, the config, the migrations, the boundaries whose
