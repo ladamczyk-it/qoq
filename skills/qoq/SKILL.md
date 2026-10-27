@@ -88,7 +88,8 @@ nobody has to remember which one took a flag.
 | `/qoq refactor`                                | `qoq.config`'s `srcPath`                               |
 | `/qoq refactor src/modules/npm`                | those paths only                                       |
 | `/qoq refactor --decisions auto <paths>`       | unattended: apply the mechanical tier, advise the rest |
-| `/qoq bump`                                    | every outdated or vulnerable dependency                |
+| `/qoq bump`                                    | every outdated dependency                              |
+| `/qoq bump --scan`                             | also vulnerable ones, via `qoq scan` — experimental    |
 | `/qoq plan <requirements file or description>` | —                                                      |
 | `/qoq plan <requirements> --tool jira`         | also raise the tickets there; default `local`          |
 | `/qoq replan plans/<file>.md`                  | that plan only — refuses on uncommitted changes        |
@@ -100,12 +101,14 @@ nobody has to remember which one took a flag.
 | `/qoq compress`                                | every `CLAUDE.md` and `AGENTS.md` git tracks           |
 | `/qoq compress docs/ skills/qoq/references`    | those paths only                                       |
 
-Five flags exist. `--decisions auto` is for the two callers that can't stop to
+Six flags exist. `--decisions auto` is for the two callers that can't stop to
 answer questions — `execute`'s milestone gate and `bump`
 ([references/refactor.md](references/refactor.md)). `--session-limit` and
 `--weekly-limit` cap what a plan run may spend of the account's 5-hour and 7-day
 limits; give neither and no usage check runs at all
-([references/execute.md](references/execute.md)).
+([references/execute.md](references/execute.md)). `--scan` turns on `bump`'s
+experimental vulnerability scan, and `future.unstable_skill_bump_with_scan: true`
+in `qoq.config` is its config twin.
 
 `--tool` and `--source` are the two ends of the same road, and both default to
 `local`. `--tool` is `plan`'s: `jira`, `linear` or `trello` offer to raise the

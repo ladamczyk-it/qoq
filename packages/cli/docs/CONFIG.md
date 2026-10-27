@@ -4,6 +4,8 @@ General settings:
 
 - `srcPath` (default to `./src`) that is used as a fallback to tools execution.
 - `hints` (default `true`) – set to `false` to hide the `qoq` skill hint that interactive runs, `qoq scan` and `--init` print at the end. After findings it names the matching command: ESLint or Stylelint findings `--fix` can't resolve, or Knip/Structurelint findings → `/qoq fix`; JSCPD → `/qoq refactor`; outdated or deprecated dependencies, or scan vulnerabilities → `/qoq bump`. The hint is never printed in CI, under `staged`, `--silent` or `--warmup`, when output is piped, inside Claude Code, or once the skill is installed.
+- `future` – opt-ins for experimental features, all off by default. The CLI reads none of them; the `qoq` skill does.
+  - `unstable_skill_bump_with_scan` – set to `true` to have `/qoq bump` also plan fixes for known vulnerabilities from `qoq scan`, as if it were run with `--scan`.
 - `configPaths` via:
 
 ```js

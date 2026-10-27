@@ -259,7 +259,10 @@ flowchart TD
     CLEAN{"worktree<br/>clean?"}
     CLEAN -->|no| BSTOP(["**stop** — commit or<br/>stash first"])
     CLEAN -->|yes| PLAN["**impact analysis** — what's outdated<br/>*(`npx qoq npm --json` →<br/>`@ladamczyk/outdated` report:<br/>majorBump, latestInMajor, deprecated,<br/>stale, blocked, repository)*, minor/patch grouped,<br/>**one major step per package**<br/>*(nothing written, no patches yet)*"]
-    PLAN --> SCAN["**what's vulnerable** — `npx qoq scan --json`<br/>*(OSV: severity, fixVersion, dev, via)*<br/>vulnerable joins the plan even if not outdated,<br/>**fixVersion is the floor**<br/>*skipped / inconclusive → one line,<br/>never shown as clean*"]
+    PLAN --> SCANQ{"scan on?<br/>*--scan, or qoq.config<br/>future.unstable_skill_bump_with_scan*"}
+    SCANQ -->|"no — the default"| SCANOFF["one plan line: **scan off**,<br/>how to turn it on.<br/>*no transitive fixes, no overrides,<br/>no re-scan — never shown as clean*"]
+    SCANOFF --> MAJ
+    SCANQ -->|yes| SCAN["**what's vulnerable** — `npx qoq scan --json`<br/>*(OSV: severity, fixVersion, dev, via)*<br/>vulnerable joins the plan even if not outdated,<br/>**fixVersion is the floor**<br/>*skipped / inconclusive → one line,<br/>never shown as clean*"]
     SCAN --> TRANS{"transitive?<br/>*(via has a parent)*"}
     TRANS -->|no| MAJ
     TRANS -->|yes| TPAR{"a release of **via.direct**<br/>pulls in ≥ fixVersion?<br/>*(latestInMajor, its range checked by npm view —<br/>provable only when direct is the parent;<br/>else unproven latestInMajor/latest)*"}
@@ -309,7 +312,8 @@ flowchart TD
     BQ --> BMORE
     BREV --> BMORE
     BMORE -->|yes| BAPPLY
-    BMORE -->|no| OVR{"picked overrides<br/>to test?<br/>*(only those touching the<br/>chosen packages' subtree)*"}
+    BMORE -->|"no — scan off"| BEHIND
+    BMORE -->|"no — scan on"| OVR{"picked overrides<br/>to test?<br/>*(only those touching the<br/>chosen packages' subtree)*"}
     OVR -->|yes| OTRY["remove **one**, reinstall,<br/>validate (all three) + re-scan"]
     OTRY -->|"both clean"| ODROP["drop it"]
     OTRY -->|"either fails"| OKEEP["restore it **exactly as it was**,<br/>report kept + why<br/>*out of the new parent's range →<br/>offer to recompute, own yes*"]

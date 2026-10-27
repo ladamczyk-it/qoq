@@ -768,7 +768,7 @@
         "Runs one re-scan after the last patch and reports what's left"
       ],
       "target": "fixture-repo",
-      "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies, then npm install."
+      "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies, then npm install. Add `future: { unstable_skill_bump_with_scan: true }` to qoq.config.js."
     },
     {
       "id": 38,
@@ -784,7 +784,8 @@
         "The override is the user's separate pick, not applied because the package was picked",
         "A fixVersion outside wrapper-sdk's range, if offered, is a separate choice with the range break stated",
         "A picked override is applied as an ordinary patch: package.json, reinstall, validate"
-      ]
+      ],
+      "setup": "Add `future: { unstable_skill_bump_with_scan: true }` to qoq.config.js."
     },
     {
       "id": 39,
@@ -802,7 +803,7 @@
         "Takes a check baseline before the first patch, runs `qoq fix` after every patch including the override removal, and never fixes the fixture's baseline findings in src/lint/slugify.ts"
       ],
       "target": "fixture-repo",
-      "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies and \"overrides\": { \"express\": { \"qs\": \"6.13.0\" }, \"semver\": \"7.6.3\" } to package.json, then npm install."
+      "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies and \"overrides\": { \"express\": { \"qs\": \"6.13.0\" }, \"semver\": \"7.6.3\" } to package.json, then npm install. Add `future: { unstable_skill_bump_with_scan: true }` to qoq.config.js."
     },
     {
       "id": 40,
@@ -817,7 +818,23 @@
         "Plans vitest's minor/patch bump to its `latestInMajor` from npm-report.json, although the exact pin leaves `wanted` at 4.0.0"
       ],
       "target": "fixture-repo",
-      "setup": "Pin vitest to 4.0.0 in package.json, then npm install. Add to qoq.config.js: scan: { adapter: { name: 'offline', scan: async () => { throw new Error('offline'); } } }."
+      "setup": "Pin vitest to 4.0.0 in package.json, then npm install. Add to qoq.config.js: future: { unstable_skill_bump_with_scan: true }, scan: { adapter: { name: 'offline', scan: async () => { throw new Error('offline'); } } }."
+    },
+    {
+      "id": 43,
+      "name": "bump-scan-off-by-default",
+      "prompt": "worktree is clean. update dependencies",
+      "expected_output": "No --scan and no future.unstable_skill_bump_with_scan in qoq.config, so the vulnerability scan stays off. Plans from `npx qoq npm --json` alone, never runs `npx qoq scan`, suggests no override and tests none for removal, runs no final re-scan, and says in one plan line that the scan is off and how to turn it on. Nothing in the plan or the report presents the dependencies as free of vulnerabilities.",
+      "files": [],
+      "assertions": [
+        "Never runs `npx qoq scan`",
+        "Plans from `npx qoq npm --json` (npm-report.json)",
+        "Says in one plan line that the vulnerability scan is off, naming --scan or future.unstable_skill_bump_with_scan",
+        "Suggests no override and tests no existing override for removal",
+        "Never describes the dependencies as having no known vulnerabilities"
+      ],
+      "target": "fixture-repo",
+      "setup": "Pin vitest to 4.0.0 in package.json, then npm install."
     }
   ]
 }

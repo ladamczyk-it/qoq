@@ -25,6 +25,12 @@ export interface QoqConfig {
   stats?: boolean;
   // `false` hides the qoq skill hint printed after a failing run and the wizard.
   hints?: boolean;
+  // Opt-ins for experimental features. The CLI itself reads none of them; the qoq
+  // skill reads them from this file's source text.
+  future?: {
+    // `qoq bump` plans from `qoq scan` too, not just the outdated report.
+    unstable_skill_bump_with_scan?: boolean;
+  };
   npm?: IModuleNpmConfig;
   scan?: IScanConfig;
   prettier?: IModulePrettierConfig;

@@ -29,7 +29,17 @@ the newest release needs a newer Node than this one — not a bump to attempt.
 `packages` also lists the ok ones; skip anything flagged `ok`. Each package's
 `repository` URL goes into its `qoq-bumper` dispatch.
 
-Alongside it, `npx qoq scan --json` writes `scan-report.json` to the same
+**The vulnerability scan is experimental and off by default.** It's on only
+when the run was invoked with `--scan`, or when the project's `qoq.config.*` sets
+`future: { unstable_skill_bump_with_scan: true }`. To check the config, Grep its
+source text for `unstable_skill_bump_with_scan\s*:\s*true`; never evaluate it.
+Off → plan from `npm-report.json` alone: no scan, no transitive fixes, no
+override suggested or tested, no final re-scan. Say so in one plan line, `vulnerability
+scan off — run with --scan or set future.unstable_skill_bump_with_scan`, so the
+plan is never read as clean. Everything below that names the scan applies only
+when it's on.
+
+With it on, `npx qoq scan --json` writes `scan-report.json` to the same
 directory: known vulnerabilities in the lockfile, from OSV. Exit `1` only means a
 finding reached `scan.failOn`, so read the report, not the exit code. A package
 that's vulnerable joins the plan even when `npm-report.json` flags it `ok`. One
@@ -58,7 +68,7 @@ be rejected, and frames the question as yes/no on a finished artifact when the
 real question is _which of these_. An empty selection is a valid answer and ends
 the run.
 
-## A transitive vulnerability: the parent first, an override last
+## A transitive vulnerability: the parent first, an override last _(scan on)_
 
 `via` names each way the vulnerable package is installed: `manifest` declares
 `direct`, and `parent` requires the vulnerable package. What's newer comes from
@@ -201,7 +211,7 @@ An override suggested by the plan is a patch like any other: `package.json`,
 reinstall, validate, refactor. It's one change, so it can't split; a failure
 reverts it and reports it.
 
-## Existing overrides: tested for removal after the bumps, one at a time
+## Existing overrides: tested for removal after the bumps, one at a time _(scan on)_
 
 **Which ones.** Only overrides whose target or scoping parent is in the
 dependency subtree of the chosen packages. Every other override stays untouched
@@ -228,7 +238,7 @@ A kept override whose value now falls outside the bumped parent's declared range
 is reported as such, with an offer to recompute it by the rule above. That's a
 new change and needs its own yes.
 
-## One re-scan at the end
+## One re-scan at the end _(scan on)_
 
 After the last patch, `npx qoq scan --json` once more. Report each finding that
 was planned for and is still there. A suggested override whose version turns out

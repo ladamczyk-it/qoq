@@ -89,6 +89,11 @@ export default {
   // (CLAUDECODE), or once the skill is installed.
   hints: true,
 
+  // Experimental opt-ins, off by default. Read by the qoq skill, not the CLI.
+  future: {
+    unstable_skill_bump_with_scan: false, // `/qoq bump` plans from `qoq scan` too, as with --scan
+  },
+
   configPaths: {
     // override locations of generated IDE config files
     eslint: '/eslint.config.js',

@@ -456,6 +456,15 @@ Overrides aren't all security. A pin for compatibility or deduplication has no
 advisory to clear, so a clean scan alone would drop it, and the breakage would
 show up later with no obvious cause.
 
+**Why the scan is opt-in.** Planning from `qoq scan` pulls in a lot at once:
+OSV lookups that need the network, transitive fixes proven with `npm view`,
+override suggestions, and override-removal testing after the bumps. That's all
+new and still settling, so it's off unless asked for, with `--scan` for one run
+or `future.unstable_skill_bump_with_scan` for a project. Off is exactly the
+pre-scan behaviour: the outdated report alone. The plan says the scan is off,
+because a plan with no vulnerabilities in it would otherwise read as a clean
+bill of health.
+
 ## `plan`
 
 **Why an external interview skill instead of `plan` asking its own questions.**
