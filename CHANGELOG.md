@@ -1,3 +1,19 @@
+# [6.6.0](https://github.com/ladamczyk-it/qoq/compare/v6.5.0...v6.6.0) (2026-10-27)
+
+
+### Bug Fixes
+
+* bump packages ([5a50012](https://github.com/ladamczyk-it/qoq/commit/5a500121eeecd0f85a27472d20f24abf9298955c))
+* **skill:** bump plans from qoq scan only when asked ([02b1c15](https://github.com/ladamczyk-it/qoq/commit/02b1c15b033f38332eae6a0158929898f012bc84))
+* **skill:** execute's tracker import sits behind the same switch ([e9fc83c](https://github.com/ladamczyk-it/qoq/commit/e9fc83c9925774aca687ece62ca777d95e3c7dcb))
+* **skill:** plan's tracker export is experimental, switched per project ([1be1899](https://github.com/ladamczyk-it/qoq/commit/1be18993c29c5587eace150e2c3f1f85bd05f5a1))
+
+
+### Features
+
+* **skill:** qoq-artist draws validated Mermaid, behind `qoq mermaid` ([ac857c3](https://github.com/ladamczyk-it/qoq/commit/ac857c381de5260f61c54cb7c7b6875604c369e0)), closes [#slug](https://github.com/ladamczyk-it/qoq/issues/slug)
+* **skill:** qoq-scribe documents the why, behind `qoq document` ([5140e41](https://github.com/ladamczyk-it/qoq/commit/5140e417831bf0f0e234fd16e94eec0873023bf7))
+
 # [6.5.0](https://github.com/ladamczyk-it/qoq/compare/v6.4.2...v6.5.0) (2026-10-26)
 
 
