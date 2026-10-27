@@ -376,6 +376,7 @@
     {
       "id": 18,
       "name": "execute-source-jira-imports-then-runs",
+      "setup": "qoq.config sets future: { unstable_skill_plan_jira: true } — the import is experimental and refused without it.",
       "prompt": "we track everything in jira — can you just run the PLAT-412 epic? all the tickets are under it",
       "expected_output": "Reads references/export.md before anything else, because --source isn't local. Confirms the milestone level it was given is an epic (not a bare ticket, which would leave the run with no milestone gate, and not a board, which would import work nobody agreed to start), offering what the read-only Jira tools can see if the destination is unclear. Finds the Jira MCP tools in its own available-tools list at the moment it needs them — matching on what a tool does, never on a guessed name — and never substitutes curl, a REST call against a token in the environment, or a CLI for a missing one; with no Jira MCP tool at all it stops and offers qoq plan or --source local instead. Reads the epic and its issues and writes ./plans/<milestone-slug>.md in the standard plan template, mapping description back to Context and Files, the Acceptance checklist to Acceptance criteria, story points to Size and the qoq:<tier> label to Agent tier, and putting each issue key in that ticket's External field. Fills the two fields no tracker carries rather than guessing them: Commands from the discovery record and Estimate from scripts/estimate.mjs. Stops and asks the user for real assertions on any ticket whose acceptance criteria are prose or a restated title — all of them in one question, before anything dispatches — and writes the answers into the plan file rather than inferring them. Marks Plan status: approved, then loads that file from disk and runs the ordinary execute loop unchanged: one qoq-developer at a time, the scoped qoq fix gate on the orchestrating thread, the commit after PASS, the milestone refactor beat, and estimate.mjs --record per resolved ticket. As each ticket reaches done or blocked it also writes the status back to that issue as a LABEL plus the commit hash as a comment — never the Jira workflow state — and treats a rejected write as a line in the report rather than a stop.",
       "files": [],
@@ -768,7 +769,7 @@
         "Runs one re-scan after the last patch and reports what's left"
       ],
       "target": "fixture-repo",
-      "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies, then npm install."
+      "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies, then npm install. Add `future: { unstable_skill_bump_with_scan: true }` to qoq.config.js."
     },
     {
       "id": 38,
@@ -784,7 +785,8 @@
         "The override is the user's separate pick, not applied because the package was picked",
         "A fixVersion outside wrapper-sdk's range, if offered, is a separate choice with the range break stated",
         "A picked override is applied as an ordinary patch: package.json, reinstall, validate"
-      ]
+      ],
+      "setup": "Add `future: { unstable_skill_bump_with_scan: true }` to qoq.config.js."
     },
     {
       "id": 39,
@@ -802,7 +804,7 @@
         "Takes a check baseline before the first patch, runs `qoq fix` after every patch including the override removal, and never fixes the fixture's baseline findings in src/lint/slugify.ts"
       ],
       "target": "fixture-repo",
-      "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies and \"overrides\": { \"express\": { \"qs\": \"6.13.0\" }, \"semver\": \"7.6.3\" } to package.json, then npm install."
+      "setup": "Install a @ladamczyk/qoq-cli build whose scan-report.json carries `via` and `dev` (this branch packed, or the first release with it) in place of the pinned 6.3.0. Add \"express\": \"4.17.1\" to dependencies and \"overrides\": { \"express\": { \"qs\": \"6.13.0\" }, \"semver\": \"7.6.3\" } to package.json, then npm install. Add `future: { unstable_skill_bump_with_scan: true }` to qoq.config.js."
     },
     {
       "id": 40,
@@ -817,7 +819,94 @@
         "Plans vitest's minor/patch bump to its `latestInMajor` from npm-report.json, although the exact pin leaves `wanted` at 4.0.0"
       ],
       "target": "fixture-repo",
-      "setup": "Pin vitest to 4.0.0 in package.json, then npm install. Add to qoq.config.js: scan: { adapter: { name: 'offline', scan: async () => { throw new Error('offline'); } } }."
+      "setup": "Pin vitest to 4.0.0 in package.json, then npm install. Add to qoq.config.js: future: { unstable_skill_bump_with_scan: true }, scan: { adapter: { name: 'offline', scan: async () => { throw new Error('offline'); } } }."
+    },
+    {
+      "id": 41,
+      "name": "document-path-mode-auth-flow",
+      "prompt": "/qoq document src/auth",
+      "expected_output": "Dispatches qoq-scribe at the session's model in path mode over src/auth. The scribe reads conventions first, then adds JSDoc to the exported, non-trivial declarations in TokenService.ts and authenticate.ts — intent and non-obvious behaviour, never TS types in JSDoc, and only where a reader would otherwise get something wrong (ms-not-seconds `exp`, no revocation, the length check guarding timingSafeEqual) — nothing on helpers or bodies whose code already says it — and leaves `@todo qoq-scribe:` markers with a specific question where purpose can't be inferred: why the legacy `Token ` prefix is still accepted, and why EXPIRED returns null while other token errors throw. Because authenticate → TokenService.verify is a flow across two files, it writes one workflow doc plus docs/index.md, each starting with `<!-- qoq-scribe sources: ... -->` and a `> Source:` line under every section, and never touches the hand-written docs/api-keys.md. README.md gains `## Contents` as its last section, linking index.md first and then the rest alphabetically — api-keys.md included — with relative links; the rest of the README is byte-identical. The main thread runs `npx qoq prettier --fix`, walks the user through the markers, and stops with everything uncommitted. No behaviour change, no refactor advice, no diagram.",
+      "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
+      "assertions": [
+        "Dispatches qoq-scribe in path mode at the session's model rather than documenting inline",
+        "No JSDoc on the trivial helpers `encode`/`decode`, the private `sign` method, or `issue`",
+        "Adds at most 25 comment lines across src/auth — the code carries most of its own meaning",
+        "No JSDoc block in a .ts file contains a type annotation ({...} or @type)",
+        "Leaves a `@todo qoq-scribe:` marker with a specific question about the legacy `Token ` prefix",
+        "Leaves a `@todo qoq-scribe:` marker or explanation request about EXPIRED returning null while other errors throw, rather than inventing a reason",
+        "git diff of src/ shows only added or changed comment lines — no code line changed",
+        "Writes docs/index.md and one workflow doc, each with `<!-- qoq-scribe sources: ` as the first line",
+        "Every section of the written docs starts with a `> Source:` line using one of the three levels",
+        "docs/api-keys.md is unchanged",
+        "README.md ends with a `## Contents` section linking docs/index.md first, then docs/api-keys.md and the workflow doc, with relative links",
+        "Everything in README.md above `## Contents` is unchanged",
+        "Runs `npx qoq prettier --fix` and not `npx qoq --fix` or a qoq fix loop",
+        "Presents the markers to the user and leaves the changes uncommitted",
+        "Suggests no refactoring and writes no Mermaid diagram"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts and a README.md)."
+    },
+    {
+      "id": 42,
+      "name": "document-no-readme-asks",
+      "prompt": "/qoq document src/auth",
+      "expected_output": "Same documentation pass as the auth-flow eval, but the repo has no README.md. The scribe writes the JSDoc and the docs, does not create a README, and returns `readme: missing`. The main thread then asks the user whether to create a README holding only a title and `## Contents`, rather than creating one itself or silently skipping it.",
+      "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
+      "assertions": [
+        "Writes the docs under docs/ with the ownership marker",
+        "Does not create README.md before the user answers",
+        "Asks the user whether to create a README holding only a title and the Contents section",
+        "Leaves the changes uncommitted"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts), then delete the copied README.md."
+    },
+    {
+      "id": 43,
+      "name": "bump-scan-off-by-default",
+      "prompt": "worktree is clean. update dependencies",
+      "expected_output": "No --scan and no future.unstable_skill_bump_with_scan in qoq.config, so the vulnerability scan stays off. Plans from `npx qoq npm --json` alone, never runs `npx qoq scan`, suggests no override and tests none for removal, runs no final re-scan, and says in one plan line that the scan is off and how to turn it on. Nothing in the plan or the report presents the dependencies as free of vulnerabilities.",
+      "files": [],
+      "assertions": [
+        "Never runs `npx qoq scan`",
+        "Plans from `npx qoq npm --json` (npm-report.json)",
+        "Says in one plan line that the vulnerability scan is off, naming --scan or future.unstable_skill_bump_with_scan",
+        "Suggests no override and tests no existing override for removal",
+        "Never describes the dependencies as having no known vulnerabilities"
+      ],
+      "target": "fixture-repo",
+      "setup": "Pin vitest to 4.0.0 in package.json, then npm install."
+    },
+    {
+      "id": 44,
+      "name": "mermaid-standalone-print",
+      "prompt": "/qoq mermaid login with up to 3 password attempts, then a 15-minute lockout; a correct password at any point signs the user in, and the lockout ends on its own",
+      "expected_output": "Dispatches qoq-artist in standalone mode with target print. A lifecycle with guarded transitions, so it picks stateDiagram-v2 (a flowchart is acceptable) and says why in one sentence. It validates the chart with scripts/mermaid-check.mjs on stdin before returning, and the main thread prints the fenced block. Nothing is written to disk, nothing is committed, and no prose is produced around the chart beyond the report lines.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-artist in standalone mode rather than drawing inline",
+        "Runs `node <skill>/scripts/mermaid-check.mjs` on the chart before it is shown",
+        "Prints exactly one fenced ```mermaid block, and it parses",
+        "Chooses stateDiagram-v2 or flowchart and gives a one-sentence reason",
+        "The chart has a lockout state or node and an edge back out of it",
+        "Writes no file and makes no commit"
+      ],
+      "target": "fixture-repo"
+    },
+    {
+      "id": 45,
+      "name": "artist-declines-linear-prose",
+      "prompt": "Copy <repo>/evals/fixtures/artist to a scratch directory and git init it with one commit. Then dispatch qoq-artist directly (not through the skill), with: mode: docs. Skill path: <repo>/skills/qoq. diagram_candidates: [{doc: docs/release.md, section: Publishing, why: release pipeline}]. Scribe files_written: []. Scribe files_changed: [docs/release.md].",
+      "expected_output": "The only candidate is a two-step linear process the paragraph already states in full, with no branch, state or interaction. The artist declines it with a one-line reason, writes no chart, and returns status: done with files_changed empty and the decline listed. docs/release.md is byte-identical.",
+      "files": ["evals/fixtures/artist/docs/release.md"],
+      "assertions": [
+        "Returns status: done with `declined` naming docs/release.md#publishing and a reason",
+        "`diagrams` is empty and `files_changed` is empty",
+        "docs/release.md is byte-identical (git diff is empty)",
+        "Never edits the prose of docs/release.md"
+      ],
+      "target": "agent"
     }
   ]
 }

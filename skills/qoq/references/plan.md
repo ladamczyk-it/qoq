@@ -337,12 +337,30 @@ it something a reader can point at:
 A ticket that fails any of these isn't ready to dispatch, and the cost of finding
 that out here is one edit rather than three attempts and an escalation.
 
+### Diagrams — when switched on
+
+`--diagrams`, or `future.unstable_skill_diagrams: true` in `qoq.config`, adds one
+dispatch here, after self-review and before approval: `qoq-artist` charts the
+drafted plan into its `## Diagrams` section, so the user approves the shape as
+well as the text. Off, nothing runs. [mermaid.md](mermaid.md) owns the dispatch
+and the veto.
+
 ### `--tool` — where the tickets end up
 
 `--tool local` is the default and writes the plan file and nothing else.
 `jira`, `linear` and `trello` add one beat after approval: raise the milestones
 and tickets in that tool. Any other value is a typo rather than a fourth tool —
 ask, don't map it to the nearest one.
+
+**The three trackers are experimental; only `local` is tested.** Each is on only
+when the project's `qoq.config.*` sets its own switch —
+`future: { unstable_skill_plan_jira: true }`, `…_linear`, `…_trello` — one Grep
+for `unstable_skill_plan_<tool>\s*:\s*true`, read as source text and never
+evaluated. Check it **before Phase 1**: switch off is a one-line stop that names
+the switch, with nothing grilled and nothing written, because finding out after
+approval would throw away the whole session. The flag alone never turns it on —
+an untested write into a team's tracker is a per-project decision, not a
+per-run one.
 
 **The plan file is the source of truth in every mode.** `qoq execute` runs off
 `./plans/*.md` and nothing else — even `--source jira`, which imports a
@@ -372,7 +390,8 @@ Say here, too, what was **skipped**: the `grilling` round — installed-and-decl
 or `--decisions auto` — and the **architect**, if the skip condition held. Neither
 is a veto item; they're the two things at approval the user can't see from the
 plan file, and they change how hard they should read the acceptance criteria and a
-`Contracts: none` respectively.
+`Contracts: none` respectively. With diagrams on, list what the artist drew and
+declined, one line each.
 
 On approval: set `Plan status: approved` and fill the **Commands** header from
 the record, so the milestone gate still has the project's full build and test

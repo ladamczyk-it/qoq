@@ -18,6 +18,12 @@ them the other way. It's simply absent on a plan that never met a tracker.
 **Tool:** local | jira | linear | trello · <destination — project key, team, or
 board; omit the whole field on a local plan>
 **Plan status:** draft | approved | in-progress | complete
+**Docs conventions:** <absent until a `qoq-scribe` question is answered>
+
+## Diagrams
+
+<!-- Absent unless qoq-artist drew something. Its charts only, each under a
+     `qoq-artist id` marker. -->
 
 ---
 
@@ -34,6 +40,7 @@ board; omit the whole field on a local plan>
 done>` · suite `<the full build + suite result, as reported>`
 **Decisions that outlive this milestone:** none | <what later work is built on>
 **Open advisories:** none | <non-blocking findings still true>
+**Docs advisories:** none | <scribe drift, `qoq-scribe:` markers, docs skipped>
 **Full detail:** [<plan-name>.completed.md](<plan-name>.completed.md)
 
 ---
@@ -210,6 +217,15 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
   discovery record at approval. The milestone gate runs them, possibly days later
   in a session with no memory of this one. There's no fallback to reading
   `package.json` — if these are missing, the plan was never properly approved.
+- **Docs conventions** and **Docs advisories** are written by `execute`'s
+  document step, never by `plan`. The first is the user's answer to a
+  `qoq-scribe` question, passed to every later dispatch so it's never asked
+  twice; the second is what the scribe found that only the user can settle —
+  plan-vs-delivery drift and purpose it couldn't determine.
+- **Diagrams** is `qoq-artist`'s, written before approval when diagrams are on
+  and absent otherwise. It sits above the milestones so no ticket dispatch
+  carries it, and it records the shape that was approved: `execute` never
+  redraws it, only `replan` does.
 - **Complexity** rates the model tier and nothing else. Every ticket runs the
   identical steps; an inflated rating costs a bigger model and no extra passes.
 - **Plan status** tracks the whole plan; **Ticket status** tracks one ticket.

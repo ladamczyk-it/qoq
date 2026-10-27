@@ -15,16 +15,19 @@ argument about a decision that has already been made.
 here.** A design note describing a rule that no longer exists is worse than no
 note — it reads as current and nothing contradicts it.
 
-| Topic                                         | Spec                      |
-| --------------------------------------------- | ------------------------- |
-| [The discovery record](#the-discovery-record) | `references/discovery.md` |
-| [`fix`](#fix)                                 | `references/fix.md`       |
-| [`refactor`](#refactor)                       | `references/refactor.md`  |
-| [`bump`](#bump)                               | `references/bump.md`      |
-| [`plan`](#plan)                               | `references/plan.md`      |
-| [`replan`](#replan)                           | `references/replan.md`    |
-| [`execute`](#execute)                         | `references/execute.md`   |
-| [`test`](#test)                               | `references/test.md`      |
+| Topic                                         | Spec                             |
+| --------------------------------------------- | -------------------------------- |
+| [The discovery record](#the-discovery-record) | `references/discovery.md`        |
+| [`fix`](#fix)                                 | `references/fix.md`              |
+| [`refactor`](#refactor)                       | `references/refactor.md`         |
+| [`bump`](#bump)                               | `references/bump.md`             |
+| [`plan`](#plan)                               | `references/plan.md`             |
+| [`replan`](#replan)                           | `references/replan.md`           |
+| [`execute`](#execute)                         | `references/execute.md`          |
+| [`test`](#test)                               | `references/test.md`             |
+| [`document`](#document)                       | `references/document.md`         |
+| [`mermaid`](#mermaid)                         | `references/mermaid.md`          |
+| [Code conventions](#code-conventions)         | `references/code-conventions.md` |
 
 ## The discovery record
 
@@ -456,6 +459,15 @@ Overrides aren't all security. A pin for compatibility or deduplication has no
 advisory to clear, so a clean scan alone would drop it, and the breakage would
 show up later with no obvious cause.
 
+**Why the scan is opt-in.** Planning from `qoq scan` pulls in a lot at once:
+OSV lookups that need the network, transitive fixes proven with `npm view`,
+override suggestions, and override-removal testing after the bumps. That's all
+new and still settling, so it's off unless asked for, with `--scan` for one run
+or `future.unstable_skill_bump_with_scan` for a project. Off is exactly the
+pre-scan behaviour: the outdated report alone. The plan says the scan is off,
+because a plan with no vulnerabilities in it would otherwise read as a clean
+bill of health.
+
 ## `plan`
 
 **Why an external interview skill instead of `plan` asking its own questions.**
@@ -561,6 +573,17 @@ grammar and its own approval. The export is one beat that only ever happens righ
 after an approval, so it lives where the approval is. If it ever grows a
 re-export-the-changed-ones mode, that's the point to reconsider — the
 **External** field already makes it re-runnable.
+
+**Why the trackers are experimental, and switched per project.** Only `local`
+has evals behind it; the Jira, Linear and Trello paths run against MCP servers
+nobody here has exercised end to end, and they write to people's real trackers.
+So each needs `future.unstable_skill_plan_<tool>: true` in `qoq.config` — a
+project's decision, checked in — and the `--tool` flag alone is never enough.
+It's checked before the grill, not at the export beat: a stop after approval
+would spend a whole planning session to find out. `execute --source` imports from
+the same trackers through the same untested servers, so it sits behind the same
+switch — one decision per tracker, both directions, rather than six names for
+three integrations.
 
 **Why the export is offered rather than folded into approval.** Approving a plan
 and publishing it into a team's tracker are two different acts with two different
@@ -832,3 +855,132 @@ discipline.
 **Why N slices means N full-suite runs.** Each slice ends with a run whose whole
 purpose is attribution. It's the same trade `bump` makes one patch at a time,
 for the same reason: a check that can't say which change broke it isn't a check.
+
+## `document`
+
+**Why the tier follows the mode.** Plan mode is handed the intent — the
+milestone text says why — so its work is translation and sonnet does it. Path
+mode is archaeology on code nobody explained, and an inference error there is a
+confident wrong reason written into the repo, where the next reader has no cause
+to doubt it. Same agent, same contract, different difficulty; the caller knows
+which, so the caller passes it — the `qoq-developer` mechanism, not a pin.
+
+**Why after the milestone gate and before archive.** Docs written before the
+gate describe code the gate may still change. After archive, the milestone text
+— the scribe's whole source of intent — has moved out of the plan. The gap
+between them is the one moment both the final code and the plan are in hand.
+
+**Why only prettier, not `qoq fix`.** The scribe adds comments and Markdown and
+nothing else. The only tool that has an opinion about either is prettier, which
+reflows JSDoc; a full fix loop would spend a checker dispatch to rediscover that.
+
+**Why the ownership marker names its sources.** A fresh-context scribe can't
+tell its docs from a human's, nor which code a doc describes — and "touch only
+docs whose source changed" needs both. One first-line comment answers both and
+stays greppable. Hand-written docs are listed in Contents but never edited: the
+scribe may read them, and that's all.
+
+**Why drift is report-only.** A delivery that diverged from the plan is either a
+bug or a better decision, and only the user knows which. Writing it into `docs/`
+would make the docs carry an argument the user hadn't had yet, and would outlive
+whichever way it went.
+
+**Why diagram candidates live in the report.** A marker in the docs would be
+something the scribe writes and a second agent deletes, and it would outlive the
+run whenever diagrams are off. A report field costs nothing until `qoq-artist`
+reads it, and nothing at all when it doesn't run.
+
+**Why opt-in inside `execute`.** It's experimental: the scribe's judgement about
+what deserves a comment hasn't been tested across many codebases yet, and
+`execute` runs unattended, committing what it writes. A bad comment that lands
+nine milestones deep is expensive to find. So the step is off unless someone
+asked for it: `--docs` for one run, `future.unstable_skill_docs` in `qoq.config`
+for a project that has decided. The `unstable_` prefix says the contract can still
+change. Standalone `/qoq document` needs no switch, because typing it is the
+opt-in.
+
+**Monorepos are a pilot limit.** One root `docs/` and one `Contents`, like any
+repo. Per-package docs are a real design question — where a cross-package
+workflow lives — that waits for a project that needs it.
+
+## `mermaid`
+
+**Why the default is not to draw.** A chart that restates its paragraph is a
+second copy of it that the reader has to check against the first, and the first
+copy is the one that gets updated. The artist earns its place on structure prose
+handles badly — a branch, a lifecycle, five components over time — and a
+pipeline run that declines everything has done its job. Standalone is the
+opposite because a person asked for the picture.
+
+**Why sonnet, pinned.** Deciding whether to draw and which chart fits is
+judgement, but it's judgement over prose that's already structured — a plan or a
+scribe doc — not archaeology. Emitting valid syntax is the mechanical half, and
+the validator owns it, so the tier doesn't have to. Splitting the two across a
+strong and a cheap agent would cost two dispatches per chart to save on the
+cheaper half.
+
+**Why the validator is a skill script, not a CLI command.** The qoq CLI
+orchestrates linters over a codebase; Mermaid is a concern of one skill command.
+A CLI dependency on mermaid and jsdom would be downloaded by every qoq user,
+diagrams or not. The script installs a pinned pair once per machine into the OS
+temp dir — `npm install`, because the skill's hook blocks every `npx` but qoq —
+and runs offline after. `mermaid.parse()` is GitHub's grammar without the
+browser; the CLI renderer would add a headless Chromium for layout fidelity
+nobody needs to know a chart renders. What parse-only misses — a label starting
+with a backtick parses and then breaks GitHub's render — is in the agent's list
+of traps.
+
+**Why an unvalidated chart is still written.** Exit 2 means the validator
+couldn't be installed, not that the chart is wrong, and a machine offline on its
+first run would otherwise never get a chart. The marker says `unvalidated`, the
+report says so, and the next run that can validate clears it. A chart that
+_failed_ to parse is never written.
+
+**Why an id marker, and never a hand-drawn chart.** A rerun has to find its own
+chart to replace it, or every run appends a duplicate. The marker is that handle,
+and it's also the only way a fresh-context agent can tell its chart from a
+person's. A person's chart encodes a choice the artist can't see, so it's read
+for style and reported when stale, never edited — the same line the scribe draws
+around hand-written docs.
+
+**Why a budget.** One chart per heading, three per file. Without a cap a long
+doc gets a chart per section, and a page of charts is read like a page of text:
+not at all. The cap forces the choice the restraint rule asks for.
+
+**Why plan charts sit above the milestones and freeze.** `execute` passes
+milestone text into every developer dispatch; a chart there is paid for in each
+one and acted on by none. Above the milestones it's read once, at approval,
+where the user approves the shape along with the text. It then records what was
+approved; the docs charts drawn after each milestone record what was delivered,
+and the difference is information `replan` uses rather than noise `execute`
+should erase.
+
+**Why one switch, and why execute also needs docs.** `--diagrams` and
+`future.unstable_skill_diagrams` turn on every pipeline call site — the same
+experimental, opt-in reasoning as docs. In `execute` the artist's input is the
+scribe's report, so diagrams without docs has nothing to draw from; it says so
+in the opening line rather than asking, because nothing breaks. `/qoq document`
+only offers: path mode is attended, and a chart the user didn't ask for is a
+second review they didn't sign up for.
+
+## Code conventions
+
+**Why names, not comments, carry the what.** A comment that restates the code is
+a second copy of it, and only one of the two copies gets updated. A name is the
+one copy that the compiler, the reviewer and every call site see. So the skill
+pushes meaning into names, and `qoq-scribe` is left with what only prose can
+hold: decisions, edge cases, constraints. That's also why the scribe's docs can
+stay short.
+
+**Why the principle and not a rulebook.** Casing, allowed abbreviations and name
+length are mechanics, and mechanics belong to ESLint, where they're checked on
+every run instead of re-read by every agent. The skill states the intent and lets
+the project's config own the details.
+
+**Why an old comment is evidence.** The commit, ticket or conversation that
+explains a decision is often gone by the time someone reads the code, and the
+comment is what's left. Every deletion pass — a developer's tidy,
+`ponytail-review`'s whole job, a compress instinct — sees it as clutter. So
+removal needs a reason that holds on its own (false, or now carried by a name,
+type or test), the text is quoted into the commit body so history keeps it, and
+nobody removes one unattended.

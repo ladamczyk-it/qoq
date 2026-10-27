@@ -4,6 +4,11 @@ General settings:
 
 - `srcPath` (default to `./src`) that is used as a fallback to tools execution.
 - `hints` (default `true`) – set to `false` to hide the `qoq` skill hint that interactive runs, `qoq scan` and `--init` print at the end. After findings it names the matching command: ESLint or Stylelint findings `--fix` can't resolve, or Knip/Structurelint findings → `/qoq fix`; JSCPD → `/qoq refactor`; outdated or deprecated dependencies, or scan vulnerabilities → `/qoq bump`. The hint is never printed in CI, under `staged`, `--silent` or `--warmup`, when output is piped, inside Claude Code, or once the skill is installed.
+- `future` – opt-ins for experimental features, all off by default. The CLI reads none of them; the `qoq` skill does.
+  - `unstable_skill_docs` – set to `true` to have `/qoq execute` document every delivered milestone (JSDoc, `./docs`, README `Contents`), as if it were run with `--docs`.
+  - `unstable_skill_bump_with_scan` – set to `true` to have `/qoq bump` also plan fixes for known vulnerabilities from `qoq scan`, as if it were run with `--scan`.
+  - `unstable_skill_diagrams` – set to `true` to have `qoq-artist` draw validated Mermaid charts: into the plan before approval in `/qoq plan` and `/qoq replan`, and into each milestone's docs in `/qoq execute` when docs are on too, as if run with `--diagrams`. Standalone `/qoq mermaid` needs no switch.
+  - `unstable_skill_plan_jira`, `unstable_skill_plan_linear`, `unstable_skill_plan_trello` – set to `true` to allow `/qoq plan --tool jira|linear|trello` to raise the approved plan in that tracker, and `/qoq execute --source jira|linear|trello` to import a milestone from it. Unlike the others, the flag alone is not enough: without the matching switch the run stops before it starts, because only `local` is tested.
 - `configPaths` via:
 
 ```js

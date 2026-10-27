@@ -14,17 +14,17 @@
 //   - `compress` skips discovery. It edits prose, runs no tool and dispatches no
 //     agent, so nothing on the record bears on it. (It ends by calling `qoq
 //     fix`, which does its own discovery: deferred, not skipped.)
-//   - a fresh agent install is a question for `fix`, `test` and `execute`, and a
-//     line in the end-of-run notice for everything else. Those three dispatch a
-//     pinned agent inside the window before Claude Code registers the directory,
-//     so their first dispatch can land on the `general-purpose` fallback — and
-//     for an agent whose contract is a restriction, the fallback is the
-//     restriction gone. `refactor` is the deliberate exception: it opens with a
+//   - a fresh agent install is a question for `fix`, `test`, `execute` and
+//     `document`, and a line in the end-of-run notice for everything else. Those
+//     four dispatch an agent inside the window before Claude Code registers the
+//     directory, so their first dispatch can land on the `general-purpose`
+//     fallback — and for an agent whose contract is a restriction, the fallback
+//     is the restriction gone. `refactor` is the deliberate exception: it opens with a
 //     `fix`, so its first checker does land in that window, but putting a
 //     question in front of a command whose next move is another command's
 //     question is the noise this narrowing exists to remove.
 //
-// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress>
+// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid>
 //
 // Exit code: always 0 — stdout is a section per check, each with what to do, or
 // a single `command` section asking for one.
@@ -32,8 +32,19 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const COMMANDS = ['fix', 'refactor', 'bump', 'plan', 'replan', 'execute', 'test', 'compress'];
-const ASKS_ON_INSTALL = ['fix', 'test', 'execute'];
+const COMMANDS = [
+  'fix',
+  'refactor',
+  'bump',
+  'plan',
+  'replan',
+  'execute',
+  'test',
+  'compress',
+  'document',
+  'mermaid',
+];
+const ASKS_ON_INSTALL = ['fix', 'test', 'execute', 'document'];
 const SKIPS_DISCOVERY = ['compress'];
 
 const args = process.argv.slice(2);

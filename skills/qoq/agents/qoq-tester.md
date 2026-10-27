@@ -28,7 +28,9 @@ That last row is the one that costs a run when it's missing.
 
 Read `test-conventions.md` first — coverage philosophy, when to mock and when
 not, React Testing Library and MSW conventions, and the lint rules that make a
-spec clean by construction. Writing to them up front means the gate your caller
+spec clean by construction. Its sibling `code-conventions.md` covers the names in
+your helpers and fixtures: spelled out, so a failing spec reads without a
+comment. Writing to them up front means the gate your caller
 runs has nothing left to fix.
 
 Cover real risk: happy paths and the edge cases that could actually arrive. A

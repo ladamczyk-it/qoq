@@ -1,7 +1,7 @@
 ---
 name: qoq
-description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped or known vulnerabilities in them fixed, a spec broken into tickets, an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context. Trigger it even when the user never says "qoq" or names a tool.
-argument-hint: '[fix|refactor|bump|plan|replan|execute|test|compress] [scope]'
+description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`, `document`, `mermaid`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped or known vulnerabilities in them fixed, a spec broken into tickets, an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context, the why behind code written down as JSDoc and `./docs` for the next session or person, or a flow, lifecycle, data model or architecture drawn as a Mermaid diagram that renders on GitHub. Trigger it even when the user never says "qoq" or names a tool.
+argument-hint: '[fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid] [scope]'
 allowed-tools:
   - Read
   - Write
@@ -52,7 +52,7 @@ hooks:
 
 # QoQ — quality over quantity
 
-Eight commands, one shared discovery record, seven agents.
+Ten commands, one shared discovery record, nine agents.
 
 **This file routes.** Each command's reference owns its rules — read the one you
 need, not all of them.
@@ -67,6 +67,8 @@ need, not all of them.
 | `execute`  | an approved plan, local or imported → delivered milestones | [references/execute.md](references/execute.md)   |
 | `test`     | unit/integration coverage for code that already exists     | [references/test.md](references/test.md)         |
 | `compress` | strip agent-facing markdown to what an agent acts on       | [references/compress.md](references/compress.md) |
+| `document` | _experimental_ — the why, as JSDoc, `./docs`, `Contents`   | [references/document.md](references/document.md) |
+| `mermaid`  | a validated Mermaid chart — printed, or written to a doc   | [references/mermaid.md](references/mermaid.md)   |
 
 Two files sit under every command rather than beside them. What this skill knows
 about the _project_ is one cached record, derived once per top-level run:
@@ -78,8 +80,9 @@ file states neither, so there is one copy of each to go stale.
 
 ## Usage
 
-**Scope is positional, everywhere.** One spelling across all eight commands, so
-nobody has to remember which one took a flag.
+**Scope is positional, everywhere.** One spelling across all ten commands, so
+nobody has to remember which one took a flag. `mermaid`'s is a description,
+not a path.
 
 | Invocation                                     | Scope                                                  |
 | ---------------------------------------------- | ------------------------------------------------------ |
@@ -88,30 +91,47 @@ nobody has to remember which one took a flag.
 | `/qoq refactor`                                | `qoq.config`'s `srcPath`                               |
 | `/qoq refactor src/modules/npm`                | those paths only                                       |
 | `/qoq refactor --decisions auto <paths>`       | unattended: apply the mechanical tier, advise the rest |
-| `/qoq bump`                                    | every outdated or vulnerable dependency                |
+| `/qoq bump`                                    | every outdated dependency                              |
+| `/qoq bump --scan`                             | also vulnerable ones, via `qoq scan` — experimental    |
 | `/qoq plan <requirements file or description>` | —                                                      |
-| `/qoq plan <requirements> --tool jira`         | also raise the tickets there; default `local`          |
+| `/qoq plan <requirements> --tool jira`         | also raise the tickets there — experimental            |
+| `/qoq plan <requirements> --diagrams`          | also chart the plan before approval — experimental     |
 | `/qoq replan plans/<file>.md`                  | that plan only — refuses on uncommitted changes        |
 | `/qoq execute [plans/<file>.md]`               | omitted → ask, unless exactly one plan is approved     |
-| `/qoq execute --source jira`                   | ask which epic/milestone/list, import it, then run it  |
+| `/qoq execute --source jira`                   | import a milestone from there, run it — experimental   |
 | `/qoq execute <plan> --session-limit 60`       | stop before spending past 60% of the 5-hour limit      |
 | `/qoq execute <plan> --weekly-limit 80`        | same for the 7-day limit; both default to 100          |
+| `/qoq execute <plan> --docs`                   | also document each milestone — experimental, opt-in    |
 | `/qoq test <what to cover>`                    | —                                                      |
 | `/qoq compress`                                | every `CLAUDE.md` and `AGENTS.md` git tracks           |
 | `/qoq compress docs/ skills/qoq/references`    | those paths only                                       |
+| `/qoq document`                                | files changed since the merge-base with the default    |
+| `/qoq document src/auth`                       | those paths only                                       |
+| `/qoq mermaid <description>`                   | print the chart                                        |
+| `/qoq mermaid <description> --to docs/a.md`    | write it there — created, or appended                  |
+| `/qoq mermaid <description> --to docs/a.md#x`  | at the end of the section whose anchor is `x`          |
 
-Five flags exist. `--decisions auto` is for the two callers that can't stop to
+Nine flags exist. `--decisions auto` is for the two callers that can't stop to
 answer questions — `execute`'s milestone gate and `bump`
 ([references/refactor.md](references/refactor.md)). `--session-limit` and
 `--weekly-limit` cap what a plan run may spend of the account's 5-hour and 7-day
 limits; give neither and no usage check runs at all
-([references/execute.md](references/execute.md)).
+([references/execute.md](references/execute.md)). `--docs` turns on `execute`'s
+experimental per-milestone `document` step, which `qoq.config`'s
+`future.unstable_skill_docs: true` also does. `--scan` is the same kind of switch
+for `bump`'s experimental vulnerability scan, and
+`future.unstable_skill_bump_with_scan: true` is its config twin. `--diagrams`
+(twin: `future.unstable_skill_diagrams: true`) turns on `qoq-artist` in `plan`,
+`replan` and — with docs on too — `execute`; `--to` is where `mermaid` writes
+([references/mermaid.md](references/mermaid.md)).
 
 `--tool` and `--source` are the two ends of the same road, and both default to
 `local`. `--tool` is `plan`'s: `jira`, `linear` or `trello` offer to raise the
 approved tickets there. `--source` is `execute`'s: those same three values ask
 which milestone to run, import it into a plan file, and then execute that file
-like any other. Neither makes a tracker authoritative — the plan file is the
+like any other. Both directions are experimental: each tracker needs its
+`future.unstable_skill_plan_<tool>: true` in `qoq.config` as well, and the flag
+alone is refused ([references/plan.md](references/plan.md)). Neither makes a tracker authoritative — the plan file is the
 state in both directions ([references/export.md](references/export.md)).
 
 ## Entry
@@ -149,16 +169,18 @@ Invoked with: `$ARGUMENTS`
 
 Commands compose, but **only on the main thread**.
 
-| Command    | Calls                              | Called by                                                     |
-| ---------- | ---------------------------------- | ------------------------------------------------------------- |
-| `fix`      | its own `qoq-checker`              | `refactor`, `bump`, `execute`, `test`, `compress`             |
-| `refactor` | `fix`                              | `bump`, `execute`, `test`                                     |
-| `bump`     | `fix`, `refactor` — both per patch | —                                                             |
-| `plan`     | `grilling` (external)              | —                                                             |
-| `replan`   | `grilling` (external)              | —                                                             |
-| `execute`  | `fix`, `refactor`                  | `plan` — offered at approval, never dispatched from inside it |
-| `test`     | `fix`, `refactor`                  | —                                                             |
-| `compress` | `fix`                              | —                                                             |
+| Command    | Calls                                    | Called by                                                     |
+| ---------- | ---------------------------------------- | ------------------------------------------------------------- |
+| `fix`      | its own `qoq-checker`                    | `refactor`, `bump`, `execute`, `test`, `compress`             |
+| `refactor` | `fix`                                    | `bump`, `execute`, `test`                                     |
+| `bump`     | `fix`, `refactor` — both per patch       | —                                                             |
+| `plan`     | `grilling` (external), `mermaid`         | —                                                             |
+| `replan`   | `grilling` (external), `mermaid`         | —                                                             |
+| `execute`  | `fix`, `refactor`, `document`, `mermaid` | `plan` — offered at approval, never dispatched from inside it |
+| `test`     | `fix`, `refactor`                        | —                                                             |
+| `compress` | `fix`                                    | —                                                             |
+| `document` | its own `qoq-scribe`; offers `mermaid`   | `execute` — per milestone, after the gate                     |
+| `mermaid`  | its own `qoq-artist`                     | `plan`, `replan`, `execute` — when `--diagrams` is on         |
 
 `compress` changes what future runs read, never what this one does, so no
 command should be reaching for it mid-task.
@@ -214,8 +236,9 @@ read.
 
 ## Agents
 
-Seven, in `agents/`. Everything is pinned except two: `qoq-developer`, whose tier
-is a property of the ticket and is passed at dispatch, and `qoq-architect`, which
+Nine, in `agents/`. Everything is pinned except three: `qoq-developer`, whose tier
+is a property of the ticket and is passed at dispatch, `qoq-scribe`, whose tier
+follows its mode and is passed at dispatch, and `qoq-architect`, which
 inherits the session's model because a design error propagates into every ticket
 that inherits the contract.
 
@@ -228,6 +251,8 @@ that inherits the contract.
 | `qoq-test-reviewer` | sonnet     | do the specs test the criteria — one per ticket, pre-commit |
 | `qoq-tester`        | sonnet     | write the specs for one slice — one per slice               |
 | `qoq-designer`      | sonnet     | stack → smells → patterns — `refactor`'s assessment 4       |
+| `qoq-scribe`        | _dispatch_ | the why, as comments and docs — one per run or milestone    |
+| `qoq-artist`        | sonnet     | a validated Mermaid chart, or a reasoned decline            |
 
 Entry copies them into the project's `.claude/agents/`, because an agent file
 inside a skill is registered by nothing, and Claude Code picks that directory up
@@ -249,10 +274,14 @@ something to resume with `SendMessage`.
 An agent reported as `kept (edited here)` is the user's own version and stays
 that way. Dispatch it like any other; it's registered.
 
-## Test conventions
+## Test and code conventions
 
 [references/test-conventions.md](references/test-conventions.md) holds the house
 rules for writing specs. Whoever writes a test in this project reads it rather
-than reinventing a style. Where it conflicts with the project's own file — named
+than reinventing a style.
+[references/code-conventions.md](references/code-conventions.md) is its sibling
+for production code: names say what, comments say why, and a comment that
+predates the change is never removed without a recorded reason. Both are read by
+whoever writes or tidies code. Where either conflicts with the project's own file — named
 on the record's `conventions` field — **the project's file wins**: it's
 human-written and knows things this skill can't infer.

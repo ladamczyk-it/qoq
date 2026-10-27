@@ -12,6 +12,7 @@ run:
   ticket_scoped: npx qoq staged --skip-knip <file>...
   tools: npx qoq <tool>...
   scan: npx qoq scan --json
+  format: npx qoq prettier --fix
 
 tool_names: [prettier, eslint, jscpd, knip, npm, stylelint, structurelint, skillslint]
 narrow: --skip-<tool>
@@ -46,3 +47,7 @@ may_run:
   qoq-tester: [scoped]
   qoq-bumper: []
   qoq-designer: []
+  document: [format]
+  qoq-scribe: []
+  mermaid: [format]
+  qoq-artist: []

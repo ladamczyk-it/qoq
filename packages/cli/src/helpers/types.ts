@@ -25,6 +25,23 @@ export interface QoqConfig {
   stats?: boolean;
   // `false` hides the qoq skill hint printed after a failing run and the wizard.
   hints?: boolean;
+  // Opt-ins for experimental features. The CLI itself reads none of them; the qoq
+  // skill reads them from this file's source text.
+  future?: {
+    // `qoq execute` documents each delivered milestone through qoq-scribe.
+    unstable_skill_docs?: boolean;
+    // `qoq bump` plans from `qoq scan` too, not just the outdated report.
+    unstable_skill_bump_with_scan?: boolean;
+    // `qoq plan`/`replan` chart the plan before approval, and `qoq execute` charts
+    // the scribe's docs when docs are on too — through qoq-artist.
+    unstable_skill_diagrams?: boolean;
+    // `qoq plan --tool <tracker>` may raise the approved plan in that tracker, and
+    // `qoq execute --source <tracker>` may import from it. The flag alone is
+    // refused: only `local` is tested.
+    unstable_skill_plan_jira?: boolean;
+    unstable_skill_plan_linear?: boolean;
+    unstable_skill_plan_trello?: boolean;
+  };
   npm?: IModuleNpmConfig;
   scan?: IScanConfig;
   prettier?: IModulePrettierConfig;

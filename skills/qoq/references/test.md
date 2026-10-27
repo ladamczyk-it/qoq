@@ -51,8 +51,9 @@ suite run whose whole purpose is attribution; if two agents are writing while it
 runs, a red result names neither of them. Sequential also means each slice starts
 from the tree the previous one left green.
 
-Every dispatch carries: the **record's path**, the **path to
-`references/test-conventions.md`** in this skill (a subagent can't work out where
+Every dispatch carries: the **record's path**, the **paths to
+`references/test-conventions.md` and `references/code-conventions.md`** in this
+skill (a subagent can't work out where
 the skill lives), the **slice** stated as narrowly as you can state it, the
 **baseline** of already-red specs, and **any specs already in place** for this
 slice — a ticket's own hand-written assertions get rewritten to standard, not

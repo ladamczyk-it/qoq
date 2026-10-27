@@ -16,19 +16,21 @@ in the reference file too.
 Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 — also outside the skill, and for the same reason these diagrams are.
 
-| Diagram                                     | Prose it reflects                                                                        |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| [Entry and discovery](#entry-and-discovery) | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)   |
-| [`fix`](#fix)                               | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml) |
-| [`refactor`](#refactor)                     | [refactor.md](../skills/qoq/references/refactor.md)                                      |
-| [`bump`](#bump)                             | [bump.md](../skills/qoq/references/bump.md)                                              |
-| [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                              |
-| [`replan`](#replan)                         | [replan.md](../skills/qoq/references/replan.md)                                          |
-| [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                        |
-| [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                              |
-| [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                      |
+| Diagram                                     | Prose it reflects                                                                                     |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| [Entry and discovery](#entry-and-discovery) | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)                |
+| [`fix`](#fix)                               | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml)              |
+| [`refactor`](#refactor)                     | [refactor.md](../skills/qoq/references/refactor.md)                                                   |
+| [`bump`](#bump)                             | [bump.md](../skills/qoq/references/bump.md)                                                           |
+| [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                                           |
+| [`replan`](#replan)                         | [replan.md](../skills/qoq/references/replan.md)                                                       |
+| [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                                     |
+| [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                                           |
+| [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                                   |
+| [`document`](#document)                     | [document.md](../skills/qoq/references/document.md), [qoq-scribe](../skills/qoq/agents/qoq-scribe.md) |
+| [`mermaid`](#mermaid)                       | [mermaid.md](../skills/qoq/references/mermaid.md), [qoq-artist](../skills/qoq/agents/qoq-artist.md)   |
 
-**Legend, shared by all nine.** Purple = a subagent and everything it does.
+**Legend, shared by all eleven.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
 invoked from inside another.
 
@@ -233,7 +235,8 @@ flowchart TD
     DREAD -.-> AQ
     ASSESS --> AQ{"findings?"}
     AQ -->|none| NEXT
-    AQ -->|yes| APPR(["**ASK THE USER**<br/>apply these?"])
+    AQ -->|yes| ACC["**through code-conventions.md first** —<br/>ponytail's deletions included. a comment<br/>older than the run goes only if false or now<br/>carried by a name/type/test, quoted verbatim<br/>with why. *under --decisions auto it is<br/>never removed — an advisory*"]
+    ACC --> APPR(["**ASK THE USER**<br/>apply these?"])
     APPR -.->|no| NEXT
     APPR -.->|yes| APPLY["apply the fixes"]
     APPLY --> REGREEN["dispatch **qoq fix**<br/>re-green before the next one"]
@@ -259,7 +262,10 @@ flowchart TD
     CLEAN{"worktree<br/>clean?"}
     CLEAN -->|no| BSTOP(["**stop** — commit or<br/>stash first"])
     CLEAN -->|yes| PLAN["**impact analysis** — what's outdated<br/>*(`npx qoq npm --json` →<br/>`@ladamczyk/outdated` report:<br/>majorBump, latestInMajor, deprecated,<br/>stale, blocked, repository)*, minor/patch grouped,<br/>**one major step per package**<br/>*(nothing written, no patches yet)*"]
-    PLAN --> SCAN["**what's vulnerable** — `npx qoq scan --json`<br/>*(OSV: severity, fixVersion, dev, via)*<br/>vulnerable joins the plan even if not outdated,<br/>**fixVersion is the floor**<br/>*skipped / inconclusive → one line,<br/>never shown as clean*"]
+    PLAN --> SCANQ{"scan on?<br/>*--scan, or qoq.config<br/>future.unstable_skill_bump_with_scan*"}
+    SCANQ -->|"no — the default"| SCANOFF["one plan line: **scan off**,<br/>how to turn it on.<br/>*no transitive fixes, no overrides,<br/>no re-scan — never shown as clean*"]
+    SCANOFF --> MAJ
+    SCANQ -->|yes| SCAN["**what's vulnerable** — `npx qoq scan --json`<br/>*(OSV: severity, fixVersion, dev, via)*<br/>vulnerable joins the plan even if not outdated,<br/>**fixVersion is the floor**<br/>*skipped / inconclusive → one line,<br/>never shown as clean*"]
     SCAN --> TRANS{"transitive?<br/>*(via has a parent)*"}
     TRANS -->|no| MAJ
     TRANS -->|yes| TPAR{"a release of **via.direct**<br/>pulls in ≥ fixVersion?<br/>*(latestInMajor, its range checked by npm view —<br/>provable only when direct is the parent;<br/>else unproven latestInMajor/latest)*"}
@@ -309,7 +315,8 @@ flowchart TD
     BQ --> BMORE
     BREV --> BMORE
     BMORE -->|yes| BAPPLY
-    BMORE -->|no| OVR{"picked overrides<br/>to test?<br/>*(only those touching the<br/>chosen packages' subtree)*"}
+    BMORE -->|"no — scan off"| BEHIND
+    BMORE -->|"no — scan on"| OVR{"picked overrides<br/>to test?<br/>*(only those touching the<br/>chosen packages' subtree)*"}
     OVR -->|yes| OTRY["remove **one**, reinstall,<br/>validate (all three) + re-scan"]
     OTRY -->|"both clean"| ODROP["drop it"]
     OTRY -->|"either fails"| OKEEP["restore it **exactly as it was**,<br/>report kept + why<br/>*out of the new parent's range →<br/>offer to recompute, own yes*"]
@@ -336,7 +343,9 @@ flowchart TD
 ```mermaid
 flowchart TD
     REQ["requirements — spec, PRD,<br/>or a rough description<br/>*(read the file itself, never a paraphrase)*"]
-    REQ --> EXIST{"already a plan<br/>under ./plans/?"}
+    REQ --> PTGATE{"--tool jira · linear · trello<br/>**without** its qoq.config<br/>future.unstable_skill_plan_&lt;tool&gt;?"}
+    PTGATE -->|"yes — experimental, off"| PTOFF(["**stop** — name the switch.<br/>*nothing grilled, nothing written:<br/>after approval it would cost<br/>the whole session*"])
+    PTGATE -->|"no — local, or switched on"| EXIST{"already a plan<br/>under ./plans/?"}
     EXIST -->|"yes — resume / execute"| EG2["hand to **qoq execute**<br/>*(not this command's job)*"]
     EXIST -->|"yes — but the shape is wrong"| ERP["hand to **qoq replan**<br/>*(delivered work stays frozen)*"]
     EXIST -->|no| SMALL
@@ -391,7 +400,10 @@ flowchart TD
     end
 
     PREV --> PSAVE["save → ./plans/YYYY-MM-DD-[feature].md"]
-    PSAVE --> PAPPR(["**ASK THE USER** — approve.<br/>surfaced here: new deps *(incl. any the<br/>architect flagged)*, the model ceiling,<br/>every tier the estimator moved, and<br/>**what was skipped** — the grill,<br/>the architect, or both"])
+    PSAVE --> PDIAGQ{"diagrams on?<br/>*--diagrams, or qoq.config<br/>future.unstable_skill_diagrams*"}
+    PDIAGQ -->|"no — the default"| PAPPR
+    PDIAGQ -->|yes| PDIAG["**qoq mermaid — plan mode**<br/>*experimental*<br/>qoq-artist charts the drafted plan<br/>into its **## Diagrams** section —<br/>never a milestone, never a ticket"]
+    PDIAG --> PAPPR(["**ASK THE USER** — approve.<br/>surfaced here: new deps *(incl. any the<br/>architect flagged)*, the model ceiling,<br/>every tier the estimator moved,<br/>**what was skipped** — the grill,<br/>the architect, or both — and what<br/>the artist drew or declined"])
     PAPPR -.->|"changes"| PDEC
     PAPPR -.->|"approved"| PMARK["**Plan status: approved**<br/>+ Commands header,<br/>copied from the record"]
     PMARK --> PTOOL{"which `--tool`?"}
@@ -411,8 +423,8 @@ flowchart TD
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
 
-    class PAPPR,GASK,PXOFF,PXWHERE,PXSTOP,PDASK user
-    class EG2,ERP,PHAND,GRILL skill
+    class PAPPR,GASK,PXOFF,PXWHERE,PXSTOP,PDASK,PTOFF user
+    class EG2,ERP,PHAND,GRILL,PDIAG skill
     class P2 agent
 ```
 
@@ -442,12 +454,13 @@ flowchart TD
     ORPH -->|yes| ORPT(["**report the orphans at approval** — a<br/>re-decomposed ticket loses its External and<br/>the tracker item it was is now dangling.<br/>*replan never syncs: the export writes once<br/>and never syncs back, and syncing is the<br/>problem this skill refuses to own*"])
     ORPT -.-> WRITE
     ORPH -->|no| WRITE["**overwrite in place**.<br/>*the calibration store is untouched — a<br/>recorded outcome means 'this shape of work<br/>at that tier went this way', which stays<br/>true however the plan is now shaped*"]
+    WRITE --> RDIAG["**diagrams on** → qoq-artist redraws<br/>the live part's charts before approval.<br/>*charts of frozen milestones stay<br/>as they were approved*"]
 
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
 
     class RSTOP,RFIN,RFRESH,ORPT user
-    class GRILL,PH23 skill
+    class GRILL,PH23,RDIAG skill
 ```
 
 ---
@@ -458,7 +471,9 @@ flowchart TD
 flowchart TD
     EARG{"--source?"}
     EARG -->|"local *(default)*"| ELOAD
-    EARG -->|"jira · linear · trello"| EIMP(["**ASK which milestone** — epic ·<br/>milestone · list, offering what the<br/>read-only tools can see.<br/>*never a bare ticket (no milestone gate)<br/>and never a board (work nobody started)*"])
+    EARG -->|"jira · linear · trello"| ESGATE{"its qoq.config<br/>future.unstable_skill_plan_&lt;tool&gt;?"}
+    ESGATE -->|"off — experimental"| ESOFF(["**stop** — name the switch.<br/>nothing asked, nothing read<br/>from the tracker"])
+    ESGATE -->|on| EIMP(["**ASK which milestone** — epic ·<br/>milestone · list, offering what the<br/>read-only tools can see.<br/>*never a bare ticket (no milestone gate)<br/>and never a board (work nobody started)*"])
     EIMP --> EIMAP["**read the mapping backwards** into<br/>the plan template — External = the key/URL.<br/>fill what no tracker has: **Commands** from<br/>the record, **Estimate** from estimate.mjs.<br/>write **Plan status: approved**"]
     EIMAP --> ERE{"a plan file already<br/>carries this milestone's<br/>**External**?"}
     ERE -->|"yes — the common<br/>second invocation"| ERES["**resume it** — add tickets the tracker<br/>has gained, touch nothing already there.<br/>*re-importing overwrites every done,<br/>every commit hash, and every assertion<br/>the user was asked for*"]
@@ -486,14 +501,14 @@ flowchart TD
     EUSE -->|"exit 1 — limit reached"| EPERM(["**ASK THE USER**<br/>dispatch anyway? a yes disarms<br/>the gate for the rest of the run —<br/>the number only climbs"])
     EPERM -->|yes| EDISP
     EPERM -->|no| EPAUSE(["**pause, not blocked** — ticket status<br/>untouched, **no estimate filed**<br/>*(nothing was dispatched to grade)*.<br/>qoq execute [plan] resumes it"])
-    EDISP["dispatch **one qoq-developer** — model = the<br/>ticket's tier. carries **verbatim**: id · Context ·<br/>Files · Acceptance criteria · **the milestone's<br/>Contracts** · the record's path ·<br/>test-conventions.md's path.<br/>*not the Scenarios — journey-level context<br/>a single ticket cannot act on*"]
+    EDISP["dispatch **one qoq-developer** — model = the<br/>ticket's tier. carries **verbatim**: id · Context ·<br/>Files · Acceptance criteria · **the milestone's<br/>Contracts** · the record's path ·<br/>test-conventions.md and<br/>code-conventions.md paths.<br/>*not the Scenarios — journey-level context<br/>a single ticket cannot act on*"]
 
     subgraph EDEV["qoq-developer — red · green · refactor"]
         direction TB
         T0["**read the record** — runner · globals ·<br/>React? · conventions file · commands ·<br/>how to invoke qoq. *first move*"]
         T0 --> T1["**RED** — transcribe **every** criterion into<br/>an assertion **against the Contract**, in the<br/>project's dialect. **one run**: each must<br/>fail, and for the right reason.<br/>*the runner names every failing test — that<br/>is the isolation a per-criterion cycle<br/>would have bought. the reviewer cannot run<br/>anything, so this is the empirical half*"]
         T1 --> T2["**GREEN** — one criterion at a time, the<br/>minimum that turns that one assertion.<br/>*re-run a single one when you want to<br/>check it — permitted, never required*"]
-        T2 --> TREF["**REFACTOR** — tidy inside the ticket's own<br/>**Files**, while green, no interface change,<br/>re-run after. *not the milestone refactor*"]
+        T2 --> TREF["**REFACTOR** — tidy inside the ticket's own<br/>**Files**, while green, no interface change,<br/>re-run after. *not the milestone refactor*<br/>a name that needs a comment gets renamed.<br/>**a comment older than the ticket goes only<br/>if false or now carried by a name/type/test —<br/>listed verbatim in comments_removed**"]
         TREF --> TADD["may **add** cases per test-conventions.md.<br/>**never change what a green assertion<br/>expects on your own judgment** — that is a<br/>hand-back with the criterion quoted.<br/>*a Gate 2 rejection is the one exception,<br/>and only for the assertions it cites*"]
         TADD --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`, then<br/>`npx qoq staged --skip-knip` over its files<br/>*scoped and report-less: the<br/>digest and the gate stay<br/>with the caller*"]
         T4 -->|"red, budget left"| T2
@@ -509,14 +524,14 @@ flowchart TD
     EGATE -->|FAIL| EATT
     EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the developer's `specs`.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
     EGATE2 -->|"REJECTED — file:line per defect"| EATT
-    EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files,<br/>**`--no-verify`**.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof its tests<br/>are real — the gates just ran, scoped, and a<br/>pre-commit hook would re-run them plus the<br/>knip that gate 1 dropped on purpose*"]
+    EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files,<br/>**`--no-verify`**. the body quotes every<br/>comments_removed entry verbatim + why.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof its tests<br/>are real — the gates just ran, scoped, and a<br/>pre-commit hook would re-run them plus the<br/>knip that gate 1 dropped on purpose*"]
 
     EATT{"**3 attempts spent?**<br/>*shared across BOTH gates —<br/>an attempt is an attempt*"}
     EATT -->|"no — re-dispatch with the<br/>digest or the verdict **verbatim**<br/>+ the last return whole"| EDISP
     EATT -->|yes| EESC
-    THAND -->|"`blocker_kind: plan`"| EPLAN(["**ASK THE USER** — `blocker` verbatim.<br/>ticket stays in-progress; edit the plan<br/>only with the answer, then re-dispatch<br/>at its own tier, fresh budget<br/>*no tier may change the ticket*"])
+    THAND -->|"on `blocker_kind: plan`"| EPLAN(["**ASK THE USER** — `blocker` verbatim.<br/>ticket stays in-progress; edit the plan<br/>only with the answer, then re-dispatch<br/>at its own tier, fresh budget<br/>*no tier may change the ticket*"])
     EPLAN -.-> EDISP
-    THAND -->|"`blocker_kind: model`<br/>or no block"| EESC{"a tier<br/>above?"}
+    THAND -->|"on `blocker_kind: model`<br/>or no block"| EESC{"a tier<br/>above?"}
     EESC -->|"yes — re-dispatch with the last<br/>return whole, `blocker` verbatim"| EDISP
     EESC -->|"no — top rung already"| EBLOCK(["**Status: blocked** — bring the<br/>user the report: bad ticket,<br/>or session model too small"])
 
@@ -533,10 +548,14 @@ flowchart TD
     EMGATE --> EMSUITE["**milestone 2 — the project's<br/>full build + full test suite**"]
     EMSUITE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
     ENEW --> EWAVE
-    EMSUITE -->|green| EARCH["**archive with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Completed summary, not just 'green'.<br/>milestone text to .completed.md, summary<br/>stays, downstream Context updated first"]
+    EMSUITE -->|green| EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
+    EDOCQ -->|"no — the default"| EARCH
+    EDOCQ -->|yes| EDOC["**qoq document — plan mode**<br/>*experimental*<br/>qoq-scribe at sonnet over the milestone<br/>text + its ticket-commit range ·<br/>**qoq-artist** on its candidates when<br/>diagrams are on too · prettier ·<br/>**docs(mN)** commit.<br/>*never stops the run: a question,<br/>drift or marker becomes a Docs<br/>advisory, walked through at the end*"]
+    EDOC --> EARCH["**archive with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Completed summary, not just 'green'.<br/>milestone text to .completed.md, summary<br/>stays, downstream Context updated first"]
     EARCH --> EMS{"milestones<br/>left?"}
     EMS -->|yes| EWAVE
-    EMS -->|no| EFIN(["**done** — plan delivered"])
+    EMS -->|no| EDWALK["**walk the user through every<br/>milestone's Docs advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
+    EDWALK --> EFIN(["**done** — plan delivered"])
 
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
@@ -544,8 +563,8 @@ flowchart TD
     classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
 
     class EDEV,EGATE2 agent
-    class EASK,EPERM,EIMP,ECASK user
-    class EBACK,EMGATE,EGATE skill
+    class EASK,EPERM,EIMP,ECASK,EDWALK,ESOFF user
+    class EBACK,EMGATE,EGATE,EDOC skill
     class CONTRA note
 ```
 
@@ -654,3 +673,90 @@ flowchart TD
 **No purple on this one.** `compress` dispatches nothing — it is judgement about
 meaning applied to one file at a time, and two agents rewriting sibling docs are
 how the same fact ends up disagreeing with itself in two places.
+
+---
+
+## `document`
+
+```mermaid
+flowchart TD
+    DQ["/qoq document [paths]"] --> DSCOPE{"paths<br/>given?"}
+    DSCOPE -->|yes| DLIST["those paths"]
+    DSCOPE -->|no| DDEF["git diff --name-only &lt;merge-base&gt;<br/>*empty → one-line stop*"]
+    DDEF --> DLIST
+    DLIST --> DDISP
+
+    DEXEC["execute's milestone gate, green —<br/>**only with --docs or<br/>future.unstable_skill_docs: true**"] --> DDISPP["dispatch at **sonnet** — plan mode<br/>milestone text · ticket-commit range ·<br/>Docs conventions line"]
+
+    DDISP["dispatch at the **session's** model —<br/>path mode. *inference on code<br/>nobody explained*"] --> DSCRIBE
+    DDISPP --> DSCRIBE
+
+    DSCRIBE["**qoq-scribe** — conventions first ·<br/>JSDoc on exported + non-trivial only,<br/>no types in TS · owned docs carry<br/>**qoq-scribe sources:** · Source line per<br/>section · README **Contents** last ·<br/>**@todo qoq-scribe:** where purpose is unknown.<br/>*comments only — never behaviour,<br/>never refactor advice, never diagrams*"]
+    DSCRIBE --> DQS{"status"}
+
+    DQS -->|"question — wrote nothing"| DMODE{"mode"}
+    DMODE -->|path| DASK["ask the user"] --> DDISP
+    DMODE -->|plan| DSKIP["**docs skipped** advisory ·<br/>asked at end of run · answer →<br/>plan's Docs conventions"]
+
+    DQS -->|done| DARTQ{"plan mode **and**<br/>diagrams on?"}
+    DARTQ -->|yes| DART["**qoq-artist** — docs mode, over<br/>diagram_candidates + its own<br/>charts in the scribe's files"] --> DFMT
+    DARTQ -->|no| DFMT["npx qoq prettier --fix<br/>*the only gate a comments-only<br/>change can trip*"]
+    DFMT --> DMODE2{"mode"}
+    DMODE2 -->|path| DWALK["walk through markers ·<br/>readme: missing → ask.<br/>answers replace markers ·<br/>**offer** to draw diagram_candidates"] --> DSTOP(["**stop — uncommitted**"])
+    DMODE2 -->|plan| DCOMMIT["commit **only** the report's files —<br/>docs(mN): name. drift + markers →<br/>**Docs advisories**"] --> DARCH(["back to execute → archive"])
+
+    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
+
+    class DSCRIBE,DART agent
+    class DASK,DWALK user
+    class DFMT,DDEF note
+```
+
+---
+
+## `mermaid`
+
+```mermaid
+flowchart TD
+    MQ["/qoq mermaid &lt;description&gt; [--to path[#slug]]"] --> MTO{"--to?"}
+    MTO -->|none| MPRINT["target: **print**"]
+    MTO -->|path| MPATH["target: the file —<br/>created, or appended"]
+    MTO -->|"path#slug"| MSLUG{"slug in<br/>the file?"}
+    MSLUG -->|no| MSTOP(["**stop** — list the slugs<br/>it does have. never a guess,<br/>never a new heading"])
+    MSLUG -->|yes| MSEC["target: end of that section —<br/>its chart is replaced, any id"]
+    MPRINT --> MDISP
+    MPATH --> MDISP
+    MSEC --> MDISP["dispatch — **standalone mode**<br/>*ungated: typing it is the opt-in*"]
+
+    MPLAN["plan · replan — after self-review,<br/>before approval. **only with --diagrams<br/>or future.unstable_skill_diagrams**"] --> MPD["dispatch — **plan mode**<br/>the drafted plan file"]
+    MEXEC["execute's milestone gate, after the scribe —<br/>**diagrams and docs both on**<br/>· /qoq document's offer, on a yes"] --> MDD["dispatch — **docs mode**<br/>diagram_candidates + the<br/>scribe's file lists"]
+
+    MDISP --> MART
+    MPD --> MART
+    MDD --> MART
+
+    MART["**qoq-artist** at sonnet — conventions first ·<br/>pipeline default is **not to draw** ·<br/>chart type from the content's shape ·<br/>1 per heading, 3 per file · split or<br/>collapse past ~15 nodes · finds its own<br/>charts by **qoq-artist id**, never<br/>touches hand-drawn Mermaid or prose"]
+    MART --> MCHECK["node scripts/mermaid-check.mjs<br/>*mermaid.parse under jsdom, pinned,<br/>installed once into the OS temp dir*"]
+    MCHECK -->|"1 — FAIL"| MFIX{"3 attempts<br/>spent?"}
+    MFIX -->|no| MART
+    MFIX -->|yes| MDECL["remove it · **declined**<br/>with the parse error"]
+    MCHECK -->|"2 — unavailable"| MUNV["keep it, marker gains<br/>**unvalidated**"]
+    MCHECK -->|"0 — parses"| MRET
+    MDECL --> MRET
+    MUNV --> MRET["typed report — diagrams · declined ·<br/>stale_hand_drawn · printed"]
+
+    MRET --> MMODE{"mode"}
+    MMODE -->|standalone| MSHOW(["prettier if a file was written ·<br/>show it · **stop — uncommitted**"])
+    MMODE -->|plan| MAPPR(["listed at approval · **drop** → main<br/>thread deletes it · **wrong** → re-dispatch<br/>with the correction and the id"])
+    MMODE -->|docs| MDOCS(["joins the **docs(mN)** commit ·<br/>unvalidated + stale hand-drawn →<br/>**Docs advisories**"])
+
+    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
+
+    class MART agent
+    class MSTOP,MAPPR,MSHOW user
+    class MCHECK note
+```
