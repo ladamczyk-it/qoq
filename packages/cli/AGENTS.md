@@ -94,9 +94,9 @@ export default {
     unstable_skill_docs: false, // `/qoq execute` documents each milestone, as with --docs
     unstable_skill_bump_with_scan: false, // `/qoq bump` plans from `qoq scan` too, as with --scan
     unstable_skill_diagrams: false, // `/qoq plan`, `replan`, `execute` draw Mermaid, as with --diagrams
-    unstable_skill_plan_jira: false, // `/qoq plan --tool jira` is allowed to raise the plan in Jira
-    unstable_skill_plan_linear: false, // same for --tool linear
-    unstable_skill_plan_trello: false, // same for --tool trello
+    unstable_skill_plan_jira: false, // `/qoq plan --tool jira` and `/qoq execute --source jira` are allowed
+    unstable_skill_plan_linear: false, // same for linear
+    unstable_skill_plan_trello: false, // same for trello
   },
 
   configPaths: {

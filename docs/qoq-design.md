@@ -580,7 +580,10 @@ nobody here has exercised end to end, and they write to people's real trackers.
 So each needs `future.unstable_skill_plan_<tool>: true` in `qoq.config` — a
 project's decision, checked in — and the `--tool` flag alone is never enough.
 It's checked before the grill, not at the export beat: a stop after approval
-would spend a whole planning session to find out.
+would spend a whole planning session to find out. `execute --source` imports from
+the same trackers through the same untested servers, so it sits behind the same
+switch — one decision per tracker, both directions, rather than six names for
+three integrations.
 
 **Why the export is offered rather than folded into approval.** Approving a plan
 and publishing it into a team's tracker are two different acts with two different

@@ -9,6 +9,12 @@ itself** — its whole job is dispatch, gates, status, and archiving.
 `--source local` is the default and needs nothing: a plan path, or the single
 approved plan under `./plans/` when the argument is omitted.
 
+**The three trackers are experimental**, on the same per-project switch as
+`plan --tool` ([plan.md](plan.md)): `future.unstable_skill_plan_<tool>: true` in
+`qoq.config`, grepped as source text. Check it first. Switch off is a one-line
+stop naming it, before anything is asked or read from the tracker; the flag
+alone never turns it on.
+
 `--source jira|linear|trello` asks which milestone to run, reads it and its
 tickets into a plan file, and then continues here as if that file had always
 existed — [references/export.md](export.md) owns that beat, including the two

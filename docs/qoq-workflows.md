@@ -471,7 +471,9 @@ flowchart TD
 flowchart TD
     EARG{"--source?"}
     EARG -->|"local *(default)*"| ELOAD
-    EARG -->|"jira · linear · trello"| EIMP(["**ASK which milestone** — epic ·<br/>milestone · list, offering what the<br/>read-only tools can see.<br/>*never a bare ticket (no milestone gate)<br/>and never a board (work nobody started)*"])
+    EARG -->|"jira · linear · trello"| ESGATE{"its qoq.config<br/>future.unstable_skill_plan_&lt;tool&gt;?"}
+    ESGATE -->|"off — experimental"| ESOFF(["**stop** — name the switch.<br/>nothing asked, nothing read<br/>from the tracker"])
+    ESGATE -->|on| EIMP(["**ASK which milestone** — epic ·<br/>milestone · list, offering what the<br/>read-only tools can see.<br/>*never a bare ticket (no milestone gate)<br/>and never a board (work nobody started)*"])
     EIMP --> EIMAP["**read the mapping backwards** into<br/>the plan template — External = the key/URL.<br/>fill what no tracker has: **Commands** from<br/>the record, **Estimate** from estimate.mjs.<br/>write **Plan status: approved**"]
     EIMAP --> ERE{"a plan file already<br/>carries this milestone's<br/>**External**?"}
     ERE -->|"yes — the common<br/>second invocation"| ERES["**resume it** — add tickets the tracker<br/>has gained, touch nothing already there.<br/>*re-importing overwrites every done,<br/>every commit hash, and every assertion<br/>the user was asked for*"]
@@ -561,7 +563,7 @@ flowchart TD
     classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
 
     class EDEV,EGATE2 agent
-    class EASK,EPERM,EIMP,ECASK,EDWALK user
+    class EASK,EPERM,EIMP,ECASK,EDWALK,ESOFF user
     class EBACK,EMGATE,EGATE,EDOC skill
     class CONTRA note
 ```

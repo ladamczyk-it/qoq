@@ -98,7 +98,7 @@ not a path.
 | `/qoq plan <requirements> --diagrams`          | also chart the plan before approval — experimental     |
 | `/qoq replan plans/<file>.md`                  | that plan only — refuses on uncommitted changes        |
 | `/qoq execute [plans/<file>.md]`               | omitted → ask, unless exactly one plan is approved     |
-| `/qoq execute --source jira`                   | ask which epic/milestone/list, import it, then run it  |
+| `/qoq execute --source jira`                   | import a milestone from there, run it — experimental   |
 | `/qoq execute <plan> --session-limit 60`       | stop before spending past 60% of the 5-hour limit      |
 | `/qoq execute <plan> --weekly-limit 80`        | same for the 7-day limit; both default to 100          |
 | `/qoq execute <plan> --docs`                   | also document each milestone — experimental, opt-in    |
@@ -127,11 +127,11 @@ for `bump`'s experimental vulnerability scan, and
 
 `--tool` and `--source` are the two ends of the same road, and both default to
 `local`. `--tool` is `plan`'s: `jira`, `linear` or `trello` offer to raise the
-approved tickets there — experimental, so each needs its
-`future.unstable_skill_plan_<tool>: true` in `qoq.config` as well
-([references/plan.md](references/plan.md)). `--source` is `execute`'s: those same three values ask
+approved tickets there. `--source` is `execute`'s: those same three values ask
 which milestone to run, import it into a plan file, and then execute that file
-like any other. Neither makes a tracker authoritative — the plan file is the
+like any other. Both directions are experimental: each tracker needs its
+`future.unstable_skill_plan_<tool>: true` in `qoq.config` as well, and the flag
+alone is refused ([references/plan.md](references/plan.md)). Neither makes a tracker authoritative — the plan file is the
 state in both directions ([references/export.md](references/export.md)).
 
 ## Entry

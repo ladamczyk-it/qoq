@@ -35,8 +35,9 @@ export interface QoqConfig {
     // `qoq plan`/`replan` chart the plan before approval, and `qoq execute` charts
     // the scribe's docs when docs are on too — through qoq-artist.
     unstable_skill_diagrams?: boolean;
-    // `qoq plan --tool <tracker>` may raise the approved plan in that tracker. The
-    // flag alone is refused: only `local` is tested.
+    // `qoq plan --tool <tracker>` may raise the approved plan in that tracker, and
+    // `qoq execute --source <tracker>` may import from it. The flag alone is
+    // refused: only `local` is tested.
     unstable_skill_plan_jira?: boolean;
     unstable_skill_plan_linear?: boolean;
     unstable_skill_plan_trello?: boolean;
