@@ -1,3 +1,16 @@
+# [6.7.0](https://github.com/ladamczyk-it/qoq/compare/v6.6.0...v6.7.0) (2026-10-28)
+
+
+### Bug Fixes
+
+* **skill:** an unresolved model tier is the user's to remap, never the agent's ([2bae5d4](https://github.com/ladamczyk-it/qoq/commit/2bae5d44217d925d4383d7bc2058787b84b824a4))
+
+
+### Features
+
+* **skill:** qoq-reviewer judges deliveries against their plan, behind `qoq review` ([958f4ef](https://github.com/ladamczyk-it/qoq/commit/958f4ef7579926d6ea85141c86b1c4fe4a74ded3))
+* **skill:** qoq-sheriff sweeps delivered diffs for security, behind `qoq sheriff` ([9443d74](https://github.com/ladamczyk-it/qoq/commit/9443d740c9849e11aa88c2b00293a9224579fe2b))
+
 # [6.6.0](https://github.com/ladamczyk-it/qoq/compare/v6.5.0...v6.6.0) (2026-10-27)
 
 
