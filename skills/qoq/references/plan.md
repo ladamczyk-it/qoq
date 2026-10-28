@@ -246,6 +246,14 @@ It does not decide which checks run — every ticket runs the identical steps.
 An inflated rating costs a bigger model and nothing more, which is the right way
 round for a rating that's easy to get wrong.
 
+**Security sweep**, only when the sheriff is on (`--sheriff` or
+`future.unstable_skill_sheriff: true`, grepped as in
+[execute.md](execute.md)): propose `ticket` for a ticket that touches
+authentication or authorization, parses input from outside the process, or
+handles a secret, and leave the field off everywhere else — off means the
+milestone sweep only ([sheriff.md](sheriff.md)). It's a proposal: the user
+confirms each one at approval.
+
 ### Then check the pick against what actually happened last time
 
 Size and tier together are one decision — _this much work, delegated to that
@@ -382,6 +390,8 @@ to veto: **new dependencies** any ticket needs — including any the architect
 _flagged_, since it never chooses one — the **model ceiling** — if a ticket is
 rated above the session's own model, no tier exists to escalate to — and every
 ticket whose **tier the estimator moved**, with what the bucket's record was.
+With the sheriff on, list every ticket you proposed `Security sweep: ticket` for,
+for the user to confirm or strike.
 That last one is a judgement the user is better placed to make than either the
 script or you: they know whether this ticket really is the same shape as the four
 that went wrong, and it's their model spend.

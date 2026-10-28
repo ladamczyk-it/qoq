@@ -68,8 +68,8 @@ test('compress skips discovery', () => {
 
 // The rule that had drifted across three prose files. These three dispatch a
 // pinned agent inside the window before Claude Code registers the directory.
-test('a fresh install is a question for fix, test, execute and document', () => {
-  for (const command of ['fix', 'test', 'execute', 'document']) {
+test('a fresh install is a question for fix, test, execute, document and sheriff', () => {
+  for (const command of ['fix', 'test', 'execute', 'document', 'sheriff']) {
     assert.match(run(fixture(), command).stdout, /ACTION: ask the user before carrying on/);
   }
 });

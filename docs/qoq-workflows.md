@@ -29,8 +29,9 @@ Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 | [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                                   |
 | [`document`](#document)                     | [document.md](../skills/qoq/references/document.md), [qoq-scribe](../skills/qoq/agents/qoq-scribe.md) |
 | [`mermaid`](#mermaid)                       | [mermaid.md](../skills/qoq/references/mermaid.md), [qoq-artist](../skills/qoq/agents/qoq-artist.md)   |
+| [`sheriff`](#sheriff)                       | [sheriff.md](../skills/qoq/references/sheriff.md), [qoq-sheriff](../skills/qoq/agents/qoq-sheriff.md) |
 
-**Legend, shared by all eleven.** Purple = a subagent and everything it does.
+**Legend, shared by all twelve.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
 invoked from inside another.
 
@@ -548,13 +549,17 @@ flowchart TD
     EMGATE --> EMSUITE["**milestone 2 — the project's<br/>full build + full test suite**"]
     EMSUITE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
     ENEW --> EWAVE
-    EMSUITE -->|green| EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
+    EMSUITE -->|green| ESHQ{"sheriff on?<br/>*--sheriff, or qoq.config<br/>future.unstable_skill_sheriff*"}
+    ESHQ -->|"no — the default"| EDOCQ
+    ESHQ -->|yes| ESH["**qoq sheriff — milestone sweep**<br/>*experimental* · see the sheriff chart<br/>qoq-sheriff at the session's model, cold,<br/>over the done tickets' range ·<br/>confirmed critical/high → remediation ·<br/>ambiguous critical/high → **stop, ask** ·<br/>medium/low → Security advisory"]
+    ESH --> EDOCQ
+    EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
     EDOCQ -->|"no — the default"| EARCH
     EDOCQ -->|yes| EDOC["**qoq document — plan mode**<br/>*experimental*<br/>qoq-scribe at sonnet over the milestone<br/>text + its ticket-commit range ·<br/>**qoq-artist** on its candidates when<br/>diagrams are on too · prettier ·<br/>**docs(mN)** commit.<br/>*never stops the run: a question,<br/>drift or marker becomes a Docs<br/>advisory, walked through at the end*"]
     EDOC --> EARCH["**archive with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Completed summary, not just 'green'.<br/>milestone text to .completed.md, summary<br/>stays, downstream Context updated first"]
     EARCH --> EMS{"milestones<br/>left?"}
     EMS -->|yes| EWAVE
-    EMS -->|no| EDWALK["**walk the user through every<br/>milestone's Docs advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
+    EMS -->|no| EDWALK["**walk the user through every<br/>milestone's Docs and Security<br/>advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
     EDWALK --> EFIN(["**done** — plan delivered"])
 
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
@@ -564,7 +569,7 @@ flowchart TD
 
     class EDEV,EGATE2 agent
     class EASK,EPERM,EIMP,ECASK,EDWALK,ESOFF user
-    class EBACK,EMGATE,EGATE,EDOC skill
+    class EBACK,EMGATE,EGATE,EDOC,ESH skill
     class CONTRA note
 ```
 
@@ -759,4 +764,64 @@ flowchart TD
     class MART agent
     class MSTOP,MAPPR,MSHOW user
     class MCHECK note
+```
+
+---
+
+## `sheriff`
+
+```mermaid
+flowchart TD
+    SQ["/qoq sheriff [paths · globs · a..b]"] --> SSCOPE{"argument"}
+    SSCOPE -->|"contains .."| SDIFF["mode **diff** — that range,<br/>no plan, intent not judged"]
+    SSCOPE -->|"paths · globs"| SSNAP["mode **snapshot** — the code as<br/>it stands, intent not judged"]
+    SSCOPE -->|none| SDEF["changed since the merge-base,<br/>as a snapshot · *empty → stop*"]
+    SDEF --> SSNAP
+    SDIFF --> SDISP
+    SSNAP --> SDISP
+
+    SEXEC["execute's milestone gate, green —<br/>**only with --sheriff or<br/>future.unstable_skill_sheriff: true**"] --> SDISPM["mode **milestone** — done tickets'<br/>range · union · Goal · Contracts ·<br/>criteria · Security context line"]
+    SDISP["dispatch at the **session's** model, cold"] --> SAG
+    SDISPM --> SAG
+
+    SAG["**qoq-sheriff** — learn the project's security<br/>model first · injection · authn · authz · input ·<br/>secrets · deserialization · exposure · trust<br/>boundaries · then **pairs across tickets**.<br/>*skips what an enabled ESLint rule flags ·<br/>skips accepted markers — unless the diff touches<br/>one or another finding breaks its reason ·<br/>never decides intent, never edits*"]
+    SAG --> SST{"status"}
+    SST -->|"question — wrote nothing"| SASKQ(["**ASK** — pipeline: the run stops;<br/>answer → plan's **Security context**"])
+    SASKQ -.-> SAG
+    SST -->|"clean · findings"| SMODE{"caller"}
+    SMODE -->|standalone| SPRINT(["print the report — **intent not<br/>judged** up top · nothing written ·<br/>**offer** remediation"])
+    SPRINT -.->|"user says yes —<br/>branch check first"| SROUTE
+    SMODE -->|execute| SROUTE{"route each finding"}
+
+    SROUTE -->|"confirmed + critical/high"| SREM
+    SROUTE -->|"ambiguous + critical/high"| SUSER(["**ASK NOW** — remediate ·<br/>accept · defer"])
+    SROUTE -->|"medium · low"| SADV["**Security advisory** —<br/>walked through at end of run"]
+    SADV -.-> SUSER
+    SUSER -->|remediate| SREM
+    SUSER -->|accept| SACC["**qoq-sheriff: accepted — reason**<br/>in the file's comment syntax ·<br/>chore(mN) commit · *JSON can't<br/>carry one → defer*"]
+    SUSER -->|defer| SDEFER["ticket in the next unstarted<br/>milestone, **Security sweep: ticket**"]
+
+    subgraph SLOOP["one remediation round — budget **2**, apart from delivery attempts"]
+        direction TB
+        SREM["**remediation ticket** — Files = finding files<br/>+ one spec · ACs = the exploit must fail<br/>*(static assertion when there's no runtime one)* ·<br/>tier **sonnet**"]
+        SREM --> SDEV["**qoq-developer** — gate failures retry<br/>inside the round on its own 3 attempts"]
+        SDEV --> SSCOPECHK{"**scope check, by file** —<br/>files ⊆ ticket Files?"}
+        SSCOPECHK -->|"no — restore, round spent"| SREM
+        SSCOPECHK -->|yes| SGATES["Gate 1 · Gate 2 · commit<br/>**fix(mN): security S1,S2**"]
+        SGATES --> SREGATE["**re-gate** — qoq fix over the union,<br/>knip on · full build + suite.<br/>*no refactor: it could reshape the fix*"]
+        SREGATE --> SRECHK["**qoq-sheriff recheck** — findings by<br/>anchor + the remediation diff only"]
+    end
+    SRECHK -->|"all resolved"| SREC["**Security** line on the milestone —<br/>each finding and how it ended ·<br/>verdict into **Gate evidence**"]
+    SRECHK -->|"surviving, round left"| SREM
+    SRECHK -->|"surviving, 2 spent"| SESC(["**ASK** — surviving findings · both diffs ·<br/>both rechecks: one more round at the<br/>session model · accept · defer · stop"])
+    SACC --> SREC
+    SDEFER --> SREC
+
+    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
+
+    class SAG,SDEV,SRECHK agent
+    class SASKQ,SPRINT,SUSER,SESC user
+    class SDEF,SSCOPECHK note
 ```

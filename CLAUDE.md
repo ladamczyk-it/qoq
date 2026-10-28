@@ -75,7 +75,7 @@ checkout. It's on-demand, not part of the gate: it isn't wired into `qoq:check` 
 ## The `qoq` skill and its diagrams
 
 The skill is `skills/qoq/` — `SKILL.md` routes and holds only what every command
-needs, `references/*.md` hold each command's rules, `agents/*.md` are the nine
+needs, `references/*.md` hold each command's rules, `agents/*.md` are the ten
 subagents, `assets/patterns/` is `qoq-designer`'s catalogue — a base index plus
 one per stack (`react/index.md` today), which it reads, and twenty-one write-ups
 only `refactor` opens, one at a time. Rationale lives in exactly one of those layers: a paragraph in both

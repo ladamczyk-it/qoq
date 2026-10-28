@@ -1,0 +1,12 @@
+{
+  "name": "sheriff-fixture",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "express": "5.1.0",
+    "pg": "8.16.0"
+  },
+  "devDependencies": {
+    "eslint-plugin-sonarjs": "4.2.2"
+  }
+}

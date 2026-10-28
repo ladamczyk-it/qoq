@@ -963,6 +963,79 @@ in the opening line rather than asking, because nothing breaks. `/qoq document`
 only offers: path mode is attended, and a chart the user didn't ask for is a
 second review they didn't sign up for.
 
+## `sheriff`
+
+**Why per milestone, not per ticket.** The finding this agent exists for is the
+one no single ticket contains: an endpoint in one ticket, the missing check in
+front of it in another. A per-ticket sweep sees each half alone and calls both
+clean, and pays a session-tier read per ticket to do it. The per-ticket sweep
+stays as an exception the user confirms at approval, and it never shrinks the
+milestone sweep, for exactly that reason.
+
+**Why after the gates, and before the scribe and the reviewer.** Earlier, its
+judgment is spent on code the refactor and the fix loop are about to rewrite.
+Later, the scribe documents code a remediation is about to change, and the
+reviewer would read a diff that isn't final.
+
+**Why the session's model, always cold.** Security review is pure judgment, and
+the failure that matters is a miss, which no later gate catches. The author's
+model and context carry the author's blind spots, so the sweep never inherits
+them: a fresh dispatch every time, never `SendMessage`. There's no "raise" field,
+because execute's ladder already stops at the session's model.
+
+**Why ESLint's resolved config is the line, not "what Sonar catches".** qoq has
+no Sonar gate; its mechanical security layer is ESLint with sonarjs, already run
+over every file. Reading which rules are enabled is checkable, and
+`skipped_covered` shows the reasoning. "What a scanner would probably catch" is
+a guess, and a guess that's wrong drops a real finding.
+
+**Why confidence routes and never gets promoted.** Severity says how bad it is
+if it's real. Confidence says whether anyone meant it, and only the user knows
+that. An agent that promotes an ambiguous finding to make it actionable has
+decided intent for them, and a fix for something intended breaks a feature on
+purpose. So confirmed critical/high goes straight to remediation, an ambiguous
+critical/high stops the run (the next milestone would build on it), and
+everything else waits for the end-of-run walkthrough, so an unattended run keeps
+going.
+
+**Why remediation is a new ticket, with its own budget.** The ticket that wrote
+the hole is delivered and green, and reopening it would re-grade it with the
+estimator. A narrow ticket reuses everything `qoq-developer` already guarantees
+(a red spec first, Gate 1, Gate 2), so the fix is pinned by a test. Its two
+rounds are counted apart from delivery attempts: "the ticket was hard" and "the
+fix didn't work" are different failures, and one budget would let a hard ticket
+starve its own security fix.
+
+**Why the scope check is by file, and mechanical.** "Change nothing else" is a
+rule a model can talk itself out of under the banner of security. A file-set
+comparison can't be argued with. Hunks are left to the recheck because a fix
+legitimately moves lines and adds an import at the top of the file, and a
+region rule would reject correct fixes.
+
+**Why no refactor in the re-gate.** `--decisions auto` applies its safe tier
+unattended, and safe for shape isn't safe for a security fix. A dedupe that
+merges the fixed path with an unfixed sibling undoes it without failing a test.
+
+**Why accepted risks are inline markers.** A ledger file drifts the moment code
+moves, and a later sweep can't tell which entry a renamed function belongs to. A
+comment moves with the code, is visible to the next human, and has a mechanical
+expiry: the sheriff re-raises when a diff touches the marked block, quoting the
+reason it was accepted for.
+
+**Why a broken premise re-raises an untouched marker.** An acceptance is a yes
+to a stated reason, not to a location. When another finding falsifies that
+reason, for example a role check that was "the whole guard" while the role is
+forgeable, the yes no longer covers anything. The diff rule alone would keep
+the marker silent until someone happened to edit that block, which may be never.
+It comes back `ambiguous`, never `confirmed`, because the user may still accept
+it on a different reason, and that decision is theirs.
+
+**Why opt-in inside `execute`.** Same reason as the scribe: it's experimental,
+and inside `execute` it runs unattended and can stop a run or commit fixes. A
+miscalibrated sweep nine milestones deep is expensive. `--sheriff` turns it on
+for one run, `future.unstable_skill_sheriff` for a project. Standalone
+`/qoq sheriff` needs neither, and it only prints until the user says yes.
+
 ## Code conventions
 
 **Why names, not comments, carry the what.** A comment that restates the code is

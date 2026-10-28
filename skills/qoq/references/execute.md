@@ -179,6 +179,11 @@ property of the file in front of it and stays on.
 dispatch carries those files, the ticket's acceptance criteria, the milestone's
 `Contracts`, and the path to `references/test-conventions.md`.
 
+**A ticket with `Security sweep: ticket`** gets one more read after Gate 2,
+when the sheriff is on: an early `qoq-sheriff` sweep over its own diff, before
+the commit. What it finds and what that costs the ticket is
+[sheriff.md](sheriff.md)'s.
+
 **`qoq fix` runs first because it rewrites formatting**, and there's no point
 spending a semantic read on text that's about to change.
 
@@ -363,7 +368,13 @@ write.
 Red → write the failure up as a new ticket: sized, rated, dispatched like any
 other. Don't patch it on this thread; the lead doesn't implement.
 
-Green → **document**, when docs are on (Setup), then **archive**. `qoq-scribe`
+Green → **sheriff**, when it's on (Setup). `qoq-sheriff` sweeps the
+milestone's combined diff for logic-level security problems, and its findings
+are routed, remediated or recorded before anything below runs —
+[sheriff.md](sheriff.md) owns all of it, including the two places it stops the
+run. Off → straight on, no Security line.
+
+Then **document**, when docs are on (Setup), then **archive**. `qoq-scribe`
 runs in plan mode over the milestone — [document.md](document.md) owns how,
 followed by `qoq-artist` when diagrams are on too ([mermaid.md](mermaid.md)) — and
 its `docs(m<N>)` commit lands before the text moves, because the milestone text
@@ -379,17 +390,19 @@ into the milestone's summary; one that evaporates on archive is worse than one
 never looked for.
 
 **Record what the gates proved, not that they ran.** The summary block's **Gate
-evidence** field takes the refactor's verdict and the suite's result as reported.
+evidence** field takes the refactor's verdict and the suite's result as reported,
+plus the sheriff's verdict when it ran.
 "Green" is a claim; "refactor clean, 412 passed / 0 failed" is evidence, and a
 `## Completed` block is read by people who can no longer see the run.
 
 ## Setup
 
-Two checks: are `qoq-developer` and `qoq-test-reviewer` registered under
-`.claude/agents/`? If either isn't, dispatch `general-purpose` with that agent
+Two checks: are `qoq-developer` and `qoq-test-reviewer` (and `qoq-sheriff`,
+when it's on) registered under
+`.claude/agents/`? If one isn't, dispatch `general-purpose` with that agent
 file's body pasted in — for the developer, with the tier passed explicitly, since
 `general-purpose` otherwise inherits the session's model and quietly overrides
-the rating the plan made; for the reviewer, with its read-only prohibition
+the rating the plan made; for the reviewer and the sheriff, with the read-only prohibition
 restated, since `general-purpose` gets every tool and would arrive holding the
 ability to fix what it was dispatched to report.
 
@@ -398,7 +411,11 @@ invoked with `--docs`, or when the project's `qoq.config.*` sets
 `future: { unstable_skill_docs: true }` — one Grep for
 `unstable_skill_docs\s*:\s*true` over the config file, read as source text and
 never evaluated. Decide it once here and say which in the run's opening line.
-**Diagrams** are the same kind of switch — `--diagrams`, or
+**The sheriff** is the same kind of switch — `--sheriff`, or
+`future.unstable_skill_sheriff: true` — and runs at the milestone gate whether or
+not docs are on ([sheriff.md](sheriff.md)). Without it a plan's
+`Security sweep: ticket` fields do nothing; say so in the opening line if the
+plan has any. **Diagrams** are the same kind of switch — `--diagrams`, or
 `future.unstable_skill_diagrams: true` — and need docs on to do anything
 ([mermaid.md](mermaid.md)).
 

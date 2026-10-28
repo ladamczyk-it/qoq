@@ -907,6 +907,63 @@
         "Never edits the prose of docs/release.md"
       ],
       "target": "agent"
+    },
+    {
+      "id": 46,
+      "name": "sheriff-snapshot-finds-and-skips",
+      "prompt": "Copy <repo>/evals/fixtures/sheriff to a scratch directory and git init it with one commit. Then dispatch qoq-sheriff directly (not through the skill), with: mode: snapshot. Scope: src/. Skill path: <repo>/skills/qoq.",
+      "expected_output": "Reads the project's security model first: requireUser authenticates every /api route but authorizes nothing, and sessions are decoded, not verified. Ends on the YAML report with mode snapshot and intent_judged: false. It finds the string-concatenated LIKE query in src/api/search.ts as confirmed injection, and getOrder loading by id with no owner check (unlike listOrders) as authz. Unverified session decoding in src/session.ts and the unauthenticated /internal/metrics route are flagged, as ambiguous where only intent could settle them, each with a yes/no question. The wildcard CORS header in src/api/catalogue.ts carries an accepted marker whose reason still holds, so it is skipped. The raw SQL in src/api/legacy.ts carries one too, but its reason (the role check is the whole guard) is broken by the forgeable session, so it comes back as an ambiguous finding naming both locations, quoting the marker, and referencing the session finding's id. The hard-coded password in src/db.ts is left to the enabled sonarjs/no-hardcoded-passwords rule and listed under skipped_covered. Every finding has a verbatim anchor and a concrete exploit. Nothing is edited.",
+      "files": [
+        "evals/fixtures/sheriff/src/api/search.ts",
+        "evals/fixtures/sheriff/src/api/orders.ts",
+        "evals/fixtures/sheriff/src/api/legacy.ts",
+        "evals/fixtures/sheriff/src/api/catalogue.ts",
+        "evals/fixtures/sheriff/src/db.ts"
+      ],
+      "assertions": [
+        "Ends on a YAML block with `mode: snapshot` and `intent_judged: false`",
+        "Reports an injection finding in src/api/search.ts at critical or high severity, confidence confirmed",
+        "Reports an authz finding on getOrder in src/api/orders.ts with an exploit naming another user's order id",
+        "Reports src/session.ts's unverified decoding or the unauthenticated /internal/metrics route, and any of those marked ambiguous carries a `question`",
+        "Does not report the wildcard CORS header in src/api/catalogue.ts as a finding",
+        "Raises src/api/legacy.ts as an ambiguous finding whose locations include src/session.ts, whose reason quotes the accepted marker and names the session finding's id, and whose question asks whether the acceptance still stands",
+        "Lists src/db.ts's hard-coded password under `skipped_covered` naming sonarjs/no-hardcoded-passwords, not under `findings`",
+        "Every finding's locations carry a verbatim `anchor` line present in the file",
+        "git status is clean: no file edited"
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 47,
+      "name": "sheriff-standalone-prints-and-offers",
+      "prompt": "/qoq sheriff src/api",
+      "expected_output": "Paths given, so a snapshot. The main thread dispatches qoq-sheriff at the session's model rather than reading the code itself, prints the report with every finding's severity, confidence, location, reason and exploit, and says once, up front, that intent was not judged because there's no plan. It writes nothing to disk, commits nothing, and offers remediation without starting it.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-sheriff rather than reviewing inline",
+        "Says the audit did not judge intent because there is no plan",
+        "Reports the injection in src/api/search.ts",
+        "Writes no file (git status clean) and makes no commit",
+        "Offers remediation and does not dispatch qoq-developer before the user answers"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/sheriff/src/ over the fixture's src/ (adds src/api/, src/app.ts, src/auth.ts, src/session.ts, src/db.ts), then npm install express@5.1.0 pg@8.16.0."
+    },
+    {
+      "id": 48,
+      "name": "sheriff-pipeline-routing-and-scope",
+      "prompt": "Resume the plan with --sheriff. Milestone 1's tickets are all done and its gate is green.",
+      "expected_output": "With --sheriff on, after the milestone's refactor and full suite are green, the run dispatches qoq-sheriff in milestone mode over the done tickets' commit range before any document step. A confirmed high finding becomes a remediation ticket (finding files plus one spec, the exploit as a failing assertion, tier sonnet) with no question asked. An ambiguous critical finding stops the run and asks the user to remediate, accept or defer. A medium finding becomes a Security advisory for the end-of-run walkthrough. A remediation diff touching a file outside the ticket's Files is restored and the round spent. The re-gate runs qoq fix with Knip on plus the full suite and no qoq refactor, then a recheck dispatch. Nothing is filed with estimate.mjs for the remediation.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-sheriff after the full suite is green and before any qoq-scribe dispatch",
+        "Routes a confirmed high finding to remediation without asking",
+        "Stops and asks on an ambiguous critical finding, offering remediate, accept and defer",
+        "Records a medium finding as a Security advisory rather than asking mid-run",
+        "Rejects a remediation diff that touches a file outside the remediation ticket's Files",
+        "Re-gate runs qoq fix with Knip and the full suite, not qoq refactor",
+        "Does not run estimate.mjs --record for the remediation ticket"
+      ]
     }
   ]
 }
