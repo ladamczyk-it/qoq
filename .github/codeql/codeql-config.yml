@@ -1,0 +1,6 @@
+name: qoq CodeQL config
+
+# evals/fixtures holds deliberately vulnerable sample code — the sheriff evals
+# need it to find something. Alerts there are the fixture working, not a bug.
+paths-ignore:
+  - evals/**

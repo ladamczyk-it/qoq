@@ -315,6 +315,28 @@ manifest at all: that's every existing project on the first run after the upgrad
 that shipped this, and protecting those would freeze them all on the agent bodies
 they already had.
 
+**Why tier remapping is Claude Code's env vars and not a qoq file.** A host
+where `opus`, `sonnet` or `haiku` doesn't resolve once got an agent to ask,
+move everything to Opus and save that to memory, which quietly inflated every
+later run. Claude Code already resolves every alias through
+`ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL`, read from the settings `env`
+block with local over project over user. It does that for subagent frontmatter
+and for the Agent tool's per-call `model`, which takes aliases only. A qoq
+mapping file could rewrite the installed agents' frontmatter but never a tier
+passed at dispatch (`qoq-developer`, `qoq-scribe`), so resolution would end up
+split across two places. What qoq adds is the part Claude Code can't decide:
+naming the failed tier, writing a mapping only after the user confirms it, and
+a cost warning. A mapping is written to the local or user file only. The
+committed one is skipped because a provider's model id belongs to one machine,
+and `env` there waits for workspace trust anyway. Requirement 3 of the original
+ask (object entries, so effort could be added later) was dropped on purpose:
+effort already has its own home in frontmatter `effort`.
+
+**Why a tier that doesn't resolve isn't an execute attempt.** The ticket was
+never tried. Counting it would spend the budget, and recording it would file a
+miss against a tier that never ran. Escalating would be exactly the silent
+dearer fallback this rule exists to stop.
+
 **Why derivation lives in the agent and not in the reference.** Two copies of
 "how the test command is derived" is the same duplication the record itself
 exists to prevent.
@@ -962,6 +984,167 @@ scribe's report, so diagrams without docs has nothing to draw from; it says so
 in the opening line rather than asking, because nothing breaks. `/qoq document`
 only offers: path mode is attended, and a chart the user didn't ask for is a
 second review they didn't sign up for.
+
+## `sheriff`
+
+**Why per milestone, not per ticket.** The finding this agent exists for is the
+one no single ticket contains: an endpoint in one ticket, the missing check in
+front of it in another. A per-ticket sweep sees each half alone and calls both
+clean, and pays a session-tier read per ticket to do it. The per-ticket sweep
+stays as an exception the user confirms at approval, and it never shrinks the
+milestone sweep, for exactly that reason.
+
+**Why after the gates, and before the scribe and the reviewer.** Earlier, its
+judgment is spent on code the refactor and the fix loop are about to rewrite.
+Later, the scribe documents code a remediation is about to change, and the
+reviewer would read a diff that isn't final.
+
+**Why the session's model, always cold.** Security review is pure judgment, and
+the failure that matters is a miss, which no later gate catches. The author's
+model and context carry the author's blind spots, so the sweep never inherits
+them: a fresh dispatch every time, never `SendMessage`. There's no "raise" field,
+because execute's ladder already stops at the session's model.
+
+**Why ESLint's resolved config is the line, not "what Sonar catches".** qoq has
+no Sonar gate; its mechanical security layer is ESLint with sonarjs, already run
+over every file. Reading which rules are enabled is checkable, and
+`skipped_covered` shows the reasoning. "What a scanner would probably catch" is
+a guess, and a guess that's wrong drops a real finding.
+
+**Why confidence routes and never gets promoted.** Severity says how bad it is
+if it's real. Confidence says whether anyone meant it, and only the user knows
+that. An agent that promotes an ambiguous finding to make it actionable has
+decided intent for them, and a fix for something intended breaks a feature on
+purpose. So confirmed critical/high goes straight to remediation, an ambiguous
+critical/high stops the run (the next milestone would build on it), and
+everything else waits for the end-of-run walkthrough, so an unattended run keeps
+going.
+
+**Why remediation is a new ticket, with its own budget.** The ticket that wrote
+the hole is delivered and green, and reopening it would re-grade it with the
+estimator. A narrow ticket reuses everything `qoq-developer` already guarantees
+(a red spec first, Gate 1, Gate 2), so the fix is pinned by a test. Its two
+rounds are counted apart from delivery attempts: "the ticket was hard" and "the
+fix didn't work" are different failures, and one budget would let a hard ticket
+starve its own security fix.
+
+**Why the scope check is by file, and mechanical.** "Change nothing else" is a
+rule a model can talk itself out of under the banner of security. A file-set
+comparison can't be argued with. Hunks are left to the recheck because a fix
+legitimately moves lines and adds an import at the top of the file, and a
+region rule would reject correct fixes.
+
+**Why no refactor in the re-gate.** `--decisions auto` applies its safe tier
+unattended, and safe for shape isn't safe for a security fix. A dedupe that
+merges the fixed path with an unfixed sibling undoes it without failing a test.
+
+**Why accepted risks are inline markers.** A ledger file drifts the moment code
+moves, and a later sweep can't tell which entry a renamed function belongs to. A
+comment moves with the code, is visible to the next human, and has a mechanical
+expiry: the sheriff re-raises when a diff touches the marked block, quoting the
+reason it was accepted for.
+
+**Why a broken premise re-raises an untouched marker.** An acceptance is a yes
+to a stated reason, not to a location. When another finding falsifies that
+reason, for example a role check that was "the whole guard" while the role is
+forgeable, the yes no longer covers anything. The diff rule alone would keep
+the marker silent until someone happened to edit that block, which may be never.
+It comes back `ambiguous`, never `confirmed`, because the user may still accept
+it on a different reason, and that decision is theirs.
+
+**Why opt-in inside `execute`.** Same reason as the scribe: it's experimental,
+and inside `execute` it runs unattended and can stop a run or commit fixes. A
+miscalibrated sweep nine milestones deep is expensive. `--sheriff` turns it on
+for one run, `future.unstable_skill_sheriff` for a project. Standalone
+`/qoq sheriff` needs neither, and it only prints until the user says yes.
+
+## `review`
+
+**Why per milestone, with the plan pass kept light.** A wrong turn is cheapest
+to fix before the next milestone builds on it, and that is the moment the
+milestone review exists for. The end-of-plan pass doesn't repeat it. It asks
+only whether the milestones add up to the plan, which is answered from the
+Completed blocks and a `--stat`. A full re-read there would be a second code
+review at session cost, over code that was already reviewed.
+
+**Why after the sheriff, before the scribe.** The reviewer should judge the diff
+that ships, security fixes included, and the sheriff's loop can still change it.
+The scribe should document code no one is about to change, and a review fix
+changes it.
+
+**Why the session's model, always cold.** It is the same argument as the
+sheriff's. Plan fit is pure judgment, and the author's context is exactly what
+makes a wrong turn look right. There's no raise field because the session is
+already the ceiling.
+
+**Why acceptances live in the plan, not in the code.** Scope and plan fit only
+mean something inside the plan that set them. A marker saying "accepted scope
+creep" is noise to every later reader of the file. The Review line carries the
+anchor and the reason, which is everything the sheriff's marker carries, and
+it's the expiry rule's input. Standalone has no plan, so it has no accept either:
+a re-raise there is honest, not a bug.
+
+**Why the sheriff takes a pull request as well as paths.** A security read
+needs no stated intent: a snapshot of existing code is still a fair audit, so
+paths and ranges stay. A pull request adds a description, which turns some
+`ambiguous` findings into `confirmed` ones. Both commands resolve a PR through
+the same steps, so they read it the same way. They stay separate commands
+because one is a plan-fit judgment and the other a security one.
+
+**Why standalone review takes a pull request link, not paths.** The reviewer's
+question is whether a diff matches what it set out to do. A path snapshot has no
+diff and no intent, and `sheriff` and `refactor` already read code as it stands.
+A pull request has both: the diff, and the title, description and closed issues
+that stand in for a plan.
+
+**Why a link and not a number, and a scratch clone.** The user reviews pull
+requests across many repositories from one machine. A number means nothing
+without a repository, and the working directory usually isn't the right one. A
+link carries its repository. The clone sits in the OS tmpdir, so the user's
+checkouts are never touched, and discovery is skipped because the working
+directory's record describes another project.
+
+**Why proposed comments, posted only on a pick, and never a verdict.** The
+comments go out under the user's GitHub name, so each one is the user's to
+send, edit or drop. They're drafted the way a colleague would write them,
+without finding ids or tool branding, because that is who signs them. One
+`COMMENT` review keeps a run to one notification for the author, and inline
+placement puts each point next to its code. `APPROVE` and `REQUEST_CHANGES` are
+judgments the user gives on GitHub, not a side effect of a report. There's no
+remediation in this mode: it's someone else's branch, possibly in someone else's
+repository.
+
+**Why traceability defines scope creep.** "Did they need this?" can't be
+answered from a diff. "Does this hunk trace to a criterion, a Contract or the
+Goal, or is it forced by one that does?" can. When a hunk is forced in a way the
+reviewer can't demonstrate, the finding is `judgment` rather than `confirmed`,
+because the author may have seen a reason the reviewer can't.
+
+**Why maintainability is capped at medium.** `high` stops the run, and stopping
+an unattended run is only worth it for something the next milestone will build
+on. A misplaced helper costs the next change, not the next milestone. If one
+could stop a run, the user would learn to skip the stops.
+
+**Why remediation tier follows the category.** Removing an untraced export is
+mechanical. Bringing a delivery back to its Contract is a design call. A fix
+that changes a Contract or spans more than five files is rework of the plan, so
+it goes to `replan` and not into a two-round patch loop.
+
+**Why the sheriff rechecks a review fix, and the chain ends there.** A refactor
+done for consistency can drop a guard and still pass every test. The sheriff
+reads only that diff, which is cheap. Ending on the sheriff, with no second
+reviewer pass over a security fix, keeps two agents from correcting each other
+forever. The security fix is already scope-checked by file.
+
+**Why the sign-off is rendered by the main thread.** The agent sees its own
+report. The sign-off also needs the other gates' evidence and the user's
+decisions from the walkthrough. Keeping the agent's output typed and having the
+main thread render the summary means neither one has to be shaped for the other.
+
+**Why opt-in inside `execute`.** It is the same reason as the sheriff and the
+scribe. Inside `execute` it runs unattended and can stop a run or commit fixes.
+`--review` turns it on for one run, and `future.unstable_skill_review` turns it
+on for a project.
 
 ## Code conventions
 

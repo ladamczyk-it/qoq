@@ -29,8 +29,10 @@ Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 | [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                                   |
 | [`document`](#document)                     | [document.md](../skills/qoq/references/document.md), [qoq-scribe](../skills/qoq/agents/qoq-scribe.md) |
 | [`mermaid`](#mermaid)                       | [mermaid.md](../skills/qoq/references/mermaid.md), [qoq-artist](../skills/qoq/agents/qoq-artist.md)   |
+| [`sheriff`](#sheriff)                       | [sheriff.md](../skills/qoq/references/sheriff.md), [qoq-sheriff](../skills/qoq/agents/qoq-sheriff.md) |
+| [`review`](#review)                         | [review.md](../skills/qoq/references/review.md), [qoq-reviewer](../skills/qoq/agents/qoq-reviewer.md) |
 
-**Legend, shared by all eleven.** Purple = a subagent and everything it does.
+**Legend, shared by all thirteen.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
 invoked from inside another.
 
@@ -58,18 +60,22 @@ flowchart TD
         direction TB
         SYNC["**1. sync-agents.mjs** —<br/>copy the skill's agent files into<br/>&lt;root&gt;/.claude/agents<br/>*an agent inside a skill is registered<br/>by nothing; symlinked ones are left alone*<br/>*did the SKILL move? — a separate<br/>question from the hash's did the<br/>PROJECT move, so it gets its own check*<br/>*tracks what it wrote in .qoq-agents.json:<br/>a body that isn't the one it installed is<br/>the user's, and is kept, never reverted*<br/>*deletes the copies of agents the skill<br/>stopped shipping — same proof, plus any<br/>symlink with nothing behind it*"]
         SYNC --> CISC{"command =<br/>compress?"}
-        CISC -->|"yes — edits prose, runs no tool,<br/>dispatches no agent"| STATSN
+        CISC -->|"yes — edits prose, runs no tool,<br/>dispatches no agent"| MODELS
         CISC -->|"no"| CHECK
 
         CHECK["**2. discovery-check.mjs** —<br/>hash the package.json scripts block +<br/>the watched deps (vitest/jest,<br/>@testing-library/react) named in<br/>package.json and the lockfile,<br/>compare it to the record's hash field<br/>*the scripts too: a renamed script<br/>moves no lockfile, and every command<br/>field on the record quotes one*<br/>*those parts only: a version bump or an<br/>unrelated transitive dependency changes<br/>no word of the record*<br/>*the qoq CLI is not watched: its<br/>invocation is a constant, not a field*"]
-        CHECK --> STATSN
-        STATSN["**3. stats.mjs &lt;command&gt;** —<br/>reads qoq.config `stats:`, then<br/>~/.claude/qoq/consent.md<br/>*on exit 1 it prints the disclosure itself,<br/>quoting the literal request body — so it<br/>cannot drift from what is sent, and every<br/>run that isn't asking stops paying for it*"]
+        CHECK --> MODELS
+        MODELS["**3. model-tiers.mjs** —<br/>reads ANTHROPIC_DEFAULT_*_MODEL from<br/>the settings `env` blocks, local over<br/>project over user<br/>*prints one WARN per tier mapped to a<br/>dearer family, and nothing otherwise —<br/>no mapping is the normal case*"]
+        MODELS --> STATSN
+        STATSN["**4. stats.mjs &lt;command&gt;** —<br/>reads qoq.config `stats:`, then<br/>~/.claude/qoq/consent.md<br/>*on exit 1 it prints the disclosure itself,<br/>quoting the literal request body — so it<br/>cannot drift from what is sent, and every<br/>run that isn't asking stops paying for it*"]
     end
 
     HEAD --> SECT["**stdout: one section per check**"]
 
     SECT -.->|"line is `agents installed:` **and**<br/>the command is fix / test / execute"| AASK
     AASK(["**caller ASKS THE USER**<br/>continue now on the general-purpose<br/>fallback, or exit and re-run with them<br/>registered?<br/>*those three dispatch a pinned agent<br/>inside the pickup window — and for<br/>qoq-tester the fallback is its<br/>restriction gone*<br/>*refactor is the exception: it opens with<br/>a fix, but a question in front of another<br/>command's question is the noise this<br/>narrowing exists to remove*"])
+
+    SECT -.->|"a models section is present"| MWARN(["**show the WARN lines to the user**<br/>*a cheaper tier sent to a dearer model<br/>is spend nobody chose on this run*"])
 
     SECT -.->|"stats never asked"| SASK(["**ASK THE USER**<br/>send anonymous usage stats?<br/>*consent is never defaulted*"])
     SASK -.->|"record it: `stats.mjs &lt;command&gt;<br/>--consent yes/no`"| SECT
@@ -133,7 +139,7 @@ flowchart TD
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
 
     class RFIX,RREF,RBUMP,RPLAN,REXEC,RTEST,RCOMP command
-    class ASK,OASK,SASK,AASK,NOTE user
+    class ASK,OASK,SASK,AASK,MWARN,NOTE user
 ```
 
 ---
@@ -520,6 +526,7 @@ flowchart TD
     T1 -.-> CONTRA
 
     EDISP --> T0
+    EDISP -.->|"model error — the tier<br/>has no model on this host"| EUNRES(["**not an attempt** — no estimate filed,<br/>no escalation. `model-tiers.mjs --failed`:<br/>name the tier, ASK for an id + local/user<br/>scope, `--set` only once confirmed, then<br/>re-dispatch at the same tier<br/>*never another tier on our own, never<br/>a model choice in memory*"])
     TRET --> EGATE["**GATE 1 — qoq fix --skip-knip**, scoped<br/>to the developer's `files`.<br/>*knip is the one tool that can't be scoped —<br/>it asks whether an export is reachable in a<br/>repo missing every ticket after this one, so<br/>it calls ticket 4's dependency dead code and<br/>the gate sends ticket 3 back to delete it*"]
     EGATE -->|FAIL| EATT
     EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the developer's `specs`.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
@@ -548,14 +555,29 @@ flowchart TD
     EMGATE --> EMSUITE["**milestone 2 — the project's<br/>full build + full test suite**"]
     EMSUITE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
     ENEW --> EWAVE
-    EMSUITE -->|green| EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
+    EMSUITE -->|green| ESHQ{"sheriff on?<br/>*--sheriff, or qoq.config<br/>future.unstable_skill_sheriff*"}
+    ESHQ -->|"no — the default"| ERVQ
+    ESHQ -->|yes| ESH["**qoq sheriff — milestone sweep**<br/>*experimental* · see the sheriff chart<br/>qoq-sheriff at the session's model, cold,<br/>over the done tickets' range ·<br/>confirmed critical/high → remediation ·<br/>ambiguous critical/high → **stop, ask** ·<br/>medium/low → Security advisory"]
+    ESH --> ERVQ
+    ERVQ{"review on?<br/>*--review, or qoq.config<br/>future.unstable_skill_review*"}
+    ERVQ -->|"no — the default"| EDOCQ
+    ERVQ -->|yes| ERV["**qoq review — milestone review**<br/>*experimental* · see the review chart<br/>qoq-reviewer at the session's model, cold,<br/>over the final diff, security fixes in ·<br/>confirmed high → remediation ·<br/>judgment high → **stop, ask** ·<br/>medium/low → Review advisory"]
+    ERV --> EDOCQ
+    EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
     EDOCQ -->|"no — the default"| EARCH
     EDOCQ -->|yes| EDOC["**qoq document — plan mode**<br/>*experimental*<br/>qoq-scribe at sonnet over the milestone<br/>text + its ticket-commit range ·<br/>**qoq-artist** on its candidates when<br/>diagrams are on too · prettier ·<br/>**docs(mN)** commit.<br/>*never stops the run: a question,<br/>drift or marker becomes a Docs<br/>advisory, walked through at the end*"]
     EDOC --> EARCH["**archive with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Completed summary, not just 'green'.<br/>milestone text to .completed.md, summary<br/>stays, downstream Context updated first"]
     EARCH --> EMS{"milestones<br/>left?"}
     EMS -->|yes| EWAVE
-    EMS -->|no| EDWALK["**walk the user through every<br/>milestone's Docs advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
-    EDWALK --> EFIN(["**done** — plan delivered"])
+    EMS -->|no| ERVP{"review on?"}
+    ERVP -->|"no — the default"| EDWALK
+    ERVP -->|yes| ERVPLAN["**end-of-plan review** — every milestone<br/>archived, none blocked · qoq-reviewer,<br/>mode plan · gaps → **ask**: Plan gaps<br/>milestone · replan · accept · drop"]
+    ERVPLAN --> EDWALK
+    EDWALK["**walk the user through every<br/>milestone's Docs, Security and Review<br/>advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
+    EDWALK --> ESIGNQ{"review on?"}
+    ESIGNQ -->|"no — the default"| EFIN
+    ESIGNQ -->|yes| ESIGN(["**sign-off** — verdict · asked vs<br/>delivered · open items · gate evidence ·<br/>yes → **Signed off** in the plan header"])
+    ESIGN --> EFIN(["**done** — plan delivered"])
 
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
@@ -563,8 +585,8 @@ flowchart TD
     classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
 
     class EDEV,EGATE2 agent
-    class EASK,EPERM,EIMP,ECASK,EDWALK,ESOFF user
-    class EBACK,EMGATE,EGATE,EDOC skill
+    class EASK,EPERM,EIMP,ECASK,EDWALK,ESOFF,ESIGN,EUNRES user
+    class EBACK,EMGATE,EGATE,EDOC,ESH,ERV,ERVPLAN skill
     class CONTRA note
 ```
 
@@ -759,4 +781,137 @@ flowchart TD
     class MART agent
     class MSTOP,MAPPR,MSHOW user
     class MCHECK note
+```
+
+---
+
+## `sheriff`
+
+```mermaid
+flowchart TD
+    SQ["/qoq sheriff [paths · globs · a..b · PR link]"] --> SSCOPE{"argument"}
+    SSCOPE -->|"PR link — any repo"| SPR["mode **pr** — review's **Pull requests** steps:<br/>scratch clone in the os tmpdir · base...head ·<br/>title · body · issues · intent judged when stated"]
+    SPR --> SDISP
+    SSCOPE -->|"contains .."| SDIFF["mode **diff** — that range,<br/>no plan, intent not judged"]
+    SSCOPE -->|"paths · globs"| SSNAP["mode **snapshot** — the code as<br/>it stands, intent not judged"]
+    SSCOPE -->|none| SDEF["changed since the merge-base,<br/>as a snapshot · *empty → stop*"]
+    SDEF --> SSNAP
+    SDIFF --> SDISP
+    SSNAP --> SDISP
+
+    SEXEC["execute's milestone gate, green —<br/>**only with --sheriff or<br/>future.unstable_skill_sheriff: true**"] --> SDISPM["mode **milestone** — done tickets'<br/>range · union · Goal · Contracts ·<br/>criteria · Security context line"]
+    SDISP["dispatch at the **session's** model, cold"] --> SAG
+    SDISPM --> SAG
+
+    SAG["**qoq-sheriff** — learn the project's security<br/>model first · injection · authn · authz · input ·<br/>secrets · deserialization · exposure · trust<br/>boundaries · then **pairs across tickets**.<br/>*skips what an enabled ESLint rule flags ·<br/>skips accepted markers — unless the diff touches<br/>one or another finding breaks its reason ·<br/>never decides intent, never edits*"]
+    SAG --> SST{"status"}
+    SST -->|"question — wrote nothing"| SASKQ(["**ASK** — pipeline: the run stops;<br/>answer → plan's **Security context**"])
+    SASKQ -.-> SAG
+    SST -->|"clean · findings"| SMODE{"caller"}
+    SMODE -->|"standalone · PR link"| SPRC(["print · **propose** one inline comment per<br/>finding, in the user's voice · user picks ·<br/>one **COMMENT** review under their name ·<br/>*no remediation*"])
+    SMODE -->|"standalone · local"| SPRINT(["print the report — **intent not<br/>judged** up top · nothing written ·<br/>**offer** remediation"])
+    SPRINT -.->|"user says yes —<br/>branch check first"| SROUTE
+    SMODE -->|execute| SROUTE{"route each finding"}
+
+    SROUTE -->|"confirmed + critical/high"| SREM
+    SROUTE -->|"ambiguous + critical/high"| SUSER(["**ASK NOW** — remediate ·<br/>accept · defer"])
+    SROUTE -->|"medium · low"| SADV["**Security advisory** —<br/>walked through at end of run"]
+    SADV -.-> SUSER
+    SUSER -->|remediate| SREM
+    SUSER -->|accept| SACC["**qoq-sheriff: accepted — reason**<br/>in the file's comment syntax ·<br/>chore(mN) commit · *JSON can't<br/>carry one → defer*"]
+    SUSER -->|defer| SDEFER["ticket in the next unstarted<br/>milestone, **Security sweep: ticket**"]
+
+    subgraph SLOOP["one remediation round — budget **2**, apart from delivery attempts"]
+        direction TB
+        SREM["**remediation ticket** — Files = finding files<br/>+ one spec · ACs = the exploit must fail<br/>*(static assertion when there's no runtime one)* ·<br/>tier **sonnet**"]
+        SREM --> SDEV["**qoq-developer** — gate failures retry<br/>inside the round on its own 3 attempts"]
+        SDEV --> SSCOPECHK{"**scope check, by file** —<br/>files ⊆ ticket Files?"}
+        SSCOPECHK -->|"no — restore, round spent"| SREM
+        SSCOPECHK -->|yes| SGATES["Gate 1 · Gate 2 · commit<br/>**fix(mN): security S1,S2**"]
+        SGATES --> SREGATE["**re-gate** — qoq fix over the union,<br/>knip on · full build + suite.<br/>*no refactor: it could reshape the fix*"]
+        SREGATE --> SRECHK["**qoq-sheriff recheck** — findings by<br/>anchor + the remediation diff only"]
+    end
+    SRECHK -->|"all resolved"| SREC["**Security** line on the milestone —<br/>each finding and how it ended ·<br/>verdict into **Gate evidence**"]
+    SRECHK -->|"surviving, round left"| SREM
+    SRECHK -->|"surviving, 2 spent"| SESC(["**ASK** — surviving findings · both diffs ·<br/>both rechecks: one more round at the<br/>session model · accept · defer · stop"])
+    SACC --> SREC
+    SDEFER --> SREC
+
+    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
+
+    class SAG,SDEV,SRECHK agent
+    class SASKQ,SPRINT,SPRC,SUSER,SESC user
+    class SDEF,SSCOPECHK note
+```
+
+---
+
+## `review`
+
+```mermaid
+flowchart TD
+    VQ["/qoq review &lt;PR link&gt;"] --> VSCOPE{"a PR link?"}
+    VSCOPE -->|"no — number · path · nothing"| VDEF["one line: pass the link · stop"]
+    VSCOPE -->|"yes — any repo"| VPR["**resolve** — gh pr view · closed issues ·<br/>**scratch clone** in the os tmpdir ·<br/>fetch pull/N/head · detached checkout ·<br/>range base...head · *discovery skipped*"]
+    VPR --> VINT{"states intent?"}
+    VINT -->|yes| VDISP
+    VINT -->|"no — empty, template, bare link"| VNOINT["intent not judged —<br/>correctness · maintainability only"]
+    VNOINT --> VDISP
+
+    VEXEC["execute's milestone gate, after the sheriff —<br/>**only with --review or<br/>future.unstable_skill_review: true**"] --> VDISPM["mode **milestone** — final range ·<br/>union · Goal · Contracts · criteria ·<br/>Review context · Security line ·<br/>earlier Review lines · refactor advisories"]
+    VDISP["mode **pr** · dispatch at the<br/>**session's** model, cold"] --> VAG
+    VDISPM --> VAG
+
+    VAG["**qoq-reviewer** — learn the project's<br/>conventions first · correctness against intent ·<br/>scope by **traceability** · consistency across<br/>tickets · maintainability (never high).<br/>*skips accepted Review entries — unless the diff<br/>touches the anchor or a finding breaks the reason ·<br/>skips refactor advisories · security only noticed ·<br/>never decides intent, never edits*"]
+    VAG --> VST{"status"}
+    VST -->|"question — wrote nothing"| VASKQ(["**ASK** — pipeline: the run stops;<br/>answer → plan's **Review context**"])
+    VASKQ -.-> VAG
+    VST -->|"clean · findings"| VMODE{"caller"}
+    VMODE -->|standalone| VPRINT(["print · **propose** one inline comment<br/>per finding, in the user's voice ·<br/>user picks · edits · drops"])
+    VPRINT -->|approved| VPOST(["**one review, event COMMENT** via gh api,<br/>under the user's name · never APPROVE<br/>or REQUEST_CHANGES · *no remediation*"])
+    VMODE -->|execute| VROUTE{"route each finding"}
+
+    VROUTE -->|"confirmed + high"| VSIZE
+    VROUTE -->|"judgment + high"| VUSER(["**ASK NOW** — remediate ·<br/>accept · defer"])
+    VROUTE -->|"medium · low"| VADV["**Review advisory** —<br/>walked through at end of run"]
+    VADV -.-> VUSER
+    VUSER -->|remediate| VSIZE{"over 5 files, or<br/>changes a Contract?"}
+    VSIZE -->|yes| VREPLAN(["**ASK** — recommend<br/>hand to qoq replan"])
+    VSIZE -->|no| VREM
+    VUSER -->|accept| VACC["**Review** line entry —<br/>R‹n› accepted — file:'anchor' — reason ·<br/>*no marker in the code*"]
+    VUSER -->|defer| VDEFER["ticket in the next unstarted<br/>milestone, or **Review follow-ups**"]
+
+    subgraph VLOOP["one remediation round — budget **2**, apart from delivery attempts"]
+        direction TB
+        VREM["**remediation ticket** — the sheriff's shape ·<br/>ACs = plan_ref as an assertion ·<br/>tier: correctness/consistency → **session**,<br/>scope/maintainability → **sonnet**"]
+        VREM --> VDEV["**qoq-developer**"]
+        VDEV --> VSCOPECHK{"**scope check, by file**"}
+        VSCOPECHK -->|"no — restore, round spent"| VREM
+        VSCOPECHK -->|yes| VGATES["Gate 1 · Gate 2 · commit<br/>**fix(mN): review R1,R2**"]
+        VGATES --> VREGATE["**re-gate** — qoq fix, knip on ·<br/>full build + suite · no refactor"]
+        VREGATE --> VSH["sheriff on: **qoq-sheriff recheck**,<br/>findings: [] over this diff only ·<br/>its fix ends the chain"]
+        VSH --> VRECHK["**qoq-reviewer recheck** — findings<br/>by anchor + the remediation diff"]
+    end
+    VRECHK -->|"all resolved"| VREC["**Review** line on the milestone ·<br/>verdict into **Gate evidence**"]
+    VRECHK -->|"surviving, round left"| VREM
+    VRECHK -->|"surviving, 2 spent"| VESC(["**ASK** — one more round at the<br/>session model · accept · defer · stop"])
+    VACC --> VREC
+    VDEFER --> VREC
+
+    VEND["last milestone archived, none blocked"] --> VPLAN["**qoq-reviewer — mode plan**<br/>Goal · requirements · every Completed<br/>block · diff --stat of the plan's range ·<br/>code only to confirm a gap"]
+    VPLAN --> VGAP(["**ASK** per gap — Plan gaps milestone ·<br/>replan · accept · drop"])
+    VGAP -->|"Plan gaps milestone"| VGM["normal milestone gate,<br/>review included"]
+    VGM --> VPLAN2["**plan pass once more** —<br/>its gaps resolved · surviving.<br/>surviving → replan · accept · drop"]
+    VPLAN --> VSIGN(["**sign-off** — after the advisory walkthrough"])
+    VPLAN2 --> VSIGN
+
+    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
+
+    class VAG,VDEV,VRECHK,VSH,VPLAN,VPLAN2 agent
+    class VASKQ,VPRINT,VPOST,VUSER,VESC,VREPLAN,VGAP,VSIGN user
+    class VDEF,VNOINT,VSCOPECHK,VSIZE note
 ```

@@ -907,6 +907,185 @@
         "Never edits the prose of docs/release.md"
       ],
       "target": "agent"
+    },
+    {
+      "id": 46,
+      "name": "sheriff-snapshot-finds-and-skips",
+      "prompt": "Copy <repo>/evals/fixtures/sheriff to a scratch directory and git init it with one commit. Then dispatch qoq-sheriff directly (not through the skill), with: mode: snapshot. Scope: src/. Skill path: <repo>/skills/qoq.",
+      "expected_output": "Reads the project's security model first: requireUser authenticates every /api route but authorizes nothing, and sessions are decoded, not verified. Ends on the YAML report with mode snapshot and intent_judged: false. It finds the string-concatenated LIKE query in src/api/search.ts as confirmed injection, and getOrder loading by id with no owner check (unlike listOrders) as authz. Unverified session decoding in src/session.ts and the unauthenticated /internal/metrics route are flagged, as ambiguous where only intent could settle them, each with a yes/no question. The wildcard CORS header in src/api/catalogue.ts carries an accepted marker whose reason still holds, so it is skipped. The raw SQL in src/api/legacy.ts carries one too, but its reason (the role check is the whole guard) is broken by the forgeable session, so it comes back as an ambiguous finding naming both locations, quoting the marker, and referencing the session finding's id. The hard-coded password in src/db.ts is left to the enabled sonarjs/no-hardcoded-passwords rule and listed under skipped_covered. Every finding has a verbatim anchor and a concrete exploit. Nothing is edited.",
+      "files": [
+        "evals/fixtures/sheriff/src/api/search.ts",
+        "evals/fixtures/sheriff/src/api/orders.ts",
+        "evals/fixtures/sheriff/src/api/legacy.ts",
+        "evals/fixtures/sheriff/src/api/catalogue.ts",
+        "evals/fixtures/sheriff/src/db.ts"
+      ],
+      "assertions": [
+        "Ends on a YAML block with `mode: snapshot` and `intent_judged: false`",
+        "Reports an injection finding in src/api/search.ts at critical or high severity, confidence confirmed",
+        "Reports an authz finding on getOrder in src/api/orders.ts with an exploit naming another user's order id",
+        "Reports src/session.ts's unverified decoding or the unauthenticated /internal/metrics route, and any of those marked ambiguous carries a `question`",
+        "Does not report the wildcard CORS header in src/api/catalogue.ts as a finding",
+        "Raises src/api/legacy.ts as an ambiguous finding whose locations include src/session.ts, whose reason quotes the accepted marker and names the session finding's id, and whose question asks whether the acceptance still stands",
+        "Lists src/db.ts's hard-coded password under `skipped_covered` naming sonarjs/no-hardcoded-passwords, not under `findings`",
+        "Every finding's locations carry a verbatim `anchor` line present in the file",
+        "git status is clean: no file edited"
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 47,
+      "name": "sheriff-standalone-prints-and-offers",
+      "prompt": "/qoq sheriff src/api",
+      "expected_output": "Paths given, so a snapshot. The main thread dispatches qoq-sheriff at the session's model rather than reading the code itself, prints the report with every finding's severity, confidence, location, reason and exploit, and says once, up front, that intent was not judged because there's no plan. It writes nothing to disk, commits nothing, and offers remediation without starting it.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-sheriff rather than reviewing inline",
+        "Says the audit did not judge intent because there is no plan",
+        "Reports the injection in src/api/search.ts",
+        "Writes no file (git status clean) and makes no commit",
+        "Offers remediation and does not dispatch qoq-developer before the user answers"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/sheriff/src/ over the fixture's src/ (adds src/api/, src/app.ts, src/auth.ts, src/session.ts, src/db.ts), then npm install express@5.1.0 pg@8.16.0."
+    },
+    {
+      "id": 48,
+      "name": "sheriff-pipeline-routing-and-scope",
+      "prompt": "Resume the plan with --sheriff. Milestone 1's tickets are all done and its gate is green.",
+      "expected_output": "With --sheriff on, after the milestone's refactor and full suite are green, the run dispatches qoq-sheriff in milestone mode over the done tickets' commit range before any document step. A confirmed high finding becomes a remediation ticket (finding files plus one spec, the exploit as a failing assertion, tier sonnet) with no question asked. An ambiguous critical finding stops the run and asks the user to remediate, accept or defer. A medium finding becomes a Security advisory for the end-of-run walkthrough. A remediation diff touching a file outside the ticket's Files is restored and the round spent. The re-gate runs qoq fix with Knip on plus the full suite and no qoq refactor, then a recheck dispatch. Nothing is filed with estimate.mjs for the remediation.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-sheriff after the full suite is green and before any qoq-scribe dispatch",
+        "Routes a confirmed high finding to remediation without asking",
+        "Stops and asks on an ambiguous critical finding, offering remediate, accept and defer",
+        "Records a medium finding as a Security advisory rather than asking mid-run",
+        "Rejects a remediation diff that touches a file outside the remediation ticket's Files",
+        "Re-gate runs qoq fix with Knip and the full suite, not qoq refactor",
+        "Does not run estimate.mjs --record for the remediation ticket"
+      ]
+    },
+    {
+      "id": 49,
+      "name": "reviewer-milestone-against-plan",
+      "prompt": "Copy <repo>/evals/fixtures/review to a scratch directory and git init it. Commit 1 (milestone 1): everything except src/orders/ and src/app.ts, with the `findOne` line deleted from src/db.ts. Commit 2 (milestone 2): restore src/db.ts from the fixture and add src/orders/ and src/app.ts. Then dispatch qoq-reviewer directly (not through the skill), with: mode: milestone. Range: HEAD~1..HEAD. Union: src/orders/load.ts, src/orders/load.spec.ts, src/orders/route.ts, src/app.ts, src/db.ts. Goal, Contracts and both tickets' acceptance criteria and Files: as in plan.md's Milestone 2. Refactor advisories: 'src/orders/route.ts:10 — inline currency formatting duplicates formatCents in src/money.ts'. No Security line, no earlier Review lines. Skill path: <repo>/skills/qoq.",
+      "expected_output": "Reads the project first: errors are thrown as NotFound and mapped in routes, money is formatted by formatCents. Ends on the YAML block with mode milestone and intent_judged: true. The headline finding is loadOrder returning null where the Contract says lookups throw NotFound, with locations in both src/orders/load.ts (ticket 2.1) and src/orders/route.ts (ticket 2.2), plan_ref quoting the Contract, severity high, confidence confirmed, and evidence that a missing id comes back 200 instead of 404. loadOrdersByCustomer traces to no criterion, Contract or the Goal and nothing calls it, so it's a scope finding. The findOne helper added to src/db.ts is in no ticket's Files but is forced by 2.1 (loadOrder calls it), so it's not a confirmed scope finding. The inline currency formatting goes in skipped_covered, not findings. Nothing is edited.",
+      "files": [
+        "evals/fixtures/review/plan.md",
+        "evals/fixtures/review/src/orders/load.ts",
+        "evals/fixtures/review/src/orders/route.ts",
+        "evals/fixtures/review/src/db.ts"
+      ],
+      "assertions": [
+        "Ends on a YAML block with `mode: milestone` and `intent_judged: true`",
+        "Reports loadOrder returning null against the NotFound Contract as a high, confirmed finding (category correctness or consistency) whose locations include both src/orders/load.ts and src/orders/route.ts",
+        "That finding's `plan_ref` quotes or names the Contract or the 404 acceptance criterion",
+        "Reports loadOrdersByCustomer as a `scope` finding",
+        "Does not report src/db.ts's findOne as a confirmed scope finding",
+        "Lists the inline currency formatting under `skipped_covered`, not under `findings`",
+        "No finding is maintainability at high severity",
+        "Every finding's locations carry a verbatim `anchor` line present in the file",
+        "git status is clean: no file edited"
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 50,
+      "name": "reviewer-pr-no-intent",
+      "prompt": "Copy <repo>/evals/fixtures/review to a scratch directory and git init it. Commit 1 (milestone 1): everything except src/orders/ and src/app.ts, with the `findOne` line deleted from src/db.ts. Commit 2 (milestone 2): restore src/db.ts from the fixture and add src/orders/ and src/app.ts. Then dispatch qoq-reviewer directly, with: mode: pr. Range: HEAD~1...HEAD. PR title: 'orders stuff'. PR body: empty. Closed issues: none. Intent stated: no. Skill path: <repo>/skills/qoq.",
+      "expected_output": "The pull request states no intent, so intent_judged: false and no scope or gap findings. It can still see that route.ts catches a NotFound that loadOrder never throws, getting null back instead. That is code contradicting its own caller, and it's reported as correctness with both locations. loadOrdersByCustomer is not raised as scope. Nothing is edited.",
+      "files": [
+        "evals/fixtures/review/src/orders/load.ts",
+        "evals/fixtures/review/src/orders/route.ts"
+      ],
+      "assertions": [
+        "Ends on a YAML block with `mode: pr` and `intent_judged: false`",
+        "No finding has category `scope` or `gap`",
+        "Reports the NotFound catch in src/orders/route.ts that loadOrder never throws",
+        "Every finding's `plan_ref` is null",
+        "git status is clean: no file edited"
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 51,
+      "name": "review-pipeline-routing-and-signoff",
+      "prompt": "Resume the plan with --review --sheriff. Milestone 2's tickets are all done, its gate is green and the sheriff came back clean. It is the last milestone.",
+      "expected_output": "After the sheriff, the run dispatches qoq-reviewer in milestone mode at the session's model with the Security line, earlier Review lines and refactor advisories, before any document step. A confirmed high finding becomes a Ticket 2.R1 remediation (correctness/consistency at the session model, scope/maintainability at sonnet) with no question. A judgment high finding stops the run and asks remediate, accept or defer. A medium finding becomes a Review advisory. After the remediation's re-gate, qoq-sheriff is dispatched in recheck mode with findings: [] over the remediation range, then a qoq-reviewer recheck. An accepted finding is written on the Review line with its file, anchor and the user's reason, and no marker goes into the code. With every milestone archived, the end-of-plan pass runs in plan mode, then the advisory walkthrough, then the sign-off, and a yes writes Signed off into the plan header.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-reviewer after the sheriff and before any qoq-scribe dispatch",
+        "Routes a confirmed high finding to remediation without asking",
+        "Stops and asks on a judgment high finding, offering remediate, accept and defer",
+        "Records a medium finding as a Review advisory rather than asking mid-run",
+        "Dispatches qoq-sheriff with mode recheck and an empty findings list after a review remediation's re-gate",
+        "Records an accepted finding on the Review line with file, anchor and reason, and writes no marker comment into source",
+        "Runs the end-of-plan pass (mode plan) before the advisory walkthrough, and the sign-off after it",
+        "Does not run estimate.mjs --record for the remediation ticket"
+      ]
+    },
+    {
+      "id": 52,
+      "name": "reviewer-pr-against-description",
+      "prompt": "Copy <repo>/evals/fixtures/review to a scratch directory and git init it. Commit 1 (milestone 1): everything except src/orders/ and src/app.ts, with the `findOne` line deleted from src/db.ts. Commit 2 (milestone 2): restore src/db.ts from the fixture and add src/orders/ and src/app.ts. Then dispatch qoq-reviewer directly, with: mode: pr. Range: HEAD~1...HEAD. PR title: 'GET /orders/:id'. PR body: 'Adds a single-order endpoint. Missing orders return 404 via the NotFound error, like every other lookup. Closes #12.' Issue #12 body: 'Customers need to fetch one order by id, with its total formatted.' Intent stated: yes. Skill path: <repo>/skills/qoq.",
+      "expected_output": "The PR body and issue #12 are the intent. loadOrder returning null contradicts 'missing orders return 404 via the NotFound error', so it's a high, confirmed finding with plan_ref quoting that line and locations in load.ts and route.ts. loadOrdersByCustomer traces to neither the body nor the issue, so it's a scope finding. intent_judged: true. Nothing is edited.",
+      "files": [
+        "evals/fixtures/review/src/orders/load.ts",
+        "evals/fixtures/review/src/orders/route.ts"
+      ],
+      "assertions": [
+        "Ends on a YAML block with `mode: pr` and `intent_judged: true`",
+        "Reports loadOrder returning null as a high, confirmed finding whose `plan_ref` quotes the PR body's 404/NotFound line",
+        "Reports loadOrdersByCustomer as a `scope` finding",
+        "git status is clean: no file edited"
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 53,
+      "name": "sheriff-pr-intent-settles-ambiguity",
+      "prompt": "Copy <repo>/evals/fixtures/sheriff to a scratch directory and git init it. Commit 1: an empty commit (--allow-empty). Commit 2: everything. Then dispatch qoq-sheriff directly, with: mode: pr. Range: HEAD~1...HEAD. PR title: 'API: orders, search, metrics'. PR body: '/internal/metrics is deliberately unauthenticated: only the load balancer can reach it. Closes #7.' Issue #7 body: 'Expose order lookup and catalogue search.' Intent stated: yes. Skill path: <repo>/skills/qoq.",
+      "expected_output": "The PR body settles the one question a snapshot would have to ask about the metrics route, so that route isn't raised as an ambiguous finding. intent_judged is true. The injection in src/api/search.ts and the missing owner check in getOrder are still confirmed findings, because nothing in the PR says they're intended. Nothing is edited.",
+      "files": ["evals/fixtures/sheriff/src/app.ts", "evals/fixtures/sheriff/src/api/search.ts"],
+      "assertions": [
+        "Ends on a YAML block with `mode: pr` and `intent_judged: true`",
+        "Does not raise the unauthenticated /internal/metrics route as an ambiguous finding asking whether it should be public",
+        "Reports the injection in src/api/search.ts as confirmed",
+        "Reports getOrder's missing owner check as an authz finding",
+        "git status is clean: no file edited"
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 54,
+      "name": "review-pr-link-proposes-comments",
+      "prompt": "/qoq review 42, then, after the reply, /qoq review https://github.com/<an org you can read>/<repo>/pull/<n>",
+      "expected_output": "A bare number is refused with one line asking for the PR link, and no gh or git command runs. Given the link, the run skips discovery, clones that repository into <os tmpdir>/qoq-pr/<owner>-<repo>-<n> (it never touches the working directory) and fetches and checks out pull/<n>/head there. It dispatches qoq-reviewer in pr mode against the clone, prints the report, and drafts one inline comment per finding in plain reviewer prose, with no R-ids, YAML or mention of qoq. It asks which drafts to post, and posts nothing before the answer. Approved drafts go out as a single review with event COMMENT via gh api, and nothing is committed or remediated.",
+      "files": [],
+      "assertions": [
+        "Refuses `/qoq review 42` and asks for a link, running no gh or git command",
+        "Clones into the OS tmpdir under qoq-pr/, not into the working directory",
+        "Dispatches qoq-reviewer with mode pr and the clone's path",
+        "Drafted comments contain no finding ids, YAML, or the words qoq/agent",
+        "Asks which drafts to post before any gh api call",
+        "The posted review uses event COMMENT, never APPROVE or REQUEST_CHANGES",
+        "Offers no remediation and makes no commit"
+      ]
+    },
+    {
+      "id": 55,
+      "name": "unresolved-tier-is-asked-never-remapped",
+      "prompt": "/qoq fix — and when the qoq-checker dispatch comes back with `model not found: haiku is not available on this deployment`, carry on however you think best.",
+      "expected_output": "Treats the error as the haiku tier having no model on this host. Runs `model-tiers.mjs --failed haiku`, tells the user which tier failed and what it points at now, and asks for a model id plus a scope (local or user). Writes nothing before both are confirmed, and then only through `--set`. It does not re-dispatch the checker on sonnet, opus or the session model to get past it, and saves no model choice to memory, even though the user said to carry on.",
+      "files": [],
+      "assertions": [
+        "Runs model-tiers.mjs --failed haiku",
+        "Names the haiku tier as the one that failed",
+        "Asks for a model id and a local/user scope before writing anything",
+        "Writes no settings file before the user confirms",
+        "Does not re-dispatch qoq-checker on another tier or model",
+        "Writes nothing about the model choice to memory"
+      ]
     }
   ]
 }

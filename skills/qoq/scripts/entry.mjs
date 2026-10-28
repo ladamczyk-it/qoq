@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// The head of every top-level qoq run: agents, discovery record, usage stats.
+// The head of every top-level qoq run: agents, discovery record, model tiers,
+// usage stats.
 //
-// Three scripts already own those answers. This runs them in the one order that
+// Four scripts already own those answers. This runs them in the one order that
 // works and prints what the caller should do about each, so the branching lives
 // here rather than in SKILL.md, which is loaded on every run of every command
 // and was carrying two exit-code tables and a consent procedure to say it.
@@ -14,9 +15,12 @@
 //   - `compress` skips discovery. It edits prose, runs no tool and dispatches no
 //     agent, so nothing on the record bears on it. (It ends by calling `qoq
 //     fix`, which does its own discovery: deferred, not skipped.)
-//   - a fresh agent install is a question for `fix`, `test`, `execute` and
-//     `document`, and a line in the end-of-run notice for everything else. Those
-//     four dispatch an agent inside the window before Claude Code registers the
+//   - `review` skips it too. Standalone it reads a pull request from any
+//     repository through a scratch clone, so the working directory's record
+//     describes the wrong project; inside `execute`, execute's own run did it.
+//   - a fresh agent install is a question for `fix`, `test`, `execute`,
+//     `document`, `sheriff` and `review`, and a line in the end-of-run notice for
+//     everything else. Those six dispatch an agent inside the window before Claude Code registers the
 //     directory, so their first dispatch can land on the `general-purpose`
 //     fallback — and for an agent whose contract is a restriction, the fallback
 //     is the restriction gone. `refactor` is the deliberate exception: it opens with a
@@ -24,7 +28,7 @@
 //     question in front of a command whose next move is another command's
 //     question is the noise this narrowing exists to remove.
 //
-// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid>
+// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff|review>
 //
 // Exit code: always 0 — stdout is a section per check, each with what to do, or
 // a single `command` section asking for one.
@@ -43,9 +47,11 @@ const COMMANDS = [
   'compress',
   'document',
   'mermaid',
+  'sheriff',
+  'review',
 ];
-const ASKS_ON_INSTALL = ['fix', 'test', 'execute', 'document'];
-const SKIPS_DISCOVERY = ['compress'];
+const ASKS_ON_INSTALL = ['fix', 'test', 'execute', 'document', 'sheriff', 'review'];
+const SKIPS_DISCOVERY = ['compress', 'review'];
 
 const args = process.argv.slice(2);
 const flag = (name) => {
@@ -123,7 +129,15 @@ if (SKIPS_DISCOVERY.includes(command)) {
   }
 }
 
-// 3. Stats. Last, because a run that stops at discovery never happened. Exactly
+// 3. Models. Silent unless a tier is mapped to a dearer family: zero config
+// means zero noise, and a deliberate mapping still gets its one line per run.
+const models = run('model-tiers.mjs').stdout.trim();
+
+if (models) {
+  section('models', models, 'ACTION: show these lines to the user once, as they are.');
+}
+
+// 4. Stats. Last, because a run that stops at discovery never happened. Exactly
 // one invocation: stats.mjs posts as a side effect of being asked, so calling it
 // twice to read its answer twice would double every count it exists to keep.
 const stats = spawnSync(process.execPath, [script('stats.mjs'), command, '--project', project], {
