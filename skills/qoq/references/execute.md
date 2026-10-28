@@ -374,6 +374,13 @@ are routed, remediated or recorded before anything below runs —
 [sheriff.md](sheriff.md) owns all of it, including the two places it stops the
 run. Off → straight on, no Security line.
 
+Then **review**, when it's on (Setup). `qoq-reviewer` reads the milestone's
+final diff, security fixes included, against its Goal, Contracts and criteria
+for wrong turns, scope creep and cross-ticket inconsistency. Its findings are
+routed, remediated or recorded before anything below runs.
+[review.md](review.md) owns all of it, including the two places where it stops
+the run. Off → straight on, no Review line.
+
 Then **document**, when docs are on (Setup), then **archive**. `qoq-scribe`
 runs in plan mode over the milestone — [document.md](document.md) owns how,
 followed by `qoq-artist` when diagrams are on too ([mermaid.md](mermaid.md)) — and
@@ -391,18 +398,31 @@ never looked for.
 
 **Record what the gates proved, not that they ran.** The summary block's **Gate
 evidence** field takes the refactor's verdict and the suite's result as reported,
-plus the sheriff's verdict when it ran.
+plus the sheriff's and the reviewer's verdicts when they ran.
 "Green" is a claim; "refactor clean, 412 passed / 0 failed" is evidence, and a
 `## Completed` block is read by people who can no longer see the run.
 
+## When the last milestone archives
+
+In this order:
+
+1. **The end-of-plan review, then its gap decisions.** Review on only.
+   [review.md](review.md) covers both, and also when the pass is skipped.
+2. **The advisory walkthrough**, once: every milestone's Docs, Security and
+   Review advisories, each with its own options.
+3. **The sign-off.** Review on only: the summary from [review.md](review.md),
+   and the user's yes written into the plan header.
+
+Review off → step 2 only, as before.
+
 ## Setup
 
-Two checks: are `qoq-developer` and `qoq-test-reviewer` (and `qoq-sheriff`,
-when it's on) registered under
+Two checks: are `qoq-developer` and `qoq-test-reviewer` (and `qoq-sheriff` and
+`qoq-reviewer`, when they're on) registered under
 `.claude/agents/`? If one isn't, dispatch `general-purpose` with that agent
 file's body pasted in — for the developer, with the tier passed explicitly, since
 `general-purpose` otherwise inherits the session's model and quietly overrides
-the rating the plan made; for the reviewer and the sheriff, with the read-only prohibition
+the rating the plan made; for the three that report, with the read-only prohibition
 restated, since `general-purpose` gets every tool and would arrive holding the
 ability to fix what it was dispatched to report.
 
@@ -415,7 +435,10 @@ never evaluated. Decide it once here and say which in the run's opening line.
 `future.unstable_skill_sheriff: true` — and runs at the milestone gate whether or
 not docs are on ([sheriff.md](sheriff.md)). Without it a plan's
 `Security sweep: ticket` fields do nothing; say so in the opening line if the
-plan has any. **Diagrams** are the same kind of switch — `--diagrams`, or
+plan has any. **The review** is the same kind of switch: `--review`, or
+`future.unstable_skill_review: true`. It runs at the milestone gate after the
+sheriff, and again once at the end of the plan ([review.md](review.md)).
+**Diagrams** are the same kind of switch — `--diagrams`, or
 `future.unstable_skill_diagrams: true` — and need docs on to do anything
 ([mermaid.md](mermaid.md)).
 

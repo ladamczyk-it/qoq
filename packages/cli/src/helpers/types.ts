@@ -38,6 +38,9 @@ export interface QoqConfig {
     // `qoq execute` security-sweeps each delivered milestone through qoq-sheriff,
     // and `qoq plan` proposes an early per-ticket sweep for high-risk tickets.
     unstable_skill_sheriff?: boolean;
+    // `qoq execute` reviews each delivered milestone against its plan through
+    // qoq-reviewer, then the whole plan once at the end, and asks for sign-off.
+    unstable_skill_review?: boolean;
     // `qoq plan --tool <tracker>` may raise the approved plan in that tracker, and
     // `qoq execute --source <tracker>` may import from it. The flag alone is
     // refused: only `local` is tested.

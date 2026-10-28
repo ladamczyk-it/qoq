@@ -9,13 +9,16 @@ can't stop to ask, so asking, accepting and remediating are this thread's.
 ## Scope
 
 ```
-/qoq sheriff                         # files changed since the merge-base with the default branch
-/qoq sheriff src/auth 'src/**/*.ts'  # snapshot: those paths, as they stand
-/qoq sheriff main..HEAD              # diff: that range, no plan
+/qoq sheriff                                       # files changed since the merge-base with the default branch
+/qoq sheriff src/auth 'src/**/*.ts'                # snapshot: those paths, as they stand
+/qoq sheriff main..HEAD                            # diff: that range, no plan
+/qoq sheriff https://github.com/acme/api/pull/123  # pr: that pull request, against its description
 ```
 
-Positional, like every other command. An argument containing `..` is a range;
-anything else is a path or a glob. The default is `document`'s:
+Positional, like every other command. A `https://…/pull/<n>` link is a pull
+request, an argument containing `..` is a range, and anything else is a path or
+a glob. A bare number is not a pull request; it stops with one line asking for
+the link. The default is `document`'s:
 `git diff --name-only $(git merge-base HEAD <default branch>)`, swept as a
 snapshot of those files. An empty default scope is a one-line stop.
 
@@ -23,18 +26,32 @@ snapshot of those files. An empty default scope is a one-line stop.
 
 Ungated: typing it is the opt-in.
 
-1. **Dispatch `qoq-sheriff`** at the **session's** model with `mode: snapshot` or
-   `diff`, the scope, and this skill's absolute path.
-2. **`status: question`** → ask the user, re-dispatch with the answer verbatim.
-3. **Print the report** — every finding with its severity, confidence,
-   locations, reason and exploit — and say once, up top, that **intent was not
-   judged**: there is no plan, so the sheriff can say what the code does but not
+**A pull request link** runs [review.md](review.md)'s **Pull requests** section
+with `qoq-sheriff`, step for step. The PR may belong to any repository, and it
+is read from a scratch clone. The output is proposed inline comments for the
+user to pick, posted as one `COMMENT` review under their name, and there is no
+remediation. When the PR states its intent, say up top what the sweep was
+judged against. Otherwise say that intent was not judged. The run reads nothing
+on the working directory's record, so a discovery action to fill the record is
+skipped for it. The sheriff's review and `qoq review`'s are separate runs that
+post separate reviews.
+
+**Paths, globs and ranges** are local:
+
+1. **Dispatch `qoq-sheriff`** at the **session's** model with `mode: snapshot`
+   or `diff`, the scope, and this skill's absolute path.
+2. **`status: question`** → ask the user, then re-dispatch with the answer
+   verbatim.
+3. **Print the report**: every finding with its severity, confidence,
+   locations, reason and exploit. Say once, at the top, that **intent was not
+   judged**. With no plan, the sheriff can say what the code does but not
    whether anyone meant it. Nothing is written to disk.
-4. **Offer remediation**, never start it. On the user's yes, per finding: the
-   routing and the loop below, with two differences — the branch check runs
-   first (on the default branch, ask; suggest `sheriff/<topic>`), and the
-   re-gate is `qoq fix` over the touched files plus the project's full build and
-   suite from the record, since there's no milestone union.
+4. **Offer remediation**, but don't start it. On the user's yes, take each
+   finding through the routing and the loop below, with two differences. First,
+   run the branch check (on the default branch, ask, and suggest
+   `sheriff/<topic>`). Second, the re-gate is `qoq fix` over the touched files
+   plus the project's full build and suite from the record, since there's no
+   milestone union.
 
 ## Pipeline — from `execute`
 
@@ -145,7 +162,8 @@ was hard".
    Red → the round is spent, the digest goes into the next dispatch.
 6. **Recheck** — dispatch `qoq-sheriff` with `mode: recheck`, the findings
    verbatim and the remediation's range. `surviving` and any new finding route
-   again by the table above.
+   again by the table above. A review remediation sends the same mode with
+   `findings: []` ([review.md](review.md)); what that raises routes here too.
 
 **Two rounds spent with findings surviving** → bring the user each surviving
 finding, both rounds' diffs and both rechecks' verdicts, and four options: one

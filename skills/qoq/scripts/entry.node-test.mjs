@@ -56,20 +56,22 @@ test('a stale record hands the payload to the caller', () => {
 
 // `compress` edits prose, runs no tool and dispatches no agent, so nothing on
 // the record bears on it.
-test('compress skips discovery', () => {
-  const { status, stdout } = run(fixture(), 'compress');
+test('compress and review skip discovery', () => {
+  for (const command of ['compress', 'review']) {
+    const { status, stdout } = run(fixture(), command);
 
-  assert.equal(status, 0);
-  assert.match(stdout, /## discovery\nskipped/);
-  const [, afterHeading] = stdout.split('## discovery');
-  const [discovery] = afterHeading.split('##');
-  assert.doesNotMatch(discovery, /fill the record/);
+    assert.equal(status, 0);
+    assert.match(stdout, /## discovery\nskipped/);
+    const [, afterHeading] = stdout.split('## discovery');
+    const [discovery] = afterHeading.split('##');
+    assert.doesNotMatch(discovery, /fill the record/);
+  }
 });
 
 // The rule that had drifted across three prose files. These three dispatch a
 // pinned agent inside the window before Claude Code registers the directory.
-test('a fresh install is a question for fix, test, execute, document and sheriff', () => {
-  for (const command of ['fix', 'test', 'execute', 'document', 'sheriff']) {
+test('a fresh install is a question for fix, test, execute, document, sheriff and review', () => {
+  for (const command of ['fix', 'test', 'execute', 'document', 'sheriff', 'review']) {
     assert.match(run(fixture(), command).stdout, /ACTION: ask the user before carrying on/);
   }
 });

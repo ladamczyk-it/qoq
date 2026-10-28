@@ -14,9 +14,12 @@
 //   - `compress` skips discovery. It edits prose, runs no tool and dispatches no
 //     agent, so nothing on the record bears on it. (It ends by calling `qoq
 //     fix`, which does its own discovery: deferred, not skipped.)
+//   - `review` skips it too. Standalone it reads a pull request from any
+//     repository through a scratch clone, so the working directory's record
+//     describes the wrong project; inside `execute`, execute's own run did it.
 //   - a fresh agent install is a question for `fix`, `test`, `execute`,
-//     `document` and `sheriff`, and a line in the end-of-run notice for everything
-//     else. Those five dispatch an agent inside the window before Claude Code registers the
+//     `document`, `sheriff` and `review`, and a line in the end-of-run notice for
+//     everything else. Those six dispatch an agent inside the window before Claude Code registers the
 //     directory, so their first dispatch can land on the `general-purpose`
 //     fallback — and for an agent whose contract is a restriction, the fallback
 //     is the restriction gone. `refactor` is the deliberate exception: it opens with a
@@ -24,7 +27,7 @@
 //     question in front of a command whose next move is another command's
 //     question is the noise this narrowing exists to remove.
 //
-// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff>
+// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff|review>
 //
 // Exit code: always 0 — stdout is a section per check, each with what to do, or
 // a single `command` section asking for one.
@@ -44,9 +47,10 @@ const COMMANDS = [
   'document',
   'mermaid',
   'sheriff',
+  'review',
 ];
-const ASKS_ON_INSTALL = ['fix', 'test', 'execute', 'document', 'sheriff'];
-const SKIPS_DISCOVERY = ['compress'];
+const ASKS_ON_INSTALL = ['fix', 'test', 'execute', 'document', 'sheriff', 'review'];
+const SKIPS_DISCOVERY = ['compress', 'review'];
 
 const args = process.argv.slice(2);
 const flag = (name) => {

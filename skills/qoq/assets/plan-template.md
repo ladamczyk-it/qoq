@@ -20,6 +20,9 @@ board; omit the whole field on a local plan>
 **Plan status:** draft | approved | in-progress | complete
 **Docs conventions:** <absent until a `qoq-scribe` question is answered>
 **Security context:** <absent until a `qoq-sheriff` question is answered>
+**Review context:** <absent until a `qoq-reviewer` question is answered>
+**Signed off:** <absent until the user signs off a reviewed run> <YYYY-MM-DD>
+— <the user's note, or none>
 
 ## Diagrams
 
@@ -44,6 +47,9 @@ done>` · suite `<the full build + suite result, as reported>`
 **Docs advisories:** none | <scribe drift, `qoq-scribe:` markers, docs skipped>
 **Security:** <absent unless the sheriff ran> clean | <S<n> <severity> —
 remediated `<hash>` · accepted · deferred to <ticket> · open advisory>
+**Review:** <absent unless the reviewer ran> clean | <R<n> <severity> —
+remediated `<hash>` · accepted — <file>:'<anchor>' — "<reason>" · deferred to
+<ticket> · open advisory>
 **Full detail:** [<plan-name>.completed.md](<plan-name>.completed.md)
 
 ---
@@ -150,6 +156,8 @@ ticket was raised as; absent otherwise>
       not the scoped variants a ticket gate uses)
 - [ ] Sheriff on: `qoq-sheriff` over the milestone's diff, its findings routed
       and recorded on the summary block's **Security** line
+- [ ] Review on: `qoq-reviewer` over the milestone's final diff, its findings
+      routed and recorded on the summary block's **Review** line
 - [ ] Both results written into the summary block's **Gate evidence** — what the
       refactor found and what the suite reported, not "green"
 - [ ] Milestone archived: full text moved to `<plan-name>.completed.md`, summary
@@ -235,6 +243,12 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
   user confirmed, buying a ticket an early sweep before its commit; the third
   records how every finding ended, so an accepted risk is visible to whoever
   reads the plan later.
+- **Review context**, **Review** and **Signed off** are the reviewer's, and
+  absent while it's off. The first is the user's answer to a `qoq-reviewer`
+  question, passed to every later review. The second records how every finding
+  ended. An accepted entry carries its anchor and reason because it's the only
+  record of the acceptance: later reviews read it instead of a marker in the
+  code. The third is the user's yes at the end of the plan.
 - **Diagrams** is `qoq-artist`'s, written before approval when diagrams are on
   and absent otherwise. It sits above the milestones so no ticket dispatch
   carries it, and it records the shape that was approved: `execute` never

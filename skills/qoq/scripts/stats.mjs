@@ -16,7 +16,7 @@
 //
 // Usage:   node stats.mjs <command> [--consent yes|no] [--project <dir>]
 //   <command>   the qoq command that ran: fix, refactor, bump, plan, replan,
-//               execute, test, compress, document, mermaid, sheriff — all eleven, and each one has to be in
+//               execute, test, compress, document, mermaid, sheriff, review — all twelve, and each one has to be in
 //               the sink's own vocabulary or the run 400s. It is the entire
 //               payload beyond the tool name.
 //   --consent   record the user's answer first, then act on it
@@ -64,6 +64,7 @@ const COMMANDS = [
   'document',
   'mermaid',
   'sheriff',
+  'review',
 ];
 
 const args = process.argv.slice(2);

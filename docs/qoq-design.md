@@ -1036,6 +1036,94 @@ miscalibrated sweep nine milestones deep is expensive. `--sheriff` turns it on
 for one run, `future.unstable_skill_sheriff` for a project. Standalone
 `/qoq sheriff` needs neither, and it only prints until the user says yes.
 
+## `review`
+
+**Why per milestone, with the plan pass kept light.** A wrong turn is cheapest
+to fix before the next milestone builds on it, and that is the moment the
+milestone review exists for. The end-of-plan pass doesn't repeat it. It asks
+only whether the milestones add up to the plan, which is answered from the
+Completed blocks and a `--stat`. A full re-read there would be a second code
+review at session cost, over code that was already reviewed.
+
+**Why after the sheriff, before the scribe.** The reviewer should judge the diff
+that ships, security fixes included, and the sheriff's loop can still change it.
+The scribe should document code no one is about to change, and a review fix
+changes it.
+
+**Why the session's model, always cold.** It is the same argument as the
+sheriff's. Plan fit is pure judgment, and the author's context is exactly what
+makes a wrong turn look right. There's no raise field because the session is
+already the ceiling.
+
+**Why acceptances live in the plan, not in the code.** Scope and plan fit only
+mean something inside the plan that set them. A marker saying "accepted scope
+creep" is noise to every later reader of the file. The Review line carries the
+anchor and the reason, which is everything the sheriff's marker carries, and
+it's the expiry rule's input. Standalone has no plan, so it has no accept either:
+a re-raise there is honest, not a bug.
+
+**Why the sheriff takes a pull request as well as paths.** A security read
+needs no stated intent: a snapshot of existing code is still a fair audit, so
+paths and ranges stay. A pull request adds a description, which turns some
+`ambiguous` findings into `confirmed` ones. Both commands resolve a PR through
+the same steps, so they read it the same way. They stay separate commands
+because one is a plan-fit judgment and the other a security one.
+
+**Why standalone review takes a pull request link, not paths.** The reviewer's
+question is whether a diff matches what it set out to do. A path snapshot has no
+diff and no intent, and `sheriff` and `refactor` already read code as it stands.
+A pull request has both: the diff, and the title, description and closed issues
+that stand in for a plan.
+
+**Why a link and not a number, and a scratch clone.** The user reviews pull
+requests across many repositories from one machine. A number means nothing
+without a repository, and the working directory usually isn't the right one. A
+link carries its repository. The clone sits in the OS tmpdir, so the user's
+checkouts are never touched, and discovery is skipped because the working
+directory's record describes another project.
+
+**Why proposed comments, posted only on a pick, and never a verdict.** The
+comments go out under the user's GitHub name, so each one is the user's to
+send, edit or drop. They're drafted the way a colleague would write them,
+without finding ids or tool branding, because that is who signs them. One
+`COMMENT` review keeps a run to one notification for the author, and inline
+placement puts each point next to its code. `APPROVE` and `REQUEST_CHANGES` are
+judgments the user gives on GitHub, not a side effect of a report. There's no
+remediation in this mode: it's someone else's branch, possibly in someone else's
+repository.
+
+**Why traceability defines scope creep.** "Did they need this?" can't be
+answered from a diff. "Does this hunk trace to a criterion, a Contract or the
+Goal, or is it forced by one that does?" can. When a hunk is forced in a way the
+reviewer can't demonstrate, the finding is `judgment` rather than `confirmed`,
+because the author may have seen a reason the reviewer can't.
+
+**Why maintainability is capped at medium.** `high` stops the run, and stopping
+an unattended run is only worth it for something the next milestone will build
+on. A misplaced helper costs the next change, not the next milestone. If one
+could stop a run, the user would learn to skip the stops.
+
+**Why remediation tier follows the category.** Removing an untraced export is
+mechanical. Bringing a delivery back to its Contract is a design call. A fix
+that changes a Contract or spans more than five files is rework of the plan, so
+it goes to `replan` and not into a two-round patch loop.
+
+**Why the sheriff rechecks a review fix, and the chain ends there.** A refactor
+done for consistency can drop a guard and still pass every test. The sheriff
+reads only that diff, which is cheap. Ending on the sheriff, with no second
+reviewer pass over a security fix, keeps two agents from correcting each other
+forever. The security fix is already scope-checked by file.
+
+**Why the sign-off is rendered by the main thread.** The agent sees its own
+report. The sign-off also needs the other gates' evidence and the user's
+decisions from the walkthrough. Keeping the agent's output typed and having the
+main thread render the summary means neither one has to be shaped for the other.
+
+**Why opt-in inside `execute`.** It is the same reason as the sheriff and the
+scribe. Inside `execute` it runs unattended and can stop a run or commit fixes.
+`--review` turns it on for one run, and `future.unstable_skill_review` turns it
+on for a project.
+
 ## Code conventions
 
 **Why names, not comments, carry the what.** A comment that restates the code is
