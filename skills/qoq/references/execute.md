@@ -330,6 +330,12 @@ data point.
 
 ## Escalation
 
+A dispatch that fails because the tier's model doesn't resolve isn't an
+attempt. Don't count it, don't record it with `estimate.mjs`, and don't escalate:
+nothing about the ticket was tested. Stop at that ticket and follow SKILL.md's
+rule for a tier that doesn't resolve. Once the user has mapped it, re-dispatch at
+the same tier. If they decline, stop.
+
 Three attempts spent across both gates, or a `model` handoff at any attempt,
 exhausts the ticket at that tier. A `plan` handoff never gets here. Re-dispatch
 one tier up with the last return pasted in whole — its `blocker` verbatim on a

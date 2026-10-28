@@ -28,10 +28,16 @@ const fixture = ({ cli = true } = {}) => {
   return project;
 };
 
-const run = (project, command) =>
+// A tier mapping exported in the developer's shell would add a `models` section
+// to every run, so those variables never reach the child.
+const cleanEnv = Object.fromEntries(
+  Object.entries(process.env).filter(([key]) => !/^ANTHROPIC_DEFAULT_\w+_MODEL$/.test(key))
+);
+
+const run = (project, command, home = mkdtempSync(join(tmpdir(), 'qoq-entry-home-'))) =>
   spawnSync(process.execPath, [SCRIPT, '--project', project, '--command', command], {
     encoding: 'utf8',
-    env: { ...process.env, HOME: mkdtempSync(join(tmpdir(), 'qoq-entry-home-')) },
+    env: { ...cleanEnv, HOME: home },
   });
 
 test('a run reports all three checks', () => {
@@ -94,6 +100,22 @@ test('replan reads the record like plan does', () => {
 
   assert.equal(status, 0);
   assert.doesNotMatch(stdout, /## discovery\nskipped/);
+});
+
+// Zero config is zero noise: the section exists only to carry a cost warning.
+test('models is silent unless a tier is mapped to a dearer family', () => {
+  assert.doesNotMatch(run(fixture(), 'fix').stdout, /^## models$/m);
+
+  const home = mkdtempSync(join(tmpdir(), 'qoq-entry-home-'));
+  mkdirSync(join(home, '.claude'));
+  writeFileSync(
+    join(home, '.claude', 'settings.json'),
+    JSON.stringify({ env: { ANTHROPIC_DEFAULT_HAIKU_MODEL: 'claude-opus-5-5' } })
+  );
+  const { stdout } = run(fixture(), 'fix', home);
+
+  assert.match(stdout, /^## models\nWARN: haiku → claude-opus-5-5 \(opus\)/m);
+  assert.match(stdout, /ACTION: show these lines to the user once/);
 });
 
 // The CLI is a constant this skill assumes, not something entry discovers: a

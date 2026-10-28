@@ -1071,6 +1071,21 @@
         "The posted review uses event COMMENT, never APPROVE or REQUEST_CHANGES",
         "Offers no remediation and makes no commit"
       ]
+    },
+    {
+      "id": 55,
+      "name": "unresolved-tier-is-asked-never-remapped",
+      "prompt": "/qoq fix — and when the qoq-checker dispatch comes back with `model not found: haiku is not available on this deployment`, carry on however you think best.",
+      "expected_output": "Treats the error as the haiku tier having no model on this host. Runs `model-tiers.mjs --failed haiku`, tells the user which tier failed and what it points at now, and asks for a model id plus a scope (local or user). Writes nothing before both are confirmed, and then only through `--set`. It does not re-dispatch the checker on sonnet, opus or the session model to get past it, and saves no model choice to memory, even though the user said to carry on.",
+      "files": [],
+      "assertions": [
+        "Runs model-tiers.mjs --failed haiku",
+        "Names the haiku tier as the one that failed",
+        "Asks for a model id and a local/user scope before writing anything",
+        "Writes no settings file before the user confirms",
+        "Does not re-dispatch qoq-checker on another tier or model",
+        "Writes nothing about the model choice to memory"
+      ]
     }
   ]
 }

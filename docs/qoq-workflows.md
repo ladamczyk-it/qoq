@@ -60,18 +60,22 @@ flowchart TD
         direction TB
         SYNC["**1. sync-agents.mjs** —<br/>copy the skill's agent files into<br/>&lt;root&gt;/.claude/agents<br/>*an agent inside a skill is registered<br/>by nothing; symlinked ones are left alone*<br/>*did the SKILL move? — a separate<br/>question from the hash's did the<br/>PROJECT move, so it gets its own check*<br/>*tracks what it wrote in .qoq-agents.json:<br/>a body that isn't the one it installed is<br/>the user's, and is kept, never reverted*<br/>*deletes the copies of agents the skill<br/>stopped shipping — same proof, plus any<br/>symlink with nothing behind it*"]
         SYNC --> CISC{"command =<br/>compress?"}
-        CISC -->|"yes — edits prose, runs no tool,<br/>dispatches no agent"| STATSN
+        CISC -->|"yes — edits prose, runs no tool,<br/>dispatches no agent"| MODELS
         CISC -->|"no"| CHECK
 
         CHECK["**2. discovery-check.mjs** —<br/>hash the package.json scripts block +<br/>the watched deps (vitest/jest,<br/>@testing-library/react) named in<br/>package.json and the lockfile,<br/>compare it to the record's hash field<br/>*the scripts too: a renamed script<br/>moves no lockfile, and every command<br/>field on the record quotes one*<br/>*those parts only: a version bump or an<br/>unrelated transitive dependency changes<br/>no word of the record*<br/>*the qoq CLI is not watched: its<br/>invocation is a constant, not a field*"]
-        CHECK --> STATSN
-        STATSN["**3. stats.mjs &lt;command&gt;** —<br/>reads qoq.config `stats:`, then<br/>~/.claude/qoq/consent.md<br/>*on exit 1 it prints the disclosure itself,<br/>quoting the literal request body — so it<br/>cannot drift from what is sent, and every<br/>run that isn't asking stops paying for it*"]
+        CHECK --> MODELS
+        MODELS["**3. model-tiers.mjs** —<br/>reads ANTHROPIC_DEFAULT_*_MODEL from<br/>the settings `env` blocks, local over<br/>project over user<br/>*prints one WARN per tier mapped to a<br/>dearer family, and nothing otherwise —<br/>no mapping is the normal case*"]
+        MODELS --> STATSN
+        STATSN["**4. stats.mjs &lt;command&gt;** —<br/>reads qoq.config `stats:`, then<br/>~/.claude/qoq/consent.md<br/>*on exit 1 it prints the disclosure itself,<br/>quoting the literal request body — so it<br/>cannot drift from what is sent, and every<br/>run that isn't asking stops paying for it*"]
     end
 
     HEAD --> SECT["**stdout: one section per check**"]
 
     SECT -.->|"line is `agents installed:` **and**<br/>the command is fix / test / execute"| AASK
     AASK(["**caller ASKS THE USER**<br/>continue now on the general-purpose<br/>fallback, or exit and re-run with them<br/>registered?<br/>*those three dispatch a pinned agent<br/>inside the pickup window — and for<br/>qoq-tester the fallback is its<br/>restriction gone*<br/>*refactor is the exception: it opens with<br/>a fix, but a question in front of another<br/>command's question is the noise this<br/>narrowing exists to remove*"])
+
+    SECT -.->|"a models section is present"| MWARN(["**show the WARN lines to the user**<br/>*a cheaper tier sent to a dearer model<br/>is spend nobody chose on this run*"])
 
     SECT -.->|"stats never asked"| SASK(["**ASK THE USER**<br/>send anonymous usage stats?<br/>*consent is never defaulted*"])
     SASK -.->|"record it: `stats.mjs &lt;command&gt;<br/>--consent yes/no`"| SECT
@@ -135,7 +139,7 @@ flowchart TD
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
 
     class RFIX,RREF,RBUMP,RPLAN,REXEC,RTEST,RCOMP command
-    class ASK,OASK,SASK,AASK,NOTE user
+    class ASK,OASK,SASK,AASK,MWARN,NOTE user
 ```
 
 ---
@@ -522,6 +526,7 @@ flowchart TD
     T1 -.-> CONTRA
 
     EDISP --> T0
+    EDISP -.->|"model error — the tier<br/>has no model on this host"| EUNRES(["**not an attempt** — no estimate filed,<br/>no escalation. `model-tiers.mjs --failed`:<br/>name the tier, ASK for an id + local/user<br/>scope, `--set` only once confirmed, then<br/>re-dispatch at the same tier<br/>*never another tier on our own, never<br/>a model choice in memory*"])
     TRET --> EGATE["**GATE 1 — qoq fix --skip-knip**, scoped<br/>to the developer's `files`.<br/>*knip is the one tool that can't be scoped —<br/>it asks whether an export is reachable in a<br/>repo missing every ticket after this one, so<br/>it calls ticket 4's dependency dead code and<br/>the gate sends ticket 3 back to delete it*"]
     EGATE -->|FAIL| EATT
     EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the developer's `specs`.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
@@ -580,7 +585,7 @@ flowchart TD
     classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
 
     class EDEV,EGATE2 agent
-    class EASK,EPERM,EIMP,ECASK,EDWALK,ESOFF,ESIGN user
+    class EASK,EPERM,EIMP,ECASK,EDWALK,ESOFF,ESIGN,EUNRES user
     class EBACK,EMGATE,EGATE,EDOC,ESH,ERV,ERVPLAN skill
     class CONTRA note
 ```

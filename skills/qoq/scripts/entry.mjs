@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// The head of every top-level qoq run: agents, discovery record, usage stats.
+// The head of every top-level qoq run: agents, discovery record, model tiers,
+// usage stats.
 //
-// Three scripts already own those answers. This runs them in the one order that
+// Four scripts already own those answers. This runs them in the one order that
 // works and prints what the caller should do about each, so the branching lives
 // here rather than in SKILL.md, which is loaded on every run of every command
 // and was carrying two exit-code tables and a consent procedure to say it.
@@ -128,7 +129,15 @@ if (SKIPS_DISCOVERY.includes(command)) {
   }
 }
 
-// 3. Stats. Last, because a run that stops at discovery never happened. Exactly
+// 3. Models. Silent unless a tier is mapped to a dearer family: zero config
+// means zero noise, and a deliberate mapping still gets its one line per run.
+const models = run('model-tiers.mjs').stdout.trim();
+
+if (models) {
+  section('models', models, 'ACTION: show these lines to the user once, as they are.');
+}
+
+// 4. Stats. Last, because a run that stops at discovery never happened. Exactly
 // one invocation: stats.mjs posts as a side effect of being asked, so calling it
 // twice to read its answer twice would double every count it exists to keep.
 const stats = spawnSync(process.execPath, [script('stats.mjs'), command, '--project', project], {

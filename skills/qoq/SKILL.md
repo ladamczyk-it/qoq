@@ -159,7 +159,8 @@ Invoked with: `$ARGUMENTS`
 `<skill>` is `${CLAUDE_SKILL_DIR}`.
 
 1. **The head-of-run checks have already run.** This is `entry.mjs`'s output —
-   the agents, the discovery record, the usage stats, a section each with what to
+   the agents, the discovery record, any tier mapped to a dearer model, the usage
+   stats, a section each with what to
    do about it. Do what the sections say.
 
    !`node "${CLAUDE_SKILL_DIR}/scripts/entry.mjs" --project "${CLAUDE_PROJECT_DIR}" --command "$0"`
@@ -297,6 +298,17 @@ something to resume with `SendMessage`.
 
 An agent reported as `kept (edited here)` is the user's own version and stays
 that way. Dispatch it like any other; it's registered.
+
+**A tier that doesn't resolve is the user's to remap, never yours.** `opus`,
+`sonnet` and `haiku` resolve through Claude Code's
+`ANTHROPIC_DEFAULT_*_MODEL` settings, so a dispatch that comes back with a
+model error (not found, not enabled, unavailable) means that tier has no model on
+this host. Run `node <skill>/scripts/model-tiers.mjs --project <root> --failed
+<tier>` and do what it prints. Don't re-dispatch on another tier to get past it,
+because a dearer fallback is silent spend. Never write a model or tier choice to
+memory, even a confirmed one: the settings file is the one place the user can see
+it and undo it. When Claude Code substitutes a model on its own and says so,
+relay its notice and carry on.
 
 ## Test and code conventions
 

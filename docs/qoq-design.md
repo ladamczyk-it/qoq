@@ -315,6 +315,28 @@ manifest at all: that's every existing project on the first run after the upgrad
 that shipped this, and protecting those would freeze them all on the agent bodies
 they already had.
 
+**Why tier remapping is Claude Code's env vars and not a qoq file.** A host
+where `opus`, `sonnet` or `haiku` doesn't resolve once got an agent to ask,
+move everything to Opus and save that to memory, which quietly inflated every
+later run. Claude Code already resolves every alias through
+`ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL`, read from the settings `env`
+block with local over project over user. It does that for subagent frontmatter
+and for the Agent tool's per-call `model`, which takes aliases only. A qoq
+mapping file could rewrite the installed agents' frontmatter but never a tier
+passed at dispatch (`qoq-developer`, `qoq-scribe`), so resolution would end up
+split across two places. What qoq adds is the part Claude Code can't decide:
+naming the failed tier, writing a mapping only after the user confirms it, and
+a cost warning. A mapping is written to the local or user file only. The
+committed one is skipped because a provider's model id belongs to one machine,
+and `env` there waits for workspace trust anyway. Requirement 3 of the original
+ask (object entries, so effort could be added later) was dropped on purpose:
+effort already has its own home in frontmatter `effort`.
+
+**Why a tier that doesn't resolve isn't an execute attempt.** The ticket was
+never tried. Counting it would spend the budget, and recording it would file a
+miss against a tier that never ran. Escalating would be exactly the silent
+dearer fallback this rule exists to stop.
+
 **Why derivation lives in the agent and not in the reference.** Two copies of
 "how the test command is derived" is the same duplication the record itself
 exists to prevent.
