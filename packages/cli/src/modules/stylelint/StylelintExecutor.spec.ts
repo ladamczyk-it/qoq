@@ -73,6 +73,30 @@ describe('StylelintExecutor', () => {
     });
   });
 
+  describe('getFilesGlob', () => {
+    it('should return the configured pattern as the glob', () => {
+      expect(StylelintExecutor.getFilesGlob({ pattern: 'styles/**/*.less' }, './src')).toBe(
+        'styles/**/*.less'
+      );
+    });
+
+    it('should return the scss glob under the source path for the scss template', () => {
+      expect(StylelintExecutor.getFilesGlob({ template: 'qoq-stylelint-scss' }, './src')).toBe(
+        './src/**/*.{css,scss,sass}'
+      );
+    });
+
+    it('should return the css glob under the source path for the css template', () => {
+      expect(StylelintExecutor.getFilesGlob({ template: 'qoq-stylelint-css' }, 'src')).toBe(
+        'src/**/*.css'
+      );
+    });
+
+    it('should throw when neither a pattern nor a template is configured', () => {
+      expect(() => StylelintExecutor.getFilesGlob({}, 'src')).toThrow('Bad config!');
+    });
+  });
+
   describe('run', () => {
     it('should terminate gracefully (return OK) when there is no stylelint config', async () => {
       const executor = new StylelintExecutor(dummyModulesConfig, true, true);
