@@ -19,6 +19,7 @@ import { EslintConfigHandler } from './eslint/EslintConfigHandler.ts';
 import { EslintExecutor } from './eslint/EslintExecutor.ts';
 import { JscpdConfigHandler } from './jscpd/JscpdConfigHandler.ts';
 import { JscpdExecutor } from './jscpd/JscpdExecutor.ts';
+import { JustifyDisableConfigHandler } from './justify-disable/JustifyDisableConfigHandler.ts';
 import { JustifyDisableExecutor } from './justify-disable/JustifyDisableExecutor.ts';
 import { KnipConfigHandler } from './knip/KnipConfigHandler.ts';
 import { KnipExecutor } from './knip/KnipExecutor.ts';
@@ -71,6 +72,7 @@ const getHandlersBySequence = (
   new StylelintConfigHandler(modulesConfig, config),
   new StructurelintConfigHandler(modulesConfig, config),
   new SkillslintConfigHandler(modulesConfig, config),
+  new JustifyDisableConfigHandler(modulesConfig, config),
 ];
 
 const getModulesFromConfig = (

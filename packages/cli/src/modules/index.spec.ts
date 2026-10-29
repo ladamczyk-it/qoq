@@ -6,7 +6,7 @@ import { dummyModulesConfig } from '__tests__/common.ts';
 import { suggestSkill } from '../helpers/skillHint.ts';
 import { sendStats } from '../helpers/stats.ts';
 
-import { execute, scan } from './index.ts';
+import { execute, getConfig, scan } from './index.ts';
 import { IExecutorOptions, IModulesConfig } from './types.ts';
 
 const executors = vi.hoisted(() => {
@@ -61,6 +61,10 @@ vi.mock('./skillslint/SkillslintExecutor.ts', () => ({
 vi.mock('./justify-disable/JustifyDisableExecutor.ts', () => ({
   JustifyDisableExecutor: executors.justifyDisable.ctor,
 }));
+
+const cosmiconfigSearch = vi.hoisted(() => vi.fn());
+
+vi.mock('cosmiconfig', () => ({ cosmiconfig: () => ({ search: cosmiconfigSearch }) }));
 
 vi.mock('./scan/ScanExecutor.ts', () => ({ ScanExecutor: scanExecutor.ctor }));
 vi.mock('../helpers/skillHint.ts', () => ({
@@ -286,5 +290,18 @@ describe('scan', () => {
     await execute(configWithLinters, { ...baseOptions, silent: true });
 
     expect(scanExecutor.ctor).not.toHaveBeenCalled();
+  });
+});
+
+describe('getConfig', () => {
+  it('should map the qoq.config justifyDisable block into modules.justifyDisable', async () => {
+    cosmiconfigSearch.mockResolvedValue({
+      config: { justifyDisable: { severity: 'error' } },
+      filepath: 'qoq.config.js',
+    });
+
+    const modulesConfig = await getConfig(dummyModulesConfig.workspaces, true);
+
+    expect(modulesConfig.modules.justifyDisable).toStrictEqual({ severity: 'error' });
   });
 });
