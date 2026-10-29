@@ -3,7 +3,7 @@
 General settings:
 
 - `srcPath` (default to `./src`) that is used as a fallback to tools execution.
-- `hints` (default `true`) – set to `false` to hide the `qoq` skill hint that interactive runs, `qoq scan` and `--init` print at the end. After findings it names the matching command: ESLint or Stylelint findings `--fix` can't resolve, or Knip/Structurelint findings → `/qoq fix`; JSCPD → `/qoq refactor`; outdated or deprecated dependencies, or scan vulnerabilities → `/qoq bump`. The hint is never printed in CI, under `staged`, `--silent` or `--warmup`, when output is piped, inside Claude Code, or once the skill is installed.
+- `hints` (default `true`) – set to `false` to hide the `qoq` skill hint that interactive runs, `qoq scan` and `--init` print at the end. After findings it names the matching command: ESLint or Stylelint findings `--fix` can't resolve, or Knip/Structurelint/Justify-disable findings → `/qoq fix`; JSCPD → `/qoq refactor`; outdated or deprecated dependencies, or scan vulnerabilities → `/qoq bump`. The hint is never printed in CI, under `staged`, `--silent` or `--warmup`, when output is piped, inside Claude Code, or once the skill is installed.
 - `future` – opt-ins for experimental features, all off by default. The CLI reads none of them; the `qoq` skill does.
   - `unstable_skill_docs` – set to `true` to have `/qoq execute` document every delivered milestone (JSDoc, `./docs`, README `Contents`), as if it were run with `--docs`.
   - `unstable_skill_bump_with_scan` – set to `true` to have `/qoq bump` also plan fixes for known vulnerabilities from `qoq scan`, as if it were run with `--scan`.
@@ -186,6 +186,25 @@ where:
 where:
 
 - `path` is `string` pointing at the directory of skill docs to lint. Defaults to `./skills`.
+
+# Justify-disable
+
+**Optional check.** Justify-disable checks that lint-disable comments carry a justification. It runs only when a `justifyDisable` block is present in `qoq.config.js` with `severity` set to `warn` or `error`; omit the block entirely, or leave `severity` at `'off'`, to disable it. It is backed by the optional peer [@ladamczyk/justify-disable](https://www.npmjs.com/package/@ladamczyk/justify-disable), which the wizard installs, and writes the block for, only when you choose `warn` or `error`.
+
+```js
+{
+    justifyDisable: {
+        severity: 'warn',
+    }
+}
+```
+
+where:
+
+- `severity` is `'warn' | 'error' | 'off'`, default `'off'` (no scan). It applies to the package's `missingReason`, `expired` and `invalidCondition` rules; `missingDate` stays off.
+- The scan covers files matched by an `eslint` entry's `files`/`ignores` (ESLint's default `**/*.{js,mjs,cjs}` when an entry has none), or by the stylelint glob, limited to the extensions the package assigns to each tool. `staged` filters the staged paths the same way.
+- Outside a git repository it prints a warning and passes.
+- `--skip-justify-disable` skips it for one run. `--json` writes `justify-disable-report.json`. A failed run suggests `/qoq fix`.
 
 # Scan
 
