@@ -486,6 +486,7 @@ if (justifyDisable && !justifyDisable.__parseError) {
     byRule.set(v.rule, g);
   }
   if (violations.length) {
+    // Warns count too, on purpose: the severity knob is the user's choice of how loud, and `/qoq fix` is meant to work warn findings as well.
     totalFindings += violations.length;
     const lines = [...byRule.entries()]
       .sort((a, b) => b[1].count - a[1].count)
