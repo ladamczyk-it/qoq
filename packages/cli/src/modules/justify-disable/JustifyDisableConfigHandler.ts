@@ -56,6 +56,11 @@ export class JustifyDisableConfigHandler extends AbstractConfigHandler {
     return super.getModulesFromConfig();
   }
 
+  /**
+   * Unlike the structurelint and skillslint handlers, the package is installed
+   * only when the block is set: `off` writes no config, so installing it would
+   * leave an unused dependency.
+   */
   getPackages(): string[] {
     if (this.modulesConfig.modules.justifyDisable) {
       this.packages = ['@ladamczyk/justify-disable'];
