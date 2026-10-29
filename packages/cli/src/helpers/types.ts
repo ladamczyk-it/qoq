@@ -1,5 +1,6 @@
 import { IModuleEslintConfig } from '../modules/eslint/types.ts';
 import { TJscpdFormat } from '../modules/jscpd/types.ts';
+import { IModuleJustifyDisableConfig } from '../modules/justify-disable/types.ts';
 import { IModuleNpmConfig } from '../modules/npm/types.ts';
 import { IModulePrettierConfig } from '../modules/prettier/types.ts';
 import { IScanConfig } from '../modules/scan/types.ts';
@@ -60,6 +61,7 @@ export interface QoqConfig {
   stylelint?: TModuleStylelintConfig;
   structurelint?: TModuleStructurelintConfig;
   skillslint?: IModuleSkillslintConfig;
+  justifyDisable?: IModuleJustifyDisableConfig;
   knip?: {
     entry?: string[];
     project?: string[];

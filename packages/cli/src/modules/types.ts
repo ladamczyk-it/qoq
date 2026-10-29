@@ -2,6 +2,7 @@ import { EConfigType, QoqConfig } from '../helpers/types.ts';
 
 import { IModuleEslintConfig } from './eslint/types.ts';
 import { IModuleJscpdConfig } from './jscpd/types.ts';
+import { IModuleJustifyDisableConfig } from './justify-disable/types.ts';
 import { IModuleKnipConfig } from './knip/types.ts';
 import { IModuleNpmConfig } from './npm/types.ts';
 import { IModulePrettierConfig } from './prettier/types.ts';
@@ -36,6 +37,7 @@ export interface IModulesConfig {
     stylelint?: TModuleStylelintConfig;
     structurelint?: TModuleStructurelintConfig;
     skillslint?: IModuleSkillslintConfig;
+    justifyDisable?: IModuleJustifyDisableConfig;
   };
 }
 
