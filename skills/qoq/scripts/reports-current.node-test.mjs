@@ -58,3 +58,10 @@ test('a missing scope argument is a usage error, not a verdict', () => {
   const { reports } = fixture({ reportAt: 2000, sourceAt: 1000 });
   assert.equal(run(reports), 2);
 });
+
+test('a justify-disable report older than the sources makes the set stale', () => {
+  const { reports, src } = fixture({ reportAt: 3000, sourceAt: 2000 });
+  writeFileSync(join(reports, 'justify-disable-report.json'), '{}');
+  at(join(reports, 'justify-disable-report.json'), 1000);
+  assert.equal(run(reports, src), 1);
+});

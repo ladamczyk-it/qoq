@@ -91,3 +91,47 @@ test('says nothing about npm when every package is ok', () => {
   });
   assert.doesNotMatch(out, /NPM/);
 });
+
+const violation = (path, line, rule, severity) => ({
+  path,
+  line,
+  column: 1,
+  directive: 'eslint-disable-next-line',
+  tool: 'eslint',
+  rule,
+  severity,
+  message: 'm',
+});
+
+const SAMPLE = {
+  passed: false,
+  scanned: 3,
+  violations: [
+    violation('src/a.ts', 3, 'missingReason', 'error'),
+    violation('src/b.ts', 7, 'missingReason', 'warn'),
+    violation('src/c.ts', 1, 'expired', 'error'),
+  ],
+};
+
+test('groups justify-disable violations by rule, most frequent first, and counts each as a finding', () => {
+  const out = digestOf({ 'justify-disable-report.json': SAMPLE });
+  assert.match(out, /JUSTIFY-DISABLE {2}3 violation\(s\) \/ 2 rule\(s\) {2}\(2 error, 1 warn\)/);
+  assert.match(out, /missingReason\s+x2\s+err\+warn\s+src\/a\.ts:3, src\/b\.ts:7/);
+  assert.ok(out.indexOf('missingReason') < out.indexOf('expired'));
+  assert.match(out, /TOTAL: 3 finding\(s\)/);
+});
+
+test('says nothing about justify-disable when it found nothing', () => {
+  const out = digestOf({
+    'justify-disable-report.json': { passed: true, scanned: 4, violations: [] },
+  });
+  assert.doesNotMatch(out, /JUSTIFY-DISABLE/);
+  assert.doesNotMatch(out, /TOTAL/);
+});
+
+test('flags an unparsable justify-disable report instead of dropping it', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'summarize-'));
+  writeFileSync(join(dir, 'justify-disable-report.json'), '{not json');
+  const out = spawnSync(process.execPath, [SCRIPT, dir], { encoding: 'utf8' }).stdout;
+  assert.match(out, /JUSTIFY-DISABLE {2}⚠ could not parse report: /);
+});
