@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { dummyModulesConfig } from '__tests__/common.ts';
 
+import { suggestSkill } from '../helpers/skillHint.ts';
 import { sendStats } from '../helpers/stats.ts';
 
 import { execute, scan } from './index.ts';
@@ -29,6 +30,7 @@ const executors = vi.hoisted(() => {
     stylelint: make('Stylelint'),
     structurelint: make('Structurelint'),
     skillslint: make('Skillslint'),
+    justifyDisable: make('Justify-disable'),
   };
 });
 
@@ -56,7 +58,16 @@ vi.mock('./skillslint/SkillslintExecutor.ts', () => ({
   SkillslintExecutor: executors.skillslint.ctor,
 }));
 
+vi.mock('./justify-disable/JustifyDisableExecutor.ts', () => ({
+  JustifyDisableExecutor: executors.justifyDisable.ctor,
+}));
+
 vi.mock('./scan/ScanExecutor.ts', () => ({ ScanExecutor: scanExecutor.ctor }));
+vi.mock('../helpers/skillHint.ts', () => ({
+  printSkillHint: vi.fn(),
+  shouldShowSkillHint: vi.fn().mockReturnValue(false),
+  suggestSkill: vi.fn(),
+}));
 vi.mock('../helpers/stats.ts', () => ({
   askStatsConsent: vi.fn(),
   getUsedOptions: vi.fn().mockReturnValue([]),
@@ -77,6 +88,7 @@ const configWithLinters: IModulesConfig = {
     stylelint: { strict: false },
     structurelint: { structure: [] },
     skillslint: { path: './skills' },
+    justifyDisable: {},
   },
 };
 
@@ -183,6 +195,44 @@ describe('execute', () => {
     await execute(configWithLinters, { ...baseOptions, silent: true });
 
     expect(stdoutMock).not.toHaveBeenCalledWith(expect.stringContaining('Total execution time:'));
+  });
+
+  it('should run justify-disable after skillslint when modules.justifyDisable is set', async () => {
+    await execute(configWithLinters, baseOptions);
+
+    expect(executors.justifyDisable.run).toHaveBeenCalledOnce();
+    expect(executors.justifyDisable.run.mock.invocationCallOrder[0]).toBeGreaterThan(
+      executors.skillslint.run.mock.invocationCallOrder[0]!
+    );
+  });
+
+  it('should not run justify-disable when modules.justifyDisable is absent from the config', async () => {
+    await execute(dummyModulesConfig, baseOptions);
+
+    expect(executors.justifyDisable.run).not.toHaveBeenCalled();
+  });
+
+  it('should not run justify-disable when skipJustifyDisable is set', async () => {
+    await execute(configWithLinters, { ...baseOptions, skipJustifyDisable: true });
+
+    expect(executors.justifyDisable.run).not.toHaveBeenCalled();
+  });
+
+  it('should run only justify-disable when it is the sole tool named in the tools filter', async () => {
+    await execute(configWithLinters, baseOptions, undefined, ['justify-disable']);
+
+    expect(executors.justifyDisable.run).toHaveBeenCalledOnce();
+    expect(executors.eslint.run).not.toHaveBeenCalled();
+    expect(executors.skillslint.run).not.toHaveBeenCalled();
+  });
+
+  it('should set exitCode to ERROR and suggest the fix skill when justify-disable fails', async () => {
+    executors.justifyDisable.run.mockResolvedValue(EExitCode.ERROR);
+
+    await execute(configWithLinters, baseOptions);
+
+    expect(process.exitCode).toBe(EExitCode.ERROR);
+    expect(suggestSkill).toHaveBeenCalledWith('fix');
   });
 });
 

@@ -37,6 +37,7 @@ const withCommonOptions = (command: Command): Command =>
     .option('--skip-stylelint', 'Skip Stylelint CSS/SCSS linting')
     .option('--skip-structurelint', 'Skip Structurelint file/folder structure linting')
     .option('--skip-skillslint', 'Skip Skillslint skill-doc linting')
+    .option('--skip-justify-disable', 'Skip Justify-disable lint-disable justification check')
     .option('--silent', 'Suppress all QoQ console output')
     .option('--json', "Write each tool's output to a JSON file in --output")
     .option('--output <path>', 'Directory for JSON reports (requires --json)', {

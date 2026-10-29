@@ -52,6 +52,7 @@ export interface IExecuteStagedOptions {
   skipStylelint?: boolean;
   skipStructurelint?: boolean;
   skipSkillslint?: boolean;
+  skipJustifyDisable?: boolean;
   warmup?: boolean;
   silent?: boolean;
   configHints?: boolean;
