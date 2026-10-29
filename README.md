@@ -23,9 +23,10 @@ QoQ provides essential tooling to ensure code quality across all your projects:
 - **Stylelint** – Lint CSS/SCSS with opinionated presets.
 - **Structurelint** – Validate project file/folder structure (via `@ladamczyk/structurelint`).
 - **Skillslint** – Lint Claude Code skill documentation (via `@ladamczyk/skillslint`).
+- **Justify-disable** – Check that lint-disable comments carry a justification (via `@ladamczyk/justify-disable`).
 - **Dependency checks** – Flag outdated, deprecated and stale dependencies on a configurable cadence.
 
-Most tools are available as an independent package under the `@ladamczyk/qoq-*` namespace, making it easy to integrate and customize. Structurelint and Skillslint are optional integrations backed by separate `@ladamczyk/structurelint` and `@ladamczyk/skillslint` packages.
+Most tools are available as an independent package under the `@ladamczyk/qoq-*` namespace, making it easy to integrate and customize. Structurelint, Skillslint and Justify-disable are optional integrations backed by separate `@ladamczyk/structurelint`, `@ladamczyk/skillslint` and `@ladamczyk/justify-disable` packages.
 
 ## 🚀 Getting Started
 
@@ -82,7 +83,7 @@ Agent-written code meets the same standard as code you write by hand. Each run a
 
 In an interactive terminal, the CLI mentions the skill at the end of a run, including `qoq scan`, if it isn't installed yet. When the run found something the skill handles, the hint names the command for it:
 
-- ESLint or Stylelint findings `--fix` can't resolve, or Knip or Structurelint findings → `/qoq fix`
+- ESLint or Stylelint findings `--fix` can't resolve, or Knip, Structurelint or Justify-disable findings → `/qoq fix`
 - duplicated code (JSCPD) → `/qoq refactor`
 - outdated or deprecated dependencies, or `qoq scan` vulnerabilities → `/qoq bump`
 
