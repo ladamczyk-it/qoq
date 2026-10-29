@@ -69,6 +69,8 @@ export class JustifyDisableExecutor extends AbstractApiExecutor<string[]> {
     const { lint, format, gitProvider, DEFAULT_EXTENSIONS } =
       await import('@ladamczyk/justify-disable');
 
+    // lint() surfaces a git failure as a generic error; tracking it here lets us tell "no repo"
+    // (skip quietly) apart from a real failure.
     let gitFailed = false;
     const listRepositoryFiles: typeof gitProvider = async (context) => {
       try {

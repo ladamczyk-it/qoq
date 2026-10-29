@@ -34,6 +34,11 @@ const isCoveredByEslintEntry = (path: string, { files, ignores }: IModuleEslintC
   return !isIgnored;
 };
 
+/**
+ * Scopes justify-disable to what qoq's own eslint and stylelint config lint, so it never reports
+ * on files those tools skip. Non-empty `paths` (staged run) are taken as given and skip git.
+ * A file matching neither tool is omitted, so `tools` is never empty.
+ */
 // ponytail: tracked-but-gitignored files are scanned although ESLint skips them.
 export const createJustifyDisableFileProvider =
   (

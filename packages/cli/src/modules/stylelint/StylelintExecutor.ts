@@ -50,6 +50,7 @@ interface IStylelintContext {
 export class StylelintExecutor extends AbstractApiWithProgressExecutor<IStylelintContext> {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.stylelintcache');
 
+  /** Shared with justify-disable so both runs agree on which files count as stylelint's. */
   static getFilesGlob(stylelint: TModuleStylelintConfig, srcPath: string): string {
     if ('pattern' in stylelint && stylelint.pattern) {
       return stylelint.pattern;
