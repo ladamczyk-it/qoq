@@ -41,7 +41,7 @@ As mentioned above, every `ConfigHandler` must extend `AbstractConfigHandler`. I
 Every `Executor` extends `AbstractExecutor` through one of two mid-level bases, chosen by how the tool is driven:
 
 - **`AbstractCommandExecutor`** – for tools with no usable JS API (Knip, npm); implements `execute()` by spawning the tool's binary via `executeCommand()`.
-- **`AbstractApiExecutor`** – for tools driven via their JS API instead of a spawned process (Skillslint, Structurelint, `justify-disable`); implements `getCommandArgs()` as `[]` and adds a `writeReport()` helper for `--json` output. Its subclass `AbstractApiWithProgressExecutor` adds live per-file progress output for API-driven tools that stream over many files (ESLint, Prettier, Stylelint).
+- **`AbstractApiExecutor`** – for tools driven via their JS API instead of a spawned process (Skillslint, Structurelint, Justify-disable); implements `getCommandArgs()` as `[]` and adds a `writeReport()` helper for `--json` output. Its subclass `AbstractApiWithProgressExecutor` adds live per-file progress output for API-driven tools that stream over many files (ESLint, Prettier, Stylelint).
 
 Leaf classes typically implement:
 

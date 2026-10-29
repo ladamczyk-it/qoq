@@ -10,7 +10,7 @@ export class JustifyDisableConfigHandler extends AbstractConfigHandler {
     const {
       justifyDisable,
     }: {
-      justifyDisable: 'off' | 'warn' | 'error';
+      justifyDisable?: 'off' | 'warn' | 'error';
     } = await prompts.prompt([
       {
         type: 'select',
@@ -26,7 +26,8 @@ export class JustifyDisableConfigHandler extends AbstractConfigHandler {
       },
     ]);
 
-    if (justifyDisable === 'off') {
+    // A cancelled prompt leaves the answer undefined; only warn/error write a block.
+    if (justifyDisable !== 'warn' && justifyDisable !== 'error') {
       return;
     }
 

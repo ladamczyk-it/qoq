@@ -112,5 +112,29 @@ describe('JustifyDisableConfigHandler', () => {
 
       expect(handler.getPackages()).toContain('@ladamczyk/justify-disable');
     });
+
+    // prompts substitutes the select's `initial` (index 0) for an injected undefined.
+    it('should neither set modules.justifyDisable nor include the package for an injected undefined answer', async () => {
+      prompts.inject([undefined]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new JustifyDisableConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(modulesConfig.modules.justifyDisable).toBeUndefined();
+      expect(handler.getPackages()).not.toContain('@ladamczyk/justify-disable');
+    });
+
+    // An injected Error is how prompts simulates a cancelled (Ctrl+C) prompt.
+    it('should neither set modules.justifyDisable nor include the package when the prompt is cancelled', async () => {
+      prompts.inject([new Error('cancelled')]);
+      const modulesConfig = structuredClone(dummyModulesConfig);
+      const handler = new JustifyDisableConfigHandler(modulesConfig, {});
+
+      await handler.getPrompts();
+
+      expect(modulesConfig.modules.justifyDisable).toBeUndefined();
+      expect(handler.getPackages()).not.toContain('@ladamczyk/justify-disable');
+    });
   });
 });
