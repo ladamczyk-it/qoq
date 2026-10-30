@@ -22,6 +22,10 @@
 //   --consent   record the user's answer first, then act on it
 //   --project   where to look for qoq.config.* (default: cwd)
 //
+// Called by entry.mjs at the head of every run, and by the thread again each time
+// an inner command starts. The thread ignores exit 1 on an inner call, because the
+// asking belongs to the head of the run.
+//
 // Exit code: 0 handled (sent, or declined and nothing to do), 1 nobody has been
 // asked yet — ask the user and call again with --consent, 2 usage error.
 // Branch on the code; stdout says which of the two 0 cases it was, for a human

@@ -80,6 +80,8 @@ flowchart TD
     SECT -.->|"stats never asked"| SASK(["**ASK THE USER**<br/>send anonymous usage stats?<br/>*consent is never defaulted*"])
     SASK -.->|"record it: `stats.mjs &lt;command&gt;<br/>--consent yes/no`"| SECT
 
+    INNER(["**an inner command starts**<br/>(a `fix` inside `execute`, per ticket)"]) -.->|"`stats.mjs &lt;inner&gt;` once —<br/>send only, exit 1 ignored, never asks"| STATSN
+
     SECT -->|"discovery current —<br/>the record is in the section"| USE["**use the record as-is**,<br/>derive nothing<br/>*the common case,<br/>and the reason it exists*"]
     SECT -->|"discovery stale — the section<br/>carries hash + proposed + unresolved"| DISP
 

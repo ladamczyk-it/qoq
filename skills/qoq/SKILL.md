@@ -169,8 +169,12 @@ Invoked with: `$ARGUMENTS`
    invoked from inside another inherits everything the outer run already
    established rather than re-checking — a `fix` dispatched from inside
    `refactor` is part of that refactor, not a second run. So never re-invoke this
-   skill for an inner command: that re-runs the checks and counts a second run.
-   Open its reference instead.
+   skill for an inner command: that re-runs every check. Instead, each time an
+   inner command starts, run `node <skill>/scripts/stats.mjs <inner> --project
+   <dir>` once, with the same `<dir>` the entry ran with (it counts that run and
+   does nothing else), then
+   open its reference. Exit 1 there means consent went unanswered at the top, so
+   carry on without asking. Don't report what it prints.
 
 2. **If it reports the record stale**, fill it in from the payload it printed —
    here, on this thread, not in an agent. It's a few reads, and the one move it

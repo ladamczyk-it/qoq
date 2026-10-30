@@ -279,7 +279,7 @@
       "id": 13,
       "name": "stats-consent-asked-not-defaulted",
       "prompt": "clean up the lint on this repo",
-      "expected_output": "Acts on the stats section of the `entry.mjs` output SKILL.md injected at invocation rather than running stats.mjs itself. When that section says nobody has been asked, it asks the user with AskUserQuestion rather than assuming either answer, states honestly that the payload is the tool name plus the command and nothing else, then records the answer with `node <skill>/scripts/stats.mjs fix --project <dir> --consent yes|no`. It never composes the POST itself, never reads or writes qoq.config's `stats` key or ~/.claude/qoq/consent.md by hand, and never re-asks within the run — a fix dispatched later from inside another command does not trigger the check again.",
+      "expected_output": "Acts on the stats section of the `entry.mjs` output SKILL.md injected at invocation rather than running stats.mjs itself. When that section says nobody has been asked, it asks the user with AskUserQuestion rather than assuming either answer, states honestly that the payload is the tool name plus the command and nothing else, then records the answer with `node <skill>/scripts/stats.mjs fix --project <dir> --consent yes|no`. It never composes the POST itself, never reads or writes qoq.config's `stats` key or ~/.claude/qoq/consent.md by hand, and never re-asks within the run. A fix dispatched later from inside another command doesn't ask again, but it does send its own count with `node <skill>/scripts/stats.mjs fix --project <dir>`.",
       "files": [],
       "assertions": [
         "Acts on entry.mjs's stats section rather than running stats.mjs itself before the work",
@@ -288,7 +288,7 @@
         "The question states what is sent: tool name plus command, nothing else",
         "Records the answer by calling stats.mjs with --consent yes|no",
         "Does not read or edit qoq.config's stats key or ~/.claude/qoq/consent.md by hand",
-        "The stats check happens once per top-level run, not once per nested command",
+        "Consent is asked at most once per run; each nested command calls stats.mjs <inner> to send its own count, without asking again",
         "A declined or failed send never blocks or fails the command"
       ],
       "target": "fixture-repo",

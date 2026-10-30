@@ -140,6 +140,8 @@ if (models) {
 // 4. Stats. Last, because a run that stops at discovery never happened. Exactly
 // one invocation: stats.mjs posts as a side effect of being asked, so calling it
 // twice to read its answer twice would double every count it exists to keep.
+// Inner commands (a `fix` inside `execute`) make their own single call, per
+// SKILL.md, so a nested run counts the same as one the user typed.
 const stats = spawnSync(process.execPath, [script('stats.mjs'), command, '--project', project], {
   encoding: 'utf8',
 });

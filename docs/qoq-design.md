@@ -305,6 +305,14 @@ and a description of a payload can come to promise less than the payload sends.
 `stats.mjs` now builds the disclosure from the same object it posts, and quotes
 it literally. A spec asserts the two stay the same object.
 
+**Why nested commands count too.** Most `fix`, `refactor`, `sheriff` and
+`review` runs happen inside `execute`. Counting only the command the user typed
+hid them, so the numbers said least about the commands that run most. Each inner
+command now calls `stats.mjs` once when it starts, and only the head of the run
+ever asks for consent. The payload is the same as a standalone run's, so the sink
+can't tell the two apart. We accepted that: telling them apart would need a new
+option in the sink's vocabulary and a deploy, and the goal was to count the runs.
+
 **Why `sync-agents.mjs` tracks what it wrote.** It copies into the user's own
 repo, usually into a tracked directory, and it could not tell its own last copy
 from a file the user had edited — comparing against the current source doesn't
