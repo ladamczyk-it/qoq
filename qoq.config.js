@@ -71,15 +71,12 @@ export default {
       ignores: [],
       rules,
     },
-    {
-      template: 'qoq-eslint-v9-js-vitest',
-      files: ['packages/**/src/**/*.spec.js'],
-      ignores: [],
-      rules,
-    },
   ],
   skillslint: {
     path: './skills',
+  },
+  justifyDisable: {
+    severity: 'warn',
   },
   structurelint: {
     structureRoot: 'packages',
@@ -106,5 +103,11 @@ export default {
         ],
       },
     ],
+  },
+  future: {
+    unstable_skill_docs: true,
+    unstable_skill_diagrams: true,
+    unstable_skill_sheriff: true,
+    unstable_skill_review: true,
   },
 };

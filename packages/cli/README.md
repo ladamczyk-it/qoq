@@ -29,6 +29,7 @@ The same CLI is the gate behind the `qoq` Claude Code skill, a guarded delivery 
 - **Stylelint** – CSS/SCSS linting, backed by the compliant `@ladamczyk/qoq-stylelint-css` or `@ladamczyk/qoq-stylelint-scss` template. Enabled via a `stylelint` block (`--skip-stylelint`).
 - **Structurelint** – validates project file/folder structure, backed by `@ladamczyk/structurelint`. Enabled via a `structurelint` block (`--skip-structurelint`).
 - **Skillslint** – lints Claude Code skill documentation, backed by `@ladamczyk/skillslint`. Enabled via a `skillslint` block (`--skip-skillslint`).
+- **Justify-disable** – checks that lint-disable comments carry a justification, backed by the optional peer `@ladamczyk/justify-disable`. Enabled via a `justifyDisable` block with `severity` set to `warn` or `error` (`--skip-justify-disable`).
 
 ## Install
 

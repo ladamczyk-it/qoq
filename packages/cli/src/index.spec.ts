@@ -108,7 +108,13 @@ describe('cli', () => {
     });
 
     it('should forward skip flags to execute', async () => {
-      await run('--skip-npm', '--skip-eslint', '--skip-stylelint', '--skip-skillslint');
+      await run(
+        '--skip-npm',
+        '--skip-eslint',
+        '--skip-stylelint',
+        '--skip-skillslint',
+        '--skip-justify-disable'
+      );
 
       expect(execute).toHaveBeenCalledWith(
         dummyConfig,
@@ -117,6 +123,7 @@ describe('cli', () => {
           skipEslint: true,
           skipStylelint: true,
           skipSkillslint: true,
+          skipJustifyDisable: true,
         }),
         undefined,
         undefined
@@ -195,11 +202,11 @@ describe('cli', () => {
     });
 
     it('should keep the first file when a boolean flag precedes the list', async () => {
-      await run('staged', '--skip-knip', 'src/a.ts', 'src/b.ts');
+      await run('staged', '--skip-knip', '--skip-justify-disable', 'src/a.ts', 'src/b.ts');
 
       expect(execute).toHaveBeenCalledWith(
         dummyConfig,
-        expect.objectContaining({ skipKnip: true }),
+        expect.objectContaining({ skipKnip: true, skipJustifyDisable: true }),
         ['src/a.ts', 'src/b.ts']
       );
     });

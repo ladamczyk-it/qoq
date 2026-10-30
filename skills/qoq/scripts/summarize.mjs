@@ -466,6 +466,43 @@ if (skillslint && !skillslint.__parseError) {
   sections.push(`SKILLSLINT  ⚠ could not parse report: ${skillslint.__parseError}`);
 }
 
+// ---------- Justify-disable (optional) ----------
+const justifyDisable = read('justify-disable-report.json');
+if (justifyDisable && !justifyDisable.__parseError) {
+  const violations = justifyDisable.violations ?? [];
+  const byRule = new Map(); // rule -> { count, errors, locs: [] }
+  let errors = 0;
+  for (const v of violations) {
+    const isErr = v.severity === 'error';
+    if (isErr) {
+      errors++;
+    }
+    const g = byRule.get(v.rule) ?? { count: 0, errors: 0, locs: [] };
+    g.count++;
+    if (isErr) {
+      g.errors++;
+    }
+    g.locs.push(`${rel(v.path)}:${v.line ?? '?'}`);
+    byRule.set(v.rule, g);
+  }
+  if (violations.length) {
+    // Warns count too, on purpose: the severity knob is the user's choice of how loud, and `/qoq fix` is meant to work warn findings as well.
+    totalFindings += violations.length;
+    const lines = [...byRule.entries()]
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(
+        ([rule, g]) =>
+          `  ${String(rule).padEnd(38)} x${String(g.count).padEnd(3)} ${severityTag(g).padEnd(8)} ${cap(g.locs)}`
+      );
+    sections.push(
+      `JUSTIFY-DISABLE  ${violations.length} violation(s) / ${byRule.size} rule(s)  ` +
+        `(${errors} error, ${violations.length - errors} warn)  [not auto-fixable — add a \`@todo <reason>\` comment on the line above the directive, or remove the directive]\n${lines.join('\n')}`
+    );
+  }
+} else if (justifyDisable?.__parseError) {
+  sections.push(`JUSTIFY-DISABLE  ⚠ could not parse report: ${justifyDisable.__parseError}`);
+}
+
 if (reportsFound === 0) {
   // No report files at all — qoq likely never ran (or wrote elsewhere). Don't
   // claim "clean": that would let a caller skip fixes that do exist.

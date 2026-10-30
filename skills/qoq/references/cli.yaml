@@ -14,7 +14,8 @@ run:
   scan: npx qoq scan --json
   format: npx qoq prettier --fix
 
-tool_names: [prettier, eslint, jscpd, knip, npm, stylelint, structurelint, skillslint]
+tool_names:
+  [prettier, eslint, jscpd, knip, npm, stylelint, structurelint, skillslint, justify-disable]
 narrow: --skip-<tool>
 exit: { 0: clean, 1: findings }
 

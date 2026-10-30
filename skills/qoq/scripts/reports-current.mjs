@@ -31,6 +31,7 @@ const REPORTS = [
   'stylelint-report.json',
   'structurelint-report.json',
   'skillslint-report.json',
+  'justify-disable-report.json',
 ];
 
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);

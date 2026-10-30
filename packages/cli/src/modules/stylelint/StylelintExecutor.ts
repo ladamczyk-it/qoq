@@ -17,7 +17,7 @@ import {
 } from '../abstract/AbstractApiWithProgressExecutor.ts';
 import { IExecutorOptions } from '../types.ts';
 
-import { EModulesStylelint } from './types.ts';
+import { EModulesStylelint, TModuleStylelintConfig } from './types.ts';
 
 import type { Root } from 'postcss';
 import type {
@@ -49,6 +49,21 @@ interface IStylelintContext {
 
 export class StylelintExecutor extends AbstractApiWithProgressExecutor<IStylelintContext> {
   static readonly CACHE_PATH = resolveCliRelativePath('/bin/.stylelintcache');
+
+  /** Shared with justify-disable so both runs agree on which files count as stylelint's. */
+  static getFilesGlob(stylelint: TModuleStylelintConfig, srcPath: string): string {
+    if ('pattern' in stylelint && stylelint.pattern) {
+      return stylelint.pattern;
+    }
+
+    if ('template' in stylelint && stylelint.template) {
+      return stylelint.template === String(EModulesStylelint.STYLELINT_SCSS)
+        ? `${srcPath}/**/*.{css,scss,sass}`
+        : `${srcPath}/**/*.css`;
+    }
+
+    throw new Error('Bad config!');
+  }
 
   protected getCommandName(): string {
     return 'stylelint';
@@ -120,24 +135,22 @@ export class StylelintExecutor extends AbstractApiWithProgressExecutor<IStylelin
     const { strict } = stylelint;
 
     let rest: StylelintConfig;
-    let glob: string;
 
     if ('pattern' in stylelint && stylelint.pattern) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { pattern, ...other } = stylelint;
 
       rest = other;
-      glob = pattern;
     } else if ('template' in stylelint && stylelint.template) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { template, ...other } = stylelint;
 
       rest = other;
-      glob =
-        template === String(EModulesStylelint.STYLELINT_SCSS)
-          ? `${srcPath}/**/*.{css,scss,sass}`
-          : `${srcPath}/**/*.css`;
     } else {
       throw new Error('Bad config!');
     }
+
+    const glob = StylelintExecutor.getFilesGlob(stylelint, srcPath);
 
     // Staged files arrive unfiltered (lint-staged may hand over every staged
     // path), so keep only what the configured glob covers; stylelint would

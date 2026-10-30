@@ -19,6 +19,8 @@ import { EslintConfigHandler } from './eslint/EslintConfigHandler.ts';
 import { EslintExecutor } from './eslint/EslintExecutor.ts';
 import { JscpdConfigHandler } from './jscpd/JscpdConfigHandler.ts';
 import { JscpdExecutor } from './jscpd/JscpdExecutor.ts';
+import { JustifyDisableConfigHandler } from './justify-disable/JustifyDisableConfigHandler.ts';
+import { JustifyDisableExecutor } from './justify-disable/JustifyDisableExecutor.ts';
 import { KnipConfigHandler } from './knip/KnipConfigHandler.ts';
 import { KnipExecutor } from './knip/KnipExecutor.ts';
 import { NpmConfigHandler } from './npm/NpmConfigHandler.ts';
@@ -70,6 +72,7 @@ const getHandlersBySequence = (
   new StylelintConfigHandler(modulesConfig, config),
   new StructurelintConfigHandler(modulesConfig, config),
   new SkillslintConfigHandler(modulesConfig, config),
+  new JustifyDisableConfigHandler(modulesConfig, config),
 ];
 
 const getModulesFromConfig = (
@@ -201,6 +204,7 @@ export const execute = async (
     skipStylelint,
     skipStructurelint,
     skipSkillslint,
+    skipJustifyDisable,
   } = options;
 
   const hideMessages = !!silent || !!warmup;
@@ -249,6 +253,12 @@ export const execute = async (
       skip: skipSkillslint,
       moduleKey: 'skillslint',
     },
+    {
+      name: 'justify-disable',
+      executor: new JustifyDisableExecutor(modulesConfig, hideMessages),
+      skip: skipJustifyDisable,
+      moduleKey: 'justifyDisable',
+    },
   ];
 
   const responses: Record<string, EExitCode> = {};
@@ -275,7 +285,7 @@ export const execute = async (
   });
 
   // ESLint, Stylelint, npm and scan suggest from inside their executors, where the cause is known.
-  if (failed.some((key) => ['Knip', 'Structurelint'].includes(key))) {
+  if (failed.some((key) => ['Knip', 'Structurelint', 'Justify-disable'].includes(key))) {
     suggestSkill('fix');
   }
 
