@@ -1,3 +1,21 @@
+# [6.8.0](https://github.com/ladamczyk-it/qoq/compare/v6.7.0...v6.8.0) (2026-10-30)
+
+
+### Bug Fixes
+
+* **m1:** review R1 ([30149eb](https://github.com/ladamczyk-it/qoq/commit/30149eb6cc18a4073c268afb014e7698b9603e6c))
+* **m2:** review R2,R3 ([3ff2282](https://github.com/ladamczyk-it/qoq/commit/3ff2282ea95e6bdbd856df9a2806470dca649fa9))
+* marketplace hooks correction ([c771bd2](https://github.com/ladamczyk-it/qoq/commit/c771bd2743f8966adb1386917bda23213b067abd))
+
+
+### Features
+
+* **cli:** add justify-disable file provider ([978cb71](https://github.com/ladamczyk-it/qoq/commit/978cb71bf2426e20f2269aea036ef64b8147ce9b))
+* **cli:** add JustifyDisableExecutor and its config types ([d50fa77](https://github.com/ladamczyk-it/qoq/commit/d50fa77ba60c9e81f4ac6293660300b02f5bcbf8))
+* **cli:** add the justify-disable --init prompt ([c298a51](https://github.com/ladamczyk-it/qoq/commit/c298a51ccaab42548de7c85cd17c452b3c977108))
+* **cli:** wire justify-disable into the registry and CLI flags ([4a59e98](https://github.com/ladamczyk-it/qoq/commit/4a59e986a055c5d4a858366cdd22cd9c1b120451))
+* **skill:** digest and freshness for justify-disable-report.json ([5b2eaaa](https://github.com/ladamczyk-it/qoq/commit/5b2eaaa2f4ea9d3a4bc6849f503569b7b5b2209c))
+
 # [6.7.0](https://github.com/ladamczyk-it/qoq/compare/v6.6.0...v6.7.0) (2026-10-28)
 
 
