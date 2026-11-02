@@ -196,7 +196,7 @@ flowchart TD
     G1B --> G2["hands back **the file list**"]
     G2 --> G3["**caller** dispatches<br/>**qoq fix** over that list<br/>*execute passes `--skip-knip` too;<br/>test does not — no next slice is coming*"]
     G3 -->|FAIL| G4{"budget<br/>spent?"}
-    G4 -->|"no — re-dispatch<br/>with the digest"| G1
+    G4 -->|"no — resume it<br/>with the digest"| G1
     G4 -->|yes| G5(["**blocked** — bring the<br/>user the report"])
     G3 -->|PASS| G6(["gate passed —<br/>caller commits"])
 
@@ -384,7 +384,8 @@ flowchart TD
         PWRITE --> PRET["returns: **Contracts** · **Integration surface**<br/>· **Risks** · **Unknowns**. never edits"]
         PRET --> PUNK{"Unknowns<br/>returned?"}
         PUNK -->|yes| PDASK(["**ASK THE USER** — a subagent cannot ask.<br/>the architect never guesses a contract:<br/>an invented one reads exactly like<br/>a real one on the page"])
-        PDASK -.-> PLAND
+        PDASK -->|"answers change the shape —<br/>**resume** with the answers only"| PRET
+        PDASK -.->|"shape unchanged —<br/>fold in yourself"| PLAND
         PUNK -->|no| PLAND["**Contracts** → the milestone field<br/>**Integration surface + Risks** → ticket Context<br/>*this is the anti-scope-expansion payload*"]
     end
 
@@ -536,16 +537,16 @@ flowchart TD
     EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files,<br/>**`--no-verify`**. the body quotes every<br/>comments_removed entry verbatim + why.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof its tests<br/>are real — the gates just ran, scoped, and a<br/>pre-commit hook would re-run them plus the<br/>knip that gate 1 dropped on purpose*"]
 
     EATT{"**3 attempts spent?**<br/>*shared across BOTH gates —<br/>an attempt is an attempt*"}
-    EATT -->|"no — re-dispatch with the<br/>digest or the verdict **verbatim**<br/>+ the last return whole"| EDISP
+    EATT -->|"no — **resume** with the<br/>digest or the verdict **verbatim**<br/>*(fresh, if it's gone: + the last return whole)*"| EDISP
     EATT -->|yes| EESC
-    THAND -->|"on `blocker_kind: plan`"| EPLAN(["**ASK THE USER** — `blocker` verbatim.<br/>ticket stays in-progress; edit the plan<br/>only with the answer, then re-dispatch<br/>at its own tier, fresh budget<br/>*no tier may change the ticket*"])
+    THAND -->|"on `blocker_kind: plan`"| EPLAN(["**ASK THE USER** — `blocker` verbatim.<br/>ticket stays in-progress; edit the plan<br/>only with the answer, then a **fresh**<br/>dispatch at its own tier, fresh budget<br/>*no tier may change the ticket*"])
     EPLAN -.-> EDISP
     THAND -->|"on `blocker_kind: model`<br/>or no block"| EESC{"a tier<br/>above?"}
-    EESC -->|"yes — re-dispatch with the last<br/>return whole, `blocker` verbatim"| EDISP
+    EESC -->|"yes — **fresh** dispatch with the last<br/>return whole, `blocker` verbatim<br/>*(a resumed agent keeps its model)*"| EDISP
     EESC -->|"no — top rung already"| EBLOCK(["**Status: blocked** — bring the<br/>user the report: bad ticket,<br/>or session model too small"])
 
     TCOM --> EDONE["**Status: done** + commit hash, the<br/>developer's `advisories`.<br/>**tick each acceptance criterion and write<br/>its evidence pointer** from the reviewer's<br/>mapping — *never from your own reading<br/>of the diff*"]
-    EDONE --> ELOG["**Log** — one line per transition:<br/>dispatch, each gate verdict,<br/>re-dispatch, done/blocked + hash"]
+    EDONE --> ELOG["**Log** — one line per transition:<br/>dispatch, each gate verdict,<br/>re-dispatch *(resumed / fresh)*,<br/>done/blocked + hash"]
     EBLOCK --> ELOG
     ELOG --> EXBACK
     EXBACK["**imported plan only** — write the status<br/>**label** and the commit back to the item's<br/>**External** key. *the one state qoq writes:<br/>a run knows the transition as it happens,<br/>an export sets one and walks away.<br/>never the workflow column, never a list move.<br/>a rejected write is a report line, not a stop*"]
@@ -631,7 +632,7 @@ flowchart TD
     TNARROW -.->|"no"| TSTOP2(["**stop** — report the blocker, remove<br/>the handoff's `files` — nothing<br/>half-written left behind"])
 
     ARET --> TGATE["**qoq fix**, scoped to<br/>the tester's `files` —<br/>*the gate, run from here*"]
-    TGATE -->|FAIL| A4
+    TGATE -->|"FAIL — resume<br/>with the digest"| A4
     TGATE -->|"PASS, and fix changed files"| TRERUN["re-run the full suite —<br/>fix's own check is scoped"]
     TRERUN --> TMORE
     TGATE -->|"PASS, nothing changed"| TMORE{"slices<br/>left?"}
@@ -719,11 +720,11 @@ flowchart TD
     DSCRIBE --> DQS{"status"}
 
     DQS -->|"question — wrote nothing"| DMODE{"mode"}
-    DMODE -->|path| DASK["ask the user"] --> DDISP
+    DMODE -->|path| DASK["ask the user"] -->|"resume with<br/>the answer"| DDISP
     DMODE -->|plan| DSKIP["**docs skipped** advisory ·<br/>asked at end of run · answer →<br/>plan's Docs conventions.<br/>*migrate → offer /qoq document*"]
 
     DQS -->|"migrate — wrote nothing"| DMMODE{"mode"}
-    DMMODE -->|path| DMIG["walk through **migration** per doc —<br/>covers · proposal · questions.<br/>convert / keep / delete / move-to-readme:<br/>**user picks, never a guess**"] --> DDISPM["re-dispatch with<br/>migration decisions verbatim<br/>→ docs regenerated, agent-owned"] --> DSCRIBE
+    DMMODE -->|path| DMIG["walk through **migration** per doc —<br/>covers · proposal · questions.<br/>convert / keep / delete / move-to-readme:<br/>**user picks, never a guess**"] --> DDISPM["resume it with<br/>migration decisions verbatim<br/>→ docs regenerated, agent-owned"] --> DSCRIBE
     DMMODE -->|plan| DSKIP
 
     DQS -->|done| DARTQ{"plan mode **and**<br/>diagrams on?"}
@@ -777,7 +778,7 @@ flowchart TD
 
     MRET --> MMODE{"mode"}
     MMODE -->|standalone| MSHOW(["prettier if a file was written ·<br/>show it · **stop — uncommitted**"])
-    MMODE -->|plan| MAPPR(["listed at approval · **drop** → main<br/>thread deletes it · **wrong** → re-dispatch<br/>with the correction and the id"])
+    MMODE -->|plan| MAPPR(["listed at approval · **drop** → main<br/>thread deletes it · **wrong** → resume it<br/>with the correction and the id"])
     MMODE -->|docs| MDOCS(["joins the **docs(mN)** commit ·<br/>unvalidated + stale hand-drawn →<br/>**Docs advisories**"])
 
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px

@@ -227,8 +227,8 @@ restating them.
 sensible guess with a note afterwards — a guess that looks plausible is worse
 than a stop, because nobody notices it. Subagents can't ask, so an agent on any
 doubt **writes nothing and returns the question**: a half-written artifact is
-indistinguishable from a stale one on the next run. The caller asks and
-re-dispatches with the answer.
+indistinguishable from a stale one on the next run. The caller asks and resumes
+it with the answer.
 
 **`npx` is for `qoq` and nothing else.** Every other command is the project's own
 script, verbatim — `npm test`, `npm run build`, `npm run test:execute -- {file}`.
@@ -296,9 +296,26 @@ instead.
 Entry. An agent starts cold and cannot derive it, and it's what `<skill>` stands
 for in every path an agent is told to run — `references/cli.yaml` included.
 
-`qoq-developer` and `qoq-tester` carry a `maxTurns` cap. One that stops on it
-comes back marked partial: that is a hand-back and spends an attempt, never
-something to resume with `SendMessage`.
+**Retry an agent by resuming it.** When an agent goes back at the same tier with
+a digest, a verdict or an answer, use `SendMessage` to the agent that returned,
+and send only what's new. It still holds the files it read and its own last
+return, so sending either again pays for them twice. Use a fresh dispatch with
+the full brief instead, the way every retry worked before resume, when:
+
+- **`SendMessage` isn't available**: it isn't in this session's tools, or the
+  call errors
+- **the agent is gone**: a later session, or an agent that's no longer
+  addressable
+- **the tier changes**: an escalation, because a resumed agent keeps its model
+- **the ticket changed**: a `plan` handoff the user answered is a different
+  ticket, and the old context would mislead
+- **it stopped on `maxTurns`**: a partial return is a hand-back and spends an
+  attempt. It's never resumed
+- **the agent judges**: `qoq-sheriff`, `qoq-reviewer` and `qoq-test-reviewer` are
+  cold every time, because a primed reader shares the blind spots it should catch
+- **it's `qoq-checker`**: its context is raw reports, and a fresh digest is cheaper
+
+Write `resumed` or `fresh` on the Log line wherever a Log records the retry.
 
 An agent reported as `kept (edited here)` is the user's own version and stays
 that way. Dispatch it like any other; it's registered.

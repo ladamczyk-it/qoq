@@ -184,8 +184,11 @@ here, on this thread, and get answers before decomposing.** An invented contract
 reads exactly like a real one on the page, and every ticket downstream would be
 written against it before anyone noticed it was fiction.
 
-Re-dispatch the architect with the answers if they change the shape; otherwise
-fold them in yourself.
+If the answers change the shape, resume the architect (SKILL.md) with only the
+answers. It already holds the files it read, and re-reading them would be the
+most expensive pass in the plan. If it can't be resumed, re-dispatch it with the
+full brief plus the answers. If they don't change the shape, fold them in
+yourself.
 
 ### Where the output lands
 

@@ -21,7 +21,8 @@ Ungated: typing it is the opt-in.
    lists the slugs it does have — never a guess, never a new heading.
 2. **Dispatch `qoq-artist`** with `mode: standalone`, the description verbatim,
    the target, and this skill's absolute path.
-3. **`status: question`** → ask, re-dispatch with the answer verbatim.
+3. **`status: question`** → ask, then resume it (SKILL.md) with the answer
+   verbatim.
 4. **A file was written** → `npx qoq prettier --fix`, the `format` form in
    [cli.yaml](cli.yaml).
 5. **Show the result and stop.** `printed` goes on screen as is. Otherwise one
@@ -48,11 +49,11 @@ After the self-review gate, before the plan is shown for approval:
    this skill's absolute path. In `replan`, charts about frozen milestones are
    left as they stand; the artist redraws the live part.
 2. **`status: question`** → ask now — approval is interactive anyway — and
-   re-dispatch.
+   resume it.
 3. **At approval**, say what it drew and what it declined, one line each, and
    any chart marked `unvalidated`. Declines are never written into the plan.
 4. **A veto.** "Drop it" → delete the block and its marker yourself, no
-   re-dispatch; an emptied `## Diagrams` goes too. "It's wrong" → re-dispatch
+   re-dispatch; an emptied `## Diagrams` goes too. "It's wrong" → resume it
    with the correction verbatim and the chart's id.
 
 The plan's charts record the shape that was _approved_. Nothing redraws them

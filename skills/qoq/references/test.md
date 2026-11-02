@@ -86,8 +86,8 @@ produces.
    `test:one` on every file it touches and reverting any fix that goes red. A
    check placed before it would be validating a version about to change.
 
-   `FAIL` → re-dispatch the tester with the digest. That round is one of its
-   three.
+   `FAIL` → resume the tester (SKILL.md) with the digest, or re-dispatch it with
+   the digest when it can't be resumed. That round is one of its three.
 
    If `fix` changed anything, re-run the full suite before the next slice —
    `fix`'s own verification is scoped, so a reformat that trips a shared snapshot
