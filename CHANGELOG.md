@@ -1,3 +1,12 @@
+## [6.8.1](https://github.com/ladamczyk-it/qoq/compare/v6.8.0...v6.8.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* bump packages ([30c38f1](https://github.com/ladamczyk-it/qoq/commit/30c38f1b3b09b299ff1b6a0927f7b9a0dfe89066))
+* bump packages ([d8c8cee](https://github.com/ladamczyk-it/qoq/commit/d8c8cee788fc715adf83b13e103a7ea9f57b84ab))
+* **document:** migrate unmanaged docs, index as table of contents ([4e71a17](https://github.com/ladamczyk-it/qoq/commit/4e71a179695820d4cf8e66de26fd5dd44aed83a8))
+
 # [6.8.0](https://github.com/ladamczyk-it/qoq/compare/v6.7.0...v6.8.0) (2026-10-30)
 
 
