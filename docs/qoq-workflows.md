@@ -715,12 +715,16 @@ flowchart TD
     DDISP["dispatch at the **session's** model —<br/>path mode. *inference on code<br/>nobody explained*"] --> DSCRIBE
     DDISPP --> DSCRIBE
 
-    DSCRIBE["**qoq-scribe** — conventions first ·<br/>JSDoc on exported + non-trivial only,<br/>no types in TS · owned docs carry<br/>**qoq-scribe sources:** · Source line per<br/>section · README **Contents** last ·<br/>**@todo qoq-scribe:** where purpose is unknown.<br/>*comments only — never behaviour,<br/>never refactor advice, never diagrams*"]
+    DSCRIBE["**qoq-scribe** — docs/ managed? *index.md<br/>starts qoq-scribe index + lists every doc* ·<br/>conventions ·<br/>JSDoc on exported + non-trivial only,<br/>no types in TS · owned docs carry<br/>**qoq-scribe sources:** · Source line per<br/>section · index.md = **TOC only** ·<br/>README ends **Documentation** → index.md ·<br/>**@todo qoq-scribe:** where purpose is unknown.<br/>*comments only — never behaviour,<br/>never refactor advice, never diagrams*"]
     DSCRIBE --> DQS{"status"}
 
     DQS -->|"question — wrote nothing"| DMODE{"mode"}
     DMODE -->|path| DASK["ask the user"] --> DDISP
-    DMODE -->|plan| DSKIP["**docs skipped** advisory ·<br/>asked at end of run · answer →<br/>plan's Docs conventions"]
+    DMODE -->|plan| DSKIP["**docs skipped** advisory ·<br/>asked at end of run · answer →<br/>plan's Docs conventions.<br/>*migrate → offer /qoq document*"]
+
+    DQS -->|"migrate — wrote nothing"| DMMODE{"mode"}
+    DMMODE -->|path| DMIG["walk through **migration** per doc —<br/>covers · proposal · questions.<br/>convert / keep / delete / move-to-readme:<br/>**user picks, never a guess**"] --> DDISPM["re-dispatch with<br/>migration decisions verbatim<br/>→ docs regenerated, agent-owned"] --> DSCRIBE
+    DMMODE -->|plan| DSKIP
 
     DQS -->|done| DARTQ{"plan mode **and**<br/>diagrams on?"}
     DARTQ -->|yes| DART["**qoq-artist** — docs mode, over<br/>diagram_candidates + its own<br/>charts in the scribe's files"] --> DFMT
@@ -734,7 +738,7 @@ flowchart TD
     classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
 
     class DSCRIBE,DART agent
-    class DASK,DWALK user
+    class DASK,DWALK,DMIG user
     class DFMT,DDEF note
 ```
 

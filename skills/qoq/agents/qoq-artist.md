@@ -174,7 +174,7 @@ diagrams:
     validation: ok # ok | unvalidated
     collapsed: null # what a simplification hid, if any
 declined:
-  - { where: docs/index.md#auth, reason: restates the paragraph }
+  - { where: docs/auth.md#login, reason: restates the paragraph }
 stale_hand_drawn: []
 printed: null # standalone print only: the fenced block, marker omitted
 ```

@@ -825,7 +825,7 @@
       "id": 41,
       "name": "document-path-mode-auth-flow",
       "prompt": "/qoq document src/auth",
-      "expected_output": "Dispatches qoq-scribe at the session's model in path mode over src/auth. The scribe reads conventions first, then adds JSDoc to the exported, non-trivial declarations in TokenService.ts and authenticate.ts — intent and non-obvious behaviour, never TS types in JSDoc, and only where a reader would otherwise get something wrong (ms-not-seconds `exp`, no revocation, the length check guarding timingSafeEqual) — nothing on helpers or bodies whose code already says it — and leaves `@todo qoq-scribe:` markers with a specific question where purpose can't be inferred: why the legacy `Token ` prefix is still accepted, and why EXPIRED returns null while other token errors throw. Because authenticate → TokenService.verify is a flow across two files, it writes one workflow doc plus docs/index.md, each starting with `<!-- qoq-scribe sources: ... -->` and a `> Source:` line under every section, and never touches the hand-written docs/api-keys.md. README.md gains `## Contents` as its last section, linking index.md first and then the rest alphabetically — api-keys.md included — with relative links; the rest of the README is byte-identical. The main thread runs `npx qoq prettier --fix`, walks the user through the markers, and stops with everything uncommitted. No behaviour change, no refactor advice, no diagram.",
+      "expected_output": "Dispatches qoq-scribe at the session's model in path mode over src/auth. The scribe reads conventions first, then adds JSDoc to the exported, non-trivial declarations in TokenService.ts and authenticate.ts — intent and non-obvious behaviour, never TS types in JSDoc, and only where a reader would otherwise get something wrong (ms-not-seconds `exp`, no revocation, the length check guarding timingSafeEqual) — nothing on helpers or bodies whose code already says it — and leaves `@todo qoq-scribe:` markers with a specific question where purpose can't be inferred: why the legacy `Token ` prefix is still accepted, and why EXPIRED returns null while other token errors throw. docs/ is empty, so it is managed by default and no migration runs. Because authenticate → TokenService.verify is a flow across two files, it writes one workflow doc starting with `<!-- qoq-scribe sources: ... -->` and a `> Source:` line under every section, plus docs/index.md starting with `<!-- qoq-scribe index -->` and holding only a table of contents — no project description. README.md gains `## Documentation` as its last section, holding one relative link to docs/index.md and no list of docs; the rest of the README is byte-identical. The main thread runs `npx qoq prettier --fix`, walks the user through the markers, and stops with everything uncommitted. No behaviour change, no refactor advice, no diagram.",
       "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
       "assertions": [
         "Dispatches qoq-scribe in path mode at the session's model rather than documenting inline",
@@ -835,32 +835,32 @@
         "Leaves a `@todo qoq-scribe:` marker with a specific question about the legacy `Token ` prefix",
         "Leaves a `@todo qoq-scribe:` marker or explanation request about EXPIRED returning null while other errors throw, rather than inventing a reason",
         "git diff of src/ shows only added or changed comment lines — no code line changed",
-        "Writes docs/index.md and one workflow doc, each with `<!-- qoq-scribe sources: ` as the first line",
+        "Writes one workflow doc with `<!-- qoq-scribe sources: ` as the first line",
+        "docs/index.md starts with `<!-- qoq-scribe index -->` and contains only an H1 and a list of relative links — no project description or per-area paragraphs",
         "Every section of the written docs starts with a `> Source:` line using one of the three levels",
-        "docs/api-keys.md is unchanged",
-        "README.md ends with a `## Contents` section linking docs/index.md first, then docs/api-keys.md and the workflow doc, with relative links",
+        "README.md ends with a `## Documentation` section holding a single relative link to docs/index.md and no list of individual docs",
         "Everything in README.md above `## Contents` is unchanged",
         "Runs `npx qoq prettier --fix` and not `npx qoq --fix` or a qoq fix loop",
         "Presents the markers to the user and leaves the changes uncommitted",
         "Suggests no refactoring and writes no Mermaid diagram"
       ],
       "target": "fixture-repo",
-      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts and a README.md)."
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts and a README.md), then delete docs/api-keys.md."
     },
     {
       "id": 42,
       "name": "document-no-readme-asks",
       "prompt": "/qoq document src/auth",
-      "expected_output": "Same documentation pass as the auth-flow eval, but the repo has no README.md. The scribe writes the JSDoc and the docs, does not create a README, and returns `readme: missing`. The main thread then asks the user whether to create a README holding only a title and `## Contents`, rather than creating one itself or silently skipping it.",
+      "expected_output": "Same documentation pass as the auth-flow eval, but the repo has no README.md. The scribe writes the JSDoc and the docs, does not create a README, and returns `readme: missing`. The main thread then asks the user whether to create a README holding only a title and `## Documentation`, rather than creating one itself or silently skipping it.",
       "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
       "assertions": [
         "Writes the docs under docs/ with the ownership marker",
         "Does not create README.md before the user answers",
-        "Asks the user whether to create a README holding only a title and the Contents section",
+        "Asks the user whether to create a README holding only a title and the Documentation section",
         "Leaves the changes uncommitted"
       ],
       "target": "fixture-repo",
-      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts), then delete the copied README.md."
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts), then delete the copied README.md and docs/api-keys.md."
     },
     {
       "id": 43,
@@ -1086,6 +1086,73 @@
         "Does not re-dispatch qoq-checker on another tier or model",
         "Writes nothing about the model choice to memory"
       ]
+    },
+    {
+      "id": 56,
+      "name": "document-migrates-hand-written-docs",
+      "prompt": "/qoq document src/auth",
+      "expected_output": "docs/ holds the hand-written docs/api-keys.md and no docs/index.md, so docs/ is not qoq-managed. qoq-scribe writes nothing — no doc, no code comment, no README change — and returns `status: migrate` with one entry for docs/api-keys.md: it covers multi-tenant API keys, its sources are `none` because it is an unbuilt spec nothing in src/ implements, the proposal is `ask` with the options convert, keep, delete, and its questions include the doc's own open points (the rotation grace period, whether revoked keys count toward quota). The main thread walks the user through that entry and asks which option they want, never picking one itself, and writes nothing before the answer.",
+      "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
+      "assertions": [
+        "qoq-scribe returns `status: migrate` with a `migration` entry for docs/api-keys.md",
+        "The migration entry gives `sources: none` (or says no code implements it) rather than inventing source paths",
+        "The user is offered convert, keep and delete for docs/api-keys.md and asked to choose",
+        "The open questions in docs/api-keys.md (grace period, quota) are surfaced to the user",
+        "Nothing is written before the user answers: git status shows no change under docs/, src/ or README.md",
+        "docs/api-keys.md is neither edited nor deleted"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts and a README.md). Keep docs/api-keys.md."
+    },
+    {
+      "id": 57,
+      "name": "document-managed-index-keeps-kept-doc",
+      "prompt": "/qoq document src/auth",
+      "expected_output": "docs/index.md starts with `<!-- qoq-scribe index -->` and lists docs/api-keys.md, which has no sources marker — a doc the user already chose to keep — so docs/ is managed and no migration runs or is asked about. The scribe documents src/auth as usual, writes one workflow doc with a sources marker, adds it to the index (alphabetical, link text its H1) without adding any description, leaves docs/api-keys.md byte-identical, and appends `## Documentation` with one link to docs/index.md as README's last section.",
+      "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
+      "assertions": [
+        "No migration is proposed and the user is not asked about docs/api-keys.md",
+        "docs/api-keys.md is unchanged",
+        "docs/index.md still starts with `<!-- qoq-scribe index -->` and now links both api-keys.md and the new workflow doc, alphabetically by filename",
+        "docs/index.md contains no prose besides the H1 and the links",
+        "README.md ends with `## Documentation` holding one relative link to docs/index.md",
+        "Everything in README.md above `## Documentation` is unchanged"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts and a README.md), then copy evals/fixtures/repo-states/document-managed/ over it (adds docs/index.md listing api-keys.md)."
+    },
+    {
+      "id": 58,
+      "name": "document-migration-convert",
+      "prompt": "/qoq document src/auth\n\n(when asked about docs/api-keys.md, answer: \"convert. Grace period is 24 hours. Revoked keys do not count toward the quota. It's a spec for a feature not built yet.\")",
+      "expected_output": "First pass returns `status: migrate` and writes nothing; the migration questions are about docs/api-keys.md only (open points, claims the code contradicts), and code-purpose questions such as the legacy `Token ` prefix are left for markers. After the answer, the re-dispatch converts docs/api-keys.md in place: first line `<!-- qoq-scribe sources: none -->`, a `> Source:` line on every section, the user's answers written in, and no claim kept in its old wording when the code contradicts it and nobody answered. docs/index.md is created as a table of contents listing it, and README.md ends with `## Documentation` linking docs/index.md.",
+      "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
+      "assertions": [
+        "The first pass writes nothing and asks about docs/api-keys.md before any change",
+        "No migration question asks why code is shaped some way (e.g. the legacy `Token ` prefix) — those become markers",
+        "docs/api-keys.md keeps its filename and starts with `<!-- qoq-scribe sources: none -->`",
+        "Every section of docs/api-keys.md starts with a `> Source:` line",
+        "docs/api-keys.md states the 24-hour grace period and that revoked keys don't count toward the quota",
+        "docs/index.md starts with `<!-- qoq-scribe index -->` and links api-keys.md",
+        "README.md ends with `## Documentation` holding one link to docs/index.md"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts and a README.md). Keep docs/api-keys.md."
+    },
+    {
+      "id": 59,
+      "name": "document-migration-keep",
+      "prompt": "/qoq document src/auth\n\n(when asked about docs/api-keys.md, answer: \"keep it as it is.\")",
+      "expected_output": "First pass returns `status: migrate` and writes nothing. After `keep`, docs/api-keys.md is byte-identical, listed in a new docs/index.md that starts with `<!-- qoq-scribe index -->`, and src/auth is documented as usual; README.md ends with `## Documentation` linking docs/index.md. A later run would see a managed docs/ and not ask again.",
+      "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
+      "assertions": [
+        "The first pass writes nothing and asks about docs/api-keys.md before any change",
+        "docs/api-keys.md is unchanged",
+        "docs/index.md starts with `<!-- qoq-scribe index -->` and links api-keys.md",
+        "README.md ends with `## Documentation` holding one link to docs/index.md"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts and a README.md). Keep docs/api-keys.md."
     }
   ]
 }

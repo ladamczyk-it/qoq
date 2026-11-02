@@ -907,8 +907,24 @@ reflows JSDoc; a full fix loop would spend a checker dispatch to rediscover that
 **Why the ownership marker names its sources.** A fresh-context scribe can't
 tell its docs from a human's, nor which code a doc describes — and "touch only
 docs whose source changed" needs both. One first-line comment answers both and
-stays greppable. Hand-written docs are listed in Contents but never edited: the
-scribe may read them, and that's all.
+stays greppable. A doc without it is never edited: the scribe may read it, and
+that's all.
+
+**Why migrate before writing anything.** A `docs/` that is half the scribe's and
+half a person's makes every later pass guess which is which, and "update, never
+regenerate" can't hold for docs nobody owns. One migration, with the user
+deciding each hand-written doc, buys every later pass the assumption that the
+docs are agent-owned. It's analysed first and decided per doc because the
+alternative failure — a person's doc silently rewritten or deleted — is the only
+data loss this command can cause. A kept doc is recorded by being listed in the
+index, so the question is never asked twice. Plan mode skips instead of
+migrating: nobody is there to decide.
+
+**Why the index is a table of contents and the README one link.** A project
+description in `docs/index.md` duplicates the README's summary, and two
+summaries drift. A per-doc list in the README duplicates the index, and two
+lists drift. So the README owns the summary, the index owns the list, and the
+README points at the index once.
 
 **Why drift is report-only.** A delivery that diverged from the plan is either a
 bug or a better decision, and only the user knows which. Writing it into `docs/`

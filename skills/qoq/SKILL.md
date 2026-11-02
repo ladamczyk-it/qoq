@@ -71,7 +71,7 @@ need, not all of them.
 | `execute`  | an approved plan, local or imported → delivered milestones  | [references/execute.md](references/execute.md)   |
 | `test`     | unit/integration coverage for code that already exists      | [references/test.md](references/test.md)         |
 | `compress` | strip agent-facing markdown to what an agent acts on        | [references/compress.md](references/compress.md) |
-| `document` | _experimental_ — the why, as JSDoc, `./docs`, `Contents`    | [references/document.md](references/document.md) |
+| `document` | _experimental_ — the why, as JSDoc, agent-owned `./docs`    | [references/document.md](references/document.md) |
 | `mermaid`  | a validated Mermaid chart — printed, or written to a doc    | [references/mermaid.md](references/mermaid.md)   |
 | `sheriff`  | security judgment on a change — typed findings, remediated  | [references/sheriff.md](references/sheriff.md)   |
 | `review`   | a delivery or PR judged against its intent — typed findings | [references/review.md](references/review.md)     |

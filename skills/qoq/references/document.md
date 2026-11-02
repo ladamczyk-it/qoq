@@ -1,7 +1,8 @@
 # `qoq document` — write down the why
 
 The code says what it does; `qoq-scribe` writes down why — in JSDoc, in
-`./docs`, and in the `## Contents` section that closes `README.md`. Its rules for
+`./docs` behind a table-of-contents `docs/index.md`, and in the one-link
+`## Documentation` section that closes `README.md`. Its rules for
 _what_ to write live in `agents/qoq-scribe.md`. This file is the main thread's
 side: scope, dispatch, the walkthrough, and what gets committed.
 
@@ -21,7 +22,7 @@ git diff --name-only <merge-base>
 
 An empty default scope is a one-line stop, not a question.
 
-Monorepos get no special handling: one `./docs` and one `## Contents` at the
+Monorepos get no special handling: one `./docs` and one `## Documentation` at the
 root, like any other repo.
 
 ## Path mode — `/qoq document`
@@ -31,12 +32,18 @@ root, like any other repo.
    explained to it, so the tier has to match.
 2. **`status: question`** → ask the user, then re-dispatch with the answer
    verbatim. It wrote nothing, so there's nothing to undo.
+   **`status: migrate`** → `docs/` holds docs the scribe doesn't manage yet, and
+   it wrote nothing. Walk the user through `migration` one doc at a time: what
+   it covers, the proposal and its options, every question. Never pick an
+   option for them — a hand-written doc deleted or rewritten on a guess is the
+   one loss this command can cause. Re-dispatch with every decision and answer
+   verbatim as `migration decisions`; from then on `docs/` is agent-owned.
 3. **`npx qoq prettier --fix`** — the `format` form in
    [cli.yaml](cli.yaml). Prettier reflows JSDoc and Markdown, and nothing else
    in a comments-only change can trip a gate.
 4. **Walk the user through the report**: each `markers` entry, then
    `readme: missing` (ask whether to create a README holding only a title and
-   `## Contents`). For a marker the user explains, replace the marker with their
+   `## Documentation`), then any `files_deleted`. For a marker the user explains, replace the marker with their
    explanation, worded as a comment — no re-dispatch. Unanswered markers stay.
 5. **Stop.** Changes stay in the working tree for the user to review. Non-empty
    `diagram_candidates` → offer to draw them ([mermaid.md](mermaid.md)); mention
@@ -60,12 +67,16 @@ here stops the run.
    included), the union of the tickets' files as scope, the plan's
    `**Docs conventions:**` line if it has one, and this skill's absolute path.
 2. **`status: question`** → don't ask now. Write `docs skipped: <question>` into
-   the milestone's **Docs advisories**, archive, carry on. The question goes to
+   the milestone's **Docs advisories**, archive, carry on.
+   **`status: migrate`** → same, as `docs skipped: docs/ not qoq-managed — run
+/qoq document to migrate`. Migration needs the user on every doc; nobody is
+   here, so every later milestone will skip too — say that once, not per
+   milestone. The question goes to
    the user at the end of the run, and the answer becomes the plan header's
    `**Docs conventions:**` line, passed to every later dispatch.
 3. **Diagrams on** → `qoq-artist` in docs mode ([mermaid.md](mermaid.md)).
    Then **`npx qoq prettier --fix`.**
-4. **Commit** exactly `files_written` + `files_changed`, plus the artist's
+4. **Commit** exactly `files_written` + `files_changed` + `files_deleted`, plus the artist's
    `files_changed` — never `git add -A`,
    because prettier formats the whole repo. Message
    `docs(m<N>): <milestone name>`, with the run's usual trailer. A file prettier
@@ -75,6 +86,7 @@ here stops the run.
    user's decision, and nothing about it is written into `docs/`.
 
 **At the end of the run**, walk the user through every milestone's Docs
-advisories once — drift, markers, skipped questions. Marker answers are written
+advisories once — drift, markers, skipped questions. A migrate skip is
+answered by offering `/qoq document`, not inline. Marker answers are written
 in place as in path mode and committed together as
 `docs: resolve scribe markers`.
