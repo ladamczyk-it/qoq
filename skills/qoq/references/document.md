@@ -30,13 +30,13 @@ root, like any other repo.
 1. **Dispatch `qoq-scribe`** at the **session's** model, with `mode: path`, the
    scope, and this skill's absolute path. Path mode is inference on code nobody
    explained to it, so the tier has to match.
-2. **`status: question`** → ask the user, then re-dispatch with the answer
-   verbatim. It wrote nothing, so there's nothing to undo.
+2. **`status: question`** → ask the user, then resume it (SKILL.md) with the
+   answer verbatim. It wrote nothing, so there's nothing to undo.
    **`status: migrate`** → `docs/` holds docs the scribe doesn't manage yet, and
    it wrote nothing. Walk the user through `migration` one doc at a time: what
    it covers, the proposal and its options, every question. Never pick an
    option for them — a hand-written doc deleted or rewritten on a guess is the
-   one loss this command can cause. Re-dispatch with every decision and answer
+   one loss this command can cause. Resume it with every decision and answer
    verbatim as `migration decisions`; from then on `docs/` is agent-owned.
 3. **`npx qoq prettier --fix`** — the `format` form in
    [cli.yaml](cli.yaml). Prettier reflows JSDoc and Markdown, and nothing else

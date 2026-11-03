@@ -298,6 +298,20 @@ the ceiling, so raising effort has no measured headroom to buy. `qoq-architect`'
 `qoq-bumper` (3 runs on record) and `qoq-tester` (none) weren't measured, so they
 keep their current tiers by default.
 
+**Why retries resume rather than re-dispatch.** A fresh retry rebuilt everything
+the agent already had. The developer re-read the ticket, the contract and every
+file it had touched, about 35 turns at the median. The architect re-read the
+same files at the session's model and `effort: high` for an answer that usually
+moves one contract. Resuming with `SendMessage` sends only the digest, verdict
+or answer. Resume is the default, and it doesn't break anything: wherever
+`SendMessage` is missing or fails, the retry falls back to the fresh dispatch
+every retry used before. It isn't free: the resumed transcript is input on every turn, which costs
+little while the prompt cache is warm, and it anchors the agent on its own last
+attempt. That's the reason for each exclusion. A judge has to stay cold, a new
+tier needs a new agent, and a changed ticket makes the old context misleading.
+The fresh dispatch stays for two reasons: an agent can't be reached from another
+session, and some hosts don't offer `SendMessage` at all.
+
 **Why the stats disclosure is printed by the script.** It was prose in
 `SKILL.md`, describing the request body. Two problems: every run paid for text
 that matters on the one run in a user's life where somebody is actually asked,

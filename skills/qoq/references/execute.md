@@ -108,15 +108,16 @@ Every dispatch carries, verbatim:
 - the **model** for the ticket's tier, passed explicitly
 - the three-attempt budget, with explicit permission to hand the ticket back
   rather than narrow it
-- on a re-dispatch after a failed gate: the **digest or the verdict verbatim**,
-  plus which attempt this is and the last return pasted in whole
+- after a failed gate, **resume** the developer (SKILL.md) with the **digest or
+  the verdict verbatim** plus which attempt this is. A fresh re-dispatch carries
+  the full brief, and pastes the last return in whole too
 
 **Not the milestone's `Scenarios`.** Those are journey-level and a ticket is not
 — they'd be context the developer can't act on, and the one thing worse than
 missing context is context that invites work outside the `Files` list.
 
 Write the ticket's **`Log`** at each transition — dispatch, each gate verdict,
-each re-dispatch, `done` or `blocked` with the hash. It's orchestrator-written
+each re-dispatch (`resumed` or `fresh`), `done` or `blocked` with the hash. It's orchestrator-written
 because only this thread sees the transitions: `Status` says where a ticket
 ended, and the `Log` is the only thing that says how it got there.
 
@@ -337,8 +338,8 @@ rule for a tier that doesn't resolve. Once the user has mapped it, re-dispatch a
 the same tier. If they decline, stop.
 
 Three attempts spent across both gates, or a `model` handoff at any attempt,
-exhausts the ticket at that tier. A `plan` handoff never gets here. Re-dispatch
-one tier up with the last return pasted in whole — its `blocker` verbatim on a
+exhausts the ticket at that tier. A `plan` handoff never gets here. Dispatch a
+fresh agent one tier up with the last return pasted in whole — its `blocker` verbatim on a
 handoff — plus the last digest or verdict;
 it's the most useful context the next attempt can have. Record the escalation on
 the ticket even when the escalated run then passes: it's how a resume knows not
