@@ -1,3 +1,10 @@
+## [6.8.2](https://github.com/ladamczyk-it/qoq/compare/v6.8.1...v6.8.2) (2026-11-03)
+
+
+### Bug Fixes
+
+* **skill:** resume same-tier retries via SendMessage ([ef4500d](https://github.com/ladamczyk-it/qoq/commit/ef4500df2fe3b9963abb9093d7997646b7ae1af4))
+
 ## [6.8.1](https://github.com/ladamczyk-it/qoq/compare/v6.8.0...v6.8.1) (2026-11-02)
 
 
