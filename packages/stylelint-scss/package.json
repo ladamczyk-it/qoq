@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@ladamczyk/qoq-stylelint-css": "^6.8.2",
-    "stylelint-config-standard-scss": "17.0.0"
+    "stylelint-config-standard-scss": "18.0.0"
   },
   "devDependencies": {
     "rimraf": "6.1.4",
@@ -46,7 +46,7 @@
     "typescript": "7.0.2"
   },
   "peerDependencies": {
-    "stylelint": "^17.16.0"
+    "stylelint": "^18.0.0"
   },
   "engines": {
     "node": "^22.22.2 || ^24.15.0 || >=26.0.0",
