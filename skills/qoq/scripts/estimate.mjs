@@ -27,13 +27,22 @@
 //                --outcome success|failure --attempts N
 //                --attribution as-estimated|scope-expansion
 //                [--summary "..."] [--project DIR]
+//   estimate.mjs --lesson --kind planning|skill --tags a,b --stack react
+//                --category <c> --text "..."
+//   estimate.mjs --lessons --stack react
+//
+// Lessons are the retro's planning and skill lessons (`references/retro.md`):
+// prose a count can't hold, such as "tickets of this shape need the migration named in
+// Context". They never touch a verdict. Estimate mode returns the ones for its
+// bucket so decomposition reads them, and `--lessons` lists a whole stack's for
+// the architect, which runs before any ticket has tags.
 //
 // Exit code, estimate mode — branch on it rather than parsing the JSON:
 //   0  the pick stands (in band, or too little data to argue)
 //   1  keeps missing — take the dearer tier it returns, flag it for approval
 //   2  split — this shape of ticket keeps going undelivered, decompose it
 //   4  usage error
-// Record mode: 0 recorded, 4 usage error.
+// Record and lesson modes: 0 recorded, 4 usage error. `--lessons`: 0.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve as resolvePath } from 'node:path';
@@ -56,6 +65,20 @@ const BUDGET = 3;
 const TIERS = ['haiku', 'sonnet', 'session'];
 const OUTCOMES = ['success', 'failure'];
 const ATTRIBUTIONS = ['as-estimated', 'scope-expansion'];
+// The retro's categories per kind. Kept in step with `references/retro.md`.
+const LESSON_CATEGORIES = {
+  planning: ['decomposition', 'ticket-context', 'contract', 'estimate'],
+  skill: [
+    'navigation',
+    'automated-check',
+    'coding-standard',
+    'steering',
+    'tool-economy',
+    'information-access',
+  ],
+};
+// Same reasoning as LOG_CAP. The oldest lesson is the likeliest to be fixed.
+const LESSON_CAP = 50;
 
 const args = process.argv.slice(2);
 const flag = (name) => {
@@ -73,13 +96,17 @@ const projectRoot = resolvePath(flag('project') ?? process.cwd());
 const tags = flag('tags');
 const stack = flag('stack');
 const tier = flag('tier');
+const listing = args.includes('--lessons');
+const lesson = args.includes('--lesson');
 
-if (!tags || !stack || !TIERS.includes(tier)) {
+if (listing ? !stack : !tags || !stack || (!lesson && !TIERS.includes(tier))) {
   die(
     'usage: estimate.mjs --tags a,b --stack <stack> --tier haiku|sonnet|session ' +
-      '--size XS|S|M  (or --record, see the header)'
+      '--size XS|S|M  (or --record, --lesson, --lessons, see the header)'
   );
 }
+
+const stackKey = stack.trim().toLowerCase();
 
 // Sorted and de-duplicated so `a,b` and `b,a` are one bucket. Tag order is an
 // accident of how a ticket was read; treating it as significant would silently
@@ -87,14 +114,14 @@ if (!tags || !stack || !TIERS.includes(tier)) {
 // them would look like it had too little data to say anything.
 const bucket = `${[
   ...new Set(
-    tags
+    (tags ?? '')
       .split(',')
       .map((tag) => tag.trim().toLowerCase())
       .filter(Boolean)
   ),
 ]
   .sort()
-  .join('+')}|${stack.trim().toLowerCase()}`;
+  .join('+')}|${stackKey}`;
 
 // Travels with a clone and is visible in review, which is what makes it worth
 // having: the calibration is about this repo's tickets, so it belongs to the
@@ -121,6 +148,44 @@ const emptyBucket = () => ({ scopeExpansions: 0, log: [], tiers: {} });
 
 const store = loadStore();
 const entry = { ...emptyBucket(), ...store.buckets[bucket] };
+const lessons = store.lessons ?? [];
+
+const save = () => {
+  mkdirSync(dirname(storePath), { recursive: true });
+  writeFileSync(storePath, `${JSON.stringify(store, null, 2)}\n`);
+};
+
+if (listing) {
+  process.stdout.write(
+    `${JSON.stringify(
+      lessons.filter((item) => item.bucket.endsWith(`|${stackKey}`)),
+      null,
+      2
+    )}\n`
+  );
+  process.exit(0);
+}
+
+if (lesson) {
+  const kind = flag('kind');
+  const category = flag('category');
+  const text = flag('text')?.trim();
+
+  if (!LESSON_CATEGORIES[kind]?.includes(category) || !text) {
+    die(
+      'usage: estimate.mjs --lesson --kind planning|skill --tags a,b --stack <stack> ' +
+        '--category <one of its kind\'s categories> --text "..."'
+    );
+  }
+
+  store.lessons = [
+    ...lessons,
+    { date: new Date().toISOString().slice(0, 10), bucket, kind, category, text },
+  ].slice(-LESSON_CAP);
+  save();
+  process.stdout.write(`lesson recorded ${bucket} → ${storePath}\n`);
+  process.exit(0);
+}
 
 if (args.includes('--record')) {
   const outcome = flag('outcome');
@@ -169,8 +234,7 @@ if (args.includes('--record')) {
   }
 
   store.buckets[bucket] = entry;
-  mkdirSync(dirname(storePath), { recursive: true });
-  writeFileSync(storePath, `${JSON.stringify(store, null, 2)}\n`);
+  save();
   process.stdout.write(`recorded ${bucket} @ ${tier} → ${storePath}\n`);
   process.exit(0);
 }
@@ -230,6 +294,7 @@ process.stdout.write(
       pooledAttempts: pooled,
       scopeExpansions: entry.scopeExpansions,
       recentMisses: entry.log.slice(-3),
+      lessons: lessons.filter((item) => item.bucket === bucket),
     },
     null,
     2

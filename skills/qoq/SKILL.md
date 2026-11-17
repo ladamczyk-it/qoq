@@ -56,7 +56,7 @@ hooks:
 
 # QoQ — quality over quantity
 
-Twelve commands, one shared discovery record, eleven agents.
+Twelve commands, one shared discovery record, twelve agents.
 
 **This file routes.** Each command's reference owns its rules — read the one you
 need, not all of them.
@@ -190,20 +190,20 @@ Invoked with: `$ARGUMENTS`
 
 Commands compose, but **only on the main thread**.
 
-| Command    | Calls                                                                           | Called by                                                          |
-| ---------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `fix`      | its own `qoq-checker`                                                           | `refactor`, `bump`, `execute`, `test`, `compress`                  |
-| `refactor` | `fix`                                                                           | `bump`, `execute`, `test`                                          |
-| `bump`     | `fix`, `refactor` — both per patch                                              | —                                                                  |
-| `plan`     | `grilling` + `domain-modeling` (external), `mermaid`                            | —                                                                  |
-| `replan`   | `grilling` + `domain-modeling` (external), `mermaid`                            | —                                                                  |
-| `execute`  | `tdd` (external), `fix`, `refactor`, `sheriff`, `review`, `document`, `mermaid` | `plan` — offered at approval, never dispatched from inside it      |
-| `test`     | `tdd` (external), `fix`, `refactor`                                             | —                                                                  |
-| `compress` | `writing-for-agents` (external), `fix`                                          | —                                                                  |
-| `document` | its own `qoq-scribe`; offers `mermaid`                                          | `execute` — per milestone, after the gate                          |
-| `mermaid`  | its own `qoq-artist`                                                            | `plan`, `replan`, `execute` — when `--diagrams` is on              |
-| `sheriff`  | its own `qoq-sheriff`; `fix` to re-gate                                         | `execute` — every milestone, always                                |
-| `review`   | `code-review` (external), its own `qoq-reviewer` ×2 axes; `fix`; `sheriff`      | `execute` — per milestone and once per plan, when `--review` is on |
+| Command    | Calls                                                                                                | Called by                                                          |
+| ---------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `fix`      | its own `qoq-checker`                                                                                | `refactor`, `bump`, `execute`, `test`, `compress`                  |
+| `refactor` | `fix`                                                                                                | `bump`, `execute`, `test`                                          |
+| `bump`     | `fix`, `refactor` — both per patch                                                                   | —                                                                  |
+| `plan`     | `grilling` + `domain-modeling` (external), `mermaid`                                                 | —                                                                  |
+| `replan`   | `grilling` + `domain-modeling` (external), `mermaid`                                                 | —                                                                  |
+| `execute`  | `tdd` (external), `fix`, `refactor`, `sheriff`, `review`, `document`, `mermaid`; its own `qoq-retro` | `plan` — offered at approval, never dispatched from inside it      |
+| `test`     | `tdd` (external), `fix`, `refactor`                                                                  | —                                                                  |
+| `compress` | `writing-for-agents` (external), `fix`                                                               | —                                                                  |
+| `document` | its own `qoq-scribe`; offers `mermaid`                                                               | `execute` — per milestone, after the gate                          |
+| `mermaid`  | its own `qoq-artist`                                                                                 | `plan`, `replan`, `execute` — when `--diagrams` is on              |
+| `sheriff`  | its own `qoq-sheriff`; `fix` to re-gate                                                              | `execute` — every milestone, always                                |
+| `review`   | `code-review` (external), its own `qoq-reviewer` ×2 axes; `fix`; `sheriff`                           | `execute` — per milestone and once per plan, when `--review` is on |
 
 `compress` changes what future runs read, never what this one does, so no
 command should be reaching for it mid-task.
@@ -249,7 +249,7 @@ change break it?" — which a second agent writing concurrently makes
 unanswerable.
 
 **An agent that reports never fixes.** `qoq-checker`, `qoq-bumper`,
-`qoq-designer`, `qoq-architect`, `qoq-test-reviewer`, `qoq-sheriff` and `qoq-reviewer` return findings and edit
+`qoq-designer`, `qoq-architect`, `qoq-test-reviewer`, `qoq-sheriff`, `qoq-reviewer` and `qoq-retro` return findings and edit
 nothing. An agent permitted to do both will quietly do both, and the finding
 disappears into the diff instead of reaching the user. Where an agent's tools
 are wider than its contract, `scripts/agent-guard.mjs` closes the gap as a
@@ -270,7 +270,7 @@ read.
 
 ## Agents
 
-Eleven, in `agents/`. Everything is pinned except five: `qoq-developer`, whose tier
+Twelve, in `agents/`. Everything is pinned except five: `qoq-developer`, whose tier
 is a property of the ticket and is passed at dispatch, `qoq-scribe`, whose tier
 follows its mode and is passed at dispatch, `qoq-architect`, which
 inherits the session's model because a design error propagates into every ticket
@@ -291,6 +291,7 @@ blind spots at any cheaper tier.
 | `qoq-artist`        | sonnet     | a validated Mermaid chart, or a reasoned decline            |
 | `qoq-sheriff`       | _session_  | logic-level security findings — one per sweep or recheck    |
 | `qoq-reviewer`      | _session_  | spec · standards axes, in parallel — per milestone or plan  |
+| `qoq-retro`         | sonnet     | lessons from retries — per retried milestone, then the plan |
 
 Entry copies them into the project's `.claude/agents/`, because an agent file
 inside a skill is registered by nothing, and Claude Code picks that directory up
@@ -320,7 +321,7 @@ the full brief instead, the way every retry worked before resume, when:
   ticket, and the old context would mislead
 - **it stopped on `maxTurns`**: a partial return is a hand-back and spends an
   attempt. It's never resumed
-- **the agent judges**: `qoq-sheriff`, `qoq-reviewer` and `qoq-test-reviewer` are
+- **the agent judges**: `qoq-sheriff`, `qoq-reviewer`, `qoq-test-reviewer` and `qoq-retro` are
   cold every time, because a primed reader shares the blind spots it should catch
 - **it's `qoq-checker`**: its context is raw reports, and a fresh digest is cheaper
 

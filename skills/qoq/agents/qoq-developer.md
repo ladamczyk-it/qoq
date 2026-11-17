@@ -211,18 +211,24 @@ comments_removed: []
 advisories: []
 blocker: null
 blocker_kind: null # or plan | model on a handoff
+blocker_category: null # on a handoff, one category from the list below
 ```
 
-| Field              | What                                                                                                                                                                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `status`           | `green` once both commands and `ticket_scoped` pass; `handoff` for every other way you stop                                                                                                                              |
-| `files`            | every file you changed, spec and source both — Gate 1's scope and the commit; on a handoff, what's on disk                                                                                                               |
-| `specs`            | the spec files among `files` — Gate 2's scope                                                                                                                                                                            |
-| `comments_removed` | each pre-existing comment you deleted or rewrote: `file:line`, the text **verbatim**, and the reason — it goes into the commit body, the only place the text survives                                                    |
-| `advisories`       | one string each; they outlive you only from here                                                                                                                                                                         |
-| `blocker`          | `null` when green; on a handoff the failure, criterion or contract problem **verbatim** — never a summary                                                                                                                |
-| `blocker_kind`     | `null` when green. `plan` when no tier could finish it: a wrong Contract, a criterion you can't assert, one you believe is wrong. `model` when the plan holds and you ran out: budget spent, or green you couldn't reach |
+| Field              | What                                                                                                                                                                                                                          |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`           | `green` once both commands and `ticket_scoped` pass; `handoff` for every other way you stop                                                                                                                                   |
+| `files`            | every file you changed, spec and source both — Gate 1's scope and the commit; on a handoff, what's on disk                                                                                                                    |
+| `specs`            | the spec files among `files` — Gate 2's scope                                                                                                                                                                                 |
+| `comments_removed` | each pre-existing comment you deleted or rewrote: `file:line`, the text **verbatim**, and the reason — it goes into the commit body, the only place the text survives                                                         |
+| `advisories`       | one string each; they outlive you only from here                                                                                                                                                                              |
+| `blocker`          | `null` when green; on a handoff the failure, criterion or contract problem **verbatim** — never a summary                                                                                                                     |
+| `blocker_kind`     | `null` when green. `plan` when no tier could finish it: a wrong Contract, a criterion you can't assert, one you believe is wrong. `model` when the plan holds and you ran out: budget spent, or green you couldn't reach      |
+| `blocker_category` | `null` when green. On a handoff, the one that fits best: `misread-spec`, `missing-context`, `wrong-files`, `contract`, `convention`, `test-integrity`, `tool-error`, `flaky`, `budget` (definitions in `references/retro.md`) |
 
 A handoff is a handoff at any attempt — a wrong Contract, a criterion you can't
 assert, an assertion you believe is wrong, or the budget spent. There's no third
 status: work that is nearly green is a handoff with what's on disk listed.
+
+A handoff without `blocker` and `blocker_category` gets sent back to you for
+both. The next run is briefed from that pair, so "it didn't work" teaches it
+nothing.
