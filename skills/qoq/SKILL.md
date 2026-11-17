@@ -251,7 +251,12 @@ unanswerable.
 **An agent that reports never fixes.** `qoq-checker`, `qoq-bumper`,
 `qoq-designer`, `qoq-architect`, `qoq-test-reviewer`, `qoq-sheriff` and `qoq-reviewer` return findings and edit
 nothing. An agent permitted to do both will quietly do both, and the finding
-disappears into the diff instead of reaching the user.
+disappears into the diff instead of reaching the user. Where an agent's tools
+are wider than its contract, `scripts/agent-guard.mjs` closes the gap as a
+`PreToolUse` hook in its frontmatter: a shell allowlist for `qoq-checker`,
+`qoq-bumper`, `qoq-sheriff` and `qoq-reviewer`, test files only for
+`qoq-tester`. A hand-back that quotes the guard is a contract question for the
+user, never a reason to re-dispatch as `general-purpose`.
 
 **Never buy green.** No `.skip`, no loosened assertion, no narrowed ticket, no
 weakened gate. If the bar can't be met, that's a report, not something to route

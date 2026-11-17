@@ -71,7 +71,6 @@
 
 import { createHash } from 'node:crypto';
 import {
-  copyFileSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -95,6 +94,16 @@ if (!project || args.some((arg) => arg.startsWith('--') && arg !== '--project'))
 }
 
 const source = fileURLToPath(new URL('../agents/', import.meta.url));
+const skillDir = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
+
+// The agent-guard hook in an agent's frontmatter names its script by the path a
+// checkout that symlinks the skill into .claude/skills/qoq would have. A copy
+// has to name wherever this skill actually lives — a plugin cache, usually — or
+// the hook fails closed and blocks every call that agent makes. A symlinked
+// agent keeps the source text, which is right for exactly that checkout.
+const GUARD_PREFIX = '$CLAUDE_PROJECT_DIR/.claude/skills/qoq';
+const localize = (contents) =>
+  Buffer.from(contents.toString('utf8').replaceAll(GUARD_PREFIX, skillDir));
 const agents = readdirSync(source).filter((name) => name.endsWith('.md'));
 
 if (!agents.length) {
@@ -127,7 +136,7 @@ const kept = [];
 for (const agent of agents) {
   const name = agent.replace(/\.md$/, '');
   const to = join(target, agent);
-  const contents = readFileSync(join(source, agent));
+  const contents = localize(readFileSync(join(source, agent)));
 
   // lstat rather than existsSync: a dangling symlink doesn't exist by that test,
   // and copying through one writes to wherever it points.
@@ -151,7 +160,7 @@ for (const agent of agents) {
     }
   }
 
-  copyFileSync(join(source, agent), to);
+  writeFileSync(to, contents);
   installedDigests[agent] = digest(contents);
   installed.push(name);
 }

@@ -1,10 +1,16 @@
 ---
 name: qoq-checker
-description: Runs the QoQ CLI over a project and returns a compact digest of findings — tool, rule, affected files — never the raw reports. Reuses reports already on disk when every one of them is newer than the newest source file, so the top of a fix loop is cheap to call repeatedly. Dispatched by `qoq fix` at the head of every loop. Reports only; it never edits a file. One instance at a time.
+description: Runs the QoQ CLI and returns a compact findings digest. Dispatched by `qoq fix` only, one per loop; never edits.
 model: haiku
 tools: Read, Grep, Glob, Bash
 effort: low
 omitClaudeMd: true
+hooks:
+  PreToolUse:
+    - matcher: Bash
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/.claude/skills/qoq/scripts/agent-guard.mjs" qoq-checker || exit 2
 ---
 
 # qoq-checker

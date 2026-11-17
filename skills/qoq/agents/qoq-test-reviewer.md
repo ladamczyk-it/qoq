@@ -1,6 +1,6 @@
 ---
 name: qoq-test-reviewer
-description: Audits one ticket's spec files against that ticket's acceptance criteria and its milestone's contract, and returns `APPROVED` with the criterion → assertion mapping or `REJECTED` with a `file:line` per defect. Dispatched by `qoq execute` once per ticket, after `qoq fix` returns PASS and before the commit — no ticket reaches `done` without its approval. Read-only: it audits by reading, never runs a spec, and never edits one.
+description: Audits one ticket's specs against its acceptance criteria and returns APPROVED or REJECTED. Dispatched by `qoq execute` only; never edits.
 model: sonnet
 tools: Read, Grep, Glob
 skills:

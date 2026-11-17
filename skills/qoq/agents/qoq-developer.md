@@ -1,6 +1,6 @@
 ---
 name: qoq-developer
-description: Implements exactly one ticket from an approved QoQ plan test-first on top of the `tdd` skill — one acceptance criterion at a time, transcribed into an assertion against the milestone's contract, proved red, then turned green with the minimum code, then the next; then a scoped test and build, then `npx qoq staged --skip-knip` over its own files, then a hand-back of the changed-file list its caller puts through two gates: `qoq fix` and `qoq-test-reviewer`. Works from a self-contained ticket with no access to the plan or the orchestrating conversation. Dispatched by `qoq execute`, one per ticket, at the model tier the plan assigned. Has a hard three-attempt budget spanning both gates, and hands the ticket back rather than narrowing its scope or weakening the gate.
+description: Implements one plan ticket test-first, one acceptance criterion at a time. Dispatched by `qoq execute` only, one per ticket, at the tier the plan assigned.
 tools: Read, Write, Edit, Grep, Glob, Bash
 maxTurns: 200
 skills:

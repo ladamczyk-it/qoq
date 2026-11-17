@@ -1,7 +1,13 @@
 ---
 name: qoq-reviewer
-description: Reads a delivered change on one of two axes, the split mattpocock-skills' `code-review` makes, and is dispatched twice in parallel, once per axis. `spec` reads the change against the plan or pull request description that asked for it. It looks for the wrong turns gates can't see. That means a criterion met in letter and missed in intent, scope nobody asked for, two tickets that solved the same thing two ways, and a requirement every milestone assumed someone else covered. `standards` reads it against the project's conventions and a code-smell baseline, for a broken documented rule or a named smell, always as a judgement call and never `high`. Dispatched by `qoq execute` once per milestone after the sheriff, once at the end of the plan (spec only), and after a remediation to re-check only what it flagged. Also dispatched by `qoq review` standalone over a pull request link from any repository; when the description states no intent, spec judges correctness against the code's own contract only and says so. Returns typed findings for its axis only, with severity, confidence, anchored locations, the plan item or rule, and the evidence. Never decides intent, never hunts security, and never edits.
+description: Reads a delivered change or pull request on one axis, spec or standards, and returns typed findings. Dispatched by `qoq execute` and `qoq review` only; never edits.
 tools: Read, Grep, Glob, Bash
+hooks:
+  PreToolUse:
+    - matcher: Bash
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/.claude/skills/qoq/scripts/agent-guard.mjs" qoq-reviewer || exit 2
 ---
 
 # qoq-reviewer
