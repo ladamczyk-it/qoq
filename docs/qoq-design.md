@@ -1402,6 +1402,33 @@ scribe. Inside `execute` it runs unattended and can stop a run or commit fixes.
 `--review` turns it on for one run, and `future.unstable_skill_review` turns it
 on for a project.
 
+## `feedback`
+
+**Why it asks at the end of a run as well as being a command.** Users rarely go
+looking for a way to give feedback. They complain when something didn't work, in
+the moment, and a command they'd have to remember misses that moment. The
+command is there for anyone who wants it. The question is what actually collects
+most of the feedback.
+
+**Why weekly, and every time after a bad ending.** Asked after every `fix`, the
+question becomes noise and gets skipped by reflex. A run that ended on a FAIL, a
+`blocked` ticket or a stop is when an answer says the most, so it's always due
+then. The stamp is per machine, not per project, because the question is about
+qoq, and someone working in five repos shouldn't hear it five times a week. A
+usage count could replace the week later. The script owns the rule, so it's a
+one-line change.
+
+**Why the dialog, not a question in prose.** Claude Code's question dialog
+answers with a number, and its "Other" box takes free text. Four reasons and
+Other cover nearly everything, so most feedback is one keypress. The built-in
+`/feedback` survey can't be triggered from a skill.
+
+**Why no consent flag, when the retro has one.** Nobody typed a retro lesson, so
+sending it needs a yes given in advance. Feedback is typed by the person sending
+it, on purpose, to qoq. The preview still names where it goes, _the qoq
+maintainers_, because the text it shows is a rewrite of what they said, and they
+should see exactly what leaves the machine.
+
 ## `compress`
 
 **Why `compress` sits on [`writing-for-agents`](https://github.com/mattpocock/skills/tree/main/skills/productivity/writing-for-agents).** Its principles — one source of

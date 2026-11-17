@@ -28,7 +28,7 @@
 //     question in front of a command whose next move is another command's
 //     question is the noise this narrowing exists to remove.
 //
-// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff|review>
+// Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff|review|feedback>
 //
 // Exit code: always 0 — stdout is a section per check, each with what to do, or
 // a single `command` section asking for one.
@@ -49,9 +49,10 @@ const COMMANDS = [
   'mermaid',
   'sheriff',
   'review',
+  'feedback',
 ];
 const ASKS_ON_INSTALL = ['fix', 'test', 'execute', 'document', 'sheriff', 'review'];
-const SKIPS_DISCOVERY = ['compress', 'review'];
+const SKIPS_DISCOVERY = ['compress', 'review', 'feedback'];
 
 const args = process.argv.slice(2);
 const flag = (name) => {

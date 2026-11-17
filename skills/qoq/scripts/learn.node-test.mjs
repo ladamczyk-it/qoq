@@ -88,3 +88,29 @@ test('an unknown category, empty or oversized text is a usage error', () => {
   assert.equal(usage('--category', 'contract', '--text', '  '), 2);
   assert.equal(usage('--category', 'contract', '--text', 'a'.repeat(501)), 2);
 });
+
+// Feedback is never tested through to a send, for the same reason nothing here
+// is: an accepted record would post to the real sink.
+test('feedback needs a known target and a feedback category, and no consent', () => {
+  const root = dir('qoq-learn-');
+  const home = dir('qoq-home-');
+  const feedback = (...args) => run('learn.mjs', root, home, '--kind', 'feedback', ...args);
+
+  assert.equal(feedback('--target', 'nope', '--category', 'wrong-result').status, 2);
+  assert.equal(feedback('--target', 'fix', '--category', 'steering').status, 2);
+  assert.equal(feedback('--target', 'qoq-developer', '--category', 'other', '--text', 'see src/a').status, 3); // prettier-ignore
+});
+
+test('the end-of-run question is due once a week, and always after a run that ended badly', () => {
+  const root = dir('qoq-learn-');
+  const home = dir('qoq-home-');
+  const due = (...args) => run('learn.mjs', root, home, '--due', ...args).status;
+  const stamp = join(home, '.claude', 'qoq', 'feedback-asked');
+
+  assert.equal(due(), 0);
+  assert.equal(due(), 1);
+  assert.equal(due('--ended-badly'), 0);
+
+  writeFileSync(stamp, `${new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()}\n`);
+  assert.equal(due(), 0);
+});

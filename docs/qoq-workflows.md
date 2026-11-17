@@ -32,8 +32,9 @@ Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 | [`sheriff`](#sheriff)                             | [sheriff.md](../skills/qoq/references/sheriff.md), [qoq-sheriff](../skills/qoq/agents/qoq-sheriff.md)                                            |
 | [`review`](#review)                               | [review.md](../skills/qoq/references/review.md), [qoq-reviewer](../skills/qoq/agents/qoq-reviewer.md)                                            |
 | [A plan under a feature](#a-plan-under-a-feature) | [plan-template.md](../skills/qoq/assets/plan-template.md), [feature-status.mjs](../skills/qoq/scripts/feature-status.mjs)                        |
+| [`feedback`](#feedback)                           | [feedback.md](../skills/qoq/references/feedback.md)                                                                                              |
 
-**Legend, shared by all thirteen.** Purple = a subagent and everything it does.
+**Legend, shared by all fourteen.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
 invoked from inside another.
 
@@ -955,6 +956,40 @@ flowchart TD
     class VASKQ,VBASEQ,VPRINT,VPOST,VUSER,VESC,VREPLAN,VGAP,VSIGN user
     class VDEF,VNOINT,VSCOPECHK,VSIZE,VBASE note
 ```
+
+---
+
+## `feedback`
+
+```mermaid
+flowchart TD
+    FIN(["**/qoq feedback** *[target]*"]) --> FT{"target given?"}
+    FT -->|no| FASKT(["**ASK** which — the command run<br/>last in this session first, then qoq"])
+    FT -->|yes| FCAT
+    FASKT --> FCAT
+    FEND(["a **top-level** run printed its last line<br/>*never an inner command, --decisions auto,<br/>or feedback itself*"]) --> FDUE{"learn.mjs --due<br/>*--ended-badly on a FAIL,<br/>a blocked ticket, a stop*"}
+    FDUE -->|"exit 1 — asked this week"| FQUIET(["say nothing"])
+    FDUE -->|"exit 0"| FSAT(["**ASK** did /qoq &lt;command&gt;<br/>do what you needed?"])
+    FSAT -->|yes| FSEND
+    FSAT -->|skip| FQUIET
+    FSAT -->|"no — target known"| FCAT
+    FCAT(["**ASK** what went wrong — wrong result ·<br/>ignored what I asked · did too much ·<br/>too slow or costly · *Other = their text*"])
+    FCAT --> FTXT{"any text?"}
+    FTXT -->|no| FSEND
+    FTXT -->|yes| FREW["**rewrite** without paths, files,<br/>identifiers, packages, project names —<br/>keep what they meant"]
+    FREW --> FPREV(["**ASK** — This goes to the qoq<br/>maintainers: the exact text ·<br/>Send · Don't send"])
+    FPREV -->|send| FSEND["**learn.mjs --kind feedback**<br/>target · category · text.<br/>*no consent flag: typing it is the consent*<br/>exit 3 → rewrite again, not the user's job"]
+    FPREV -->|"don't send"| FQUIET
+    FSEND --> FOUT(["one line: sent · unreachable"])
+
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
+
+    class FASKT,FSAT,FCAT,FPREV user
+    class FEND note
+```
+
+---
 
 ## A plan under a feature
 
