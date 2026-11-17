@@ -949,6 +949,53 @@ can re-dispatch — and it's the better place regardless: nothing reaches histor
 until it has passed, and "one ticket, one commit" stops depending on an agent's
 discipline.
 
+### The retro
+
+**Why it's always on when the other milestone steps are experimental.** It costs
+nothing on a clean milestone, because the trigger is a retry and a clean
+milestone has none. On a milestone with retries it's the only beat that asks why
+they happened. The estimator only learns that they happened. Without the retro,
+the next plan repeats the same Context gap at a bigger tier.
+
+**Why `blocker_category` exists when a `diagnoses` field was dropped.** The two
+fields answer different questions for different readers. `diagnoses` was meant
+to help the next attempt, and the prose already did that. `blocker_category` is
+for the retro, which reads a milestone of Logs instead of one return, and needs
+failures it can group. A fixed list is what makes "four `missing-context` lines
+across three tickets" visible.
+
+**Why the follow-up is a milestone, not a new plan.** A follow-up plan is a
+second file that the finished run never points at. It can sit unexecuted
+indefinitely while the source plan reads `complete`. A milestone appended to
+the same plan keeps the plan unfinished until the lessons land, and the progress
+band shows it.
+
+**Why planning and skill lessons are recorded without asking, and code lessons
+aren't.** A code lesson changes the project: a lint rule, a doc, a ticket. That's
+the user's call. A planning or skill lesson changes nothing but advice to the
+next plan, and the planner still decides whether each one applies and lists the
+ones it skipped at approval. Asking first would make the store depend on someone
+answering at the end of a long run. When they didn't, the next plan would start
+without what this one learned.
+
+**Why only one follow-up.** The follow-up milestone retries too, and its retro
+finds lessons too. If every final retro could add a milestone, a run that kept
+learning would never finish. One follow-up applies the lessons the user
+approved. Anything its own retro finds is reported for the next plan.
+
+**Why tier mis-rating isn't a lesson.** The estimator already grades it from
+`--attempts`, per bucket and per tier, with thresholds. A prose lesson saying
+"haiku was too small" would either repeat that verdict or argue with it, and
+`plan` would have two signals to reconcile instead of one.
+
+**Why lessons go to a separate sink with a separate consent.** Stats consent was
+given for a payload that is one command name, and its disclosure says so.
+Adding a sentence under that yes would change what people agreed to after they
+agreed to it. So `learning` is its own key, `learning.adamczyk.ovh` is its own
+service, and there's no pixel fallback because a GET would put the sentence in
+an access log. Code lessons never leave the machine. Planning and skill lessons
+are about qoq's process, and those are the ones another project can learn from.
+
 ## `test`
 
 **Why N slices means N full-suite runs.** Each slice ends with a run whose whole

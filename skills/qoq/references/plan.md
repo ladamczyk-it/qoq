@@ -210,6 +210,10 @@ Its dispatch carries, verbatim:
 - **the `Scenarios`** — journeys are _what_, contracts are _how_, and that is the
   order. A contract that can't serve a journey is wrong however clean it is.
 - `Explore`'s findings
+- **the retro's planning and skill lessons** for each stack the plan touches:
+  `node <skill>/scripts/estimate.mjs --lessons --stack <stack>`. Each one is a
+  past plan's mistake on this stack, written down so this plan doesn't repeat
+  it. An empty list is the normal first run.
 - this skill's absolute path
 
 It returns four sections: **Contracts**, **Integration surface**, **Risks**,
@@ -347,6 +351,12 @@ adjustment only ever goes up. There's no downgrade, because saving one rung
 isn't worth running an experiment on the user's ticket.
 
 Take the `tier` field as returned, rather than re-deriving it from the counts.
+
+**Read its `lessons` too.** They're what the retro recorded against this exact
+bucket: a planning lesson, such as a Context that left the developer guessing or
+a ticket that should have been two, or a skill lesson, such as a gap in qoq's own
+briefing that this ticket's Context has to fill. Apply each one to the ticket before you write it.
+One that doesn't apply goes on the approval's list with a line saying why.
 
 `2` is the odd one out: it isn't about the model at all. It fires when tickets
 of this shape have been ending up **blocked** — never delivered by anything,

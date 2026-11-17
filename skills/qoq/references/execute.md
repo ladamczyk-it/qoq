@@ -135,6 +135,12 @@ each re-dispatch (`resumed` or `fresh`), `done` or `blocked` with the hash. It's
 because only this thread sees the transitions: `Status` says where a ticket
 ended, and the `Log` is the only thing that says how it got there.
 
+**Every failure line names its gate, its category and its evidence**:
+`qoq fix FAIL — convention — no-restricted-imports src/api.ts:12`. The milestone
+retro reads nothing but these lines, and "FAIL" alone gives it nothing to learn
+from. [retro.md](retro.md) owns the category list and what to do with a handoff
+that arrives without one.
+
 ## The ticket is red → green; refactoring is the milestone's
 
 **The ticket runs `tdd`'s loop**: one acceptance criterion at a time, a failing
@@ -397,6 +403,12 @@ is its input. Docs off → straight to archive, no Docs advisories line. It neve
 stops the run: a question or a finding becomes a **Docs advisory** in the
 summary, walked through with the user at the end of the run.
 
+Then **retro**, when any ticket in the milestone took more than one attempt,
+escalated or ended `blocked`. `qoq-retro` reads the milestone's Logs and returns
+lessons, which go into the milestone as its Retro section before the text moves.
+It never stops the run and changes nothing yet. [retro.md](retro.md) owns all of
+it. No retries → straight on, no Retro line.
+
 Then **archive**. Move the milestone's full text to
 `<plan-name>.completed.md`, leave the summary block under `## Completed`, and
 update downstream tickets' **Context** with anything this milestone established
@@ -414,6 +426,11 @@ plus the sheriff's and the reviewer's verdicts when they ran.
 
 In this order:
 
+0. **The final retro**, when any milestone had one. It merges the milestone
+   retros and records the planning and skill lessons without asking. Code
+   lessons are the one question: on a yes, one follow-up milestone is appended
+   to this plan and run before anything below.
+   [retro.md](retro.md) owns it, including why there's never a second follow-up.
 1. **The end-of-plan review, then its gap decisions.** Review on only.
    [review.md](review.md) covers both, and also when the pass is skipped.
 2. **The advisory walkthrough**, once: every milestone's Refactor, Docs,
@@ -445,13 +462,13 @@ of dispatching. The stop has no proceed-without:
 > normally arrives with qoq as a plugin dependency; install it with
 > `/plugin install mattpocock-skills`, then `/qoq execute` again.
 
-Then two checks: are `qoq-developer` and `qoq-test-reviewer` (and `qoq-sheriff` and
+Then two checks: are `qoq-developer`, `qoq-test-reviewer` and `qoq-retro` (and `qoq-sheriff` and
 `qoq-reviewer`, when they're on) registered under
 `.claude/agents/`? If one isn't, dispatch `general-purpose` with that agent
 file's body pasted in and told to invoke `tdd` with the Skill tool first, since
 `general-purpose` preloads nothing — for the developer, with the tier passed explicitly, since
 `general-purpose` otherwise inherits the session's model and quietly overrides
-the rating the plan made; for the three that report, with the read-only prohibition
+the rating the plan made; for the ones that report, with the read-only prohibition
 restated, since `general-purpose` gets every tool and would arrive holding the
 ability to fix what it was dispatched to report.
 

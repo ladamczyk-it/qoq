@@ -83,6 +83,13 @@ export default {
   // project names, or anything identifying the user or machine.
   stats: false,
 
+  // Consent for the qoq skill's retro, separate from `stats`. Asked once by the
+  // skill, the first time an approved retro has a lesson to send. When true,
+  // each approved planning or skill lesson POSTs `{ source, kind, version,
+  // category, text }` to https://learning.adamczyk.ovh, with no pixel fallback.
+  // Code lessons, code, paths and names are never sent. The CLI never reads it.
+  learning: false,
+
   // `false` hides the qoq Claude Code skill hint printed at the end of an
   // interactive run, `qoq scan` and `qoq --init`. After findings it names the matching
   // command (`/qoq fix`, `/qoq refactor`, `/qoq bump`). It is never printed in CI,

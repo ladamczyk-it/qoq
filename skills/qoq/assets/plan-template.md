@@ -31,6 +31,13 @@ board; omit the whole field on a local plan>
 
 ---
 
+## Retro
+
+<!-- Absent unless a milestone had a retro. The final retro's merged lessons,
+     written once the last milestone archives — see the field note. -->
+
+---
+
 ## Completed
 
 <!-- Absent on a fresh plan. Each delivered milestone's full text moves to
@@ -50,6 +57,8 @@ remediated `<hash>` · accepted · deferred to <ticket> · open advisory>
 **Review:** <absent unless the reviewer ran> clean | <R<n> <severity> —
 remediated `<hash>` · accepted — <file>:'<anchor>' — "<reason>" · deferred to
 <ticket> · open advisory>
+**Retro:** <absent unless a ticket retried> <n> code · <n> planning · <n> skill
+lessons | none worth recording
 **Full detail:** [<plan-name>.completed.md](<plan-name>.completed.md)
 
 ---
@@ -60,6 +69,7 @@ remediated `<hash>` · accepted — <file>:'<anchor>' — "<reason>" · deferred
 **Goal:** <what this milestone delivers on its own — should be independently
 shippable/testable>
 **Depends on:** none | Milestone <N>
+**Follow-up of:** <absent unless the final retro appended this milestone> retro
 **Contracts:** none | <the interface this milestone's tickets share — inline when
 small (a type, a payload shape, an error shape), or a path when the project
 already keeps `openapi.yaml` / `.proto` / a zod schema>
@@ -131,7 +141,7 @@ ticket exists. No "similar to Ticket 1.3" — restate what's needed.
   <!-- Orchestrator-written, append-only. One line per transition; no schema
        beyond a timestamp and what happened. -->
   - `<YYYY-MM-DD HH:MM>` dispatched @ <tier> (attempt <n>)
-  - `<YYYY-MM-DD HH:MM>` qoq fix FAIL — <what>
+  - `<YYYY-MM-DD HH:MM>` qoq fix FAIL — <category> — <evidence>
   - `<YYYY-MM-DD HH:MM>` re-dispatched (attempt <n>)
   - `<YYYY-MM-DD HH:MM>` qoq fix PASS · tests approved
   - `<YYYY-MM-DD HH:MM>` done `<hash>`
@@ -158,11 +168,21 @@ ticket was raised as; absent otherwise>
       and recorded on the summary block's **Security** line
 - [ ] Review on: `qoq-reviewer` over the milestone's final diff, its findings
       routed and recorded on the summary block's **Review** line
+- [ ] Any ticket retried: `qoq-retro` over the milestone's Logs, its lessons
+      written below as the Retro section and counted on the summary block's
+      **Retro** line
 - [ ] Both results written into the summary block's **Gate evidence** — what the
       refactor found and what the suite reported, not "green"
 - [ ] Milestone archived: full text moved to `<plan-name>.completed.md`, summary
       block left under `## Completed`, downstream tickets' **Context** updated
       with anything this milestone actually established
+
+### Milestone 1 — Retro
+
+<!-- Absent unless the retro ran. qoq-retro's lessons, verbatim. -->
+
+- L1 · <code | planning | skill> · <category> — <lesson> — from <ticket>
+  attempt <n>: <the Log line> → <the change it proposes>
 
 ---
 
@@ -224,7 +244,8 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
   definitions nobody asked for. More than about six means the milestone is too
   big — the same test the `XL` rule applies, reached from the other direction.
 - **Log** is orchestrator-written and append-only — one line per transition, a
-  timestamp and what happened, no schema beyond that. It exists because `Status`
+  timestamp and what happened. A failure line is the one with a fixed shape:
+  gate, category, evidence, because it's all the retro reads. It exists because `Status`
   says where a ticket is and nothing says how it got there: two gate rejections
   and an escalation are invisible in a `done` ticket otherwise, and they're what
   a resume, and the user, read a plan's history from.
@@ -249,6 +270,12 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
   ended. An accepted entry carries its anchor and reason because it's the only
   record of the acceptance: later reviews read it instead of a marker in the
   code. The third is the user's yes at the end of the plan.
+- **Retro**, **Follow-up of** and the milestone's Retro section are the retro's
+  (`references/retro.md`). The section holds one milestone's lessons. `## Retro`
+  holds the merged ones from the end of the run, and whether the user took the
+  follow-up milestone for the code ones.
+  **Follow-up of** marks the one milestone the final retro may append. A plan
+  that already has one never gets a second.
 - **Diagrams** is `qoq-artist`'s, written before approval when diagrams are on
   and absent otherwise. It sits above the milestones so no ticket dispatch
   carries it, and it records the shape that was approved: `execute` never
