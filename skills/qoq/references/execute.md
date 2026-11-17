@@ -121,23 +121,18 @@ each re-dispatch (`resumed` or `fresh`), `done` or `blocked` with the hash. It's
 because only this thread sees the transitions: `Status` says where a ticket
 ended, and the `Log` is the only thing that says how it got there.
 
-## The ticket is a full TDD cycle — and there are two refactor beats
+## The ticket is red → green; refactoring is the milestone's
 
-**Red, green and refactor all belong to the ticket.** Specs first, every
-criterion transcribed and failing in one run because nothing implements them yet;
-then green, one criterion at a time; then a tidy of what was just written, inside
-the ticket's own **Files**, while green, with no interface change.
+**The ticket runs `tdd`'s loop**: one acceptance criterion at a time, a failing
+assertion proved red, then the minimum that turns it green, then the next. The
+milestone's `Contracts` and the ticket's criteria are the pre-agreed seams `tdd`
+requires — the user approved them with the plan, so nothing is asked again here.
 
-**A second refactor beat belongs to the milestone, and it is a different
-question.** `qoq refactor --decisions auto` runs over every file the milestone's
-tickets touched, which is the first moment those tickets exist as one piece of
-code — and cross-ticket findings are only visible there: duplication across four
-tickets, a now-dead export, three tickets that each picked a different shape. Per
-ticket that scope sees none of it.
-
-So: **ticket-level tidy is about this diff; milestone-level shape is about the
-milestone.** Neither substitutes for the other, and a ticket that skips its own
-tidy hands the milestone gate a mess it was never meant to sort.
+**Refactoring is not in the ticket.** `tdd` puts it in review, and here review is
+the milestone: `qoq refactor --decisions auto` over every file the milestone's
+tickets touched — the first moment those tickets exist as one piece of code, and
+the only scope where duplication across four tickets, a now-dead export, or three
+tickets that each picked a different shape is visible at all.
 
 There is no per-ticket standards pass and no complexity-driven routing table: a
 `trivial` ticket and a `judgment-heavy` one run identical steps at different
@@ -262,10 +257,11 @@ developer's `advisories` go on the ticket's **Advisories** line.
 
 ### The test cycle stays the developer's own
 
-It writes the failing assertions, one per acceptance criterion — a criterion the
-plan already stated as an assertion needs transcribing, not authoring, and
-dispatching an agent to write `expect(res.status).toBe(429)` costs more than
-writing it. After green it may **add** cases against `test-conventions.md`, and
+It writes the failing assertions, one per acceptance criterion, each just before
+the code that turns it — a criterion the plan already stated as an assertion
+needs transcribing, not authoring, and dispatching an agent to write
+`expect(res.status).toBe(429)` costs more than writing it. After green it may
+**add** cases against `tdd` and `test-conventions.md`, and
 may never change what a green assertion expects on its own judgment; Gate 2 is
 what independently checks the result.
 
@@ -415,8 +411,12 @@ In this order:
 
 1. **The end-of-plan review, then its gap decisions.** Review on only.
    [review.md](review.md) covers both, and also when the pass is skipped.
-2. **The advisory walkthrough**, once: every milestone's Docs, Security and
-   Review advisories, each with its own options.
+2. **The advisory walkthrough**, once: every milestone's Refactor, Docs,
+   Security and Review advisories, each with its own options. Refactor
+   advisories are the milestone gate's judgement-tier findings — with no
+   refactor beat in the ticket, they are the only place a shape problem in
+   delivered code reaches the user, so they're walked through even on a run
+   with every experimental flag off.
 3. **The sign-off.** Review on only: the summary from [review.md](review.md),
    and the user's yes written into the plan header.
 
@@ -424,10 +424,27 @@ Review off → step 2 only, as before.
 
 ## Setup
 
-Two checks: are `qoq-developer` and `qoq-test-reviewer` (and `qoq-sheriff` and
+**`tdd` first — the base every spec in this run is written against.** Is it in
+your own available-skills list, under any name? Not there → **stop**, even if
+its files are on disk: a disabled plugin stays in the cache, and the list is the
+only thing that knows it's off. The developer and test-reviewer list `tdd` in
+their `skills:` frontmatter, so Claude Code preloads it into them — but an agent
+whose `skills:` entry doesn't resolve starts without it and says nothing, which
+is why this check can't be skipped.
+
+**Don't invoke `tdd` here**: its instructions are for whoever writes the test,
+and loaded into this thread they pull it into writing the specs itself instead
+of dispatching. The stop has no proceed-without:
+
+> `tdd` isn't installed, and every spec this run writes is built on it. It
+> normally arrives with qoq as a plugin dependency; install it with
+> `/plugin install mattpocock-skills`, then `/qoq execute` again.
+
+Then two checks: are `qoq-developer` and `qoq-test-reviewer` (and `qoq-sheriff` and
 `qoq-reviewer`, when they're on) registered under
 `.claude/agents/`? If one isn't, dispatch `general-purpose` with that agent
-file's body pasted in — for the developer, with the tier passed explicitly, since
+file's body pasted in and told to invoke `tdd` with the Skill tool first, since
+`general-purpose` preloads nothing — for the developer, with the tier passed explicitly, since
 `general-purpose` otherwise inherits the session's model and quietly overrides
 the rating the plan made; for the three that report, with the read-only prohibition
 restated, since `general-purpose` gets every tool and would arrive holding the

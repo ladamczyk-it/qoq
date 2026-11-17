@@ -365,8 +365,8 @@ flowchart TD
         SMALL -->|no| GRILLQ{"is `grilling` in your own<br/>**available-skills list**?<br/>*never cached — that list is<br/>already in this thread's context*<br/>*look for `grilling`, NOT `grill-me`:<br/>grill-me is disable-model-invocation<br/>and its whole body forwards here*"}
         GRILLQ -->|missing| GASK(["**ASK ONCE** — install<br/>`/plugin install mattpocock-skills`<br/>and re-run *(recommended)*,<br/>or proceed and ask the gaps one<br/>at a time, mid-decomposition"])
         GASK -.->|"proceed without"| PSCEN
-        GRILLQ -->|installed| GRILL["invoke **grilling** with the requirements<br/>**plus what's already settled**, so its<br/>frontier opens on the gaps rather than<br/>re-asking what the spec answers"]
-        GRILL --> GCAP["**it is stateless** — no files, no record.<br/>everything it settled lives only in this<br/>thread, so it has to land in the plan:<br/>Architecture · a ticket's Context ·<br/>a criterion that only got sharp<br/>because a question was asked"]
+        GRILLQ -->|installed| GRILL["invoke **domain-modeling**, then **grilling**<br/>with the requirements **plus what's already settled**, so its<br/>frontier opens on the gaps rather than<br/>re-asking what the spec answers"]
+        GRILL --> GCAP["**it is stateless** — only domain-modeling's<br/>GLOSSARY.md + docs/adr/ (the user's — listed<br/>at approval) survive it.<br/>everything it settled lives only in this<br/>thread, so it has to land in the plan:<br/>Architecture · a ticket's Context ·<br/>a criterion that only got sharp<br/>because a question was asked"]
         GCAP --> PSCEN["**emit the Scenarios** — *Given / When / Then*<br/>prose per milestone, in the user's language,<br/>**from what the grill settled**.<br/>*a journey spanning tickets, not a ticket's<br/>assertion — nothing else in the plan holds<br/>one. more than ~6 and the milestone is too big*"]
     end
 
@@ -377,7 +377,7 @@ flowchart TD
         PEXP["dispatch **Explore** — *locate*:<br/>deps · existing patterns · test conventions<br/>*(reads excerpts, not whole files —<br/>it locates, it does not audit)*"]
         PEXP --> PSKIP{"single existing module **and**<br/>no new data shape, payload<br/>or persisted field **and**<br/>no new dependency?"}
         PSKIP -->|yes| PNONE["**Contracts: none** — nothing to design.<br/>*say so at approval: it is the other thing<br/>the user cannot see from the plan file*"]
-        PSKIP -->|"no, or any doubt"| PARCH["dispatch **qoq-architect** — *audit*: read<br/>deep in what Explore located, **carrying<br/>the Scenarios**. *a journey constrains a<br/>contract: journeys are what, contracts<br/>are how, and that is the order*"]
+        PSKIP -->|"no, or any doubt"| PARCH["dispatch **qoq-architect** — *audit*:<br/>**codebase-design** preloaded · read<br/>deep in what Explore located, **carrying<br/>the Scenarios**. *a journey constrains a<br/>contract: journeys are what, contracts<br/>are how, and that is the order*"]
         PARCH --> PIDX["**indexes only while scanning** —<br/>patterns/index.md + the stack index for<br/>the **scope's own files**, never package.json.<br/>*a write-up read before the scan is<br/>persuasive by construction, and at design<br/>time there is no code to falsify it against*"]
         PIDX --> PSMELL["a named pattern needs a **cited file:line<br/>smell in code that already exists**.<br/>otherwise the ponytail ladder stands —<br/>a new dependency is **flagged, never chosen**"]
         PSMELL --> PWRITE["**then** open that one write-up and check<br/>it fits — one per named pattern, never<br/>before. *the citation is already fixed, so<br/>reading can falsify the candidate,<br/>not widen it. say so when it does not fit*"]
@@ -499,8 +499,11 @@ flowchart TD
     EPROG -->|no| EBRANCH
     ERECON --> EBRANCH{"on the default<br/>branch?"}
     EBRANCH -->|yes| EASK(["**ASK THE USER**<br/>branch first? plan/[name]"])
-    EASK -.-> EWAVE
-    EBRANCH -->|no| EWAVE
+    EASK -.-> ETDD
+    EBRANCH -->|no| ETDD
+    ETDD{"**1.** is **tdd** in your own<br/>available-skills list?<br/>*exact listed name — bare or<br/>mattpocock-skills: prefixed.<br/>files on disk don't count:<br/>a disabled plugin stays cached*"}
+    ETDD -->|"missing"| ETDDSTOP(["**stop** — no proceed-without.<br/>`/plugin install mattpocock-skills`,<br/>then qoq execute again<br/>*normally a plugin dependency*"])
+    ETDD -->|"listed — preloaded into the<br/>developer and test-reviewer<br/>by their skills: frontmatter"| EWAVE
 
     EWAVE["**next ticket** — the first whose<br/>deps are all done, in plan order"]
     EWAVE --> ELIM{"--session-limit or<br/>--weekly-limit given?"}
@@ -512,13 +515,15 @@ flowchart TD
     EPERM -->|no| EPAUSE(["**pause, not blocked** — ticket status<br/>untouched, **no estimate filed**<br/>*(nothing was dispatched to grade)*.<br/>qoq execute [plan] resumes it"])
     EDISP["dispatch **one qoq-developer** — model = the<br/>ticket's tier. carries **verbatim**: id · Context ·<br/>Files · Acceptance criteria · **the milestone's<br/>Contracts** · the record's path ·<br/>test-conventions.md and<br/>code-conventions.md paths.<br/>*not the Scenarios — journey-level context<br/>a single ticket cannot act on*"]
 
-    subgraph EDEV["qoq-developer — red · green · refactor"]
+    subgraph EDEV["qoq-developer — red → green, per criterion, on tdd"]
         direction TB
         T0["**read the record** — runner · globals ·<br/>React? · conventions file · commands ·<br/>how to invoke qoq. *first move*"]
-        T0 --> T1["**RED** — transcribe **every** criterion into<br/>an assertion **against the Contract**, in the<br/>project's dialect. **one run**: each must<br/>fail, and for the right reason.<br/>*the runner names every failing test — that<br/>is the isolation a per-criterion cycle<br/>would have bought. the reviewer cannot run<br/>anything, so this is the empirical half*"]
-        T1 --> T2["**GREEN** — one criterion at a time, the<br/>minimum that turns that one assertion.<br/>*re-run a single one when you want to<br/>check it — permitted, never required*"]
-        T2 --> TREF["**REFACTOR** — tidy inside the ticket's own<br/>**Files**, while green, no interface change,<br/>re-run after. *not the milestone refactor*<br/>a name that needs a comment gets renamed.<br/>**a comment older than the ticket goes only<br/>if false or now carried by a name/type/test —<br/>listed verbatim in comments_removed**"]
-        TREF --> TADD["may **add** cases per test-conventions.md.<br/>**never change what a green assertion<br/>expects on your own judgment** — that is a<br/>hand-back with the criterion quoted.<br/>*a Gate 2 rejection is the one exception,<br/>and only for the assertions it cites*"]
+        T0 --> TB["read **tdd** (base), then<br/>test-conventions.md on top.<br/>*seams = the Contracts + criteria, agreed<br/>at plan approval. interface doubt → hand-back,<br/>never codebase-design. no refactor beat —<br/>that's the milestone's*"]
+        TB --> T1["**RED** — the **next** criterion into an<br/>assertion **against the Contract**, in the<br/>project's dialect. run it: must fail, for<br/>the right reason. *the reviewer cannot run<br/>anything, so this is the empirical half*"]
+        T1 --> T2["**GREEN** — the minimum that turns<br/>that one assertion. *a comment older than<br/>the ticket goes only if code-conventions.md<br/>accepts — listed verbatim in comments_removed*"]
+        T2 --> T3{"criteria<br/>left?"}
+        T3 -->|"yes — one vertical slice<br/>at a time"| T1
+        T3 -->|no| TADD["may **add** cases per tdd + test-conventions.md.<br/>**never change what a green assertion<br/>expects on your own judgment** — that is a<br/>hand-back with the criterion quoted.<br/>*a Gate 2 rejection is the one exception,<br/>and only for the assertions it cites*"]
         TADD --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`, then<br/>`npx qoq staged --skip-knip` over its files<br/>*scoped and report-less: the<br/>digest and the gate stay<br/>with the caller*"]
         T4 -->|"red, budget left"| T2
         T4 -->|"can't finish — budget spent, wrong<br/>Contract, unassertable criterion"| THAND(["**`status: handoff`** + `blocker` verbatim,<br/>`files` on disk.<br/>never narrow the ticket,<br/>never weaken the gate"])
@@ -532,7 +537,7 @@ flowchart TD
     EDISP -.->|"model error — the tier<br/>has no model on this host"| EUNRES(["**not an attempt** — no estimate filed,<br/>no escalation. `model-tiers.mjs --failed`:<br/>name the tier, ASK for an id + local/user<br/>scope, `--set` only once confirmed, then<br/>re-dispatch at the same tier<br/>*never another tier on our own, never<br/>a model choice in memory*"])
     TRET --> EGATE["**GATE 1 — qoq fix --skip-knip**, scoped<br/>to the developer's `files`.<br/>*knip is the one tool that can't be scoped —<br/>it asks whether an export is reachable in a<br/>repo missing every ticket after this one, so<br/>it calls ticket 4's dependency dead code and<br/>the gate sends ticket 3 back to delete it*"]
     EGATE -->|FAIL| EATT
-    EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the developer's `specs`.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
+    EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the developer's `specs`. rejects on<br/>integrity: a criterion with no assertion,<br/>one that can't fail, a **tautology**, an<br/>**implementation-coupled** spec *(tdd's anti-patterns)*.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
     EGATE2 -->|"REJECTED — file:line per defect"| EATT
     EGATE2 -->|"APPROVED + the criterion→assertion mapping"| TCOM["**commit** exactly this ticket's files,<br/>**`--no-verify`**. the body quotes every<br/>comments_removed entry verbatim + why.<br/>*nothing reaches history unproven, and no<br/>ticket is finished without proof its tests<br/>are real — the gates just ran, scoped, and a<br/>pre-commit hook would re-run them plus the<br/>knip that gate 1 dropped on purpose*"]
 
@@ -576,7 +581,7 @@ flowchart TD
     ERVP -->|"no — the default"| EDWALK
     ERVP -->|yes| ERVPLAN["**end-of-plan review** — every milestone<br/>archived, none blocked · qoq-reviewer,<br/>mode plan · gaps → **ask**: Plan gaps<br/>milestone · replan · accept · drop"]
     ERVPLAN --> EDWALK
-    EDWALK["**walk the user through every<br/>milestone's Docs, Security and Review<br/>advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
+    EDWALK["**walk the user through every<br/>milestone's Refactor, Docs, Security<br/>and Review advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
     EDWALK --> ESIGNQ{"review on?"}
     ESIGNQ -->|"no — the default"| EFIN
     ESIGNQ -->|yes| ESIGN(["**sign-off** — verdict · asked vs<br/>delivered · open items · gate evidence ·<br/>yes → **Signed off** in the plan header"])
@@ -589,6 +594,7 @@ flowchart TD
 
     class EDEV,EGATE2 agent
     class EASK,EPERM,EIMP,ECASK,EDWALK,ESOFF,ESIGN,EUNRES user
+    class ETDDSTOP user
     class EBACK,EMGATE,EGATE,EDOC,ESH,ERV,ERVPLAN skill
     class CONTRA note
 ```
@@ -602,7 +608,10 @@ flowchart TD
     TARG["a path, or a behaviour to cover<br/>*(from the user — the only caller.<br/>a ticket raises its own assertions<br/>inside qoq-developer)*"]
     TARG --> TD1
     TD1["**read the record** — runner · globals ·<br/>React? · conventions file · commands.<br/>*nothing rediscovered here*"]
-    TD1 --> TSCOPE["**infer the scope** — one piece → unit,<br/>a flow across pieces → integration.<br/>state it back, don't ask"]
+    TD1 --> TTDD{"**1.** is **tdd** in your own<br/>available-skills list?<br/>*files on disk don't count:<br/>a disabled plugin stays cached*"}
+    TTDD -->|"missing"| TTDDSTOP(["**stop** — no proceed-without.<br/>`/plugin install mattpocock-skills`,<br/>then qoq test again"])
+    TTDD -->|"listed — preloaded into<br/>qoq-tester by its<br/>skills: frontmatter"| TSCOPE
+    TSCOPE(["**ASK THE USER to confirm the seams** —<br/>each public interface to test, one line on<br/>what it catches and misses, unit or<br/>integration. *tdd: no test at an<br/>unconfirmed seam*"])
 
     TSCOPE --> TBASE["**run the full suite** —<br/>is the base green?"]
     TBASE -->|"red"| TBASK(["**ASK THE USER** — pre-existing failures:<br/>skip them, or fix them first?"])
@@ -612,11 +621,11 @@ flowchart TD
     TBASE -->|"green"| TSLICE
 
     TSLICE["**slice the scope** — one coherent unit<br/>each: a file, a component, a behaviour"]
-    TSLICE --> TDISP["dispatch **qoq-tester**<br/>(Sonnet, **one slice at a time**)<br/>hands it: conventions · commands ·<br/>the slice · the baseline"]
+    TSLICE --> TDISP["dispatch **qoq-tester**<br/>(Sonnet, **one slice at a time**)<br/>hands it: conventions · commands ·<br/>the slice + its agreed seams · the baseline"]
 
     subgraph TESTER["qoq-tester flow *(everything the agent does)*"]
         direction TB
-        A1["write the specs<br/>for this slice"]
+        A1["write the specs for this slice —<br/>**tdd**'s good test, mocking, anti-patterns,<br/>then test-conventions.md on top.<br/>*not tdd's loop: the code already exists*"]
         A1 --> A2["run `test:one` on exactly those specs<br/>*the project's own script*, then<br/>`npx qoq staged` over the same specs<br/>*scoped, seconds, no reports*"]
         A2 -->|"red"| A4
         A2 -->|"green"| A3["**the full suite** —<br/>against the baseline it was given"]
@@ -645,7 +654,7 @@ flowchart TD
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
 
     class TESTER agent
-    class TNARROW,TBASK user
+    class TNARROW,TBASK,TSCOPE user
     class TGATE,TREF skill
 ```
 
@@ -663,7 +672,11 @@ flowchart TD
     CDEF --> CLIST
     CLIST --> CSHOW["**list what matched** before touching<br/>anything — in a monorepo that's<br/>twenty files, some shipped to npm"]
 
-    CSHOW --> CNODISC["**no discovery at all** —<br/>*no line of the record describes<br/>a markdown file. the only command<br/>that skips it*"]
+    CSHOW --> CWFA{"is **writing-for-agents** in<br/>your own available-skills list?"}
+    CWFA -->|"listed"| CWFAI["**invoke it once** — the base.<br/>*compress.md wins where they conflict:<br/>a guardrail keeps its ban · a leading<br/>word replaces a restatement, never a fact*"]
+    CWFA -->|"missing"| CWFAQ(["**ASK ONCE** — install and re-run<br/>*(recommended)*, or proceed on<br/>this command's own test alone"])
+    CWFAQ -.->|"proceed without"| CNODISC
+    CWFAI --> CNODISC["**no discovery at all** —<br/>*no line of the record describes<br/>a markdown file. the only command<br/>that skips it*"]
 
     CNODISC --> CFILE["**next file** — one at a time,<br/>never in parallel"]
     CFILE --> CREAD["read it **whole** first.<br/>*a rule stated in ¶2 and used in ¶9<br/>looks redundant from ¶9*"]
@@ -716,7 +729,7 @@ flowchart TD
     DDISP["dispatch at the **session's** model —<br/>path mode. *inference on code<br/>nobody explained*"] --> DSCRIBE
     DDISPP --> DSCRIBE
 
-    DSCRIBE["**qoq-scribe** — docs/ managed? *index.md<br/>starts qoq-scribe index + lists every doc* ·<br/>conventions ·<br/>JSDoc on exported + non-trivial only,<br/>no types in TS · owned docs carry<br/>**qoq-scribe sources:** · Source line per<br/>section · index.md = **TOC only** ·<br/>README ends **Documentation** → index.md ·<br/>**@todo qoq-scribe:** where purpose is unknown.<br/>*comments only — never behaviour,<br/>never refactor advice, never diagrams*"]
+    DSCRIBE["**qoq-scribe** — docs/ managed? *index.md<br/>starts qoq-scribe index + lists every doc;<br/>docs/adr/ is the user's — read, never touched* ·<br/>conventions ·<br/>JSDoc on exported + non-trivial only,<br/>no types in TS · owned docs carry<br/>**qoq-scribe sources:** · Source line per<br/>section · index.md = **TOC only** ·<br/>README ends **Documentation** → index.md ·<br/>**@todo qoq-scribe:** where purpose is unknown.<br/>*comments only — never behaviour,<br/>never refactor advice, never diagrams*"]
     DSCRIBE --> DQS{"status"}
 
     DQS -->|"question — wrote nothing"| DMODE{"mode"}

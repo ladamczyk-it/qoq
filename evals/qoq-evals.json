@@ -144,9 +144,10 @@
       "id": 7,
       "name": "execute-sequential-tdd-milestone-refactor",
       "prompt": "the plan in ./plans/ is signed off — go ahead and build it",
-      "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order — no waves, no parallelism flag, no run id — handing it the record's path, the test-conventions.md path, and the ticket's tier explicitly. The developer writes assertions transcribed from the acceptance criteria, implements, raises those assertions to test-conventions.md itself (no `qoq test` dispatch — a subagent can't dispatch), proves the work runs with the project's own test:one and build, then runs the CLI's `ticket_scoped` form (`npx qoq staged --skip-knip`) over its own files — its only CLI call — and hands back the changed-file list. THE ORCHESTRATOR then runs both gates — `qoq fix --skip-knip` scoped to that list, then qoq-test-reviewer — and commits exactly that ticket's files once both pass; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread. Once each ticket reaches done or blocked it reports the outcome back with scripts/estimate.mjs --record, using the ticket's own tags, stack and the tier the plan assigned (not the tier that finally delivered it), the attempts actually spent, and its own attribution call — as-estimated when the ticket was what the plan said it was, scope-expansion when the developer found work nobody knew was there. A ticket that landed after an escalation is still reported as success — the attempt count already says the tier was mis-picked; only a ticket left blocked is reported as failure.",
+      "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order — no waves, no parallelism flag, no run id — Before dispatching anything it resolves `tdd` from its own available-skills list and stops if it is missing. It hands the developer the record's path, the tdd SKILL.md/tests.md/mocking.md paths, the test-conventions.md path, and the ticket's tier explicitly. The developer works one acceptance criterion at a time — a failing assertion transcribed from the criterion and proved red, then the minimum to turn it green, then the next — with no per-ticket refactor beat, raises those assertions to tdd and test-conventions.md itself (no `qoq test` dispatch — a subagent can't dispatch), proves the work runs with the project's own test:one and build, then runs the CLI's `ticket_scoped` form (`npx qoq staged --skip-knip`) over its own files — its only CLI call — and hands back the changed-file list. THE ORCHESTRATOR then runs both gates — `qoq fix --skip-knip` scoped to that list, then qoq-test-reviewer — and commits exactly that ticket's files once both pass; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread. Once each ticket reaches done or blocked it reports the outcome back with scripts/estimate.mjs --record, using the ticket's own tags, stack and the tier the plan assigned (not the tier that finally delivered it), the attempts actually spent, and its own attribution call — as-estimated when the ticket was what the plan said it was, scope-expansion when the developer found work nobody knew was there. A ticket that landed after an escalation is still reported as success — the attempt count already says the tier was mis-picked; only a ticket left blocked is reported as failure.",
       "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit.md"],
       "assertions": [
+        "Resolves `tdd` from its available-skills list before dispatching anything",
         "Loads the plan fresh from disk rather than reusing an in-session copy",
         "Refuses to execute a plan whose status is draft",
         "Reconciles an in-progress ticket against git log rather than asking the user",
@@ -155,14 +156,15 @@
         "No parallel waves and no flag offering them",
         "The dispatch carries the ticket's id, Context, Files and Acceptance criteria verbatim",
         "The dispatch carries the record's path, the test-conventions.md path, and the tier explicitly",
-        "The developer writes failing assertions transcribed from the criteria before implementing",
-        "The developer raises those assertions to test-conventions.md itself, with no qoq test dispatch",
+        "The developer takes the criteria one at a time — red, then green — never all red in one run first",
+        "The developer raises those assertions to tdd and test-conventions.md itself, with no qoq test dispatch",
         "The developer proves its work with the project's own test:one and build",
         "The developer's only qoq CLI call is `npx qoq staged --skip-knip` over its own files — never --check or --fix",
         "The orchestrator dispatches qoq fix --skip-knip scoped to the returned file list",
         "The commit happens on the orchestrating thread, one per ticket, only after both gates pass",
         "A FAIL re-dispatches the developer with the digest and spends one of three attempts",
-        "The refactor beat runs at the milestone over the union of its files, not per ticket",
+        "Refactoring runs only at the milestone over the union of its files — the developer has no refactor beat",
+        "The milestone refactor's judgement-tier advisories are walked through with the user at the end of the plan, even with every experimental flag off",
         "The milestone gate also runs the project's full build and test suite",
         "Escalates one tier when the budget is spent, recording the escalation on the ticket",
         "The orchestrating thread never implements anything itself",
@@ -179,15 +181,15 @@
       "id": 8,
       "name": "test-red-base-asks-first",
       "prompt": "the TokenService in src/auth has no tests at all, can you write some? unit tests are fine",
-      "expected_output": "Reads runner, globals, react and conventions off the discovery record rather than rediscovering them. States the inferred scope back rather than asking. Runs the full suite BEFORE writing anything to establish a baseline, and on finding pre-existing failures asks the user whether to skip them (recording them as the baseline) or fix them first — it does not silently absorb them into the new work's result. Dispatches qoq-tester one slice at a time, handing over the record path, the test-conventions.md path, the slice, the baseline, and any specs already in place. The tester proves its specs run using the PROJECT's own scripts — test:one then the full suite against the baseline — then clears what `npx qoq staged` reports over exactly those specs (its only CLI call), and hands back the file list. THE COMMAND then dispatches `qoq fix` scoped to those spec files as the gate, re-running the full suite if fix changed anything, and re-dispatches the tester with the digest on a FAIL. qoq refactor runs ONCE after the last slice, scoped to every file written. Never uses .skip or loosens an assertion to get green.",
+      "expected_output": "Reads runner, globals, react and conventions off the discovery record rather than rediscovering them. Resolves `tdd` from its available-skills list, then proposes the seams to test — one line each on what it catches and misses, unit or integration — and waits for the user to confirm them before anything else. Runs the full suite BEFORE writing anything to establish a baseline, and on finding pre-existing failures asks the user whether to skip them (recording them as the baseline) or fix them first — it does not silently absorb them into the new work's result. Dispatches qoq-tester one slice at a time, handing over the record path, the test-conventions.md path, the slice with its agreed seams, the baseline, and any specs already in place. The tester proves its specs run using the PROJECT's own scripts — test:one then the full suite against the baseline — then clears what `npx qoq staged` reports over exactly those specs (its only CLI call), and hands back the file list. THE COMMAND then dispatches `qoq fix` scoped to those spec files as the gate, re-running the full suite if fix changed anything, and re-dispatches the tester with the digest on a FAIL. qoq refactor runs ONCE after the last slice, scoped to every file written. Never uses .skip or loosens an assertion to get green.",
       "files": ["evals/fixtures/repo/src/auth/TokenService.ts"],
       "assertions": [
         "Reads runner, globals, react and conventions off the record rather than rediscovering them",
-        "States the inferred unit/integration scope back instead of asking",
+        "Proposes the seams with what each catches and misses, and waits for confirmation before the baseline run",
         "Runs the full suite BEFORE writing anything, to establish a baseline",
         "Asks whether to skip or fix pre-existing failures rather than absorbing them",
         "Dispatches qoq-tester one slice at a time, never two in parallel",
-        "The dispatch carries the record path, test-conventions.md path, slice, baseline, and any existing specs",
+        "The dispatch carries the record path, test-conventions.md path, slice with its seams, baseline, and any existing specs",
         "The tester proves its specs with the project's own test:one then the full suite",
         "The tester's only qoq CLI call is `npx qoq staged` over the specs it wrote, and it never edits the code under test",
         "The command dispatches qoq fix over the returned spec files as the gate",
@@ -256,6 +258,7 @@
       "expected_output": "Acts on the injected entry.mjs output, whose discovery section reports `skipped — compress reads nothing on the record`, and says so rather than reading a manifest to learn a test command before deleting an adjective. Resolves the default scope with `git ls-files '*CLAUDE.md' '*AGENTS.md'` and lists what matched before editing anything. Works one file at a time, never in parallel, reading each file whole before cutting. Writes each compressed version to a scratch path first, runs `node <skill>/scripts/compress-check.mjs <original> <scratch>`, and treats a dropped literal as something to restore or justify and an invented one as a hallucinated path to rewrite — never as an automatic revert. Skips files that would save under ~15%. Ends by dispatching `qoq fix` over exactly the changed files so Prettier reformats the markdown, then reports one table of before/after word counts taken from the script's own output, naming every skipped file and every dropped literal it judged redundant.",
       "files": [],
       "assertions": [
+        "Resolves writing-for-agents from its available-skills list after listing the files and invokes it once before reading the first file",
         "Acts on entry.mjs reporting discovery skipped, and states that compress needs no record",
         "Resolves the default scope with git ls-files over *CLAUDE.md and *AGENTS.md",
         "Lists the matched files before editing any of them",
@@ -449,7 +452,9 @@
         "Checks the one-ticket stop before checking whether grilling is installed",
         "Writes Scenarios as Given/When/Then prose derived from what the grill settled, not Gherkin",
         "Dispatches Explore to locate before dispatching the architect",
+        "Invokes domain-modeling just before grilling, and lists any GLOSSARY.md or docs/adr/ file it wrote in the approval summary",
         "Dispatches qoq-architect — the skip condition fails because the work invents data shapes",
+        "Does not invoke codebase-design on the main thread — it reaches the architect through its skills: frontmatter",
         "The architect's dispatch carries the Scenarios verbatim, plus the skill's absolute path",
         "Asks the architect's Unknowns on the main thread and gets answers before Phase 3 starts",
         "Contracts go on the milestone; Integration surface and Risks go on ticket Context",
@@ -464,7 +469,7 @@
       "id": 22,
       "name": "execute-two-gates-before-commit",
       "prompt": "plans/2026-08-20-ratelimit.md is approved, go build it",
-      "expected_output": "Loads the plan fresh from disk, checks it isn't on the default branch before dispatching anything, and sends tickets out one at a time in dependency order. Each dispatch carries the ticket's id, Context, Files and Acceptance criteria verbatim, the milestone's Contracts verbatim, the record's path, the path to references/test-conventions.md, the tier's model explicitly, and the three-attempt budget — but NOT the milestone's Scenarios. When the developer hands back, both gates run here, in order: qoq fix scoped to exactly the files the ticket changed, then qoq-test-reviewer over the spec files. The commit happens only after both pass. A REJECTED verdict is re-dispatched verbatim, never summarised. The attempt budget is three shared across both gates, and a fourth failure escalates one tier with the last report pasted in. On done, each acceptance criterion is ticked with the spec/file::test name taken from Gate 2's own mapping, and the outcome is filed with estimate.mjs --record against the tier the plan assigned.",
+      "expected_output": "Loads the plan fresh from disk, checks it isn't on the default branch before dispatching anything, and sends tickets out one at a time in dependency order. Each dispatch carries the ticket's id, Context, Files and Acceptance criteria verbatim, the milestone's Contracts verbatim, the record's path, the tdd SKILL.md/tests.md/mocking.md paths, the path to references/test-conventions.md, the tier's model explicitly, and the three-attempt budget — but NOT the milestone's Scenarios. When the developer hands back, both gates run here, in order: qoq fix scoped to exactly the files the ticket changed, then qoq-test-reviewer over the spec files. The commit happens only after both pass. A REJECTED verdict is re-dispatched verbatim, never summarised. The attempt budget is three shared across both gates, and a fourth failure escalates one tier with the last report pasted in. On done, each acceptance criterion is ticked with the spec/file::test name taken from Gate 2's own mapping, and the outcome is filed with estimate.mjs --record against the tier the plan assigned.",
       "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit.md"],
       "assertions": [
         "Loads the plan from disk rather than an in-memory copy",
@@ -545,7 +550,7 @@
     {
       "id": 26,
       "name": "test-reviewer-sound-spec-approves",
-      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/m7/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. (the installed tdd skill's base directory). Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/m7/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
       "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. Control: every criterion is pinned by an exact assertion against the contract shape. The spec fails each of three mutants (never blocks, shared keys, never resets). The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
       "files": [
         "evals/fixtures/test-reviewer/ticket.md",
@@ -563,7 +568,7 @@
     {
       "id": 27,
       "name": "test-reviewer-missing-criterion-rejects",
-      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/k3/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. (the installed tdd skill's base directory). Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/k3/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
       "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. AC-4 (window reset) has no test at all. The spec still passes against a limiter that never resets. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
       "files": [
         "evals/fixtures/test-reviewer/ticket.md",
@@ -582,7 +587,7 @@
     {
       "id": 28,
       "name": "test-reviewer-tautology-rejects",
-      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/w9/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. (the installed tdd skill's base directory). Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/w9/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
       "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. AC-3's only assertion is `remaining >= 0`, which no implementation of the contract can fail. A shared-counter mutant passes it. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
       "files": [
         "evals/fixtures/test-reviewer/ticket.md",
@@ -601,7 +606,7 @@
     {
       "id": 29,
       "name": "test-reviewer-vacuous-callback-rejects",
-      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/p2/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. (the installed tdd skill's base directory). Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/p2/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
       "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. AC-2's expect sits inside forEach over a filter for blocked hits. A never-blocking limiter yields an empty array and the test passes with zero assertions. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
       "files": [
         "evals/fixtures/test-reviewer/ticket.md",
@@ -620,7 +625,7 @@
     {
       "id": 30,
       "name": "test-reviewer-mock-against-itself-rejects",
-      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/r5/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. (the installed tdd skill's base directory). Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/r5/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
       "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. AC-4's only assertion is `expect(now).toHaveBeenCalledTimes(2)` — a mock asserted against itself. A never-resetting limiter still calls now() twice. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
       "files": [
         "evals/fixtures/test-reviewer/ticket.md",
@@ -639,7 +644,7 @@
     {
       "id": 31,
       "name": "test-reviewer-weak-value-assertion-rejects",
-      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/x4/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. (the installed tdd skill's base directory). Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/x4/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
       "expected_output": "Seeded-defect fixture for qoq-test-reviewer's tier: a false APPROVED lets a weak spec into history, and nothing downstream catches it. The subtlest case. AC-2 checks `allowed: false` exactly but `retryAfterMs` only with toBeGreaterThan(0), so a limiter that returns windowMs instead of the time left passes. Added because the other four defects didn't separate sonnet from opus. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
       "files": [
         "evals/fixtures/test-reviewer/ticket.md",
@@ -1128,6 +1133,7 @@
       "expected_output": "First pass returns `status: migrate` and writes nothing; the migration questions are about docs/api-keys.md only (open points, claims the code contradicts), and code-purpose questions such as the legacy `Token ` prefix are left for markers. After the answer, the re-dispatch converts docs/api-keys.md in place: first line `<!-- qoq-scribe sources: none -->`, a `> Source:` line on every section, the user's answers written in, and no claim kept in its old wording when the code contradicts it and nobody answered. docs/index.md is created as a table of contents listing it, and README.md ends with `## Documentation` linking docs/index.md.",
       "files": ["evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts"],
       "assertions": [
+        "`couldn't determine` appears only as a `> Source:` value, never inside a sentence",
         "The first pass writes nothing and asks about docs/api-keys.md before any change",
         "No migration question asks why code is shaped some way (e.g. the legacy `Token ` prefix) — those become markers",
         "docs/api-keys.md keeps its filename and starts with `<!-- qoq-scribe sources: none -->`",
@@ -1153,6 +1159,59 @@
       ],
       "target": "fixture-repo",
       "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts and a README.md). Keep docs/api-keys.md."
+    },
+    {
+      "id": 62,
+      "name": "document-adr-is-human-owned",
+      "prompt": "/qoq document src/auth",
+      "expected_output": "docs/ is managed: docs/index.md starts with `<!-- qoq-scribe index -->` and lists docs/api-keys.md. docs/adr/0001-accept-legacy-token-prefix.md is not in the index, and that does not make docs/ unmanaged, because docs/adr/ is the user's. No migration runs or is asked about. The scribe reads the ADR as input: the legacy `Token ` prefix in authenticate.ts is explained from it, citing or linking the ADR instead of leaving a `@todo qoq-scribe:` marker or restating the decision at length. The ADR stays byte-identical, docs/index.md gains the new workflow doc but never an ADR link, and nothing is written under docs/adr/.",
+      "files": [
+        "evals/fixtures/repo-states/document-auth/src/auth/authenticate.ts",
+        "evals/fixtures/repo-states/document-adr/docs/adr/0001-accept-legacy-token-prefix.md"
+      ],
+      "assertions": [
+        "`couldn't determine` appears only as a `> Source:` value, never inside a sentence",
+        "No migration is proposed and the user is not asked about docs/adr/ or docs/api-keys.md",
+        "docs/adr/0001-accept-legacy-token-prefix.md is byte-identical and no other file under docs/adr/ is created",
+        "docs/index.md links the new workflow doc and does not link anything under docs/adr/",
+        "No `@todo qoq-scribe:` marker is left about the legacy `Token ` prefix",
+        "The written doc or comment that explains the legacy prefix links or names the ADR rather than restating its context"
+      ],
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/document-auth/ over the fixture (adds src/auth/authenticate.ts and a README.md), then evals/fixtures/repo-states/document-managed/ (adds docs/index.md listing api-keys.md), then evals/fixtures/repo-states/document-adr/ (adds docs/adr/0001-accept-legacy-token-prefix.md)."
+    },
+    {
+      "id": 60,
+      "name": "test-reviewer-recomputed-expected-rejects",
+      "prompt": "Dispatch qoq-test-reviewer directly (not through the skill), at each tier under test, with: Skill path: <repo>/skills/qoq. Test conventions: <repo>/skills/qoq/references/test-conventions.md. (the installed tdd skill's base directory). Ticket 2.1: fixed-window rate limiter. Gate 2 review — audit the spec against the criteria and the contract; return APPROVED with the criterion → assertion mapping, or REJECTED with file:line per defect. Spec files: <repo>/evals/fixtures/test-reviewer/specs/t6/rateLimit.spec.ts. Implementation under test: <repo>/evals/fixtures/test-reviewer/rateLimit.ts. Acceptance criteria and milestone Contracts: <repo>/evals/fixtures/test-reviewer/ticket.md. Audit only the spec file named above; the other directories under specs/ belong to other tickets.",
+      "expected_output": "Seeded-defect fixture for tdd's tautological anti-pattern: AC-1's expected `remaining` values are derived from the code's own first result (`first.remaining - index`) instead of an independent literal, so an off-by-one limiter that counts down from `limit` instead of `limit - 1` still passes. The other three tests are sound. The fixture's directory name is neutral on purpose, so the verdict comes from reading the spec and not from the path. The verdict is binary.",
+      "files": [
+        "evals/fixtures/test-reviewer/ticket.md",
+        "evals/fixtures/test-reviewer/rateLimit.ts",
+        "evals/fixtures/test-reviewer/specs/t6/rateLimit.spec.ts"
+      ],
+      "assertions": [
+        "Returns REJECTED",
+        "Cites the AC-1 remaining assertion by file:line",
+        "Explains that the expected values come from the code's own output, so an off-by-one count still passes",
+        "Gives the replacement: the literal sequence 2, 1, 0 for limit 3",
+        "Edits nothing and runs nothing — reads only"
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 61,
+      "name": "tdd-missing-stops-test",
+      "prompt": "the TokenService in src/auth has no tests at all, can you write some? unit tests are fine",
+      "expected_output": "With mattpocock-skills not installed, `tdd` is absent from the available-skills list. `test` checks for it before proposing seams, running the baseline, or dispatching anything, and stops — no proceed-without option — naming `/plugin install mattpocock-skills` and saying it normally arrives with qoq as a plugin dependency. No spec is written and no qoq-tester is dispatched. It does not substitute its own TDD rules. (`execute` stops the same way; this eval uses `test` because it needs no plan fixture.)",
+      "files": ["evals/fixtures/repo/src/auth/TokenService.ts"],
+      "assertions": [
+        "Looks for tdd in its own available-skills list before proposing seams or running the suite",
+        "Stops with the install command rather than offering to proceed without it",
+        "Dispatches no qoq-tester and writes no spec file"
+      ],
+      "target": "fixture-repo",
+      "setup": "Run in a session where the mattpocock-skills plugin is disabled, so neither tdd nor grilling is in the available-skills list."
     }
   ]
 }

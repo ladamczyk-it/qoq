@@ -1,31 +1,19 @@
 # Test conventions
 
-The house rules for writing specs in a QoQ project. Every one is overridable by
-the project's own `testing-gate.md` — the file named on the record's
-`conventions` field — wherever the two conflict. That file is human-written and
-knows things about the project this skill can't infer.
+The house rules for writing specs in a QoQ project, layered on **`tdd`** — the
+base: what a good test is, seams, mocking at system boundaries only, the
+anti-patterns, the red → green loop. Its `SKILL.md` is preloaded into every
+agent that writes or reviews a spec, and `tests.md` and `mocking.md` sit in its
+base directory; this file adds what's specific to
+QoQ and wins where the two conflict. The project's own `testing-gate.md` — the
+file named on the record's `conventions` field — wins over both. That file is
+human-written and knows things this skill can't infer.
 
 **Readable on its own.** Nothing below depends on the rest of the skill, which is
 deliberate: most tests in a plan-driven project aren't written by `qoq test` at
 all, but by `qoq-developer` implementing the feature they cover. What it won't
 give you is the runner, the `globals` setting, or the run commands; those are on
 the record.
-
-## Coverage and mocking
-
-Cover happy paths **and** the edge cases that could actually arrive. A test that
-doesn't exercise a real risk is padding, not coverage — don't chase a percentage.
-
-Mocking is the most common failure mode in generated tests, so decide rather than
-reach:
-
-- **Mock** what is external, side-effecting, non-deterministic, or needed to
-  isolate the unit — a database client, a clock, an HTTP call, a provider the
-  unit depends on but isn't itself under test.
-- **Don't mock** a dependency that mutates nothing and is already well-tested.
-  The real implementation is cheaper and tests more.
-- **Rule of thumb:** if the test would break or go flaky without the mock, it
-  belongs. If nothing about the test's correctness depends on it, drop it.
 
 ## React Testing Library
 

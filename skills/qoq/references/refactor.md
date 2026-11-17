@@ -39,7 +39,8 @@ Installed → say nothing, proceed. Missing → ask once:
 > `ponytail-review` isn't installed, so assessment 3 (what can we delete?) can't
 > run. Assessments 1, 2 and 4 are unaffected.
 >
-> - **Install and re-run** _(recommended)_ — from
+> - **Install and re-run** _(recommended)_ — it normally arrives with qoq as a
+>   plugin dependency; otherwise from
 >   <https://github.com/DietrichGebert/ponytail>, as two separate prompts:
 >   `/plugin marketplace add DietrichGebert/ponytail`, then
 >   `/plugin install ponytail@ponytail`. Then `/qoq refactor <scope>` again.

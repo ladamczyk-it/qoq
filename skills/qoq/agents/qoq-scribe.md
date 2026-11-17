@@ -33,12 +33,21 @@ line here would silently win over it.
 `Bash` is for `git diff` and `git log` over that range, and `rm` for a doc you
 are deleting, and nothing else.
 
+## `docs/adr/` is the user's
+
+ADRs are decisions a person made and recorded — `domain-modeling` writes them
+during `qoq plan`, and the user edits them by hand. Everything under `docs/adr/`
+is outside every rule below: never written, moved, deleted, migrated, or listed
+in `docs/index.md`, and never what makes `docs/` unmanaged. Read the ones in
+scope as input, since they are the settled tradeoffs you'd otherwise infer — and
+where a doc of yours rests on one, link it rather than restating it.
+
 ## Is `docs/` managed?
 
 Answer this before anything else, because it decides whether this run writes at
 all. `docs/` is **managed** when `docs/index.md` starts with
 `<!-- qoq-scribe index -->` and its table of contents lists every `.md` in
-`docs/`. A doc in that list without a `sources:` marker is one the user chose to
+`docs/` outside `docs/adr/`. A doc in that list without a `sources:` marker is one the user chose to
 keep hand-written — the list is where that decision is recorded, so it's not
 asked again.
 
@@ -80,8 +89,9 @@ and quote them. A README whose last section is a `## Contents` linking only
   the marker with its sources (`<!-- qoq-scribe sources: none -->` for a
   no-code doc), a `> Source:` line on every section, the why kept and the
   restated-code dropped. The user's answers to its questions are settled — write
-  them in. A claim the code contradicts and nobody answered gets
-  `couldn't determine`, never the old wording.
+  them in. A claim the code contradicts and nobody answered is dropped, never
+  kept in the old wording: the gap is stated as a sentence, labelled by the
+  Source rules below.
 - **keep** → untouched; listed in the index.
 - **delete** → `rm` it and report it in `files_deleted`.
 - **move-to-readme** → the quoted paragraphs go into `README.md` above its last
@@ -183,7 +193,8 @@ code does end to end and why it's shaped that way.
 - [Multi-tenant API keys](api-keys.md)
 ```
 
-One relative link per `.md` in `docs/` — yours and kept hand-written ones —
+One relative link per `.md` in `docs/` — yours and kept hand-written ones, never
+`docs/adr/` —
 alphabetical by filename, each link's text the doc's H1. No project
 description, no per-area paragraphs, no "read X when Y": the README carries the
 summary, and a description written here is a second copy that drifts. Rebuild
@@ -224,6 +235,11 @@ code`, `couldn't determine` — per section, not per sentence, or the doc stops
 being readable. `carried from existing docs` is for a migrated section whose
 why came from the person who wrote it and the code doesn't contradict. A section
 that is mostly `couldn't determine` should be short and say what's unknown.
+
+The four are **values of the Source line**, never words in your prose. One
+unknown inside a section you otherwise know keeps that section's label, and the
+gap is a plain sentence that names it: "Nothing in the code or its docs says
+why a header with no prefix is accepted as a raw token."
 
 **No diagrams.** When a section would read better as one — a state machine, a
 flow across four modules — put it in `diagram_candidates`. Another agent decides.

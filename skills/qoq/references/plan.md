@@ -64,7 +64,8 @@ Installed → invoke it with the requirements. Missing → ask once:
 > decomposing the requirements exactly as written.
 >
 > - **Install and re-run** _(recommended)_ — `/plugin install mattpocock-skills`.
->   It's in Claude Code's official marketplace, so there's nothing to add first.
+>   It normally arrives with qoq as a plugin dependency, and it's in Claude
+>   Code's official marketplace, so there's nothing to add first.
 >   Then `/qoq plan <requirements>` again.
 > - **Proceed without it** — I decompose what's written and stop to ask you
 >   directly whenever a ticket can't be written from it. That's the same
@@ -80,8 +81,21 @@ spec that already answers them should produce a short session, not a re-ask of
 its own contents. A precise spec ends in one round and costs almost nothing.
 Deciding for the user that their spec has no gaps is what costs.
 
-**The grill leaves nothing behind but the conversation.** It's stateless by
-design: no files, no workspace, no record. Everything it settled lives only in
+**Alongside it, `domain-modeling`.** Resolve it from the same list the same way
+and invoke it **just before** `grilling`, so its discipline runs during the
+interview: a term that conflicts with `GLOSSARY.md` is called out, a fuzzy one
+gets a canonical name, and each term and decision is written into `GLOSSARY.md`
+or an ADR under `docs/adr/` the moment it crystallises — the files every
+`qoq-developer` reads through `tdd`. Those files are the **user's**, not the
+plan's and not `qoq-scribe`'s: list each one written or changed in the approval
+summary, and leave them in the working tree for the user to review. Missing, or
+the grill skipped → no `domain-modeling` either; put it on the approval's
+skipped list rather than asking — `grilling`'s question already offered the
+install, and it's the same plugin.
+
+**The grill leaves nothing behind but the conversation** — beyond what
+`domain-modeling` wrote, which is vocabulary and decisions, not the plan. It's
+stateless by design: no workspace, no record. Everything it settled lives only in
 this thread, so it has to land in the plan file as you decompose — the
 architecture sentence, a ticket's **Context**, the acceptance criterion that
 only got sharp because a question was asked. Note on **Requirements source**
@@ -175,7 +189,10 @@ Its dispatch carries, verbatim:
 - this skill's absolute path
 
 It returns four sections: **Contracts**, **Integration surface**, **Risks**,
-**Unknowns**. It never edits, and it never guesses a contract.
+**Unknowns**. It never edits, and it never guesses a contract. It designs with
+`codebase-design`'s vocabulary, preloaded by its `skills:` frontmatter; a return
+opening `codebase-design: not loaded` means the plugin is missing or off, and
+goes on the approval's skipped list.
 
 ### Ask the Unknowns before Phase 3 starts
 
@@ -400,8 +417,9 @@ script or you: they know whether this ticket really is the same shape as the fou
 that went wrong, and it's their model spend.
 
 Say here, too, what was **skipped**: the `grilling` round — installed-and-declined
-or `--decisions auto` — and the **architect**, if the skip condition held. Neither
-is a veto item; they're the two things at approval the user can't see from the
+or `--decisions auto` — `domain-modeling`, if it didn't run, the **architect**, if the skip condition held, and
+`codebase-design`, if the architect reported it not loaded. None is a veto item;
+they're the things at approval the user can't see from the
 plan file, and they change how hard they should read the acceptance criteria and a
 `Contracts: none` respectively. With diagrams on, list what the artist drew and
 declined, one line each.

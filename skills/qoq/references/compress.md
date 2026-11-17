@@ -37,6 +37,36 @@ deleting an adjective would be this command failing at its own premise.
 It ends by calling `qoq fix` over the files it changed, and that call does its
 own discovery. Deferred, not skipped.
 
+## The base — `writing-for-agents`
+
+Resolve `writing-for-agents` from your own available-skills list, under whatever
+name it gives — a bare name and a `mattpocock-skills:` one do not resolve
+interchangeably. Check it **after listing the files, before the first one is
+read**, and invoke it once for the run: its single source of truth, environment
+as a cache, sediment, context pointers, leading words and positive phrasing are
+the vocabulary every cut below is judged in. This file adds what's specific to
+`compress` — the one test, the literal check, headings as an API — and **wins
+where the two conflict**. Two places they meet:
+
+- **Rewording a prohibition positively** is in scope only when the rule survives
+  intact. A hard guardrail keeps its ban, with the positive target beside it.
+- **A leading word may replace a restated triad**, never a fact: the specification
+  of a behaviour stays as true as it was (below).
+
+Missing → ask once:
+
+> `writing-for-agents` isn't installed, so I'd compress on this command's own
+> test alone, without its vocabulary for duplication, sediment and pointers.
+>
+> - **Install and re-run** _(recommended)_ — `/plugin install mattpocock-skills`.
+>   It normally arrives with qoq as a plugin dependency. Then `/qoq compress`
+>   again.
+> - **Proceed without it** — the one test and the literal check below still
+>   apply in full.
+
+Proceed is a real option; take it and name the skipped base in the final table's
+caption.
+
 ## What compression is
 
 One test, applied sentence by sentence: **would an agent do anything differently
