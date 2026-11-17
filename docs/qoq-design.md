@@ -836,6 +836,24 @@ into the diff. A dual-mode tester breaks that by construction. The two would als
 share nothing but `tdd` and `test-conventions.md`, which both read from disk anyway, so the
 "reuse" buys no code — only a shared filename.
 
+**Why reporters' tools are guarded by a hook and not only by their bodies
+(added 2026-11-17).** `tools:` can't say "`Bash`, but only `git diff`", so four
+reporters (`qoq-checker`, `qoq-bumper`, `qoq-sheriff`, `qoq-reviewer`) held a
+shell that could write anything, and `qoq-tester` held `Write`/`Edit` over
+production source — the boundary was a sentence the agent promised to keep.
+`scripts/agent-guard.mjs` runs as a `PreToolUse` hook in each of those agents'
+frontmatter. It is an allowlist per role, not a denylist: a missed read costs a
+hand-back, and a missed write costs the finding. Every segment of a compound
+command is checked, redirection is refused except to `/dev/null`, and `node` is
+limited to this skill's own scripts, because `node -e` writes as well as `sed -i`
+does. The hook fails closed (`|| exit 2`), so a guard that can't load blocks
+calls instead of allowing them. The source names the script through
+`$CLAUDE_PROJECT_DIR/.claude/skills/qoq`, which is right for a symlinked
+checkout; `sync-agents.mjs` rewrites that path to the skill's real location when
+it copies an agent. The `general-purpose` fallback for an agent that isn't
+registered yet carries no hook. That gap is stated in the fallback text and not
+closed.
+
 It's an agent rather than a read on the orchestrating thread for two reasons: the
 reading volume is what dispatching exists to keep out of that context, and the
 orchestrator is holding the developer's own report, which primes it to accept. A

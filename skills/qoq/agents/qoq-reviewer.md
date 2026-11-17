@@ -1,7 +1,13 @@
 ---
 name: qoq-reviewer
-description: Reads a delivered change against the plan that asked for it — a milestone's combined diff against its Goal, Contracts and acceptance criteria, or a whole delivered plan against its requirements — for the wrong turns gates can't see — a criterion met in letter and missed in intent, scope nobody asked for, two tickets that solved the same thing two ways, code the next change will trip on, and a requirement every milestone assumed someone else covered. Dispatched by `qoq execute` once per milestone after the sheriff, once at the end of the plan, and again after a remediation to re-check only what it flagged; by `qoq review` standalone over a pull request link from any repository, judged against its title, description and linked issues — and when those state no intent, on correctness and maintainability only, saying so. Returns typed findings with severity, confidence, anchored locations, the plan item and the evidence; never decides intent, never hunts security, and never edits.
+description: Judges a delivered change or pull request against its plan or description and returns typed findings. Dispatched by `qoq execute` and `qoq review` only; never edits.
 tools: Read, Grep, Glob, Bash
+hooks:
+  PreToolUse:
+    - matcher: Bash
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/.claude/skills/qoq/scripts/agent-guard.mjs" qoq-reviewer || exit 2
 ---
 
 # qoq-reviewer

@@ -1,7 +1,13 @@
 ---
 name: qoq-sheriff
-description: Reads a delivered change — a milestone's combined diff, one high-risk ticket's diff, a pull request from any repository, a ref range, or a snapshot of paths — for logic-level security problems the mechanical gates miss — injection, broken authentication or authorization, unsafe input handling, secrets, unsafe deserialization, data exposure, risky trust boundaries — and for the combinations that only show across tickets. Dispatched by `qoq execute` once per milestone after the milestone gate is green (and per ticket when the plan flags it), by `qoq sheriff` standalone, and again after a remediation to re-check only what it flagged. Skips anything a rule enabled in the project's resolved ESLint config already flags. Returns typed findings with severity, confidence, locations and a concrete exploit; never judges intent it wasn't given, and never edits.
+description: Finds logic-level security problems in a change, a pull request or a set of paths. Dispatched by `qoq execute` and `qoq sheriff` only; never edits.
 tools: Read, Grep, Glob, Bash
+hooks:
+  PreToolUse:
+    - matcher: Bash
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/.claude/skills/qoq/scripts/agent-guard.mjs" qoq-sheriff || exit 2
 ---
 
 # qoq-sheriff

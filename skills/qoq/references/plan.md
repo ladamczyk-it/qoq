@@ -14,6 +14,30 @@ settles _who does which piece_. Each one's output is the next one's input, and
 running them out of order is how a plan ends up with acceptance criteria nobody
 can trace to a requirement.
 
+## Contents
+
+- [Phase 1 — Scope](#phase-1--scope)
+  - [Read the requirements, not a summary of them](#read-the-requirements-not-a-summary-of-them)
+  - [When not to write a plan](#when-not-to-write-a-plan)
+  - [Sharpen the requirements first — `grilling`](#sharpen-the-requirements-first--grilling)
+  - [Then write the Scenarios](#then-write-the-scenarios)
+- [Phase 2 — Design](#phase-2--design)
+  - [`Explore` earns its dispatch](#explore-earns-its-dispatch)
+  - [When the architect is skipped](#when-the-architect-is-skipped)
+  - [Dispatch `qoq-architect`](#dispatch-qoq-architect)
+  - [Ask the Unknowns before Phase 3 starts](#ask-the-unknowns-before-phase-3-starts)
+  - [Where the output lands](#where-the-output-lands)
+- [Phase 3 — Breakdown](#phase-3--breakdown)
+  - [Two independent subsystems don't get one plan](#two-independent-subsystems-dont-get-one-plan)
+  - [Acceptance criteria are assertions](#acceptance-criteria-are-assertions)
+  - [Sizing and complexity](#sizing-and-complexity)
+  - [Then check the pick against what actually happened last time](#then-check-the-pick-against-what-actually-happened-last-time)
+  - [No test-only tickets for feature work](#no-test-only-tickets-for-feature-work)
+  - [Self-review — the definition-of-ready gate](#self-review--the-definition-of-ready-gate)
+  - [Diagrams — when switched on](#diagrams--when-switched-on)
+  - [`--tool` — where the tickets end up](#--tool--where-the-tickets-end-up)
+  - [Approval, then handoff](#approval-then-handoff)
+
 ## Phase 1 — Scope
 
 ### Read the requirements, not a summary of them

@@ -1,6 +1,6 @@
 ---
 name: qoq-designer
-description: Identifies the stack a scope of a TypeScript/JavaScript project is actually written in, hunts code smells in it, and maps each confirmed one to the design pattern that resolves it — using the skill's own idiomatic pattern index plus the per-stack table that scope needs (React today). Dispatched by `qoq refactor` as assessment 4, once per run, after the ponytail pass. Returns the detected stack, then smells with their locations, the candidate pattern, and the asset file holding that pattern's full write-up — its caller reads that file and does the refactoring. Names patterns, never applies them, and never edits.
+description: Maps code smells in a scope to the design pattern that resolves each one. Dispatched by `qoq refactor` (assessment 4) only; never edits.
 model: sonnet
 tools: Read, Grep, Glob
 omitClaudeMd: true

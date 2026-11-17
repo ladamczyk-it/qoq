@@ -4,6 +4,20 @@ Run a plan to completion by dispatching every ticket to a `qoq-developer` at the
 tier the plan already assigned. This command **never implements anything
 itself** — its whole job is dispatch, gates, status, and archiving.
 
+## Contents
+
+- [Where the plan comes from — `--source`](#where-the-plan-comes-from----source)
+- [Loading and resuming](#loading-and-resuming)
+- [One ticket at a time](#one-ticket-at-a-time)
+- [Spending limits, when the user asks for them](#spending-limits-when-the-user-asks-for-them)
+- [The dispatch](#the-dispatch)
+- [The ticket is red → green; refactoring is the milestone's](#the-ticket-is-red--green-refactoring-is-the-milestones)
+- [Report the outcome back, once per ticket](#report-the-outcome-back-once-per-ticket)
+- [Escalation](#escalation)
+- [The milestone gate](#the-milestone-gate)
+- [When the last milestone archives](#when-the-last-milestone-archives)
+- [Setup](#setup)
+
 ## Where the plan comes from — `--source`
 
 `--source local` is the default and needs nothing: a plan path, or the single
@@ -257,18 +271,9 @@ developer's `advisories` go on the ticket's **Advisories** line.
 
 ### The test cycle stays the developer's own
 
-It writes the failing assertions, one per acceptance criterion, each just before
-the code that turns it — a criterion the plan already stated as an assertion
-needs transcribing, not authoring, and dispatching an agent to write
-`expect(res.status).toBe(429)` costs more than writing it. After green it may
-**add** cases against `tdd` and `test-conventions.md`, and
-may never change what a green assertion expects on its own judgment; Gate 2 is
-what independently checks the result.
-
-It doesn't hand any of that to `qoq test` — that dispatch is unavailable to it,
-and unnecessary: `qoq test` earns its subagent by _slicing_ a scope nobody has
-read yet, and a ticket arrives pre-sliced with its implementation already in the
-writer's context.
+Never dispatch `qoq test` or a `qoq-tester` for a ticket's specs: the developer
+writes each criterion's assertion itself, and `qoq-developer.md` says why. Gate 2
+is the independent check on what it wrote.
 
 ## Report the outcome back, once per ticket
 

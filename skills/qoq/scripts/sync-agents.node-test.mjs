@@ -162,3 +162,14 @@ test('an unknown flag is a usage error', () => {
   const { status } = spawnSync(process.execPath, [SCRIPT, '--force'], { encoding: 'utf8' });
   assert.equal(status, 2);
 });
+
+test("a copied agent's guard hook names this skill's real path, and that script exists", () => {
+  const dir = project();
+  run(dir);
+
+  const checker = readFileSync(join(dir, '.claude', 'agents', 'qoq-checker.md'), 'utf8');
+  assert.doesNotMatch(checker, /\$CLAUDE_PROJECT_DIR\/\.claude\/skills\/qoq/);
+  const [, script] = checker.match(/command: node "([^"]+)" qoq-checker \|\| exit 2/) ?? [];
+  assert.ok(script, 'qoq-checker carries the agent-guard hook');
+  assert.ok(existsSync(script), `${script} exists`);
+});

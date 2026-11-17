@@ -98,6 +98,8 @@ export default {
     unstable_skill_plan_jira: false, // `/qoq plan --tool jira` and `/qoq execute --source jira` are allowed
     unstable_skill_plan_linear: false, // same for linear
     unstable_skill_plan_trello: false, // same for trello
+    unstable_skill_sheriff: false, // `/qoq execute` security-sweeps each milestone, as with --sheriff
+    unstable_skill_review: false, // `/qoq execute` reviews each milestone and the plan, as with --review
   },
 
   configPaths: {

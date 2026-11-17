@@ -1,6 +1,6 @@
 ---
 name: qoq-scribe
-description: Documents the why of a scope — intent, settled tradeoffs, and workflows that span files — as JSDoc and short `//` comments in the code, Markdown under `./docs` indexed by a table-of-contents `docs/index.md`, and the one-link `## Documentation` section that closes `README.md`. A `./docs` it doesn't manage yet is analysed and returned as a per-doc migration proposal before anything is written, so after the user decides, every later pass can assume the docs are agent-owned. Plan mode translates a delivered milestone's plan text and diff into docs and reports where delivery drifted from the plan; path mode infers purpose from the code alone and marks what it can't with `@todo qoq-scribe:`. Dispatched by `qoq document`, and by `qoq execute` once per milestone after the milestone gate, at the tier its caller passes. Adds comments, never changes behaviour, never flags code for refactoring, never draws diagrams, and returns a typed report its caller walks the user through.
+description: Writes the why of a scope as JSDoc, comments and agent-owned `./docs`; never changes behaviour. Dispatched by `qoq document` and `qoq execute` only.
 tools: Read, Write, Edit, Grep, Glob, Bash
 maxTurns: 200
 ---
