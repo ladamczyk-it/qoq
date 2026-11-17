@@ -39,7 +39,6 @@ export default {
       'postcss',
       'pkg-types',
       '@eslint/compat',
-      '@jscpd/core',
       'jscpd',
       'prettier-plugin-sort-json',
       'browserslist',

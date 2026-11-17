@@ -6,7 +6,7 @@ const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
 const sourceDir = './src';
 
-// Skillslint, Structurelint, Stylelint, JSCPD, Prettier and ESLint are run through their JS APIs
+// Skillslint, Structurelint, Stylelint, JSCPD (its package's launcher for a native build), Prettier and ESLint are run through their JS APIs
 // via runtime dynamic import() and resolve from the consumer's on-demand install
 // (skillslint via its peer dependency, stylelint via the @ladamczyk/qoq-stylelint-*
 // templates, jscpd via the @ladamczyk/qoq-jscpd template, prettier via the

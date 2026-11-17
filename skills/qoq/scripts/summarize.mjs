@@ -268,9 +268,9 @@ if (knip && !knip.__parseError) {
 }
 
 // ---------- JSCPD ----------
-// Report is written by JscpdExecutor's JS-API path: a lean
+// Report is rebuilt by JscpdExecutor from jscpd v5's own json report: a lean
 // { percentage, clones:[{ format, lines, firstFile:{name,start,end}, secondFile:{…} }] }
-// (jscpd's heavy `fragment`/token/blame data is dropped at the source).
+// (jscpd's heavy `fragment`/token/location data is dropped at the source).
 const jscpd = read('jscpd-report.json');
 if (jscpd && !jscpd.__parseError) {
   const dups = jscpd.clones ?? [];

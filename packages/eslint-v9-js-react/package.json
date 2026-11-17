@@ -59,7 +59,7 @@
     "typescript": "7.0.2"
   },
   "peerDependencies": {
-    "eslint": "^10.13.0"
+    "eslint": "^10.15.0"
   },
   "engines": {
     "node": "^22.22.2 || ^24.15.0 || >=26.0.0",
