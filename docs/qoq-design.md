@@ -29,6 +29,13 @@ note — it reads as current and nothing contradicts it.
 | [`mermaid`](#mermaid)                         | `references/mermaid.md`          |
 | [Code conventions](#code-conventions)         | `references/code-conventions.md` |
 
+## Skills this one builds on
+
+The full list, with links to each source repository and whether qoq uses the
+skill or adopted one of its ideas, is in the README's
+[Built on](../README.md#-built-on) table. The notes below explain why each
+command uses what it uses.
+
 ## The discovery record
 
 **Why it's cached at all.** One JSON file, six consumers, derived on the main
@@ -1150,15 +1157,15 @@ and gets cleaned up.
 line, and the report travels to a committed plan file, a remediation ticket and
 a PR comment posted under the user's name. Quoting the credential would leak it
 three more times. `<REDACTED>` in place of the value keeps the rest of the line,
-so the recheck still finds its spot. This follows `diagnosing-bugs`' rule.
+so the recheck still finds its spot. This follows [`diagnosing-bugs`](https://github.com/mattpocock/skills/tree/main/skills/engineering/diagnosing-bugs)' rule.
 
 **Why ADRs settle intent.** `qoq plan` records decisions in `docs/adr/` through
-`domain-modeling`. A decision someone already wrote down is the same answer a
+[`domain-modeling`](https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling). A decision someone already wrote down is the same answer a
 `Security context` line gives, so asking for it again would be noise.
 
 ## `review`
 
-**Why `review` sits on `code-review`.** Splitting a review into Spec and
+**Why `review` sits on [`code-review`](https://github.com/mattpocock/skills/tree/main/skills/engineering/code-review).** Splitting a review into Spec and
 Standards is mattpocock-skills' idea, and a maintained skill states it better
 than a second copy here would. A change can do exactly what was asked and still
 break the project's conventions, or the other way round. A single reviewer
@@ -1281,7 +1288,7 @@ on for a project.
 
 ## `compress`
 
-**Why `compress` sits on `writing-for-agents`.** Its principles — one source of
+**Why `compress` sits on [`writing-for-agents`](https://github.com/mattpocock/skills/tree/main/skills/productivity/writing-for-agents).** Its principles — one source of
 truth per meaning, the environment as a cache, sediment, pointer wording, leading
 words, positive phrasing — are the vocabulary `compress` was already judging in,
 written down better and maintained by someone else. `compress.md` keeps only what
@@ -1294,7 +1301,7 @@ restatement, never a fact.
 
 ## Test conventions
 
-**Why `tdd` is the base and `test-conventions.md` only the layer on top.** What
+**Why [`tdd`](https://github.com/mattpocock/skills/tree/main/skills/engineering/tdd) is the base and `test-conventions.md` only the layer on top.** What
 a good test is, where seams go, when to mock and the anti-patterns are not
 QoQ-specific, and a maintained skill states them better than a second copy here
 would; the copy also went stale on its own, independently of the original. What
