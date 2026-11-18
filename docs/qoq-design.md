@@ -624,6 +624,18 @@ design output would have been three "none"s, and it's the same plan whose
 of a needless architect is one agent round and the cost of a missed one is
 distributed across every ticket as scope nobody planned.
 
+**Why the slicing rules are copied from [`to-tickets`](https://github.com/mattpocock/skills/tree/main/skills/engineering/to-tickets), not invoked.**
+It sets `disable-model-invocation: true`, so only a user can run it. Two of
+its rules fill a gap `plan` had, because nothing said how to cut the work. A
+horizontal slice passes every gate and delivers nothing until the last layer
+lands. A prefactor folded into a feature ticket mixes a no-behaviour change
+with a behaviour change, so neither can be asserted cleanly. Its third rule,
+expand → migrate → contract for wide renames, was tried and left out: the
+five-file limit already pushes a wide rename into that shape, as eval 68 shows,
+so the extra rule paid for nothing. Two more of its choices are left out on
+purpose. Tickets with no file paths would break the scope check, and its
+tracker publishing and "quiz the user" step are `--tool` and approval here.
+
 **Why scenarios sit on the milestone and aren't just duplicated criteria.** The
 obvious objection is that acceptance criteria are already assertions, so writing
 journeys too writes the same thing twice and the copy rots. It doesn't, because

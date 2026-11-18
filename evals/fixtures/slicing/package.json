@@ -1,0 +1,9 @@
+{
+  "name": "slicing-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run"
+  }
+}

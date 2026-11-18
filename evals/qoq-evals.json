@@ -1296,6 +1296,44 @@
         "git status is clean: no file edited"
       ],
       "target": "agent"
+    },
+    {
+      "id": 68,
+      "name": "plan-slices-wide-rename-expand-contract",
+      "prompt": "Read <skill>/references/plan.md and follow its Phase 3 — Breakdown only, against the repo at <repo>/evals/fixtures/slicing. The requirements are settled: skip grilling, Explore, the architect, the estimator, diagrams, --tool and approval, and run no script. Write nothing to disk. Return the milestones and tickets in assets/plan-template.md's ticket shape (Files, Depends on, Acceptance criteria), as text. Requirements: 'Rename the customer reference on orders from `customerId` to `accountId` everywhere it appears: the row type, the routes, billing, reports and the order page. Behaviour does not change.'",
+      "expected_output": "A regression guard for the five-file limit, since plan.md has no expand/contract rule of its own: that limit alone has to push a six-file rename into this shape. The rename touches six files across five directories, so it isn't one ticket. One expand ticket adds `accountId` to OrderRow beside `customerId`, keeping both populated so nothing breaks. The migrate tickets come in batches by directory (for example orders, billing, reports and ui), and each depends on the expand ticket. A final contract ticket deletes `customerId` and depends on every migrate batch. Its criterion is static: no `customerId` remains in src/. Files are exact paths.",
+      "files": [
+        "evals/fixtures/slicing/src/db/schema.ts",
+        "evals/fixtures/slicing/src/orders/route.ts"
+      ],
+      "assertions": [
+        "Has an expand ticket that adds `accountId` while keeping `customerId`, and deletes nothing",
+        "Has at least two migrate tickets, each covering a subset of the call-site files, and each `Depends on` the expand ticket",
+        "Has a final contract ticket that removes `customerId` and `Depends on` every migrate ticket",
+        "The contract ticket has a static criterion asserting no `customerId` reference remains",
+        "No single ticket's Files lists every file that references `customerId`",
+        "Every Files entry is an exact path under src/"
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 69,
+      "name": "plan-slices-vertical-with-prefactor",
+      "prompt": "Read <skill>/references/plan.md and follow its Phase 3 — Breakdown only, against the repo at <repo>/evals/fixtures/slicing. The requirements are settled: skip grilling, Explore, the architect, the estimator, diagrams, --tool and approval, and run no script. Write nothing to disk. Return the milestones and tickets in assets/plan-template.md's ticket shape (Files, Depends on, Acceptance criteria), as text. Requirements: 'A customer can cancel one of their own open orders. The order row gets a `cancelled` status. A cancel route accepts the order id and the caller id, and answers 404 for an order that is missing or not the caller's (the same rule as getOrder), and 409 for one that is already paid. The order page shows a Cancel button on open orders.'",
+      "expected_output": "Cancelling needs the same lookup-and-ownership check that getOrder has inline. So a prefactor ticket comes first: it extracts that check into a shared function with no behaviour change, and its criteria assert getOrder still answers 200, or 404 for a missing order or another customer's. The cancel work is cut vertically. A ticket that only adds the status, or only the route, or only the button, delivers nothing by itself, so each cancel ticket spans the layers it needs, at minimum status + route together, and the button with or after them. Each cancel ticket depends on the prefactor.",
+      "files": [
+        "evals/fixtures/slicing/src/orders/route.ts",
+        "evals/fixtures/slicing/src/ui/OrderPage.ts"
+      ],
+      "assertions": [
+        "Has a prefactor ticket that extracts getOrder's lookup-and-ownership check into a shared function, with criteria asserting getOrder's existing 200/404 behaviour is unchanged",
+        "Every ticket that implements cancel `Depends on` the prefactor ticket",
+        "No ticket changes only src/db/schema.ts (no schema-only horizontal slice)",
+        "The ticket that adds the cancel route also lists src/db/schema.ts or depends on nothing schema-only, i.e. the status and the route land in one vertical slice",
+        "Criteria include the 404 (missing or not owned) and 409 (already paid) cases as assertions",
+        "Every Files entry is an exact path under src/"
+      ],
+      "target": "agent"
     }
   ]
 }

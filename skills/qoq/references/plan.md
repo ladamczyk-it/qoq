@@ -226,6 +226,28 @@ Say so and write separate plans — a plan with two unrelated halves can never b
 milestone-ordered sensibly, and half of it blocks on the other half for no
 reason.
 
+### How to slice
+
+These rules come from mattpocock-skills' `to-tickets`. It can't be invoked
+from here, because its frontmatter sets `disable-model-invocation: true`.
+
+- **Vertical, not horizontal.** A ticket cuts a narrow but complete path
+  through every layer the feature touches (schema, logic, route, UI, the specs
+  for each), and is verifiable on its own. "All the migrations, then all the
+  routes, then all the UI" is three tickets that each pass their gates and
+  deliver nothing until the last one lands. A defect in how the layers meet
+  then shows up only at the end, when every ticket is already committed.
+- **Prefactor first.** Make the change easy, then make the easy change. When
+  the feature would be simpler if existing code were reshaped first (a function
+  split, a type widened, a duplicate merged), that reshaping is its own ticket,
+  with no behaviour change. Its criteria assert the existing behaviour still
+  holds, and every feature ticket that relies on it `Depends on` it.
+
+These change how the work is cut, never how a ticket is written: **Files**
+stay exact paths and criteria stay assertions. `to-tickets` leaves file paths
+out because they go stale in a tracker. A qoq ticket is executed straight
+away, and its **Files** is the scope a remediation is checked against.
+
 ### Acceptance criteria are assertions
 
 This is the rule everything else in decomposition follows from. `execute` opens
