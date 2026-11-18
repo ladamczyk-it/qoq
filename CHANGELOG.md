@@ -1,3 +1,37 @@
+# [7.0.0](https://github.com/ladamczyk-it/qoq/compare/v6.8.2...v7.0.0) (2026-11-18)
+
+
+* feat(skill)!: plans are a directory with a file per milestone ([5124ef3](https://github.com/ladamczyk-it/qoq/commit/5124ef32205eec9b263adbc5b67e03d74803ac86))
+
+
+### Bug Fixes
+
+* bump packages ([53ccaf9](https://github.com/ladamczyk-it/qoq/commit/53ccaf95b21b0a5d9cedc491eb369c1461f3c64b))
+* bump packages ([486b7ec](https://github.com/ladamczyk-it/qoq/commit/486b7ec8eef63f8cdad9034f5e88593771d239b4))
+* bump packages ([7d94236](https://github.com/ladamczyk-it/qoq/commit/7d9423646032a8c12bf5c896fea768bec8274f70))
+* bump packages ([a4b6d0e](https://github.com/ladamczyk-it/qoq/commit/a4b6d0eb554cf06bd9d716cb77aa89e1578567fa))
+* bump packages ([5e99128](https://github.com/ladamczyk-it/qoq/commit/5e99128961ead5367be1be9e255c655910ddbdb5))
+* bump packages ([5a7fc55](https://github.com/ladamczyk-it/qoq/commit/5a7fc558b6482578924e9fc8012851776af032a8))
+* bump packages ([1b6b02c](https://github.com/ladamczyk-it/qoq/commit/1b6b02cee1f7af27f7a123598d42de4579c8d378))
+
+
+### Features
+
+* **skill:** build on mattpocock-skills for tests, design, docs and compression ([b9f7af9](https://github.com/ladamczyk-it/qoq/commit/b9f7af9c76f1af73f0cbfa8da8ebabf9d8163676))
+* **skill:** build review on mattpocock-skills code-review ([ad5268a](https://github.com/ladamczyk-it/qoq/commit/ad5268a8ea7d7a2909f1e7554048235fd07c8d7b))
+* **skill:** plan slices tickets vertically, prefactor first ([664c799](https://github.com/ladamczyk-it/qoq/commit/664c7995129716217dc6b2e6447f5a5ebb3cb0b9))
+* **skill:** sheriff always on in execute; redact secrets, read ADRs ([c507b49](https://github.com/ladamczyk-it/qoq/commit/c507b49b6555e3dd7f5544fbfd024f49e6b16bee))
+
+
+### BREAKING CHANGES
+
+* single-file plans/<name>.md and their .completed.md
+archives are no longer read by execute or replan; re-plan live work
+with qoq plan.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_011r98jT4hsEUMstupZ4Yqa9
+
 ## [6.8.2](https://github.com/ladamczyk-it/qoq/compare/v6.8.1...v6.8.2) (2026-11-03)
 
 

@@ -7,7 +7,7 @@
   "allowCrossMarketplaceDependenciesOn": ["claude-plugins-official", "ponytail"],
   "metadata": {
     "description": "QoQ skills",
-    "version": "6.8.2"
+    "version": "7.0.0"
   },
   "plugins": [
     {
