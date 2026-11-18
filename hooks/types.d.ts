@@ -10,8 +10,31 @@ export type Milestone = {
 // A plan as hooks/plan.ts reads it.
 export type Board = { title: string; status: string; milestones: Milestone[] };
 
+// One repo of a program, as hooks/program.ts reads it.
+export type RepoRow = {
+  name: string;
+  // The repo answered "no changes needed": nothing to run.
+  noChanges: boolean;
+  // `M1`, or null once every milestone is closed.
+  milestone: string | null;
+  milestoneName: string;
+  runnable: boolean;
+  waitingOn: string[];
+  tickets: Ticket[];
+};
+
+export type MasterRow = { id: string; name: string; status: string; integrationDue: boolean };
+
+// A `qoq-fullstack` program, rebuilt from program.json, the BRD and each repo's plan.
+export type ProgramBoard = { slug: string; status: string; master: MasterRow[]; repos: RepoRow[] };
+
 declare module 'claude-code' {
   interface PluginState {
-    qoq: { board: Board | null; details: boolean };
+    qoq: {
+      board: Board | null;
+      details: boolean;
+      program: ProgramBoard | null;
+      programDetails: boolean;
+    };
   }
 }

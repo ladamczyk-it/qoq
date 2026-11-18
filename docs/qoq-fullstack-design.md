@@ -1,0 +1,106 @@
+# QoQ fullstack — why it's built this way
+
+Maintainer reference for [`skills/qoq-fullstack`](../skills/qoq-fullstack/SKILL.md),
+not the spec. Nothing here is loaded at run time. When a rule changes in the
+skill, its argument changes here in the same commit. The protocol side, inside
+`qoq`, is argued in [qoq-design.md](qoq-design.md#a-plan-under-a-program).
+
+**Why a separate skill.** `qoq` already routes twelve commands. The chief of
+staff is only needed by people who work across repos, so it gets its own
+trigger description and plugin, and nobody else loads it.
+
+**Why it finds the status script next to it.** Every plugin install is a full
+copy of the repo, so `../qoq/` next to this skill is always `qoq` at the same
+version. The docs don't promise that layout, so the entry stops if the path
+doesn't resolve, rather than guessing.
+
+**Why one session per repo, not agent teams.** As of 2026-11, agent teams were
+experimental and interactive-only. Every teammate shares the lead's working
+directory, so it doesn't load its own repo's CLAUDE.md, `qoq.config`,
+discovery record or agents. A dead lead also loses the team. Independent
+sessions started with `claude --bg` each start in their own repo and survive
+the chief of staff dying. Cross-session messaging plus `notify_when_idle` is
+the whole coordination channel that's needed.
+
+**Why the master plan is business-only.** The chief of staff has read none of
+the repos. A technology decision made there would bind code whose conventions
+it hasn't seen, and each repo's `qoq plan` would then have to either obey a
+wrong call or quietly overrule it. So technology questions are parked under a
+role and asked by the repo that owns them, against its own code.
+
+**Why the files are the state.** Messages can be held, dropped, or sent by a
+session that died a line later. A repo writes its plan file before it
+messages, and every decision rebuilds from disk with `program-status.mjs`. So
+a restarted chief of staff, a restarted repo session and `program status` all
+see the same answer. The same script answers a repo's own `qoq execute`, so a
+session running on its own can't start work the program hasn't unblocked.
+
+**Why a master milestone gates on integration, not on repo delivery.** Each
+repo's gate proves its own side of a contract. Only running the repos together
+proves the contract holds between them. So `delivered` on a master row is
+written only after that check passes, and it's the only write that lets the
+next master milestone's repo work start.
+
+**Why the parent folder isn't a repo.** A git repo containing the repos it
+coordinates is either submodules or nested repos. Both make a repo's history
+depend on a folder the repo knows nothing about. The program files are
+coordination, not product, and each repo's plan holds that repo's history.
+
+**Why `program.json` and not YAML.** The skill ships no dependencies, and
+Node's standard library parses JSON.
+
+**Why the models split the way they do.** `plan` recommends Opus, because the
+business grilling and the BRD are the judgement-heavy part. `execute` and
+`status` recommend Haiku, because there the chief of staff only coordinates:
+it reads the status script, wakes repos, and relays questions word for word.
+Every technical decision is made in a repo session, and those are pinned to
+`--model opus`. On 2026-11-18, Haiku passed both execute evals. It believed the
+files over a "be is done" message, and it relayed a technical question without
+answering it, even though the repo leaned towards one answer. The skill can
+only recommend the model for its own thread, because frontmatter `model:` would
+apply to every sub-command, plan included.
+
+**Why no worktrees.** By default a `claude --bg` session moves its edits into
+`.claude/worktrees/<name>` on a branch of its own. The live test on 2026-11-18
+showed the cost: the plan files in the repo's checkout never moved, so the
+status script, the band and every cross-repo unblock were blind to finished
+work. Delivery is plain branching, `program/<slug>` in each repo's own
+checkout, so setup turns isolation off per repo (`worktree.bgIsolation: "none"`)
+and the launch prompt says that commits on that branch are part of the approved
+plan.
+
+**Why the chief of staff is the user's own session.** In the same test, a
+background chief refused answers relayed from another session as not the
+user's, which is correct. So answers have to be typed in the chief's own
+thread, and that thread is the user's interactive session. Only the repos run
+in the background.
+
+**Why `permissionMode` is a field.** The Haiku chief in that test launched its
+repo session in `default` mode while it ran in `auto` itself. A session in a
+different mode holds incoming messages for approval, so the relay stalled.
+The mode is now chosen once by the user and read from `program.json`, never
+inferred.
+
+**Why every repo plans, and why "no changes needed" counts.** The master plan
+names no repos, because whether a requirement lands in a repo is a judgement
+about that repo's code, which the chief of staff hasn't read. So every repo in
+`program.json` plans, in its `after` order (for Trackbook: telemetry, then the
+API, then the UI). A repo that finds nothing to do says so, and once the user
+approves, its `none` row settles it. The repos after it then plan against its
+existing contracts. Without that answer, a feature that doesn't touch telemetry
+would leave the API waiting forever on a plan that never comes.
+
+**Why a delivered milestone, not a ticket, unblocks another repo.** A finished
+ticket hasn't passed the milestone gate (refactor, security sweep, full
+suite), so a consumer building on it builds on unchecked code. The fine grain
+comes from slicing instead: whatever another repo needs is its own small
+milestone.
+
+**Why the schedule is automatic.** Inside a repo, milestones run one at a time in
+row order, and `execute` skips any milestone whose dependencies aren't
+delivered. So row order between milestones that don't depend on each other is
+pure sequencing. It changes no scope, so there's nothing for the user to
+decide. `--schedule` simulates the parallel run, with ticket count as duration,
+and puts first whatever has the most work waiting on it in other repos. It
+keeps the result only if the run gets shorter. A wait it can't remove needs a
+milestone split, which is a replan the user asks for.

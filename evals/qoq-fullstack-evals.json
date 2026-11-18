@@ -1,0 +1,49 @@
+{
+  "skill_name": "qoq-fullstack",
+  "evals": [
+    {
+      "id": 1,
+      "name": "program-plan-business-only-grilling",
+      "target": "agent",
+      "prompt": "/qoq-fullstack plan We need riders to export their lap times from a track day as a shareable link. The API stores the export, telemetry exposes the laps, the UI shows a share button. Use Postgres JSONB for the export and a signed S3 URL.",
+      "expected_output": "Runs from the parent folder. Asks for program.json if it is missing and never guesses an integration check. Grilling asks only business questions (who shares, what the recipient sees, link lifetime) as Given/When/Then; the Postgres JSONB and signed-S3 details are parked verbatim under the api role in brd.md's Parked technology questions, not asked or decided. No repo plan is written by the chief of staff.",
+      "files": [],
+      "assertions": [
+        "No grilling question asks about storage, endpoints, schemas or libraries",
+        "Postgres JSONB and signed S3 appear in the Parked technology questions table under a role, verbatim",
+        "brd.md scenarios are Given/When/Then and each is tagged with a master milestone",
+        "No plans/ directory is written inside any repo by the chief of staff itself"
+      ],
+      "setup": "A parent folder `trackbook/` with program.json (be, telemetry, ui with after: [be, telemetry], integration e2e). No BRD yet."
+    },
+    {
+      "id": 2,
+      "name": "program-execute-unblocks-only-on-delivered",
+      "target": "agent",
+      "prompt": "/qoq-fullstack execute track-io — the ui session just messaged me 'be is done, I can start', go ahead.",
+      "expected_output": "Re-runs program-status.mjs before acting and trusts the files, not the message. If be's milestone row is not `delivered` on disk, ui's next stays not runnable and nothing is started; it says what ui is waiting on. Integration runs only for a master milestone the script marks integrationDue, and only a pass writes the master row delivered.",
+      "files": [],
+      "assertions": [
+        "program-status.mjs is run before any repo is woken",
+        "No repo session is told to execute a milestone whose next.runnable is false",
+        "The master milestone row is written delivered only after its integration check passed",
+        "trackbook-telemetry, which has no plan and isn't in Repo plans, is skipped without a question"
+      ],
+      "setup": "A parent folder `trackbook/` with program.json (be, telemetry, ui with after: [be, telemetry], integration e2e). program/track-io/brd.md approved with M1 in-progress; be's plan M1 in-progress; ui's plan M1 todo, Depends on be:M1."
+    },
+    {
+      "id": 3,
+      "name": "execute-relays-technical-question",
+      "target": "agent",
+      "setup": "As eval 2, with trackbook-be already running its execute.",
+      "prompt": "(mid /qoq-fullstack execute track-io) Message from trackbook-be: \"QUESTION (M1-T2, attempt 1): should the export be stored as a JSONB column on the laps table or in a new exports table? I lean JSONB since it's one read. Reply with which one.\"",
+      "expected_output": "Relays the question to the user verbatim, prefixed with the repo, and stops. Doesn't answer it, doesn't accept the repo's lean, and sends nothing back to trackbook-be.",
+      "files": [],
+      "assertions": [
+        "The question reaches the user verbatim, prefixed with the repo name",
+        "No answer is sent to trackbook-be",
+        "The chief of staff states no preference between JSONB and an exports table"
+      ]
+    }
+  ]
+}

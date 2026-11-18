@@ -16,21 +16,22 @@ in the reference file too.
 Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 — also outside the skill, and for the same reason these diagrams are.
 
-| Diagram                                     | Prose it reflects                                                                                     |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| [Entry and discovery](#entry-and-discovery) | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)                |
-| [`fix`](#fix)                               | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml)              |
-| [`refactor`](#refactor)                     | [refactor.md](../skills/qoq/references/refactor.md)                                                   |
-| [`bump`](#bump)                             | [bump.md](../skills/qoq/references/bump.md)                                                           |
-| [`plan`](#plan)                             | [plan.md](../skills/qoq/references/plan.md)                                                           |
-| [`replan`](#replan)                         | [replan.md](../skills/qoq/references/replan.md)                                                       |
-| [`execute`](#execute)                       | [execute.md](../skills/qoq/references/execute.md)                                                     |
-| [`test`](#test)                             | [test.md](../skills/qoq/references/test.md)                                                           |
-| [`compress`](#compress)                     | [compress.md](../skills/qoq/references/compress.md)                                                   |
-| [`document`](#document)                     | [document.md](../skills/qoq/references/document.md), [qoq-scribe](../skills/qoq/agents/qoq-scribe.md) |
-| [`mermaid`](#mermaid)                       | [mermaid.md](../skills/qoq/references/mermaid.md), [qoq-artist](../skills/qoq/agents/qoq-artist.md)   |
-| [`sheriff`](#sheriff)                       | [sheriff.md](../skills/qoq/references/sheriff.md), [qoq-sheriff](../skills/qoq/agents/qoq-sheriff.md) |
-| [`review`](#review)                         | [review.md](../skills/qoq/references/review.md), [qoq-reviewer](../skills/qoq/agents/qoq-reviewer.md) |
+| Diagram                                           | Prose it reflects                                                                                                         |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| [Entry and discovery](#entry-and-discovery)       | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)                                    |
+| [`fix`](#fix)                                     | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml)                                  |
+| [`refactor`](#refactor)                           | [refactor.md](../skills/qoq/references/refactor.md)                                                                       |
+| [`bump`](#bump)                                   | [bump.md](../skills/qoq/references/bump.md)                                                                               |
+| [`plan`](#plan)                                   | [plan.md](../skills/qoq/references/plan.md)                                                                               |
+| [`replan`](#replan)                               | [replan.md](../skills/qoq/references/replan.md)                                                                           |
+| [`execute`](#execute)                             | [execute.md](../skills/qoq/references/execute.md)                                                                         |
+| [`test`](#test)                                   | [test.md](../skills/qoq/references/test.md)                                                                               |
+| [`compress`](#compress)                           | [compress.md](../skills/qoq/references/compress.md)                                                                       |
+| [`document`](#document)                           | [document.md](../skills/qoq/references/document.md), [qoq-scribe](../skills/qoq/agents/qoq-scribe.md)                     |
+| [`mermaid`](#mermaid)                             | [mermaid.md](../skills/qoq/references/mermaid.md), [qoq-artist](../skills/qoq/agents/qoq-artist.md)                       |
+| [`sheriff`](#sheriff)                             | [sheriff.md](../skills/qoq/references/sheriff.md), [qoq-sheriff](../skills/qoq/agents/qoq-sheriff.md)                     |
+| [`review`](#review)                               | [review.md](../skills/qoq/references/review.md), [qoq-reviewer](../skills/qoq/agents/qoq-reviewer.md)                     |
+| [A plan under a program](#a-plan-under-a-program) | [plan-template.md](../skills/qoq/assets/plan-template.md), [program-status.mjs](../skills/qoq/scripts/program-status.mjs) |
 
 **Legend, shared by all thirteen.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
@@ -943,3 +944,13 @@ flowchart TD
     class VASKQ,VBASEQ,VPRINT,VPOST,VUSER,VESC,VREPLAN,VGAP,VSIGN user
     class VDEF,VNOINT,VSCOPECHK,VSIZE,VBASE note
 ```
+
+## A plan under a program
+
+No chart of its own. A plan can be one repo's share of a cross-repo program run
+by [`qoq-fullstack`](qoq-fullstack-workflows.md). It carries a **Program** header
+line, a **Serves** column, and `<repo>:M<N>` dependencies
+([plan-template.md](../skills/qoq/assets/plan-template.md#a-repos-share-of-a-program)).
+`execute` asks `scripts/program-status.mjs` whether its next milestone may start,
+and sends its questions to the chief of staff. Everything else in the `plan` and
+`execute` charts above is unchanged.

@@ -47,6 +47,9 @@ board; omit the whole field on a local plan>
 | M2  | [<Name>](m2-<slug>.md) | <status> | M1         | <one line> |
 ```
 
+A plan that is a repo's share of a program also has a **Program** header line
+and a **Serves** column ([below](#a-repos-share-of-a-program)).
+
 **Status** is `todo` | `in-progress` | `delivered <YYYY-MM-DD>` |
 `withdrawn — <why>`. **Summary** is the milestone's Goal in one line until it
 ships, then its **Delivered** sentence.
@@ -327,3 +330,29 @@ ticket was raised as; absent otherwise>
   tickets' Logs below it. **Decisions that outlive this milestone** is the one
   line worth real thought — it's what a later milestone would otherwise
   contradict.
+
+## A repo's share of a program
+
+The repo sits in a parent folder with its sibling repos, next to `program.json`,
+`program/<slug>/brd.md` and `contracts/`. That folder belongs to the chief of
+staff. This plan touches only its own repo and `contracts/`.
+
+- **Header:** `**Program:** <slug> · ../program/<slug>/brd.md`, below **Tool**.
+- **Milestones table:** a **Serves** column after **Depends on**, naming the
+  master milestones from the BRD that the row serves (`M1`, `M1, M2`). The
+  **Depends on** cell may name another repo's milestone as `<repo>:M<N>`, using
+  the repo `name` from `program.json`.
+- **`../contracts/<name>.md`**, written by the providing repo once its plan is
+  approved:
+
+```markdown
+# Contract: <name>
+
+**Provider:** <repo>:M<N>
+**Consumers:** <repo>, <repo>
+
+<the provider milestone's Contracts field, verbatim>
+```
+
+`scripts/program-status.mjs` reads these columns by their header names, so keep
+them exactly as written.

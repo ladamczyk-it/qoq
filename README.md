@@ -84,6 +84,12 @@ Agent-written code meets the same standard as code you write by hand. Each run a
 
 Installing `qoq` also installs the two plugins it depends on: [`mattpocock-skills`](https://github.com/mattpocock/skills) from Claude Code's official marketplace, and [`ponytail`](https://github.com/DietrichGebert/ponytail). See [Built on](#-built-on) for what each one is used for.
 
+**Working across several repos?** `qoq-fullstack` is a separate plugin for one feature that spans an API and a UI, or any set of qoq-based repos in one parent folder. `/qoq-fullstack plan` grills the business side only into a Given/When/Then master plan. Each repo then plans and delivers its own share with `qoq`, in its own background session and in parallel with the others. A repo's work is unblocked only by a delivered milestone, and a master milestone only by its integration check. Installing it also installs `qoq`:
+
+```text
+/plugin install qoq-fullstack@qoq-agent-skills
+```
+
 ### 🙏 Built on
 
 The skill builds on other people's skills rather than writing its own copy of them. **Used** means qoq invokes the skill, or preloads it into one of its agents, when a command runs, so you get whatever version you have installed. **Inspired by** means an idea was adopted and written into qoq's own files.
