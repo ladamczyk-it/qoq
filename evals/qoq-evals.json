@@ -973,8 +973,8 @@
     {
       "id": 49,
       "name": "reviewer-milestone-against-plan",
-      "prompt": "Copy <repo>/evals/fixtures/review to a scratch directory and git init it. Commit 1 (milestone 1): everything except src/orders/ and src/app.ts, with the `findOne` line deleted from src/db.ts. Commit 2 (milestone 2): restore src/db.ts from the fixture and add src/orders/ and src/app.ts. Then dispatch qoq-reviewer directly (not through the skill), with: mode: milestone. Range: HEAD~1..HEAD. Union: src/orders/load.ts, src/orders/load.spec.ts, src/orders/route.ts, src/app.ts, src/db.ts. Goal, Contracts and both tickets' acceptance criteria and Files: as in plan.md's Milestone 2. Refactor advisories: 'src/orders/route.ts:10 — inline currency formatting duplicates formatCents in src/money.ts'. No Security line, no earlier Review lines. Skill path: <repo>/skills/qoq.",
-      "expected_output": "Reads the project first: errors are thrown as NotFound and mapped in routes, money is formatted by formatCents. Ends on the YAML block with mode milestone and intent_judged: true. The headline finding is loadOrder returning null where the Contract says lookups throw NotFound, with locations in both src/orders/load.ts (ticket 2.1) and src/orders/route.ts (ticket 2.2), plan_ref quoting the Contract, severity high, confidence confirmed, and evidence that a missing id comes back 200 instead of 404. loadOrdersByCustomer traces to no criterion, Contract or the Goal and nothing calls it, so it's a scope finding. The findOne helper added to src/db.ts is in no ticket's Files but is forced by 2.1 (loadOrder calls it), so it's not a confirmed scope finding. The inline currency formatting goes in skipped_covered, not findings. Nothing is edited.",
+      "prompt": "Copy <repo>/evals/fixtures/review to a scratch directory and git init it. Commit 1 (milestone 1): everything except src/orders/ and src/app.ts, with the `findOne` line deleted from src/db.ts. Commit 2 (milestone 2): restore src/db.ts from the fixture and add src/orders/ and src/app.ts. Then dispatch qoq-reviewer directly (not through the skill), with: axis: spec. mode: milestone. Range: HEAD~1..HEAD. Union: src/orders/load.ts, src/orders/load.spec.ts, src/orders/route.ts, src/app.ts, src/db.ts. Goal, Contracts and both tickets' acceptance criteria and Files: as in plan.md's Milestone 2. No Security line, no earlier Review lines. Skill path: <repo>/skills/qoq.",
+      "expected_output": "Reads the project first: errors are thrown as NotFound and mapped in routes, money is formatted by formatCents. Ends on the YAML block with axis spec, mode milestone and intent_judged: true. The headline finding is loadOrder returning null where the Contract says lookups throw NotFound, with locations in both src/orders/load.ts (ticket 2.1) and src/orders/route.ts (ticket 2.2), plan_ref quoting the Contract, severity high, confidence confirmed, and evidence that a missing id comes back 200 instead of 404. loadOrdersByCustomer traces to no criterion, Contract or the Goal and nothing calls it, so it's a scope finding. The findOne helper added to src/db.ts is in no ticket's Files but is forced by 2.1 (loadOrder calls it), so it's not a confirmed scope finding. The inline currency formatting is a Standards-axis concern, so it isn't raised here. Nothing is edited.",
       "files": [
         "evals/fixtures/review/plan.md",
         "evals/fixtures/review/src/orders/load.ts",
@@ -982,13 +982,12 @@
         "evals/fixtures/review/src/db.ts"
       ],
       "assertions": [
-        "Ends on a YAML block with `mode: milestone` and `intent_judged: true`",
+        "Ends on a YAML block with `axis: spec`, `mode: milestone` and `intent_judged: true`",
         "Reports loadOrder returning null against the NotFound Contract as a high, confirmed finding (category correctness or consistency) whose locations include both src/orders/load.ts and src/orders/route.ts",
         "That finding's `plan_ref` quotes or names the Contract or the 404 acceptance criterion",
         "Reports loadOrdersByCustomer as a `scope` finding",
         "Does not report src/db.ts's findOne as a confirmed scope finding",
-        "Lists the inline currency formatting under `skipped_covered`, not under `findings`",
-        "No finding is maintainability at high severity",
+        "No finding has category `standards` or `maintainability` (those are the Standards axis's)",
         "Every finding's locations carry a verbatim `anchor` line present in the file",
         "git status is clean: no file edited"
       ],
@@ -997,14 +996,14 @@
     {
       "id": 50,
       "name": "reviewer-pr-no-intent",
-      "prompt": "Copy <repo>/evals/fixtures/review to a scratch directory and git init it. Commit 1 (milestone 1): everything except src/orders/ and src/app.ts, with the `findOne` line deleted from src/db.ts. Commit 2 (milestone 2): restore src/db.ts from the fixture and add src/orders/ and src/app.ts. Then dispatch qoq-reviewer directly, with: mode: pr. Range: HEAD~1...HEAD. PR title: 'orders stuff'. PR body: empty. Closed issues: none. Intent stated: no. Skill path: <repo>/skills/qoq.",
+      "prompt": "Copy <repo>/evals/fixtures/review to a scratch directory and git init it. Commit 1 (milestone 1): everything except src/orders/ and src/app.ts, with the `findOne` line deleted from src/db.ts. Commit 2 (milestone 2): restore src/db.ts from the fixture and add src/orders/ and src/app.ts. Then dispatch qoq-reviewer directly, with: axis: spec. mode: pr. Range: HEAD~1...HEAD. PR title: 'orders stuff'. PR body: empty. Closed issues: none. Intent stated: no. Skill path: <repo>/skills/qoq.",
       "expected_output": "The pull request states no intent, so intent_judged: false and no scope or gap findings. It can still see that route.ts catches a NotFound that loadOrder never throws, getting null back instead. That is code contradicting its own caller, and it's reported as correctness with both locations. loadOrdersByCustomer is not raised as scope. Nothing is edited.",
       "files": [
         "evals/fixtures/review/src/orders/load.ts",
         "evals/fixtures/review/src/orders/route.ts"
       ],
       "assertions": [
-        "Ends on a YAML block with `mode: pr` and `intent_judged: false`",
+        "Ends on a YAML block with `axis: spec`, `mode: pr` and `intent_judged: false`",
         "No finding has category `scope` or `gap`",
         "Reports the NotFound catch in src/orders/route.ts that loadOrder never throws",
         "Every finding's `plan_ref` is null",
@@ -1032,14 +1031,14 @@
     {
       "id": 52,
       "name": "reviewer-pr-against-description",
-      "prompt": "Copy <repo>/evals/fixtures/review to a scratch directory and git init it. Commit 1 (milestone 1): everything except src/orders/ and src/app.ts, with the `findOne` line deleted from src/db.ts. Commit 2 (milestone 2): restore src/db.ts from the fixture and add src/orders/ and src/app.ts. Then dispatch qoq-reviewer directly, with: mode: pr. Range: HEAD~1...HEAD. PR title: 'GET /orders/:id'. PR body: 'Adds a single-order endpoint. Missing orders return 404 via the NotFound error, like every other lookup. Closes #12.' Issue #12 body: 'Customers need to fetch one order by id, with its total formatted.' Intent stated: yes. Skill path: <repo>/skills/qoq.",
+      "prompt": "Copy <repo>/evals/fixtures/review to a scratch directory and git init it. Commit 1 (milestone 1): everything except src/orders/ and src/app.ts, with the `findOne` line deleted from src/db.ts. Commit 2 (milestone 2): restore src/db.ts from the fixture and add src/orders/ and src/app.ts. Then dispatch qoq-reviewer directly, with: axis: spec. mode: pr. Range: HEAD~1...HEAD. PR title: 'GET /orders/:id'. PR body: 'Adds a single-order endpoint. Missing orders return 404 via the NotFound error, like every other lookup. Closes #12.' Issue #12 body: 'Customers need to fetch one order by id, with its total formatted.' Intent stated: yes. Skill path: <repo>/skills/qoq.",
       "expected_output": "The PR body and issue #12 are the intent. loadOrder returning null contradicts 'missing orders return 404 via the NotFound error', so it's a high, confirmed finding with plan_ref quoting that line and locations in load.ts and route.ts. loadOrdersByCustomer traces to neither the body nor the issue, so it's a scope finding. intent_judged: true. Nothing is edited.",
       "files": [
         "evals/fixtures/review/src/orders/load.ts",
         "evals/fixtures/review/src/orders/route.ts"
       ],
       "assertions": [
-        "Ends on a YAML block with `mode: pr` and `intent_judged: true`",
+        "Ends on a YAML block with `axis: spec`, `mode: pr` and `intent_judged: true`",
         "Reports loadOrder returning null as a high, confirmed finding whose `plan_ref` quotes the PR body's 404/NotFound line",
         "Reports loadOrdersByCustomer as a `scope` finding",
         "git status is clean: no file edited"
@@ -1212,6 +1211,59 @@
       ],
       "target": "fixture-repo",
       "setup": "Run in a session where the mattpocock-skills plugin is disabled, so neither tdd nor grilling is in the available-skills list."
+    },
+    {
+      "id": 63,
+      "name": "review-pr-two-axes-report",
+      "prompt": "/qoq review https://github.com/<an org you can read>/<repo>/pull/<n> — a pull request whose description states what it should do.",
+      "expected_output": "Before the first dispatch the run resolves mattpocock-skills' `code-review` from its own available-skills list. It matches it by description, not by the bare name, which Claude Code's built-in review skill shares, and invokes it once. It rev-parses both ends of the range and confirms the diff isn't empty. Then it issues two qoq-reviewer dispatches together at the session's model: `axis: spec` with the title, body and issues, and `axis: standards` with the code-review smell baseline pasted in verbatim. It doesn't run the base's repo-wide standards search or its issue-tracker setup. The printed report has a `## Spec` section and then a `## Standards` section, never merged or reranked into one list, and ends on one line with the count and worst finding per axis, with no single worst across both. Comment drafts are grouped by axis, the user picks which to post, and posting is one COMMENT review.",
+      "files": [],
+      "assertions": [
+        "Resolves `code-review` from its available-skills list before the first qoq-reviewer dispatch, and doesn't use the built-in review skill",
+        "Issues two qoq-reviewer dispatches in the same turn, one with `axis: spec` and one with `axis: standards`",
+        "The `axis: standards` dispatch prompt contains the smell baseline (e.g. Feature Envy, Data Clumps, Shotgun Surgery)",
+        "The report has a `## Spec` section followed by a `## Standards` section, with findings never interleaved across them",
+        "The closing summary line gives a count and worst finding per axis and names no single worst across both",
+        "Doesn't run a repo-wide search for CODING_STANDARDS.md or CONTRIBUTING.md, and doesn't mention /setup-matt-pocock-skills",
+        "Asks which drafts to post before any gh api call, and posts with event COMMENT"
+      ]
+    },
+    {
+      "id": 64,
+      "name": "reviewer-standards-smells-dedup",
+      "prompt": "Copy <repo>/evals/fixtures/review to a scratch directory and git init it. Commit 1 (milestone 1): everything except src/orders/ and src/app.ts, with the `findOne` line deleted from src/db.ts. Commit 2 (milestone 2): restore src/db.ts from the fixture and add src/orders/ and src/app.ts. Then dispatch qoq-reviewer directly, with: axis: standards. mode: milestone. Range: HEAD~1..HEAD. Union: src/orders/load.ts, src/orders/load.spec.ts, src/orders/route.ts, src/app.ts, src/db.ts. Goal, Contracts and both tickets' acceptance criteria and Files: as in plan.md's Milestone 2. Refactor advisories: 'src/orders/route.ts:10 — inline currency formatting duplicates formatCents in src/money.ts'. No conventions file on the record. Smell baseline: paste step 3's smell list from the installed mattpocock-skills code-review SKILL.md verbatim. No Security line, no earlier Review lines. Skill path: <repo>/skills/qoq.",
+      "expected_output": "Stays on its axis. The inline currency formatting in route.ts duplicates formatCents, but the refactor gate already advised it, so it goes in skipped_covered rather than findings. The null-vs-NotFound Contract mismatch and loadOrdersByCustomer's untraced scope belong to the Spec axis, so neither is raised. Any smell it does raise, such as loadOrder as a possible Middle Man over db.findOne, is maintainability, judgment and never high, names the smell and carries an RS id. It doesn't raise Speculative Generality. Nothing is edited.",
+      "files": [
+        "evals/fixtures/review/src/orders/route.ts",
+        "evals/fixtures/review/src/money.ts",
+        "evals/fixtures/review/src/orders/load.ts"
+      ],
+      "assertions": [
+        "Ends on a YAML block with `axis: standards` and `mode: milestone`",
+        "Lists the inline currency formatting under `skipped_covered`, not under `findings`",
+        "No finding has category `correctness`, `scope`, `consistency` or `gap`",
+        "Doesn't report loadOrder returning null against the NotFound Contract",
+        "Every finding id has the form RS<n>",
+        "No finding has severity `high`",
+        "Every finding whose reason names a baseline smell has `confidence: judgment`",
+        "No finding names Speculative Generality",
+        "git status is clean: no file edited"
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 65,
+      "name": "review-pr-no-intent-runs-spec",
+      "prompt": "/qoq review https://github.com/<an org you can read>/<repo>/pull/<n> — a pull request whose title is 'stuff', whose body is empty and which closes no issue.",
+      "expected_output": "The pull request states no intent. The base would skip its Spec axis without a spec, but qoq overrides that. Both qoq-reviewer dispatches still go out, and `axis: spec` is told intent wasn't stated, so it judges correctness against the code's own names, types and callers and raises no scope or gap finding. The report says once, at the top, that intent wasn't judged. It still renders `## Spec` and `## Standards` sections, and doesn't print 'no spec available' in place of the Spec section.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-reviewer with `axis: spec` even though the pull request states no intent",
+        "The spec dispatch says intent was not stated",
+        "The report says once that intent wasn't judged",
+        "The report has a `## Spec` section and doesn't replace it with 'no spec available'",
+        "No reported finding has category `scope` or `gap`"
+      ]
     }
   ]
 }

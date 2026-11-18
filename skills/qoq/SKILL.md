@@ -205,22 +205,23 @@ Commands compose, but **only on the main thread**.
 | `document` | its own `qoq-scribe`; offers `mermaid`                                          | `execute` — per milestone, after the gate                          |
 | `mermaid`  | its own `qoq-artist`                                                            | `plan`, `replan`, `execute` — when `--diagrams` is on              |
 | `sheriff`  | its own `qoq-sheriff`; `fix` to re-gate                                         | `execute` — per milestone, when `--sheriff` is on                  |
-| `review`   | its own `qoq-reviewer`; `fix` to re-gate; `sheriff` to recheck a fix            | `execute` — per milestone and once per plan, when `--review` is on |
+| `review`   | `code-review` (external), its own `qoq-reviewer` ×2 axes; `fix`; `sheriff`      | `execute` — per milestone and once per plan, when `--review` is on |
 
 `compress` changes what future runs read, never what this one does, so no
 command should be reaching for it mid-task.
 
-Six skills this one doesn't own are used, two ways. **On this thread**, looked up
+Seven skills this one doesn't own are used, two ways. **On this thread**, looked up
 in **your own available-skills list** at the moment you need it, because that
 list is already in the thread's context and is never out of date: `refactor`'s
 assessment 3 is `ponytail-review` (assessment 4 is `qoq-designer`, which ships
 here); `plan` and `replan` open with `grilling`, the interview that closes the
 gaps in a set of requirements before they become invented acceptance criteria,
 with `domain-modeling` writing down the terms and decisions it settles;
-`compress` judges every cut against `writing-for-agents`. **Preloaded into an
+`compress` judges every cut against `writing-for-agents`; `review` frames its
+two axes on `code-review` and pastes its smell baseline into the Standards one. **Preloaded into an
 agent** by its `skills:` frontmatter, never invoked here: `tdd` under every spec
 `execute` and `test` write, and `codebase-design` under `qoq-architect`'s
-contracts. All six normally arrive with qoq as plugin dependencies; each
+contracts. All seven normally arrive with qoq as plugin dependencies; each
 reference states what to do when one is missing anyway.
 
 ## Standing rules
@@ -286,7 +287,7 @@ blind spots at any cheaper tier.
 | `qoq-scribe`        | _dispatch_ | the why, as comments and docs — one per run or milestone    |
 | `qoq-artist`        | sonnet     | a validated Mermaid chart, or a reasoned decline            |
 | `qoq-sheriff`       | _session_  | logic-level security findings — one per sweep or recheck    |
-| `qoq-reviewer`      | _session_  | the delivery against the plan — one per milestone or plan   |
+| `qoq-reviewer`      | _session_  | spec · standards axes, in parallel — per milestone or plan  |
 
 Entry copies them into the project's `.claude/agents/`, because an agent file
 inside a skill is registered by nothing, and Claude Code picks that directory up

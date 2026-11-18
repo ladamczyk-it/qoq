@@ -1143,6 +1143,41 @@ for one run, `future.unstable_skill_sheriff` for a project. Standalone
 
 ## `review`
 
+**Why `review` sits on `code-review`.** Splitting a review into Spec and
+Standards is mattpocock-skills' idea, and a maintained skill states it better
+than a second copy here would. A change can do exactly what was asked and still
+break the project's conventions, or the other way round. A single reviewer
+holding both lets whichever finding is louder hide the other, so the axes run as
+separate cold dispatches and are reported side by side without a rerank. The
+base is invoked on the main thread, as `compress` does with `writing-for-agents`,
+because the agent can't spawn the subagents the base describes.
+`review.md` keeps what the base can't know: a range the caller already has, a
+spec that is a plan or a pull request, and typed YAML that routing needs.
+
+**Why one agent with an `axis`, not two agents.** The axes share almost the whole
+contract: modes, anchors, accepted entries, recheck, the YAML block, the
+never-edit rule. Two files would copy all of it and drift. A parameter costs one
+input line, and the agent count stays where the docs and the plugin list it.
+
+**Why Standards reads the record, not the repo.** The base looks for every
+style document in the repo. qoq already has a source for that: the record's
+`conventions` field, chosen at discovery, with `code-conventions.md` under it.
+A second search would find a different set of files each run and argue with the
+one the record settled. In `pr` mode there's no record, so the clone's code and
+the house file stand in.
+
+**Why Standards is never `high`, and every smell is `judgment`.** This extends
+the maintainability cap below. A broken naming rule costs the next change, not
+the next milestone, so only Spec can stop an unattended run. Smells are
+heuristics by the base's own definition. Making one `confirmed` would let a
+pattern-matcher decide something only a reader can. Speculative Generality is
+left to Spec's traceability check, which can see the plan the Standards axis
+isn't given.
+
+**Why `RS<n>`.** Both axes write to the same Review line and commit subject.
+`S<n>` is the sheriff's. Keeping the `R` family means an accepted entry and a
+`fix(mN): review …` commit still read as review findings at a glance.
+
 **Why per milestone, with the plan pass kept light.** A wrong turn is cheapest
 to fix before the next milestone builds on it, and that is the moment the
 milestone review exists for. The end-of-plan pass doesn't repeat it. It asks

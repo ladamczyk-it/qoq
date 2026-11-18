@@ -378,8 +378,10 @@ are routed, remediated or recorded before anything below runs —
 run. Off → straight on, no Security line.
 
 Then **review**, when it's on (Setup). `qoq-reviewer` reads the milestone's
-final diff, security fixes included, against its Goal, Contracts and criteria
-for wrong turns, scope creep and cross-ticket inconsistency. Its findings are
+final diff, security fixes included, on two parallel axes. Spec checks it
+against its Goal, Contracts and criteria for wrong turns, scope creep and
+cross-ticket inconsistency. Standards checks it against the project's
+conventions and `code-review`'s smell baseline. Its findings are
 routed, remediated or recorded before anything below runs.
 [review.md](review.md) owns all of it, including the two places where it stops
 the run. Off → straight on, no Review line.

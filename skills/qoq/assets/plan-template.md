@@ -47,7 +47,7 @@ done>` · suite `<the full build + suite result, as reported>`
 **Docs advisories:** none | <scribe drift, `qoq-scribe:` markers, docs skipped>
 **Security:** <absent unless the sheriff ran> clean | <S<n> <severity> —
 remediated `<hash>` · accepted · deferred to <ticket> · open advisory>
-**Review:** <absent unless the reviewer ran> clean | <R<n> <severity> —
+**Review:** <absent unless the reviewer ran> clean | <R<n>·RS<n> <severity> —
 remediated `<hash>` · accepted — <file>:'<anchor>' — "<reason>" · deferred to
 <ticket> · open advisory>
 **Full detail:** [<plan-name>.completed.md](<plan-name>.completed.md)
@@ -156,7 +156,7 @@ ticket was raised as; absent otherwise>
       not the scoped variants a ticket gate uses)
 - [ ] Sheriff on: `qoq-sheriff` over the milestone's diff, its findings routed
       and recorded on the summary block's **Security** line
-- [ ] Review on: `qoq-reviewer` over the milestone's final diff, its findings
+- [ ] Review on: `qoq-reviewer` (spec + standards) over the final diff, findings
       routed and recorded on the summary block's **Review** line
 - [ ] Both results written into the summary block's **Gate evidence** — what the
       refactor found and what the suite reported, not "green"

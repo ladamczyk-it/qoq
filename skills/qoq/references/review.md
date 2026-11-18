@@ -1,11 +1,55 @@
 # `qoq review` — does this delivery make sense against the plan?
 
-`qoq-reviewer` reads a delivered change against the intent behind it and returns
-typed findings; what it looks for lives in `agents/qoq-reviewer.md`. This file is
+`qoq-reviewer` reads a delivered change on two axes, Spec (against the intent
+behind it) and Standards (against the project's conventions), and returns typed
+findings. What it looks for lives in `agents/qoq-reviewer.md`. This file is
 the main thread's side: scope, dispatch, routing, remediation, the end-of-plan
 pass, and the sign-off. **The analysis is delegated; every decision stays here**.
 The agent can't stop to ask, so asking, accepting and remediating are this
 thread's job.
+
+## The base — `code-review`
+
+Resolve mattpocock-skills' `code-review` from your own available-skills list,
+under whatever name it gives. Claude Code ships a built-in `code-review` too;
+match on the description ("two axes: Standards … and Spec …"). A bare name and
+a `mattpocock-skills:` one don't resolve interchangeably. Check it **before the
+first dispatch**, and invoke it once for the run. Its Process is the frame this
+file fills in: two isolated axes, each a cold subagent, issued together, then
+reported side by side and never reranked. **This file wins where they
+conflict.** Where they meet:
+
+| Base step              | Here                                                                                                                                                                                                                                            |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Pin the fixed point | The range is given: a PR's `origin/<base>...refs/qoq/pr-<n>`, or a milestone's `<first>^..<last>`. Keep its fail-early check: `git rev-parse` both ends and confirm a non-empty diff on this thread before either dispatch.                     |
+| 2. Spec source         | The plan (milestone Goal, Contracts, criteria) or the PR's title, body and closed issues. Ignore its discovery chain and its issue-tracker setup line.                                                                                          |
+| 3. Standards sources   | The record's `conventions` file and [code-conventions.md](code-conventions.md) only. Don't run its repo-wide search. **Keep its smell baseline**, pasted verbatim into every `standards` dispatch, because the agent has no other access to it. |
+| 4. Spawn both          | Both are `qoq-reviewer`, one with `axis: spec` and one with `axis: standards`, at the session's model, with the inputs below. They're read-only, so running them in parallel is safe.                                                           |
+| 5. Aggregate           | The agent returns typed YAML, not prose under 400 words. Render the report as the base lays it out (below).                                                                                                                                     |
+
+Missing → ask once:
+
+> `code-review` isn't installed, so both axes would run without its smell
+> baseline: the Standards axis would judge against the project's conventions
+> alone.
+>
+> - **Install and re-run** _(recommended)_ — `/plugin install mattpocock-skills`.
+>   It normally arrives with qoq as a plugin dependency. Then the same command
+>   again.
+> - **Proceed without it** — both axes, every gate below, no smells.
+
+Proceeding is a real option. If the user takes it, name the skipped base in the
+report's summary line. In `execute`, ask at the first milestone review and keep
+the answer for the run.
+
+### The report layout
+
+Two sections, `## Spec` then `## Standards`, each listing its findings with
+severity, confidence, locations, reason and evidence. Don't merge them or rerank
+across them, because one axis passing must not hide the other failing. End on
+one line giving the finding count per axis and the worst finding _within_ each.
+Never pick a single worst across both. Routing below stays global, and that's
+safe: a Standards finding is never `high`, so only Spec can stop a run.
 
 ## Scope
 
@@ -43,12 +87,16 @@ link.
 4. **Dispatch** at the **session's** model with `mode: pr`, the clone's path as
    the repo to read (never the working directory), the range, the title, body
    and issue texts verbatim, whether intent was stated, and this skill's
-   absolute path.
-5. **`status: question`** → ask the user, then re-dispatch with the answer
-   verbatim.
+   absolute path. For `review` that's two dispatches issued together, one
+   `axis: spec` and one `axis: standards` carrying the smell baseline
+   ([The base](#the-base--code-review)). The Spec axis still runs when no intent
+   was stated, judging correctness against the code's own contract.
+5. **`status: question`** → ask the user, then re-dispatch that axis with the
+   answer verbatim.
 6. **Print the report.** If no intent was stated, say so once at the top. Then
    list every finding with its severity, confidence, locations, reason and
-   evidence or exploit.
+   evidence or exploit, laid out per
+   [The report layout](#the-report-layout) for `review`.
 7. **Propose comments.** Never remediate in this mode: the pull request is
    someone else's branch, possibly in another repository, and the comments are
    how the author hears about it. Draft **one inline comment per finding** at
@@ -60,7 +108,8 @@ link.
    finding whose line isn't in the diff, or that has no location (a gap), goes
    into the review body instead, since GitHub only takes inline comments on
    lines the diff shows.
-8. **Let the user pick.** Show every draft, numbered, and ask which to post. The
+8. **Let the user pick.** Show every draft, numbered, grouped by axis for
+   `review`, and ask which to post. The
    user can drop any of them, rewrite any of them, or post none. Never post
    without that answer.
 9. **Post the approved ones as one review.** Write
@@ -109,10 +158,13 @@ Dispatch at the **session's** model, cold: a fresh dispatch every time, never
 - the plan's `**Review context:**` line, if it has one
 - the milestone's **Security** line, if the sheriff ran
 - every earlier milestone's **Review** line
-- the refactor gate's advisories
 - this skill's absolute path
 
-**`status: question`** stops the run. The next milestone would build on a
+That's one dispatch per axis, both issued together. `axis: standards` also
+gets the refactor gate's advisories, so a smell the gate already raised lands in
+`skipped_covered`, plus the record's `conventions` path and the smell baseline.
+
+**`status: question`** on either axis stops the run. The next milestone would build on a
 review that never happened. Ask the user, write the answer into the plan header
 as `**Review context:** <answer>` (appending to an existing line), and
 re-dispatch. Every later dispatch carries that line, so the question is never
@@ -157,12 +209,12 @@ recheck. Read it there. The differences are:
   spec asserting the untraced export, route or file is gone.
 - **Tier comes from the category.** `correctness` and `consistency` run at the
   **session** model, because putting the delivery back on its intent is
-  judgment. `scope` and `maintainability` run at `sonnet`.
+  judgment. `scope`, `standards` and `maintainability` run at `sonnet`.
 - **Too big to remediate.** If a finding's fix needs more than five files, or
   would change a milestone's **Contracts**, it doesn't go into the loop. It goes
   to the user, with "hand to `qoq replan`" as the recommended option. Rework of
   that size is a plan change, not a patch.
-- **Commit:** `fix(m<N>): review R1,R2`, with `--no-verify`.
+- **Commit:** `fix(m<N>): review R1,RS2`, with `--no-verify`.
 - **Sheriff after the re-gate, when it's on.** Dispatch `qoq-sheriff` with
   `mode: recheck`, `findings: []` and the remediation's range. That reads only
   the review fix, so a change made for maintainability can't quietly drop a
@@ -170,7 +222,8 @@ recheck. Read it there. The differences are:
   ends the chain: there is no second reviewer pass over a security fix, because
   that fix is already scope-checked by file.
 - **Then the reviewer recheck**: `mode: recheck`, with the findings verbatim and
-  the remediation's range.
+  the remediation's range, dispatched once per axis that raised a remediated
+  finding. Each axis gets only its own findings.
 
 After **two rounds with findings still surviving**, bring the user each
 surviving finding, both rounds' diffs and both rechecks. Offer four options: one
@@ -183,7 +236,8 @@ through the write-back it already has.
 ## What gets recorded
 
 The milestone's Completed block gains a **Review** line. It holds the verdict,
-then one entry per finding: the id and severity, plus how it ended (remediated
+then one entry per finding: the id (its `R`/`RS` prefix names the axis) and
+severity, plus how it ended (remediated
 `<hash>`, accepted with its anchor and reason as above, deferred to `<ticket>`,
 or open advisory). **Gate evidence** gets the review's one-line verdict beside
 the refactor, suite and sheriff results.
@@ -195,7 +249,9 @@ milestone is archived and no ticket is `blocked`. A run that stopped on a
 spending limit, or that left blocked tickets, skips it and says why in its
 closing line. A later resume that finishes the plan runs it then.
 
-Dispatch `qoq-reviewer`, cold, at the session's model, with `mode: plan`. Pass:
+Dispatch `qoq-reviewer`, cold, at the session's model, with `mode: plan` and
+`axis: spec`. There's no Standards pass here, because each milestone's
+standards were already read. Pass:
 
 - the plan's Goal, Architecture and requirements source
 - every milestone's Completed block
@@ -242,6 +298,7 @@ The sign-off contains:
   it, taken from `coverage`. A partial or missing requirement shows how it ended
   (gaps milestone, replan, accepted)
 - **Open items**: the deferred tickets, open advisories and accepted findings,
+  under `Spec` and `Standards` per [The report layout](#the-report-layout),
   plus the `security_noticed` lines
 - **Gate evidence**: one line per milestone
 - **The question**: does the user sign off? On a yes, write

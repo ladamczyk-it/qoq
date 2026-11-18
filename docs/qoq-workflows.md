@@ -569,7 +569,7 @@ flowchart TD
     ESH --> ERVQ
     ERVQ{"review on?<br/>*--review, or qoq.config<br/>future.unstable_skill_review*"}
     ERVQ -->|"no — the default"| EDOCQ
-    ERVQ -->|yes| ERV["**qoq review — milestone review**<br/>*experimental* · see the review chart<br/>qoq-reviewer at the session's model, cold,<br/>over the final diff, security fixes in ·<br/>confirmed high → remediation ·<br/>judgment high → **stop, ask** ·<br/>medium/low → Review advisory"]
+    ERVQ -->|yes| ERV["**qoq review — milestone review**<br/>*experimental* · see the review chart<br/>qoq-reviewer · spec + standards axes,<br/>session's model, cold, over the final diff, security fixes in ·<br/>confirmed high → remediation ·<br/>judgment high → **stop, ask** ·<br/>medium/low → Review advisory"]
     ERV --> EDOCQ
     EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
     EDOCQ -->|"no — the default"| EARCH
@@ -579,7 +579,7 @@ flowchart TD
     EMS -->|yes| EWAVE
     EMS -->|no| ERVP{"review on?"}
     ERVP -->|"no — the default"| EDWALK
-    ERVP -->|yes| ERVPLAN["**end-of-plan review** — every milestone<br/>archived, none blocked · qoq-reviewer,<br/>mode plan · gaps → **ask**: Plan gaps<br/>milestone · replan · accept · drop"]
+    ERVP -->|yes| ERVPLAN["**end-of-plan review** — every milestone<br/>archived, none blocked · qoq-reviewer,<br/>mode plan, axis spec · gaps → **ask**: Plan gaps<br/>milestone · replan · accept · drop"]
     ERVPLAN --> EDWALK
     EDWALK["**walk the user through every<br/>milestone's Refactor, Docs, Security<br/>and Review advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
     EDWALK --> ESIGNQ{"review on?"}
@@ -873,23 +873,30 @@ flowchart TD
 ```mermaid
 flowchart TD
     VQ["/qoq review &lt;PR link&gt;"] --> VSCOPE{"a PR link?"}
+    VBASE{"**code-review** in your own<br/>available-skills list?<br/>*matched by description — the<br/>built-in shares the bare name*"}
+    VBASE -->|"no"| VBASEQ(["**ASK** — install and re-run ·<br/>proceed: no smell baseline"])
     VSCOPE -->|"no — number · path · nothing"| VDEF["one line: pass the link · stop"]
     VSCOPE -->|"yes — any repo"| VPR["**resolve** — gh pr view · closed issues ·<br/>**scratch clone** in the os tmpdir ·<br/>fetch pull/N/head · detached checkout ·<br/>range base...head · *discovery skipped*"]
     VPR --> VINT{"states intent?"}
     VINT -->|yes| VDISP
-    VINT -->|"no — empty, template, bare link"| VNOINT["intent not judged —<br/>correctness · maintainability only"]
+    VINT -->|"no — empty, template, bare link"| VNOINT["intent not judged —<br/>spec: own-contract correctness only,<br/>no scope or gap · standards unchanged"]
     VNOINT --> VDISP
 
     VEXEC["execute's milestone gate, after the sheriff —<br/>**only with --review or<br/>future.unstable_skill_review: true**"] --> VDISPM["mode **milestone** — final range ·<br/>union · Goal · Contracts · criteria ·<br/>Review context · Security line ·<br/>earlier Review lines · refactor advisories"]
-    VDISP["mode **pr** · dispatch at the<br/>**session's** model, cold"] --> VAG
-    VDISPM --> VAG
+    VDISP["mode **pr** · range rev-parsed, diff<br/>non-empty · **two dispatches together**,<br/>session's model, cold"] --> VBASE
+    VDISPM --> VBASE
+    VBASE -->|"yes — invoked once per run"| VAG
+    VBASE -->|"yes"| VAGS
+    VBASEQ -.->|proceed| VAGS
 
-    VAG["**qoq-reviewer** — learn the project's<br/>conventions first · correctness against intent ·<br/>scope by **traceability** · consistency across<br/>tickets · maintainability (never high).<br/>*skips accepted Review entries — unless the diff<br/>touches the anchor or a finding breaks the reason ·<br/>skips refactor advisories · security only noticed ·<br/>never decides intent, never edits*"]
-    VAG --> VST{"status"}
+    VAG["**qoq-reviewer · axis spec** — R‹n› ·<br/>learn the project first · correctness against<br/>intent · scope by **traceability** · consistency<br/>across tickets.<br/>*skips accepted R entries — unless the diff<br/>touches the anchor or a finding breaks the reason ·<br/>security only noticed · never decides intent,<br/>never edits*"]
+    VAGS["**qoq-reviewer · axis standards** — RS‹n› ·<br/>record's conventions + code-conventions.md ·<br/>**smell baseline** pasted from code-review,<br/>every smell judgment · *never high* ·<br/>refactor advisories → skipped_covered ·<br/>tooling-enforced rules skipped"]
+    VAG --> VST{"status — per axis"}
+    VAGS --> VST
     VST -->|"question — wrote nothing"| VASKQ(["**ASK** — pipeline: the run stops;<br/>answer → plan's **Review context**"])
-    VASKQ -.-> VAG
+    VASKQ -.->|"re-dispatch that axis"| VAG
     VST -->|"clean · findings"| VMODE{"caller"}
-    VMODE -->|standalone| VPRINT(["print · **propose** one inline comment<br/>per finding, in the user's voice ·<br/>user picks · edits · drops"])
+    VMODE -->|standalone| VPRINT(["print **## Spec** then **## Standards** —<br/>never merged or reranked, worst per axis ·<br/>**propose** one inline comment per finding,<br/>in the user's voice · user picks · edits · drops"])
     VPRINT -->|approved| VPOST(["**one review, event COMMENT** via gh api,<br/>under the user's name · never APPROVE<br/>or REQUEST_CHANGES · *no remediation*"])
     VMODE -->|execute| VROUTE{"route each finding"}
 
@@ -905,14 +912,14 @@ flowchart TD
 
     subgraph VLOOP["one remediation round — budget **2**, apart from delivery attempts"]
         direction TB
-        VREM["**remediation ticket** — the sheriff's shape ·<br/>ACs = plan_ref as an assertion ·<br/>tier: correctness/consistency → **session**,<br/>scope/maintainability → **sonnet**"]
+        VREM["**remediation ticket** — the sheriff's shape ·<br/>ACs = plan_ref as an assertion ·<br/>tier: correctness/consistency → **session**,<br/>scope/standards/maintainability → **sonnet**"]
         VREM --> VDEV["**qoq-developer**"]
         VDEV --> VSCOPECHK{"**scope check, by file**"}
         VSCOPECHK -->|"no — restore, round spent"| VREM
-        VSCOPECHK -->|yes| VGATES["Gate 1 · Gate 2 · commit<br/>**fix(mN): review R1,R2**"]
+        VSCOPECHK -->|yes| VGATES["Gate 1 · Gate 2 · commit<br/>**fix(mN): review R1,RS2**"]
         VGATES --> VREGATE["**re-gate** — qoq fix, knip on ·<br/>full build + suite · no refactor"]
         VREGATE --> VSH["sheriff on: **qoq-sheriff recheck**,<br/>findings: [] over this diff only ·<br/>its fix ends the chain"]
-        VSH --> VRECHK["**qoq-reviewer recheck** — findings<br/>by anchor + the remediation diff"]
+        VSH --> VRECHK["**qoq-reviewer recheck** — per axis<br/>that raised one · its findings by<br/>anchor + the remediation diff"]
     end
     VRECHK -->|"all resolved"| VREC["**Review** line on the milestone ·<br/>verdict into **Gate evidence**"]
     VRECHK -->|"surviving, round left"| VREM
@@ -920,7 +927,7 @@ flowchart TD
     VACC --> VREC
     VDEFER --> VREC
 
-    VEND["last milestone archived, none blocked"] --> VPLAN["**qoq-reviewer — mode plan**<br/>Goal · requirements · every Completed<br/>block · diff --stat of the plan's range ·<br/>code only to confirm a gap"]
+    VEND["last milestone archived, none blocked"] --> VPLAN["**qoq-reviewer — mode plan, axis spec**<br/>Goal · requirements · every Completed<br/>block · diff --stat of the plan's range ·<br/>code only to confirm a gap"]
     VPLAN --> VGAP(["**ASK** per gap — Plan gaps milestone ·<br/>replan · accept · drop"])
     VGAP -->|"Plan gaps milestone"| VGM["normal milestone gate,<br/>review included"]
     VGM --> VPLAN2["**plan pass once more** —<br/>its gaps resolved · surviving.<br/>surviving → replan · accept · drop"]
@@ -931,7 +938,7 @@ flowchart TD
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
     classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
 
-    class VAG,VDEV,VRECHK,VSH,VPLAN,VPLAN2 agent
-    class VASKQ,VPRINT,VPOST,VUSER,VESC,VREPLAN,VGAP,VSIGN user
-    class VDEF,VNOINT,VSCOPECHK,VSIZE note
+    class VAG,VAGS,VDEV,VRECHK,VSH,VPLAN,VPLAN2 agent
+    class VASKQ,VBASEQ,VPRINT,VPOST,VUSER,VESC,VREPLAN,VGAP,VSIGN user
+    class VDEF,VNOINT,VSCOPECHK,VSIZE,VBASE note
 ```
