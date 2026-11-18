@@ -1,6 +1,6 @@
 # `qoq replan` — an existing plan, reshaped against what's been learned
 
-`qoq replan plans/<file>.md` re-runs [`plan.md`](plan.md)'s three phases over a
+`qoq replan plans/<plan>/` re-runs [`plan.md`](plan.md)'s three phases over a
 plan that already exists, so a decomposition written before anyone had tried it
 can be brought forward.
 
@@ -10,15 +10,17 @@ stops.
 
 ## Frozen and live
 
-Split the file before anything else. This split is what makes replanning a
+Split the plan before anything else. A bare `plans/<name>.md` is the
+single-file layout from before this version and isn't replanned: say so, and
+offer `qoq plan` over what's left of it. This split is what makes replanning a
 half-executed plan safe, and it decides every other question below.
 
-**Frozen** — delivered milestones, `done` tickets, the `## Completed` blocks, the
-`.completed.md` archive, and every commit hash. **Read-only input.** A `done`
-ticket that gets re-decomposed loses the link between its criteria and the commit
-that satisfied them, and at that point the history stops meaning anything. The
-archive's own rule is that it is append-only: nothing in it is ever re-planned or
-re-gated.
+**Frozen** — every delivered milestone's file, Outcome block included, `done`
+tickets wherever they sit, withdrawn milestones, and every commit hash.
+**Read-only input.** A `done` ticket that gets re-decomposed loses the link
+between its criteria and the commit that satisfied them, and at that point the
+history stops meaning anything. A delivered milestone file's own rule is that
+nothing in it is ever re-planned or re-gated.
 
 Frozen parts get a **mechanical backfill only**, and only where a field the
 current template carries is simply absent:
@@ -36,6 +38,12 @@ milestones. This is the only thing `replan` may rewrite, and it gets the full
 reshape: Phase 1 over the live requirements, Phase 2's architect over what's
 left, Phase 3's decomposition.
 
+**Numbers are append-only.** A reshape rewrites live milestone files in place
+and their index rows with them. A new milestone takes the next unused `m<N>`, and
+no existing one is renumbered — ticket ids, `External` keys and every Log line
+cite those numbers. A live milestone the reshape drops keeps its file, unchanged,
+and its index row becomes `withdrawn — <why>`, so a link to it never dangles.
+
 ## When not to replan
 
 Two stops, both cheaper than the reshape:
@@ -43,17 +51,17 @@ Two stops, both cheaper than the reshape:
 - **One milestone from done** → say so. Finishing is cheaper than reshaping, and
   a reshape at that point throws away a decomposition that has been working.
 - **Nothing delivered _and_ the requirements changed substantially** → this isn't
-  a replan. Archive the file and run `qoq plan` fresh; there's nothing to carry
+  a replan. Leave the directory as it is and run `qoq plan` fresh; there's nothing to carry
   forward but a shape that was answering a different question.
 
 ## Refuse on uncommitted changes
 
-If the plan file has uncommitted changes, **refuse and say why**: commit or stash
-first. Not a warning — a stop.
+If any file in the plan directory has uncommitted changes, **refuse and say
+why**: commit or stash first. Not a warning — a stop.
 
-`replan` overwrites the file **in place**, because the path has to stay stable:
-`External` keys, the `.completed.md` archive and any resume all reference the plan
-by name. Git is the history, so there's no `.v2` file. But overwriting uncommitted
+`replan` overwrites the live files **in place**, because the paths have to stay
+stable: `External` keys, links between milestone files and any resume all
+reference the plan by name. Git is the history, so there's no `.v2` file. But overwriting uncommitted
 work destroys the only copy of it, and the guard costs one `git status`.
 
 ## The grill's best input is what already went wrong
@@ -70,7 +78,7 @@ usual:
 That last one is the point. Those are direct evidence that the old decomposition
 was wrong — a ticket nothing could deliver, a tier that had to move, work nobody
 knew was there — and nothing in this system reads them at plan time today. They
-are already sitting in the plan file.
+are already sitting in the milestone files.
 
 It's also why re-grilling costs almost nothing. `plan.md` already hands the grill
 everything settled so its frontier opens on the gaps, and here "settled" is

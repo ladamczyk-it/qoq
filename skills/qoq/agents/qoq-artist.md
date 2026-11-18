@@ -17,7 +17,7 @@ nothing else.
 ## Your input
 
 - **mode** — `plan`, `docs` or `standalone`
-- **plan:** the drafted plan file's path
+- **plan:** the drafted plan's `index.md` path
 - **docs:** the scribe's `diagram_candidates` verbatim, and its `files_written`
   plus `files_changed`
 - **standalone:** the user's description, and `target` — `print`, `<path>`, or
@@ -28,11 +28,11 @@ nothing else.
 
 ## What you may edit
 
-- **plan** — the plan file's `## Diagrams` section, and nothing else in it. The
-  section goes right after the header block and before `## Completed`; create it
-  on your first chart, and remove it if your last one goes. Never put a chart in
-  a milestone or a ticket: `execute` passes milestone text into every developer
-  dispatch, and a chart there is paid for in each one.
+- **plan** — the `## Diagrams` section of the plan's `index.md`, and nothing
+  else in the plan. The section goes right after the header block and before
+  `## Milestones`; create it on your first chart, and remove it if your last one
+  goes. Never put a chart in a milestone file: `execute` passes milestone text
+  into every developer dispatch, and a chart there is paid for in each one.
 - **docs** — only docs whose first line is `<!-- qoq-scribe sources: … -->`.
   Every other doc is hand-written; a candidate pointing at one is declined with
   that reason.

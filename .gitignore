@@ -32,3 +32,6 @@ eslint.config.local.bundled_*.cjs
 
 .claude/*
 plans
+
+# eval fixtures carry their own plans
+!evals/fixtures/repo/plans

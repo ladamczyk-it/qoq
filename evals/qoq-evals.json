@@ -117,10 +117,12 @@
       "id": 6,
       "name": "plan-criteria-as-assertions",
       "prompt": "Here's what we need: users should be able to schedule a report to run daily/weekly, get it emailed as a PDF, and manage their schedules from the settings page. Also rate-limit the schedule creation endpoint. Can you work out how we'd build this?",
-      "expected_output": "Produces a plan file under ./plans/ following the plan template. Every acceptance criterion is written as an observable assertion a spec could be written from today (\"a 6th request inside 60s returns 429\"), never as a task (\"add rate limiting\"). Tickets stop at size M, complexity rates only the model tier (no delivery routing, no per-ticket standards pass), and there are no test-only tickets for feature work. Each ticket is tagged and its baseline size+tier pick checked against scripts/estimate.mjs, whose exit code it branches on rather than re-deriving the thresholds — taking the tier the script returns in either direction, up on 1 and down on 5; the tags, stack and verdict land in the ticket's Estimate field. Dispatches Explore for repo patterns but takes build/test commands from the discovery record, not from Explore. Ends at approval and offers qoq execute rather than dispatching any ticket.",
+      "expected_output": "Produces a plan directory under ./plans/ following the plan template: an index.md with the header and a Milestones table, and one m<N>-<slug>.md per milestone holding its Scope and tickets, each ticket's spec fields before its #### Execution block. Every acceptance criterion is written as an observable assertion a spec could be written from today (\"a 6th request inside 60s returns 429\"), never as a task (\"add rate limiting\"). Tickets stop at size M, complexity rates only the model tier (no delivery routing, no per-ticket standards pass), and there are no test-only tickets for feature work. Each ticket is tagged and its baseline size+tier pick checked against scripts/estimate.mjs, whose exit code it branches on rather than re-deriving the thresholds — taking the tier the script returns in either direction, up on 1 and down on 5; the tags, stack and verdict land in the ticket's Estimate field. Dispatches Explore for repo patterns but takes build/test commands from the discovery record, not from Explore. Ends at approval and offers qoq execute rather than dispatching any ticket.",
       "files": [],
       "assertions": [
-        "Writes a plan file under ./plans/ named YYYY-MM-DD-<feature>.md",
+        "Writes a plan directory ./plans/YYYY-MM-DD-<feature>/ holding index.md and one m<N>-<slug>.md per milestone",
+        "index.md has a Milestones table with one row per milestone, each linking its file and marked todo; no ticket status or ticket count appears in the index",
+        "Every ticket puts Status, Size, Depends on, Files, Context and Acceptance criteria before a #### Execution heading that holds Complexity, Agent tier, Estimate and the Definition of done",
         "Follows assets/plan-template.md structurally without inventing sections",
         "Every acceptance criterion is an observable assertion, never a task description",
         "No ticket is sized above M",
@@ -134,7 +136,7 @@
         "No test-only tickets for feature work",
         "Dispatches Explore for repo patterns",
         "Takes build and test commands from the discovery record, not from Explore",
-        "Saves with Plan status: draft and asks for approval",
+        "Saves with Plan status: draft in index.md and asks for approval",
         "Surfaces new dependencies, any ticket rated above the session's own model, and every tier the estimator moved at approval",
         "Offers qoq execute rather than dispatching any ticket itself"
       ],
@@ -145,7 +147,7 @@
       "name": "execute-sequential-tdd-milestone-refactor",
       "prompt": "the plan in ./plans/ is signed off — go ahead and build it",
       "expected_output": "Loads the plan fresh from disk, checks Plan status is approved, reconciles any in-progress ticket against git log, and asks before working on the default branch. Dispatches ONE qoq-developer at a time in dependency then plan order — no waves, no parallelism flag, no run id — Before dispatching anything it resolves `tdd` from its own available-skills list and stops if it is missing. It hands the developer the record's path, the tdd SKILL.md/tests.md/mocking.md paths, the test-conventions.md path, and the ticket's tier explicitly. The developer works one acceptance criterion at a time — a failing assertion transcribed from the criterion and proved red, then the minimum to turn it green, then the next — with no per-ticket refactor beat, raises those assertions to tdd and test-conventions.md itself (no `qoq test` dispatch — a subagent can't dispatch), proves the work runs with the project's own test:one and build, then runs the CLI's `ticket_scoped` form (`npx qoq staged --skip-knip`) over its own files — its only CLI call — and hands back the changed-file list. THE ORCHESTRATOR then runs both gates — `qoq fix --skip-knip` scoped to that list, then qoq-test-reviewer — and commits exactly that ticket's files once both pass; a FAIL re-dispatches the developer with the digest and spends one of its three attempts. The refactor beat runs at the MILESTONE, not per ticket: qoq refactor --decisions auto over the union of the milestone's files plus the full suite and build. Escalates one tier when the budget is spent; never implements anything on the orchestrating thread. Once each ticket reaches done or blocked it reports the outcome back with scripts/estimate.mjs --record, using the ticket's own tags, stack and the tier the plan assigned (not the tier that finally delivered it), the attempts actually spent, and its own attribution call — as-estimated when the ticket was what the plan said it was, scope-expansion when the developer found work nobody knew was there. A ticket that landed after an escalation is still reported as success — the attempt count already says the tier was mis-picked; only a ticket left blocked is reported as failure.",
-      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit.md"],
+      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit/"],
       "assertions": [
         "Resolves `tdd` from its available-skills list before dispatching anything",
         "Loads the plan fresh from disk rather than reusing an in-session copy",
@@ -381,21 +383,21 @@
       "name": "execute-source-jira-imports-then-runs",
       "setup": "qoq.config sets future: { unstable_skill_plan_jira: true } — the import is experimental and refused without it.",
       "prompt": "we track everything in jira — can you just run the PLAT-412 epic? all the tickets are under it",
-      "expected_output": "Reads references/export.md before anything else, because --source isn't local. Confirms the milestone level it was given is an epic (not a bare ticket, which would leave the run with no milestone gate, and not a board, which would import work nobody agreed to start), offering what the read-only Jira tools can see if the destination is unclear. Finds the Jira MCP tools in its own available-tools list at the moment it needs them — matching on what a tool does, never on a guessed name — and never substitutes curl, a REST call against a token in the environment, or a CLI for a missing one; with no Jira MCP tool at all it stops and offers qoq plan or --source local instead. Reads the epic and its issues and writes ./plans/<milestone-slug>.md in the standard plan template, mapping description back to Context and Files, the Acceptance checklist to Acceptance criteria, story points to Size and the qoq:<tier> label to Agent tier, and putting each issue key in that ticket's External field. Fills the two fields no tracker carries rather than guessing them: Commands from the discovery record and Estimate from scripts/estimate.mjs. Stops and asks the user for real assertions on any ticket whose acceptance criteria are prose or a restated title — all of them in one question, before anything dispatches — and writes the answers into the plan file rather than inferring them. Marks Plan status: approved, then loads that file from disk and runs the ordinary execute loop unchanged: one qoq-developer at a time, the scoped qoq fix gate on the orchestrating thread, the commit after PASS, the milestone refactor beat, and estimate.mjs --record per resolved ticket. As each ticket reaches done or blocked it also writes the status back to that issue as a LABEL plus the commit hash as a comment — never the Jira workflow state — and treats a rejected write as a line in the report rather than a stop.",
+      "expected_output": "Reads references/export.md before anything else, because --source isn't local. Confirms the milestone level it was given is an epic (not a bare ticket, which would leave the run with no milestone gate, and not a board, which would import work nobody agreed to start), offering what the read-only Jira tools can see if the destination is unclear. Finds the Jira MCP tools in its own available-tools list at the moment it needs them — matching on what a tool does, never on a guessed name — and never substitutes curl, a REST call against a token in the environment, or a CLI for a missing one; with no Jira MCP tool at all it stops and offers qoq plan or --source local instead. Reads the epic and its issues and writes ./plans/<milestone-slug>/ in the standard plan template — an index.md with one M1 row and its m1-<slug>.md holding the milestone and its tickets —, mapping description back to Context and Files, the Acceptance checklist to Acceptance criteria, story points to Size and the qoq:<tier> label to Agent tier, and putting each issue key in that ticket's External field. Fills the two fields no tracker carries rather than guessing them: Commands from the discovery record and Estimate from scripts/estimate.mjs. Stops and asks the user for real assertions on any ticket whose acceptance criteria are prose or a restated title — all of them in one question, before anything dispatches — and writes the answers into the plan file rather than inferring them. Marks Plan status: approved, then loads that file from disk and runs the ordinary execute loop unchanged: one qoq-developer at a time, the scoped qoq fix gate on the orchestrating thread, the commit after PASS, the milestone refactor beat, and estimate.mjs --record per resolved ticket. As each ticket reaches done or blocked it also writes the status back to that issue as a LABEL plus the commit hash as a comment — never the Jira workflow state — and treats a rejected write as a line in the report rather than a stop.",
       "files": [],
       "assertions": [
         "Reads references/export.md before acting, since --source is not local",
         "Asks for or confirms the milestone level — an epic — never a bare ticket and never a whole board",
         "Resolves the Jira MCP tools from its own available-tools list rather than a cached or guessed name",
         "Never substitutes curl, a REST call against an env token, or a CLI for a missing MCP tool",
-        "Writes an actual plan file under ./plans/ rather than executing against the tracker directly",
+        "Writes an actual plan directory under ./plans/ (index.md plus m1-<slug>.md) rather than executing against the tracker directly",
         "Maps the tracker fields back into the plan template — description to Context and Files, the Acceptance checklist to Acceptance criteria, points to Size, the qoq: label to Agent tier",
         "Writes each issue key into that ticket's External field",
         "Fills Commands from the discovery record",
         "Fills Estimate by calling scripts/estimate.mjs rather than inventing tags or a stack",
         "Stops and asks the user for assertions when a ticket's acceptance criteria are prose, rather than inferring them",
-        "Writes the answers into the plan file so a resume does not re-ask",
-        "Marks Plan status: approved and then loads the file from disk before dispatching",
+        "Writes the answers into the milestone file so a resume does not re-ask",
+        "Marks Plan status: approved and then loads the plan from disk before dispatching",
         "Runs the ordinary execute loop unchanged — one developer at a time, scoped qoq fix gate, commit after PASS, milestone refactor beat",
         "Still reports each resolved ticket back with estimate.mjs --record",
         "Writes status back to the issue as a label plus a commit comment, never as the tracker's workflow state",
@@ -424,16 +426,17 @@
     {
       "id": 20,
       "name": "replan-freezes-delivered-work",
-      "prompt": "the plan in plans/2026-08-04-reports.md isn't working out — milestone 1 shipped fine but 2 and 3 were written before we knew the export had to be async. reshape it",
-      "expected_output": "Refuses outright if the plan file has uncommitted changes — commit or stash first, not a warning, because replan overwrites in place and git is the only history. Splits the file into frozen and live before anything else: delivered milestones, done tickets, `## Completed` blocks, the `.completed.md` archive and every commit hash are read-only input, and only todo/in-progress/blocked tickets and undelivered milestones may be rewritten. Frozen parts get a mechanical backfill only — a missing Log reconstructed from git log, a missing Estimate from estimate.mjs against the tags and tier the ticket already records — and nothing else. Re-runs plan.md's three phases over the live part, handing the grill the old plan, the original Requirements source, and what went wrong: every blocked ticket, every Escalation, every scope-expansion attribution. Lists at approval every live ticket whose External key is now orphaned, and touches .claude/qoq-estimator.json not at all.",
+      "prompt": "the plan in plans/2026-08-04-reports/ isn't working out — milestone 1 shipped fine but 2 and 3 were written before we knew the export had to be async. reshape it",
+      "expected_output": "Refuses outright if any file in the plan directory has uncommitted changes — commit or stash first, not a warning, because replan overwrites in place and git is the only history. Splits the plan into frozen and live before anything else: every delivered milestone file (Outcome block included), done tickets, withdrawn milestones and every commit hash are read-only input, and only todo/in-progress/blocked tickets and undelivered milestones may be rewritten. Frozen parts get a mechanical backfill only — a missing Log reconstructed from git log, a missing Estimate from estimate.mjs against the tags and tier the ticket already records — and nothing else. Re-runs plan.md's three phases over the live part, handing the grill the old plan, the original Requirements source, and what went wrong: every blocked ticket, every Escalation, every scope-expansion attribution. Lists at approval every live ticket whose External key is now orphaned, and touches .claude/qoq-estimator.json not at all.",
       "files": [],
       "assertions": [
-        "Refuses and stops if the plan file has uncommitted changes",
+        "Refuses and stops if any file in the plan directory has uncommitted changes",
         "Splits frozen from live before doing anything else",
-        "Never re-decomposes a done ticket, a Completed block, or the .completed.md archive",
+        "Never re-decomposes a done ticket or edits a delivered milestone file",
         "Backfills a frozen ticket's missing Log from git log and missing Estimate from estimate.mjs — nothing else",
         "Rewrites only todo, in-progress and blocked tickets and undelivered milestones",
-        "Overwrites the plan file in place rather than writing a .v2",
+        "Overwrites live milestone files in place rather than writing a .v2; a new milestone takes the next unused m<N> and nothing is renumbered",
+        "A live milestone the reshape drops keeps its file and its index row becomes withdrawn",
         "Hands the grill the old plan, the Requirements source, and every blocked ticket, Escalation and scope-expansion attribution",
         "Reports orphaned External keys at approval, and does not attempt to sync the tracker",
         "Leaves .claude/qoq-estimator.json untouched",
@@ -468,9 +471,9 @@
     {
       "id": 22,
       "name": "execute-two-gates-before-commit",
-      "prompt": "plans/2026-08-20-ratelimit.md is approved, go build it",
+      "prompt": "plans/2026-08-20-ratelimit/ is approved, go build it",
       "expected_output": "Loads the plan fresh from disk, checks it isn't on the default branch before dispatching anything, and sends tickets out one at a time in dependency order. Each dispatch carries the ticket's id, Context, Files and Acceptance criteria verbatim, the milestone's Contracts verbatim, the record's path, the tdd SKILL.md/tests.md/mocking.md paths, the path to references/test-conventions.md, the tier's model explicitly, and the three-attempt budget — but NOT the milestone's Scenarios. When the developer hands back, both gates run here, in order: qoq fix scoped to exactly the files the ticket changed, then qoq-test-reviewer over the spec files. The commit happens only after both pass. A REJECTED verdict is re-dispatched verbatim, never summarised. The attempt budget is three shared across both gates, and a fourth failure escalates one tier with the last report pasted in. On done, each acceptance criterion is ticked with the spec/file::test name taken from Gate 2's own mapping, and the outcome is filed with estimate.mjs --record against the tier the plan assigned.",
-      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit.md"],
+      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit/"],
       "assertions": [
         "Loads the plan from disk rather than an in-memory copy",
         "Asks before dispatching when on the default branch",
@@ -492,9 +495,9 @@
     {
       "id": 23,
       "name": "execute-usage-gate-per-ticket",
-      "prompt": "/qoq execute plans/2026-08-20-ratelimit.md --session-limit 60",
+      "prompt": "/qoq execute plans/2026-08-20-ratelimit/ --session-limit 60",
       "expected_output": "Arms the usage gate because a limit flag was given, and runs `node <skill>/scripts/usage-check.mjs --session-limit 60 --weekly-limit 100` before dispatching EACH ticket — not once at the start — passing both flags so the script's own defaults fill in the one the user left out. Shows the script's stdout verbatim to the user before each dispatch. Exit 0 dispatches. Exit 1 stops and asks whether to carry on anyway, saying in the question that a yes disarms the gate for the rest of the run; a no ends the run cleanly, leaves the ticket at its current status — not blocked — and files no estimate outcome, because nothing was dispatched. Output beginning `usage unavailable` is reported in one line and the run carries on.",
-      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit.md"],
+      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit/"],
       "assertions": [
         "Runs usage-check.mjs before every ticket dispatch, not once at the start of the run",
         "Passes both --session-limit and --weekly-limit even though the user gave one",
@@ -511,10 +514,10 @@
     {
       "id": 24,
       "name": "execute-plan-handoff-asks-not-escalates",
-      "prompt": "carry on with plans/2026-08-20-ratelimit.md. ticket 1.2 (tier: sonnet) just came back from qoq-developer on its FIRST attempt and handed it back — here's its return verbatim:\n\nRead the record: vitest, globals off, no React, test:one is `npm run test:one -- {file}`, build is `npm run build`. Transcribed AC-1..AC-4 against the Contract. AC-3 can't be written: the Contract types `IRateLimitResponse.headers` as `{ 'X-RateLimit-Remaining': string }`, so a `Retry-After` header doesn't fit the shape without widening it. I stopped at the red beat, so nothing is on disk.\n\n```yaml\nstatus: handoff\nfiles: []\nspecs: []\nadvisories: []\nblocker: |\n  AC-3 \"A refused result's Retry-After header is retryAfterMs in whole seconds, rounded up\" cannot be asserted against the milestone Contract: IRateLimitResponse.headers is { 'X-RateLimit-Remaining': string } and has no Retry-After key.\nblocker_kind: plan\n```",
+      "prompt": "carry on with plans/2026-08-20-ratelimit/. ticket 1.2 (tier: sonnet) just came back from qoq-developer on its FIRST attempt and handed it back — here's its return verbatim:\n\nRead the record: vitest, globals off, no React, test:one is `npm run test:one -- {file}`, build is `npm run build`. Transcribed AC-1..AC-4 against the Contract. AC-3 can't be written: the Contract types `IRateLimitResponse.headers` as `{ 'X-RateLimit-Remaining': string }`, so a `Retry-After` header doesn't fit the shape without widening it. I stopped at the red beat, so nothing is on disk.\n\n```yaml\nstatus: handoff\nfiles: []\nspecs: []\nadvisories: []\nblocker: |\n  AC-3 \"A refused result's Retry-After header is retryAfterMs in whole seconds, rounded up\" cannot be asserted against the milestone Contract: IRateLimitResponse.headers is { 'X-RateLimit-Remaining': string } and has no Retry-After key.\nblocker_kind: plan\n```",
       "expected_output": "Reads the hand-back's fixed block rather than the prose. `status: handoff` runs neither gate: no qoq fix, no qoq-test-reviewer, no commit. `blocker_kind: plan` means the blocker is in the ticket, which no tier may change, so the run does not escalate to opus. It brings the user the blocker verbatim and asks what the Contract should say, leaves ticket 1.2 in-progress, and writes a Log line for the hand-back. It edits neither the Contract nor AC-3 without the answer, implements nothing on the orchestrating thread, and files no estimate outcome yet, because the ticket is neither done nor blocked.",
       "files": [
-        "evals/fixtures/repo/plans/2026-08-20-ratelimit.md",
+        "evals/fixtures/repo/plans/2026-08-20-ratelimit/",
         "evals/fixtures/repo-states/ratelimit-after-1.1/src/limiter.ts"
       ],
       "assertions": [
@@ -528,7 +531,7 @@
         "Files no estimate.mjs outcome yet, because the ticket is neither done nor blocked"
       ],
       "target": "fixture-repo",
-      "setup": "Copy evals/fixtures/repo-states/ratelimit-after-1.1/src into src/ and commit it as ticket 1.1. In the plan: in the Contracts, change `headers: Record<string, string>;` to `headers: { 'X-RateLimit-Remaining': string };`. Set Plan status to in-progress, Ticket 1.1 to done with every box ticked and that commit hash in its Commit field, and Ticket 1.2 to in-progress with a Log line for its sonnet attempt 1. Commit. Start the run on a feature branch, so the default-branch question doesn't end it first."
+      "setup": "Copy evals/fixtures/repo-states/ratelimit-after-1.1/src into src/ and commit it as ticket 1.1. In the plan's m1-fixed-window-rate-limiting.md: in the Contracts, change `headers: Record<string, string>;` to `headers: { 'X-RateLimit-Remaining': string };`. Set index.md's Plan status and the M1 row to in-progress, Ticket 1.1 to done with every box ticked and that commit hash in its Commit field, and Ticket 1.2 to in-progress with a Log line for its sonnet attempt 1. Commit. Start the run on a feature branch, so the default-branch question doesn't end it first."
     },
     {
       "id": 25,
@@ -1016,7 +1019,7 @@
       "id": 51,
       "name": "review-pipeline-routing-and-signoff",
       "prompt": "Resume the plan with --review. Milestone 2's tickets are all done, its gate is green and the sheriff came back clean. It is the last milestone.",
-      "expected_output": "After the sheriff, the run dispatches qoq-reviewer in milestone mode at the session's model with the Security line, earlier Review lines and refactor advisories, before any document step. A confirmed high finding becomes a Ticket 2.R1 remediation (correctness/consistency at the session model, scope/maintainability at sonnet) with no question. A judgment high finding stops the run and asks remediate, accept or defer. A medium finding becomes a Review advisory. After the remediation's re-gate, qoq-sheriff is dispatched in recheck mode with findings: [] over the remediation range, then a qoq-reviewer recheck. An accepted finding is written on the Review line with its file, anchor and the user's reason, and no marker goes into the code. With every milestone archived, the end-of-plan pass runs in plan mode, then the advisory walkthrough, then the sign-off, and a yes writes Signed off into the plan header.",
+      "expected_output": "After the sheriff, the run dispatches qoq-reviewer in milestone mode at the session's model with the Security line, earlier Review lines and refactor advisories, before any document step. A confirmed high finding becomes a Ticket 2.R1 remediation (correctness/consistency at the session model, scope/maintainability at sonnet) with no question. A judgment high finding stops the run and asks remediate, accept or defer. A medium finding becomes a Review advisory. After the remediation's re-gate, qoq-sheriff is dispatched in recheck mode with findings: [] over the remediation range, then a qoq-reviewer recheck. An accepted finding is written on the Review line with its file, anchor and the user's reason, and no marker goes into the code. With every milestone delivered, the end-of-plan pass runs in plan mode, then the advisory walkthrough, then the sign-off, and a yes writes Signed off into the plan header.",
       "files": [],
       "assertions": [
         "Dispatches qoq-reviewer after the sheriff and before any qoq-scribe dispatch",
@@ -1334,6 +1337,69 @@
         "Every Files entry is an exact path under src/"
       ],
       "target": "agent"
+    },
+    {
+      "id": 70,
+      "name": "execute-refuses-single-file-plan",
+      "target": "fixture-repo",
+      "setup": "Write plans/2026-08-01-old.md: the ratelimit fixture's index.md header and its milestone file's text concatenated into one file under a `## Milestone 1: Fixed-window rate limiting` heading, Plan status: approved. Delete plans/2026-08-20-ratelimit/. Commit, then switch to a feature branch.",
+      "prompt": "/qoq execute plans/2026-08-01-old.md",
+      "expected_output": "Recognises a bare plans/<name>.md as the single-file layout this version no longer runs. Says so in one line naming the file and stops: nothing is dispatched, no file is converted or rewritten, and no developer, gate or commit happens. It may point at qoq plan for re-planning live work.",
+      "files": [],
+      "assertions": [
+        "Stops with a one-line explanation that names plans/2026-08-01-old.md as the old single-file layout",
+        "Dispatches no qoq-developer or any other agent",
+        "Does not convert, rewrite or move the file, and creates no plans/<name>/ directory",
+        "Commits nothing"
+      ]
+    },
+    {
+      "id": 71,
+      "name": "execute-reads-index-then-one-milestone",
+      "target": "fixture-repo",
+      "setup": "Add plans/2026-08-20-ratelimit/m2-redis-store.md — a second milestone (Ticket 2.1 'Redis-backed window store', Status todo, Depends on none) — and an M2 row in index.md with Depends on M1. Commit, then switch to a feature branch.",
+      "prompt": "plans/2026-08-20-ratelimit/ is approved, go build it",
+      "expected_output": "Reads index.md first and picks M1 as the next milestone from the Milestones table (M2 depends on M1). Reads m1-fixed-window-rate-limiting.md and does not read m2-redis-store.md while M1 is in flight. Sets the M1 index row to in-progress when Ticket 1.1 dispatches. Ticket status changes are written only in the milestone file, never as counts or ticket rows in the index. Each dispatch carries the ticket's Context, Files and criteria and the milestone's Contracts, and none of the #### Execution block.",
+      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit/"],
+      "assertions": [
+        "Reads index.md before any milestone file",
+        "Does not read m2-redis-store.md before M1 is delivered",
+        "Sets M1's index row to in-progress when the first ticket dispatches",
+        "Writes ticket Status only in the milestone file, and adds no ticket rows or counts to index.md",
+        "The developer dispatch carries no field from the ticket's #### Execution block (Complexity, Estimate, Log, Definition of done)"
+      ]
+    },
+    {
+      "id": 72,
+      "name": "milestone-delivery-writes-outcome-in-place",
+      "target": "fixture-repo",
+      "setup": "Copy evals/fixtures/repo-states/ratelimit-after-1.1/src into src/, add a src/rate-limit.ts and spec satisfying Ticket 1.2, and commit each ticket separately. In m1-fixed-window-rate-limiting.md set both tickets done with every box ticked and their hashes in Commit; set the index's Plan status and M1 row to in-progress. Add an m2-redis-store.md milestone (Ticket 2.1 todo, whose Context says 'the limiter's window state shape is still open') and its M2 row. Commit, then switch to a feature branch.",
+      "prompt": "resume plans/2026-08-20-ratelimit/ — milestone 1's tickets are all done, run its gate and carry on",
+      "expected_output": "Runs the milestone gate (refactor over the union, full build and suite, sheriff). On green it delivers M1 without moving anything: writes an Outcome block at the top of m1-fixed-window-rate-limiting.md above Scope (Delivered with the date, Tickets with commits, Gate evidence with the actual refactor verdict and suite counts, Security, Decisions that outlive this milestone, Open advisories), sets the M1 index row to `delivered <date>` with the Delivered sentence as Summary, and updates m2's Ticket 2.1 Context with the window state shape M1 established. No .completed.md file is created and no ## Completed section appears.",
+      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit/"],
+      "assertions": [
+        "Writes an Outcome block at the top of m1-fixed-window-rate-limiting.md, above Scope",
+        "Gate evidence carries the refactor verdict and the suite's actual result, not just 'green'",
+        "Sets the M1 index row's Status to delivered <YYYY-MM-DD> and its Summary to the Delivered sentence",
+        "Updates Ticket 2.1's Context in m2-redis-store.md with what M1 established",
+        "Creates no .completed.md file and no ## Completed section, and moves no milestone text"
+      ]
+    },
+    {
+      "id": 73,
+      "name": "replan-appends-and-withdraws",
+      "target": "fixture-repo",
+      "setup": "As eval 72, then deliver M1: an Outcome block at the top of its file and its index row `delivered 2026-08-21`. Commit, then switch to a feature branch.",
+      "prompt": "/qoq replan plans/2026-08-20-ratelimit/ — drop the Redis milestone entirely, we won't persist windows. Instead add a milestone that wraps toResponse in an Express-style middleware (req, res, next). Everything else is settled.",
+      "expected_output": "Splits frozen from live: m1-fixed-window-rate-limiting.md is delivered and read-only. The dropped Redis milestone keeps its file, unchanged, and its index row becomes `withdrawn — <why>`. The new middleware milestone takes the next unused number, m3-<slug>.md with an M3 row, following the milestone template. Nothing is renumbered, nothing is written as a .v2, and the estimator store is untouched.",
+      "files": ["evals/fixtures/repo/plans/2026-08-20-ratelimit/"],
+      "assertions": [
+        "m1-fixed-window-rate-limiting.md is unchanged",
+        "m2-redis-store.md stays on disk and its index row is marked withdrawn",
+        "The new milestone is written as m3-<slug>.md with an M3 index row; no milestone is renumbered",
+        "No .v2 file or second plan directory is written",
+        "The new milestone file follows the template: Scope, Tickets with a #### Execution block, Definition of done"
+      ]
     }
   ]
 }

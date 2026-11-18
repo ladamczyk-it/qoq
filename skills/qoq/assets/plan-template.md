@@ -1,12 +1,22 @@
 # Plan template
 
-Copy this structure for every new plan file. The fixed shape is what lets `qoq
-execute` resume a plan across sessions, and what lets a cold subagent trust that
+A plan is a directory, `./plans/<YYYY-MM-DD-feature>/`: one `index.md` and one
+`m<N>-<slug>.md` per milestone. The index is what a person opens and what a
+resume reads first. A milestone file holds everything one milestone's run
+needs, so `qoq execute` loads the index plus the one milestone it is working
+on, never the whole plan. Nothing moves when a milestone ships. Its file stays
+where it is, gains an **Outcome** block at the top, and its index row flips to
+`delivered`.
+
+Copy both shapes for every new plan. The fixed shape is what lets `qoq execute`
+resume a plan across sessions, and what lets a cold subagent trust that
 "Status" and "Definition of done" mean the same thing in every ticket it's ever
 handed. Fill in the `<…>` placeholders; don't add or remove sections. The one
 exception is **External**, which the `--tool` export writes onto milestones and
 tickets after approval — and which `qoq execute --source` writes as it imports
 them the other way. It's simply absent on a plan that never met a tracker.
+
+## `index.md`
 
 ```markdown
 # <Feature Name> Implementation Plan
@@ -29,19 +39,36 @@ board; omit the whole field on a local plan>
 <!-- Absent unless qoq-artist drew something. Its charts only, each under a
      `qoq-artist id` marker. -->
 
----
+## Milestones
 
-## Completed
+| #   | Milestone              | Status   | Depends on | Summary    |
+| --- | ---------------------- | -------- | ---------- | ---------- |
+| M1  | [<Name>](m1-<slug>.md) | <status> | none       | <one line> |
+| M2  | [<Name>](m2-<slug>.md) | <status> | M1         | <one line> |
+```
 
-<!-- Absent on a fresh plan. Each delivered milestone's full text moves to
-     <plan-name>.completed.md and leaves one block here. -->
+**Status** is `todo` | `in-progress` | `delivered <YYYY-MM-DD>` |
+`withdrawn — <why>`. **Summary** is the milestone's Goal in one line until it
+ships, then its **Delivered** sentence.
 
-### Milestone <N>: <Name> — delivered <YYYY-MM-DD>
+## `m<N>-<slug>.md`
 
-**Delivered:** <one sentence: what exists now that didn't before>
+```markdown
+# Milestone <N>: <Name>
+
+Part of [<Feature Name>](index.md).
+
+## Outcome
+
+<!-- Absent until the milestone is delivered; written at the top so a person
+     opening a shipped milestone reads what happened before how it was cut. -->
+
+**Delivered:** <YYYY-MM-DD> — <one sentence: what exists now that didn't before>
 **Tickets:** <id> <title> `<commit>` · <id> <title> `<commit>`
-**Gate evidence:** refactor `<the verdict — clean, or what it found and what was
-done>` · suite `<the full build + suite result, as reported>`
+**Gate evidence:** refactor `green base <result>; A1 JSCPD <…>; A2 conventions
+<…>; A3 ponytail-review <…>; A4 qoq-designer <…>` — each assessment's findings,
+`none`, or `skipped — <why>` · suite `<the full build + suite result, as
+reported>`
 **Decisions that outlive this milestone:** none | <what later work is built on>
 **Open advisories:** none | <non-blocking findings still true>
 **Docs advisories:** none | <scribe drift, `qoq-scribe:` markers, docs skipped>
@@ -50,11 +77,8 @@ remediated `<hash>` · accepted · deferred to <ticket> · open advisory>
 **Review:** <absent unless the reviewer ran> clean | <R<n>·RS<n> <severity> —
 remediated `<hash>` · accepted — <file>:'<anchor>' — "<reason>" · deferred to
 <ticket> · open advisory>
-**Full detail:** [<plan-name>.completed.md](<plan-name>.completed.md)
 
----
-
-## Milestone 1: <Name>
+## Scope
 
 **Size:** S | M | L | XL
 **Goal:** <what this milestone delivers on its own — should be independently
@@ -74,22 +98,15 @@ already keeps `openapi.yaml` / `.proto` / a zod schema>
 **External:** <added by the export beat only — the epic/milestone/list it was
 raised as; absent otherwise>
 
-### Ticket 1.1: <Title>
+## Tickets
+
+### Ticket <N>.1: <Title>
+
+<!-- What a person reads: the spec. -->
 
 - **Status:** todo | in-progress | blocked | done
 - **Size:** XS | S | M — anything larger is an unfinished decomposition; split it
-- **Complexity:** trivial | mechanical | moderate | judgment-heavy
-- **Agent tier:** `haiku` | `sonnet` | <the session's own model ID, for
-  judgment-heavy> — every ticket is delegated; the tier is passed explicitly
-- **Estimate:** `<tags>` · stack `<stack>` · <baseline | confident | escalate |
-  split> <misses>/<attempts> <· tier haiku→sonnet> — from
-  `scripts/estimate.mjs`; `qoq execute` reports the outcome back against exactly
-  these tags and the **Agent tier** above
-- **Escalation:** none | <failed tier> ×<attempts> → re-dispatched at <tier>
 - **Depends on:** none | Ticket <id>
-- **Security sweep:** ticket — <absent unless proposed at plan time and confirmed
-  at approval; absent means the milestone sweep only>
-- **Needs approval:** none | <new dependency and why it's needed>
 - **Files:**
   - Create: `exact/path/to/file.ts`
   - Modify: `exact/path/to/existing.ts:120-140`
@@ -109,6 +126,23 @@ ticket exists. No "similar to Ticket 1.3" — restate what's needed.
 - [ ] <a 6th request inside 60s returns 429> — `<spec/file.ts::test name>`
 - [ ] <an expired token yields 401 with code TOKEN_EXPIRED> —
       `<spec/file.ts::test name>`
+
+#### Execution
+
+<!-- The orchestrator's: how this ticket is run and what happened. None of it
+     goes into the developer's dispatch. -->
+
+- **Complexity:** trivial | mechanical | moderate | judgment-heavy
+- **Agent tier:** `haiku` | `sonnet` | <the session's own model ID, for
+  judgment-heavy> — every ticket is delegated; the tier is passed explicitly
+- **Estimate:** `<tags>` · stack `<stack>` · <baseline | confident | escalate |
+  split> <misses>/<attempts> <· tier haiku→sonnet> — from
+  `scripts/estimate.mjs`; `qoq execute` reports the outcome back against exactly
+  these tags and the **Agent tier** above
+- **Escalation:** none | <failed tier> ×<attempts> → re-dispatched at <tier>
+- **Security sweep:** ticket — <absent unless proposed at plan time and confirmed
+  at approval; absent means the milestone sweep only>
+- **Needs approval:** none | <new dependency and why it's needed>
 
 **Definition of done:** <!-- the orchestrator's checklist, not the developer's;
      the dispatch carries Context, Files, Acceptance criteria and the milestone's
@@ -142,9 +176,9 @@ known host; "none" until then>
 **External:** <added by the export beat only — the issue key or card URL this
 ticket was raised as; absent otherwise>
 
-### Ticket 1.2: ...
+### Ticket <N>.2: ...
 
-### Milestone 1 — Definition of done
+## Definition of done
 
 - [ ] All tickets above are `done`
 - [ ] `qoq refactor --decisions auto <union of every ticket's Files above>` →
@@ -152,44 +186,34 @@ ticket was raised as; absent otherwise>
       where cross-ticket findings — duplication, a now-dead export, three tickets
       that each picked a different shape — are visible at all. Pass the union
       explicitly; bare, it widens to the whole project
-- [ ] Project's full build + full test suite green (the Commands header above,
+- [ ] Project's full build + full test suite green (the index's Commands header,
       not the scoped variants a ticket gate uses)
 - [ ] Sheriff on: `qoq-sheriff` over the milestone's diff, its findings routed
-      and recorded on the summary block's **Security** line
+      and recorded on the Outcome block's **Security** line
 - [ ] Review on: `qoq-reviewer` (spec + standards) over the final diff, findings
-      routed and recorded on the summary block's **Review** line
-- [ ] Both results written into the summary block's **Gate evidence** — what the
+      routed and recorded on the Outcome block's **Review** line
+- [ ] Both results written into the Outcome block's **Gate evidence** — what the
       refactor found and what the suite reported, not "green"
-- [ ] Milestone archived: full text moved to `<plan-name>.completed.md`, summary
-      block left under `## Completed`, downstream tickets' **Context** updated
-      with anything this milestone actually established
-
----
-
-## Milestone 2: ...
-```
-
-## The archive file
-
-`./plans/<same-plan-name>.completed.md` holds the milestones that have shipped,
-verbatim as they were at delivery — tickets, context, acceptance criteria,
-advisories, commits. It's append-only history, not a working document: nothing in
-it is ever re-planned or re-gated.
-
-```markdown
-# <Feature Name> — completed milestones
-
-Archived from [<plan-name>.md](<plan-name>.md). Append-only.
-
----
-
-## Milestone 1: <Name> — delivered <YYYY-MM-DD>
-
-<the milestone's full text, exactly as it read in the plan at delivery>
+- [ ] Milestone delivered: Outcome block written at the top of this file, the
+      index row set to `delivered <YYYY-MM-DD>` with the **Delivered** sentence
+      as its Summary, later milestone files' ticket **Context** updated with
+      anything this milestone actually established
 ```
 
 ## Field notes
 
+- **The directory** is the plan's name. `External` keys, a resume and
+  `qoq replan` all address it by path, so it never moves and never gets a `.v2`;
+  git is the history. Milestone numbers are never reused or renumbered, which
+  is why a milestone file's `m<N>` stays true after a replan adds or withdraws
+  one.
+- **Status lives in one place per level.** A ticket's **Status** is written only
+  in its milestone file; a milestone's only in the index row. The index carries
+  no ticket counts, because a second copy is one a crashed run leaves wrong.
+- **Ticket field order** is spec first, then **Execution**. The first half is
+  what a person reviewing the plan reads and what the dispatch is built from;
+  the second is the orchestrator's bookkeeping. Every field still exists — the
+  split only decides which one a reader meets first.
 - **Acceptance criteria** are the field this whole template turns on. They're
   machine-facing: the implementing agent transcribes them one-to-one into failing
   assertions before writing any code. "Add rate limiting to the auth routes" is a
@@ -238,21 +262,21 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
   twice; the second is what the scribe found that only the user can settle —
   plan-vs-delivery drift and purpose it couldn't determine.
 - **Security context**, **Security sweep** and **Security** are the sheriff's.
-  **Security** is always written, and the other two only when they apply. The first is the user's answer to a `qoq-sheriff`
-  question, passed to every later sweep; the second is a plan-time proposal the
-  user confirmed, buying a ticket an early sweep before its commit; the third
-  records how every finding ended, so an accepted risk is visible to whoever
-  reads the plan later.
+  **Security** is always written, and the other two only when they apply. The
+  first is the user's answer to a `qoq-sheriff` question, passed to every later
+  sweep; the second is a plan-time proposal the user confirmed, buying a ticket
+  an early sweep before its commit; the third records how every finding ended,
+  which keeps an accepted risk visible to whoever reads the plan later.
 - **Review context**, **Review** and **Signed off** are the reviewer's, and
   absent while it's off. The first is the user's answer to a `qoq-reviewer`
   question, passed to every later review. The second records how every finding
   ended. An accepted entry carries its anchor and reason because it's the only
   record of the acceptance: later reviews read it instead of a marker in the
   code. The third is the user's yes at the end of the plan.
-- **Diagrams** is `qoq-artist`'s, written before approval when diagrams are on
-  and absent otherwise. It sits above the milestones so no ticket dispatch
-  carries it, and it records the shape that was approved: `execute` never
-  redraws it, only `replan` does.
+- **Diagrams** is `qoq-artist`'s, written into the index before approval when
+  diagrams are on and absent otherwise. It lives in the index so no ticket
+  dispatch carries it, and it records the shape that was approved: `execute`
+  never redraws it, only `replan` does.
 - **Complexity** rates the model tier and nothing else. Every ticket runs the
   identical steps; an inflated rating costs a bigger model and no extra passes.
 - **Plan status** tracks the whole plan; **Ticket status** tracks one ticket.
@@ -288,15 +312,18 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
 - **Tool** and **External** exist for the two beats that cross into a tracker
   (`references/export.md`): `qoq plan --tool jira|linear|trello` raises the
   milestones and tickets there after approval, and `qoq execute --source` reads
-  a milestone back out into a file shaped like this one. **External** is what
-  makes both re-runnable — on export an item that already has one is skipped, so
-  a second run after a crash adds what's missing instead of duplicating forty
-  issues into a shared project; on an imported plan it's the address the run
-  writes each ticket's status label and commit back to. A local plan carries
-  neither field, which is the point: the file is the state in either direction,
-  and `qoq execute` never treats a tracker as one.
-- **Completed** is absent from a fresh plan and grows one short block per
-  delivered milestone, so the plan shrinks as work lands. If a block starts
-  turning into a narrative, move the detail to the archive file. **Decisions that
-  outlive this milestone** is the one line worth real thought — it's what a later
-  milestone would otherwise contradict.
+  a milestone back out into a plan directory shaped like this one. **External**
+  is what makes both re-runnable — on export an item that already has one is
+  skipped, so a second run after a crash adds what's missing instead of
+  duplicating forty issues into a shared project; on an imported plan it's the
+  address the run writes each ticket's status label and commit back to. A local
+  plan carries neither field, which is the point: the files are the state in
+  either direction, and `qoq execute` never treats a tracker as one.
+- **Outcome** is absent from a fresh milestone file and written once, at
+  delivery, above **Scope**. It is history, not a working document: nothing in a
+  delivered milestone file is ever re-planned or re-gated, and the only later
+  edit it takes is a Security or Review line updated by the end-of-run
+  walkthrough. If it starts turning into a narrative, the detail belongs in the
+  tickets' Logs below it. **Decisions that outlive this milestone** is the one
+  line worth real thought — it's what a later milestone would otherwise
+  contradict.

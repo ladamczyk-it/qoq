@@ -521,6 +521,38 @@ bill of health.
 
 ## `plan`
 
+**Why a plan is a directory with a file per milestone.** The single-file plan
+grew to well over a thousand lines on a six-milestone run, and every resume
+read all of it to find one milestone's tickets. The archive step that kept it
+bounded moved delivered text into a second `.completed.md` file, so the history
+of one milestone lived in two places and the plan a person opened was
+half-missing. Splitting by milestone matches how the run already works: the
+orchestrator needs the index and the one milestone in flight, and a person
+reviewing the plan reads the table, then opens the milestone they care about.
+Tickets stay inside their milestone file rather than one file each — the
+milestone is the unit the gate runs over and the Contracts are shared at, and
+per-ticket files would only add links to follow.
+
+**Why nothing moves at delivery.** With one file per milestone, moving text no
+longer shrinks anything an agent reads, so the archive move had no job left.
+The Outcome block goes at the top of the milestone file, and the index row
+flips. Status lives in exactly one place per level — tickets in milestone
+files, milestones in the index — because a count copied into the index is the
+copy a crashed run leaves wrong.
+
+**Why the old single-file layout is refused rather than read.** Every plan in
+that layout was delivered or waiting on sign-off when the directory layout
+landed, so a compatibility parser in `execute`, `replan` and the progress hook
+would have been permanent code for no live plan. A breaking change with a
+one-line stop that names the file is cheaper than two layouts kept in
+agreement.
+
+**Why ticket fields are split into spec and Execution.** No field was dropped —
+each one has a reader. But a person reviewing a plan wants the Files, Context
+and criteria, and met the estimator tags, tier and Log first. The split puts
+the spec on top and the orchestrator's bookkeeping under `#### Execution`, which
+and nothing under that heading ever reaches a developer's dispatch.
+
 **Why an external interview skill instead of `plan` asking its own questions.**
 `plan` could ask. It would ask badly: one question at a time, in the order the
 decomposition happened to need them, from a context already full of the plan it
@@ -678,11 +710,11 @@ blast radii: one writes a file this repo owns, the other notifies real people an
 leaves items somebody has to delete by hand. Collapsing them would make "approve"
 mean something different depending on a flag typed several minutes earlier.
 
-**Why `local` is the default and the plan file is always written.** `qoq execute`
-reads `./plans/*.md` and nothing else. Making a tracker authoritative would put
+**Why `local` is the default and the plan is always written.** `qoq execute`
+reads `./plans/<plan>/` and nothing else. Making a tracker authoritative would put
 delivery behind a network call and a credential, for the benefit of a projection
-nobody's build reads. `--source` doesn't change that — it produces a plan file
-and then reads it, which is the same rule from the other side.
+nobody's build reads. `--source` doesn't change that — it produces a plan
+directory and then reads it, which is the same rule from the other side.
 
 **Why three trackers are named rather than a generic adapter.** Jira, Linear and
 Trello are the three the user asked for, and a fourth is a row in one table plus
@@ -701,12 +733,12 @@ field.
 
 ## `replan`
 
-**Why delivered work is frozen.** The hard case is a half-executed plan, and the
-archive's own rule is that it's append-only history — nothing in it is ever
+**Why delivered work is frozen.** The hard case is a half-executed plan, and a
+delivered milestone file's own rule is that it's history — nothing in it is ever
 re-planned or re-gated. A `done` ticket that gets re-decomposed loses the link
 between its criteria and the commit that satisfied them, and at that point the
 history stops meaning anything: the commit is still there, but nothing says what
-it was for. So the file splits in two. Frozen parts are read-only _input_ and get
+it was for. So the plan splits in two. Frozen parts are read-only _input_ and get
 a mechanical backfill only — a missing `Log` reconstructed from git, a missing
 `Estimate` from the script. Live parts get the full reshape.
 
@@ -716,22 +748,24 @@ by whether the work has shipped.
 
 **Why the failure history is the grill's best input.** Blocked tickets,
 escalations and `scope-expansion` attributions are direct evidence that the old
-decomposition was wrong, they're already sitting in the plan file, and nothing in
+decomposition was wrong, they're already sitting in the milestone files, and nothing in
 the system reads them at plan time today. It's also why re-grilling is cheap:
 `plan` already hands the interview everything settled so its frontier opens on
 the gaps, and here "settled" is enormous — the whole old plan plus milestones
 that demonstrably work. The grill is self-limiting, so no skip mode is needed.
 
-**Why it overwrites in place and refuses on uncommitted changes.** The path has
-to stay stable: `External` keys, the `.completed.md` archive and any resume all
-reference the plan by name, so a `.v2` file would orphan all three. Git is the
+**Why it overwrites in place and refuses on uncommitted changes.** The paths
+have to stay stable: `External` keys, the links between milestone files and any
+resume all reference the plan by name, so a `.v2` directory would orphan all
+three. Milestone numbers are append-only for the same reason — a renumbered
+`m3` would make every Log line and ticket id that cites it lie. Git is the
 history, which makes a second file redundant anyway. But overwriting uncommitted
 work destroys the only copy, so the guard is a refusal rather than a warning —
 it costs one `git status`.
 
 **Why it's a command and not a flag on `plan`.** `plan.md` is already the longest
 reference in the skill; folding this in would make every fresh plan pay for the
-rare case. `qoq replan plans/<file>.md` also fits the existing positional-scope
+rare case. `qoq replan plans/<plan>/` also fits the existing positional-scope
 grammar exactly, and its own reference stays short by _naming_ `plan`'s phases
 rather than restating them.
 
@@ -753,14 +787,15 @@ the agent run a board script at each ticket and milestone. Eval runs showed it
 treated the output as its own context: it never relayed the board, chained the
 call with other reads, and each call cost a tool turn. `hooks/register.tsx`
 needs no agent: it starts when the session touches an approved, in-progress or
-complete `plans/*.md`, rereads it after every tool call, and draws above the
+complete plan directory, rereads its index and milestone files after every
+tool call, and draws above the
 prompt. A host without plugin bands, or a skill copied into `.claude/skills/`,
 shows no progress, and the skill loses nothing it relied on.
 
-**Why `--source jira` imports to a plan file instead of executing against the
-tracker.** The plan file is already the execution state — resume reconciles
+**Why `--source jira` imports to a plan directory instead of executing against
+the tracker.** The plan is already the execution state — resume reconciles
 against it, the estimate loopback reads `Estimate` off it, the milestone gate
-takes the union of `Files` from it, and the archive moves text within it.
+takes the union of `Files` from it, and delivery writes its Outcome into it.
 Executing off a tracker means reimplementing every one of those against a
 second state store that lives behind a credential, and then keeping the two
 implementations in agreement forever. Importing costs one beat at the head of
@@ -826,8 +861,11 @@ on, puts refactoring in review rather than in the red → green loop, and this
 plan already has a review stage at the right scope: `qoq refactor` over the
 union of every ticket's files, then `qoq-reviewer` when review is on. Under
 `--decisions auto` that refactor applies only the mechanical tier, so its
-judgement-tier findings are advisories, and the end-of-plan walkthrough covers
-them alongside Docs, Security and Review — without that, a default run would
+judgement-tier findings are advisories. Gate evidence records each of the four
+assessments by name, because an eval run on sonnet showed the lead reading the
+union itself and calling it clean: with nothing to apply, a skipped assessment
+and a clean one looked the same in a single `refactor` verdict. The end-of-plan walkthrough covers those
+advisories alongside Docs, Security and Review — without that, a default run would
 record a shape problem in the milestone summary and never put it in front of
 anyone. That is the first moment the
 tickets exist as one piece of code — duplication across four tickets, a now-dead
@@ -865,7 +903,7 @@ moved to the milestone at one point on cost, and moved back, because the cost
 argument was buying the wrong thing. A ticket marked `done` whose tests assert
 nothing isn't a deferred problem — it's a false statement the plan file
 propagates: a `success` filed with the estimator, downstream tickets built on a
-behaviour nothing pins, an archive entry claiming delivery. Catching it a
+behaviour nothing pins, an Outcome block claiming delivery. Catching it a
 milestone later means unwinding all three. Cross-ticket spec problems genuinely
 are milestone-shaped, but they need nothing extra: the milestone `refactor` runs
 over the union of every ticket's files, specs included, and its first assessment
@@ -973,10 +1011,11 @@ confident wrong reason written into the repo, where the next reader has no cause
 to doubt it. Same agent, same contract, different difficulty; the caller knows
 which, so the caller passes it — the `qoq-developer` mechanism, not a pin.
 
-**Why after the milestone gate and before archive.** Docs written before the
-gate describe code the gate may still change. After archive, the milestone text
-— the scribe's whole source of intent — has moved out of the plan. The gap
-between them is the one moment both the final code and the plan are in hand.
+**Why after the milestone gate and before delivery.** Docs written before the
+gate describe code the gate may still change. After delivery, the milestone
+file carries an Outcome block written from the gates, and the scribe would be
+reading the run's verdicts as if they were the plan's intent. The gap between
+them is the one moment both the final code and the plan as written are in hand.
 
 **Why only prettier, not `qoq fix`.** The scribe adds comments and Markdown and
 nothing else. The only tool that has an opinion about either is prettier, which
@@ -1216,7 +1255,7 @@ isn't given.
 to fix before the next milestone builds on it, and that is the moment the
 milestone review exists for. The end-of-plan pass doesn't repeat it. It asks
 only whether the milestones add up to the plan, which is answered from the
-Completed blocks and a `--stat`. A full re-read there would be a second code
+Outcome blocks and a `--stat`. A full re-read there would be a second code
 review at session cost, over code that was already reviewed.
 
 **Why after the sheriff, before the scribe.** The reviewer should judge the diff

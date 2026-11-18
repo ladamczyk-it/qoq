@@ -174,14 +174,14 @@ has.
 
 ## What gets recorded
 
-The milestone's Completed block gains **Security**: the sweep's verdict, then one
+The milestone's Outcome block gains **Security**: the sweep's verdict, then one
 entry per finding — id, severity, and how it ended (remediated `<hash>`,
 accepted, deferred to `<ticket>`, open advisory). **Gate evidence** gets the
 sweep's one-line verdict beside the refactor and suite results.
 
 **At the end of the run**, walk the user through every milestone's Security
 advisories once, with the options above. A remediate answer runs the loop then,
-on an already-archived milestone: its commits land after the archive, and its
-Security line is updated in both the Completed block and `.completed.md` — the
-one edit an archive takes, because a line still saying "open" about a fixed
+on an already-delivered milestone: its commits land after delivery, and its
+Security line is updated in that milestone file's Outcome block — the one edit
+a delivered milestone takes, because a line still saying "open" about a fixed
 finding is false.

@@ -1,7 +1,11 @@
 import { expect, test } from 'claude-code/testing';
 import type { TestBody } from 'claude-code/testing';
 
-import { PLAN } from './plan.fixture';
+import { FILES } from './plan.fixture';
+
+const served = (files: Record<string, string>) => (_: unknown, e: { path: string }) => ({
+  value: files[e.path] ?? '',
+});
 
 const BAND = {
   plugin: 'qoq',
@@ -27,10 +31,15 @@ const engine = (on: Parameters<TestBody>[1]) => {
 
 test('nothing draws until the session touches an active plan', async ($, on) => {
   engine(on);
-  on('fs.read', () => ({ value: PLAN.replace('in-progress', 'draft') }));
+  const index = FILES['/repo/plans/p/index.md'] ?? '';
+  on(
+    'fs.read',
+    served({ ...FILES, '/repo/plans/p/index.md': index.replace('in-progress', 'draft') })
+  );
 
   await $.tool.call({ tool: 'Bash', command: 'ls' });
-  await $.tool.call({ tool: 'Read', file_path: '/repo/plans/p.md' });
+  await $.tool.call({ tool: 'Read', file_path: '/repo/plans/p/index.md' });
+  await $.tool.call({ tool: 'Read', file_path: '/repo/plans/old.md' });
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' });
 
   expect((await ui.find({ type: 'Text' }))?.text).toBe('engine');
@@ -39,9 +48,10 @@ test('nothing draws until the session touches an active plan', async ($, on) => 
 
 test('the compact band shows tickets done and the share; Details lists each ticket', async ($, on) => {
   engine(on);
-  on('fs.read', () => ({ value: PLAN }));
+  on('fs.read', served(FILES));
 
-  await $.tool.call({ tool: 'Read', file_path: '/repo/plans/p.md' });
+  // Touching a milestone file is enough: the band reads the whole directory.
+  await $.tool.call({ tool: 'Read', file_path: '/repo/plans/p/m2-live.md' });
 
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...BAND, surface });
@@ -67,11 +77,14 @@ test('the compact band shows tickets done and the share; Details lists each tick
 
 test('later tool calls reread the plan, so the band follows it', async ($, on) => {
   engine(on);
-  let text = PLAN;
-  on('fs.read', () => ({ value: text }));
+  const files = { ...FILES };
+  on('fs.read', served(files));
 
-  await $.tool.call({ tool: 'Read', file_path: '/repo/plans/p.md' });
-  text = PLAN.replace('- **Status:** in-progress', '- **Status:** done');
+  await $.tool.call({ tool: 'Read', file_path: '/repo/plans/p/index.md' });
+  files['/repo/plans/p/m2-live.md'] = (files['/repo/plans/p/m2-live.md'] ?? '').replace(
+    '- **Status:** in-progress',
+    '- **Status:** done'
+  );
   await $.tool.call({ tool: 'Bash', command: 'git commit' });
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' });
 

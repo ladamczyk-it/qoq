@@ -12,7 +12,8 @@
     `no-unused-vars`, and a Knip unused export, `titleCase`;
   - a green build and suite (no specs yet);
   - a complete `qoq:discovery` block in `CLAUDE.md` and `stats: false`;
-  - one approved plan, `plans/2026-08-20-ratelimit.md`;
+  - one approved plan, `plans/2026-08-20-ratelimit/` (`index.md` plus
+    `m1-fixed-window-rate-limiting.md`);
   - a spec at `docs/api-keys.md`.
 - **`this-repo`** — the qoq monorepo itself, in a throwaway worktree
   (`git worktree add`).

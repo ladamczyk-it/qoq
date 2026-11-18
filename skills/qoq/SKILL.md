@@ -66,7 +66,7 @@ need, not all of them.
 | `fix`      | check/fix loop over tool findings, ends on PASS/FAIL        | [references/fix.md](references/fix.md)           |
 | `refactor` | green base, then four judgement assessments over a scope    | [references/refactor.md](references/refactor.md) |
 | `bump`     | analyse dependencies, pick, then apply one patch at a time  | [references/bump.md](references/bump.md)         |
-| `plan`     | requirements → an approved plan file under `./plans/`       | [references/plan.md](references/plan.md)         |
+| `plan`     | requirements → an approved plan directory under `./plans/`  | [references/plan.md](references/plan.md)         |
 | `replan`   | an existing plan, reshaped — delivered work stays frozen    | [references/replan.md](references/replan.md)     |
 | `execute`  | an approved plan, local or imported → delivered milestones  | [references/execute.md](references/execute.md)   |
 | `test`     | unit/integration coverage for code that already exists      | [references/test.md](references/test.md)         |
@@ -102,8 +102,8 @@ not a path.
 | `/qoq plan <requirements file or description>` | —                                                      |
 | `/qoq plan <requirements> --tool jira`         | also raise the tickets there — experimental            |
 | `/qoq plan <requirements> --diagrams`          | also chart the plan before approval — experimental     |
-| `/qoq replan plans/<file>.md`                  | that plan only — refuses on uncommitted changes        |
-| `/qoq execute [plans/<file>.md]`               | omitted → ask, unless exactly one plan is approved     |
+| `/qoq replan plans/<plan>/`                    | that plan only — refuses on uncommitted changes        |
+| `/qoq execute [plans/<plan>/]`                 | omitted → ask, unless exactly one plan is approved     |
 | `/qoq execute --source jira`                   | import a milestone from there, run it — experimental   |
 | `/qoq execute <plan> --session-limit 60`       | stop before spending past 60% of the 5-hour limit      |
 | `/qoq execute <plan> --weekly-limit 80`        | same for the 7-day limit; both default to 100          |
@@ -144,11 +144,11 @@ end-of-plan pass and the sign-off ([references/review.md](references/review.md))
 `--tool` and `--source` are the two ends of the same road, and both default to
 `local`. `--tool` is `plan`'s: `jira`, `linear` or `trello` offer to raise the
 approved tickets there. `--source` is `execute`'s: those same three values ask
-which milestone to run, import it into a plan file, and then execute that file
+which milestone to run, import it into a plan directory, and then execute it
 like any other. Both directions are experimental: each tracker needs its
 `future.unstable_skill_plan_<tool>: true` in `qoq.config` as well, and the flag
-alone is refused ([references/plan.md](references/plan.md)). Neither makes a tracker authoritative — the plan file is the
-state in both directions ([references/export.md](references/export.md)).
+alone is refused ([references/plan.md](references/plan.md)). Neither makes a tracker authoritative — the plan directory is
+the state in both directions ([references/export.md](references/export.md)).
 
 ## Entry
 

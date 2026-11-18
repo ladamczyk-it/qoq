@@ -2,12 +2,18 @@
 
 Run a plan to completion by dispatching every ticket to a `qoq-developer` at the
 tier the plan already assigned. This command **never implements anything
-itself** — its whole job is dispatch, gates, status, and archiving.
+itself** — its whole job is dispatch, gates, status, and recording delivery.
 
 ## Where the plan comes from — `--source`
 
-`--source local` is the default and needs nothing: a plan path, or the single
-approved plan under `./plans/` when the argument is omitted.
+`--source local` is the default and needs nothing: a plan directory
+(`plans/<plan>/`, or its `index.md`), or the single approved plan under
+`./plans/` when the argument is omitted.
+
+**A plan is a directory.** A bare `plans/<name>.md` is the single-file layout
+from before this version, and nothing here reads it: say so in one line, name
+the file, and stop. It isn't converted for the user — a delivered one is
+history as it stands, and a live one is re-planned with `qoq plan`.
 
 **The three trackers are experimental**, on the same per-project switch as
 `plan --tool` ([plan.md](plan.md)): `future.unstable_skill_plan_<tool>: true` in
@@ -16,7 +22,7 @@ stop naming it, before anything is asked or read from the tracker; the flag
 alone never turns it on.
 
 `--source jira|linear|trello` asks which milestone to run, reads it and its
-tickets into a plan file, and then continues here as if that file had always
+tickets into a plan directory, and then continues here as if it had always
 existed — [references/export.md](export.md) owns that beat, including the two
 places it stops. **Read it before anything else on a non-local source**; nothing
 below this section knows or cares where the tickets came from, which is the
@@ -28,9 +34,18 @@ the tracker. That is the only write, and it's a label, never a workflow column.
 
 ## Loading and resuming
 
-**Load the plan fresh from disk every time**, resume or not. The file is the
+**Load the plan fresh from disk every time**, resume or not. The files are the
 state — an in-memory copy from earlier in the session goes stale the moment a
 ticket writes its commit hash back.
+
+Read `index.md` first: its header and its **Milestones** table, which says which
+milestone is next — the first row neither `delivered` nor `withdrawn` whose
+**Depends on** rows are all `delivered`. Then read **that milestone's file and
+nothing else of the plan**. A delivered milestone's file is history, and a later
+one's tickets are not this run's business until their turn; what an earlier
+milestone established reaches them through their own **Context**, written at
+delivery. The one exception is the end-of-plan pass, which reads every
+milestone's **Outcome** block.
 
 A ticket sitting at `in-progress` means a previous run died mid-flight.
 Reconcile against `git log`: if the ticket's files were committed, mark it
@@ -186,7 +201,7 @@ spending a semantic read on text that's about to change.
 **Gate 2 sits before the commit, and that is the whole argument for its cost.** A
 ticket marked `done` whose tests assert nothing isn't a deferred problem — it's a
 false statement this file then propagates: a `success` filed with the estimator,
-downstream tickets built on a behaviour nothing pins, and an archive entry
+downstream tickets built on a behaviour nothing pins, and an Outcome block
 claiming delivery. Catching it a milestone later means unwinding all three. No
 ticket is finished without proof its tests are real.
 
@@ -350,8 +365,11 @@ which: the ticket is bad, or the session's own model is too small for it.
 
 When every ticket in a milestone is `done` or `blocked`:
 
-1. `qoq refactor --decisions auto <union of every ticket's files>`.
-   `--decisions auto` because nobody is watching — the safe tier is applied and
+1. `qoq refactor --decisions auto <union of every ticket's files>` — the whole
+   [refactor.md](refactor.md) procedure, not a reading of the files: its green
+   base, then assessments 1–4 in order, `qoq-designer` dispatched for the
+   fourth. A lead that reads the union itself and calls it clean has skipped
+   the gate. `--decisions auto` because nobody is watching — the safe tier is applied and
    everything shape-changing comes back as an advisory. The specs are in that
    union, so cross-ticket spec problems — duplicated setup across four tickets,
    one boundary mocked three ways — are already assessment 1's job. No third gate
@@ -386,28 +404,38 @@ routed, remediated or recorded before anything below runs.
 [review.md](review.md) owns all of it, including the two places where it stops
 the run. Off → straight on, no Review line.
 
-Then **document**, when docs are on (Setup), then **archive**. `qoq-scribe`
+Then **document**, when docs are on (Setup), then **deliver**. `qoq-scribe`
 runs in plan mode over the milestone — [document.md](document.md) owns how,
 followed by `qoq-artist` when diagrams are on too ([mermaid.md](mermaid.md)) — and
-its `docs(m<N>)` commit lands before the text moves, because the milestone text
-is its input. Docs off → straight to archive, no Docs advisories line. It never
-stops the run: a question or a finding becomes a **Docs advisory** in the
-summary, walked through with the user at the end of the run.
+its `docs(m<N>)` commit lands before the Outcome block is written, because the
+milestone file as the gate left it is its input. Docs off → straight to
+delivery, no Docs advisories line. It never stops the run: a question or a
+finding becomes a **Docs advisory** in the Outcome block, walked through with
+the user at the end of the run.
 
-Then **archive**. Move the milestone's full text to
-`<plan-name>.completed.md`, leave the summary block under `## Completed`, and
-update downstream tickets' **Context** with anything this milestone established
-— _before_ the text moves, while it's still in front of you. Gate advisories go
-into the milestone's summary; one that evaporates on archive is worse than one
-never looked for.
+Then **deliver**. Nothing moves: the milestone file stays where it is.
 
-**Record what the gates proved, not that they ran.** The summary block's **Gate
+1. Write its **Outcome** block at the top of the milestone file, above
+   **Scope** ([../assets/plan-template.md](../assets/plan-template.md)). Gate
+   advisories go into it; one that never reaches the Outcome block is as lost
+   as one never looked for.
+2. Set the milestone's index row to `delivered <YYYY-MM-DD>`, with the
+   **Delivered** sentence as its Summary.
+3. Update later milestone files' ticket **Context** with anything this
+   milestone established, while it's still in front of you. A later milestone's
+   run reads only its own file, so a decision this one made reaches it here or
+   not at all.
+
+The milestone row goes `in-progress` when its first ticket dispatches, and the
+plan's status goes `complete` with the last row delivered.
+
+**Record what the gates proved, not that they ran.** The Outcome block's **Gate
 evidence** field takes the refactor's verdict and the suite's result as reported,
 plus the sheriff's and the reviewer's verdicts when they ran.
-"Green" is a claim; "refactor clean, 412 passed / 0 failed" is evidence, and a
-`## Completed` block is read by people who can no longer see the run.
+"Green" is a claim; "refactor clean, 412 passed / 0 failed" is evidence, and an
+Outcome block is read by people who can no longer see the run.
 
-## When the last milestone archives
+## When the last milestone is delivered
 
 In this order:
 

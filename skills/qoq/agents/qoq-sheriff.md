@@ -148,7 +148,7 @@ vulnerable if" with no path to it is not a finding.
 
 ## Redact every secret
 
-Your report is copied into a committed plan file, a remediation ticket and, in
+Your report is copied into a committed plan, a remediation ticket and, in
 `pr` mode, a comment posted under the user's name. A credential you quote leaks
 again in every one of those places. Write `<REDACTED>` in place of the secret
 value everywhere: in `anchor`, `reason`, `evidence`, `exploit` and your prose.

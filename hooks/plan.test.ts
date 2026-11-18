@@ -1,10 +1,12 @@
 import { expect, test } from 'claude-code/testing';
 
-import { parsePlan } from './plan';
-import { PLAN } from './plan.fixture';
+import { parsePlan, parseTickets } from './plan';
+import { INDEX, M1, M2, M3 } from './plan.fixture';
 
-test('a plan reads as its title, status, milestones and every ticket', () => {
-  expect(parsePlan(PLAN)).toEqual({
+const FILES = { 'm1-done.md': M1, 'm2-live.md': M2, 'm3-gone.md': M3 };
+
+test('a plan reads as its title, status, live milestones and every ticket', () => {
+  expect(parsePlan(INDEX, FILES)).toEqual({
     title: 'Trip Tags',
     status: 'in-progress',
     milestones: [
@@ -31,26 +33,21 @@ test('a plan reads as its title, status, milestones and every ticket', () => {
   });
 });
 
-test('a file without a plan status is not a plan', () => {
-  expect(parsePlan('# Notes\n\n## Milestone 1: x\n')).toBeNull();
+test('an index without a plan status is not a plan', () => {
+  expect(parsePlan('# Notes\n\n| M1 | [x](m1-x.md) | todo | none | x |\n', {})).toBeNull();
 });
 
-test('a ticket status does not leak into the next milestone', () => {
-  const plan = parsePlan(`**Plan status:** approved
+test('a milestone file the index names but nobody wrote has no tickets', () => {
+  expect(parsePlan(INDEX, {})?.milestones.map((m) => m.tickets)).toEqual([[], []]);
+});
 
-## Milestone 1: A
+test('a status under a later heading does not leak into the ticket before it', () => {
+  expect(
+    parseTickets(`### Ticket 1.1: One
 
-### Ticket 1.1: One
-
-- **Status:** done
-
-## Milestone 2: B
+## Definition of done
 
 - **Status:** blocked
-`);
-
-  expect(plan?.milestones.map((m) => m.tickets)).toEqual([
-    [{ id: '1.1', name: 'One', status: 'done' }],
-    [],
-  ]);
+`)
+  ).toEqual([{ id: '1.1', name: 'One', status: 'todo' }]);
 });

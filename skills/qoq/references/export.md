@@ -1,15 +1,15 @@
 # Trackers — raising a plan in one, and running a milestone out of one
 
 Read this only when a `--tool` or a `--source` isn't `local`. It covers the two
-beats that cross the line between a plan file and Jira, Linear or Trello:
+beats that cross the line between a plan and Jira, Linear or Trello:
 
 - **out** — `qoq plan --tool`, projecting an approved plan into a tracker so the
   people who live in one can see the work.
 - **in** — `qoq execute --source`, reading a milestone and its tickets back out
-  into a plan file, so a run can start from work that was raised there.
+  into a plan directory, so a run can start from work that was raised there.
 
-**The plan file is the source of truth in both directions.** `qoq execute` runs
-off `./plans/*.md` and nothing else — the import beat's only job is to produce
+**The plan directory is the source of truth in both directions.** `qoq execute`
+runs off `./plans/<plan>/` and nothing else — the import beat's only job is to produce
 one, and everything after it is the ordinary loop. Nothing here is a sync: qoq
 moves a ticket through `todo → done` in minutes, so a tracker qoq wrote once and
 never revisited is confidently stale within the hour. Export raises items,
@@ -66,8 +66,8 @@ have an id already:
 ### Write the ids back into the plan, then commit
 
 Each item the tracker returns gets its key or URL written into that milestone's
-or ticket's **External** field before you move to the next one, and the plan file
-is committed when the export finishes.
+or ticket's **External** field — in the milestone's file — before you move to
+the next one, and the plan is committed when the export finishes.
 
 This is the only thing that makes the export idempotent. Without it, a re-run —
 after a crash, or on a plan someone exported yesterday — has no way to tell an
@@ -79,12 +79,12 @@ not updated. If the user wants it re-raised, they clear the field.
 
 ## In: `qoq execute --source` — running a milestone out of a tracker
 
-`--source local` is the default and is today's behaviour whole: a plan path, or
-the one approved plan under `./plans/`. The three tracker values change only
-what happens _before_ the loop starts. They materialise a plan file and hand
-over to it, so nothing downstream ever knows where the tickets came from —
-resume, the usage gate, the estimate loopback, the milestone gate and the
-archive all work unchanged, because there is still exactly one execution path.
+`--source local` is the default and is today's behaviour whole: a plan
+directory, or the one approved plan under `./plans/`. The three tracker values
+change only what happens _before_ the loop starts. They materialise a plan
+directory and hand over to it, so nothing downstream ever knows where the
+tickets came from — resume, the usage gate, the estimate loopback, the milestone
+gate and delivery all work unchanged, because there is still exactly one execution path.
 
 ### Ask for the milestone — not a ticket, not a board
 
@@ -98,10 +98,12 @@ A bare ticket would give a run with no milestone gate — the only scope where
 cross-ticket findings are visible at all. A board would import work nobody
 agreed to start.
 
-### Read it, then write `./plans/<milestone-slug>.md`
+### Read it, then write `./plans/<milestone-slug>/`
 
 Read the mapping table above backwards, into the plan template
-([../assets/plan-template.md](../assets/plan-template.md)). Every item's key or
+([../assets/plan-template.md](../assets/plan-template.md)): an `index.md` with
+one row, `M1`, and its `m1-<milestone-slug>.md` holding the milestone and its
+tickets. Every item's key or
 URL goes into its **External** field as you write it — that's what lets a
 re-import skip what's already here, and it's the address the write-back needs.
 
@@ -114,10 +116,10 @@ Two fields exist in no tracker and are filled here rather than guessed:
 
 Write `Plan status: approved`: a milestone somebody raised in a tracker and then
 pointed this command at has been signed off, in the place their team signs
-things off. Then load the file from disk and run it like any other plan.
+things off. Then load the plan from disk and run it like any other.
 
-**A plan file already carrying this milestone's `External` is resumed, not
-re-imported.** That's the second invocation, and it's the common one — a run
+**A plan whose milestone file already carries this milestone's `External` is
+resumed, not re-imported.** That's the second invocation, and it's the common one — a run
 that died, or a milestone half-delivered yesterday. Re-importing would overwrite
 every `done`, every commit hash and every assertion the user was asked for. Add
 tickets the tracker has gained since; touch nothing that's already there.
@@ -131,7 +133,7 @@ that beat with nothing to transcribe and the agent invents the assertion it was
 supposed to be handed.
 
 Bring them back to the user quoted, every ticket's in one question, before
-anything dispatches — and write the answers into the plan file, so a resume
+anything dispatches — and write the answers into the milestone file, so a resume
 tomorrow doesn't re-ask. Don't infer them: an invented criterion is
 indistinguishable from a real one on the page, and the ticket then passes its
 own made-up bar.
@@ -145,7 +147,7 @@ This is the one place qoq writes state back, and the staleness argument that
 forbids it everywhere else is what permits it here: an export sets a status once
 and walks away, so it is wrong within the hour; a run knows the transition at
 the moment it happens. A tracker that rejects the write is a line in the report,
-not a stop — the plan file already carries the status, and delivery doesn't wait
+not a stop — the milestone file already carries the status, and delivery doesn't wait
 on a projection.
 
 ## Finding the tools
@@ -171,16 +173,16 @@ guessed at.
 change this command can't make and shouldn't try to. Say so plainly, and say
 that the plan is fine:
 
-> The plan is approved and saved at `./plans/<file>.md`. I can't raise the
+> The plan is approved and saved at `./plans/<plan>/`. I can't raise the
 > tickets in Jira: no Jira MCP tool is available in this session, and connecting
-> one is outside what this command does. Nothing is lost — the plan file is
+> one is outside what this command does. Nothing is lost — the plan is
 > complete and `qoq execute` runs from it as-is. Once a Jira MCP server is
 > connected, re-run the export; the field mapping is in
 > `skills/qoq/references/export.md` if you'd rather raise them by hand.
 
 On the import side there's no equivalent consolation — with no way to read the
 tracker there is nothing to run. Say that, and offer `qoq plan` over the same
-requirements, or `--source local` if a plan file already exists.
+requirements, or `--source local` if a plan already exists.
 
 **Where — the tracker is reachable but the destination isn't.** No project key,
 no team, no board id. Ask; never pick, and never create a container to have

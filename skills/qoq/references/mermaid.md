@@ -45,7 +45,7 @@ Decide it once at the start of the run and say which in its opening line.
 
 After the self-review gate, before the plan is shown for approval:
 
-1. **Dispatch `qoq-artist`** with `mode: plan`, the drafted plan file's path, and
+1. **Dispatch `qoq-artist`** with `mode: plan`, the drafted plan's `index.md` path, and
    this skill's absolute path. In `replan`, charts about frozen milestones are
    left as they stand; the artist redraws the live part.
 2. **`status: question`** → ask now — approval is interactive anyway — and

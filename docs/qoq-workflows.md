@@ -123,8 +123,8 @@ flowchart TD
     OPT -->|fix| RFIX["**qoq fix**<br/>the check/fix loop"]
     OPT -->|refactor| RREF["**qoq refactor**<br/>green base, four assessments"]
     OPT -->|bump| RBUMP["**qoq bump**<br/>analyse, choose, apply"]
-    OPT -->|plan| RPLAN["**qoq plan**<br/>requirements → approved plan file"]
-    OPT -->|execute| REXEC["**qoq execute**<br/>approved plan file → delivered"]
+    OPT -->|plan| RPLAN["**qoq plan**<br/>requirements → approved plan directory"]
+    OPT -->|execute| REXEC["**qoq execute**<br/>approved plan directory → delivered"]
     OPT -->|test| RTEST["**qoq test**<br/>coverage for code that exists"]
     OPT -->|compress| RCOMP["**qoq compress**<br/>*no discovery — no line of the<br/>record describes a markdown file*"]
 
@@ -224,7 +224,7 @@ flowchart TD
     GBQ -->|no| GBSTOP(["**stop** — nothing to refactor<br/>against a red base"])
     GBQ -->|yes| SEQ
 
-    SEQ["**one at a time, in order**<br/>1. JSCPD — honest read<br/>2. this project's own conventions<br/>3. ponytail<br/>4. design — **qoq-designer**"]
+    SEQ["**one at a time, in order** — each<br/>waits for the last to return, no<br/>background dispatch<br/>1. JSCPD — honest read<br/>2. this project's own conventions<br/>3. ponytail<br/>4. design — **qoq-designer**<br/>*--decisions auto runs all four too —<br/>it changes who decides, not what runs.<br/>each reported: findings · none · skipped*"]
     SEQ --> ASSESS["run assessment *N*"]
     ASSESS -.->|"3 only"| LENS["dispatch **ponytail-review** under the<br/>name the list gave it, verbatim — bare<br/>(project) or **plugin:** prefixed, which<br/>do not resolve interchangeably.<br/>declined above = skipped, and named<br/>in the final summary"]
     LENS -.-> AQ
@@ -361,7 +361,7 @@ flowchart TD
     subgraph P1["Phase 1 — Scope"]
         direction TB
         SMALL{"one ticket's<br/>worth of work?"}
-        SMALL -->|yes| PSTOP(["**stop** — no plan file.<br/>straight to the code —<br/>the gate alone is the bar"])
+        SMALL -->|yes| PSTOP(["**stop** — no plan.<br/>straight to the code —<br/>the gate alone is the bar"])
         SMALL -->|no| GRILLQ{"is `grilling` in your own<br/>**available-skills list**?<br/>*never cached — that list is<br/>already in this thread's context*<br/>*look for `grilling`, NOT `grill-me`:<br/>grill-me is disable-model-invocation<br/>and its whole body forwards here*"}
         GRILLQ -->|missing| GASK(["**ASK ONCE** — install<br/>`/plugin install mattpocock-skills`<br/>and re-run *(recommended)*,<br/>or proceed and ask the gaps one<br/>at a time, mid-decomposition"])
         GASK -.->|"proceed without"| PSCEN
@@ -376,14 +376,14 @@ flowchart TD
         direction TB
         PEXP["dispatch **Explore** — *locate*:<br/>deps · existing patterns · test conventions<br/>*(reads excerpts, not whole files —<br/>it locates, it does not audit)*"]
         PEXP --> PSKIP{"single existing module **and**<br/>no new data shape, payload<br/>or persisted field **and**<br/>no new dependency?"}
-        PSKIP -->|yes| PNONE["**Contracts: none** — nothing to design.<br/>*say so at approval: it is the other thing<br/>the user cannot see from the plan file*"]
+        PSKIP -->|yes| PNONE["**Contracts: none** — nothing to design.<br/>*say so at approval: it is the other thing<br/>the user cannot see from the plan*"]
         PSKIP -->|"no, or any doubt"| PARCH["dispatch **qoq-architect** — *audit*:<br/>**codebase-design** preloaded · read<br/>deep in what Explore located, **carrying<br/>the Scenarios**. *a journey constrains a<br/>contract: journeys are what, contracts<br/>are how, and that is the order*"]
         PARCH --> PIDX["**indexes only while scanning** —<br/>patterns/index.md + the stack index for<br/>the **scope's own files**, never package.json.<br/>*a write-up read before the scan is<br/>persuasive by construction, and at design<br/>time there is no code to falsify it against*"]
         PIDX --> PSMELL["a named pattern needs a **cited file:line<br/>smell in code that already exists**.<br/>otherwise the ponytail ladder stands —<br/>a new dependency is **flagged, never chosen**"]
         PSMELL --> PWRITE["**then** open that one write-up and check<br/>it fits — one per named pattern, never<br/>before. *the citation is already fixed, so<br/>reading can falsify the candidate,<br/>not widen it. say so when it does not fit*"]
         PWRITE --> PRET["returns: **Contracts** · **Integration surface**<br/>· **Risks** · **Unknowns**. never edits"]
         PRET --> PUNK{"Unknowns<br/>returned?"}
-        PUNK -->|yes| PDASK(["**ASK THE USER** — a subagent cannot ask.<br/>the architect never guesses a contract:<br/>an invented one reads exactly like<br/>a real one on the page"])
+        PUNK -->|yes| PDASK(["**ASK THE USER** — a subagent cannot ask.<br/>the architect never guesses a contract:<br/>an invented one reads exactly like<br/>a real one on the page.<br/>*--decisions auto: approval summary +<br/>the affected ticket's Context — never<br/>a new section in index.md*"])
         PDASK -->|"answers change the shape —<br/>**resume** with the answers only"| PRET
         PDASK -.->|"shape unchanged —<br/>fold in yourself"| PLAND
         PUNK -->|no| PLAND["**Contracts** → the milestone field<br/>**Integration surface + Risks** → ticket Context<br/>*this is the anti-scope-expansion payload*"]
@@ -409,7 +409,7 @@ flowchart TD
         PXL -->|no| PREV["**self-review — the definition-of-ready gate**:<br/>requirement + scenario coverage · no<br/>placeholders · **exact Files** · cross-ticket<br/>interfaces · Depends on that's real ·<br/>**every criterion a spec can assert**<br/>*against the Contracts, before any code*"]
     end
 
-    PREV --> PSAVE["save → ./plans/YYYY-MM-DD-[feature].md"]
+    PREV --> PSAVE["save → ./plans/YYYY-MM-DD-[feature]/<br/>index.md + one m[N]-[slug].md per milestone"]
     PSAVE --> PDIAGQ{"diagrams on?<br/>*--diagrams, or qoq.config<br/>future.unstable_skill_diagrams*"}
     PDIAGQ -->|"no — the default"| PAPPR
     PDIAGQ -->|yes| PDIAG["**qoq mermaid — plan mode**<br/>*experimental*<br/>qoq-artist charts the drafted plan<br/>into its **## Diagrams** section —<br/>never a milestone, never a ticket"]
@@ -421,7 +421,7 @@ flowchart TD
     PTOOL -->|"jira · linear · trello"| PXOFF(["**ASK** — raise them now?<br/>*approving a plan is not the same<br/>act as publishing it into<br/>a team's tracker*"])
     PXOFF -.->|no| PHAND
     PXOFF -.->|yes| PMCP{"an MCP tool for it in your own<br/>**available-tools list**, and a<br/>**destination** — project key,<br/>team, or board?"}
-    PMCP -->|"no tool — the *how*"| PXSTOP(["**say so and stop.** MCP setup is<br/>out of scope for this command.<br/>nothing is lost — the plan file is<br/>complete and `qoq execute` runs<br/>from it as-is<br/>*never curl, never a REST call<br/>against a token in the env*"])
+    PMCP -->|"no tool — the *how*"| PXSTOP(["**say so and stop.** MCP setup is<br/>out of scope for this command.<br/>nothing is lost — the plan is<br/>complete and `qoq execute` runs<br/>from it as-is<br/>*never curl, never a REST call<br/>against a token in the env*"])
     PMCP -->|"no destination — the *where*"| PXWHERE(["**ASK which one**, offering what the<br/>read-only tools can already see.<br/>never pick, never create one —<br/>a plan raised into the wrong project<br/>is worse than one not raised"])
     PXWHERE -.-> PXRUN
     PMCP -->|both known| PXRUN["**export** — container, then milestones,<br/>then tickets, then `Depends on` links last<br/>*(each level needs the one above it<br/>to have an id already)*<br/>status is a **label**, never the tracker's<br/>own workflow column: the export writes<br/>once and never syncs back"]
@@ -444,17 +444,17 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    R0["**qoq replan** plans/[file].md"]
-    R0 --> RGIT{"the plan file has<br/>uncommitted changes?"}
-    RGIT -->|yes| RSTOP(["**REFUSE** — commit or stash first.<br/>replan overwrites in place so the path<br/>stays stable *(External keys, the<br/>.completed.md archive and any resume all<br/>reference it by name)*. git is the history"])
+    R0["**qoq replan** plans/[plan]/"]
+    R0 --> RGIT{"the plan directory has<br/>uncommitted changes?"}
+    RGIT -->|yes| RSTOP(["**REFUSE** — commit or stash first.<br/>replan overwrites live files in place so<br/>the paths stay stable *(External keys,<br/>links between files and any resume all<br/>reference them by name)*. git is the history"])
     RGIT -->|no| RSIZE{"one milestone<br/>from done?"}
     RSIZE -->|yes| RFIN(["**say so** — finishing is<br/>cheaper than reshaping"])
     RSIZE -->|no| RNEW{"nothing delivered **and** the<br/>requirements changed substantially?"}
-    RNEW -->|yes| RFRESH(["**not a replan** — archive it<br/>and run qoq plan"])
-    RNEW -->|no| RSPLIT["**split the file**"]
+    RNEW -->|yes| RFRESH(["**not a replan** — leave it<br/>and run qoq plan"])
+    RNEW -->|no| RSPLIT["**split the plan**<br/>*a bare plans/[name].md → stop:<br/>the single-file layout, offer qoq plan*"]
 
-    RSPLIT --> FROZEN["**FROZEN** — delivered milestones · done<br/>tickets · the archive · commits.<br/>*read-only input, never material: a done<br/>ticket re-decomposed loses its commit link<br/>and the history stops meaning anything.*<br/>**backfill only** — missing Log from git,<br/>missing Estimate from estimate.mjs"]
-    RSPLIT --> LIVE["**LIVE** — todo · in-progress · blocked<br/>tickets and undelivered milestones.<br/>*the only thing replan may rewrite*"]
+    RSPLIT --> FROZEN["**FROZEN** — delivered milestone files ·<br/>done tickets · withdrawn milestones · commits.<br/>*read-only input, never material: a done<br/>ticket re-decomposed loses its commit link<br/>and the history stops meaning anything.*<br/>**backfill only** — missing Log from git,<br/>missing Estimate from estimate.mjs"]
+    RSPLIT --> LIVE["**LIVE** — todo · in-progress · blocked<br/>tickets and undelivered milestones.<br/>*the only thing replan may rewrite*<br/>new milestone → next unused m[N] ·<br/>dropped one → kept, row withdrawn ·<br/>nothing renumbered"]
 
     FROZEN --> GRILL
     LIVE --> GRILL["**Phase 1 over the live part** — hand the grill<br/>the old plan, the original Requirements source<br/>if it still resolves, **and what went wrong**:<br/>blocked tickets, escalations, scope-expansion<br/>attributions. *nothing else in the system reads<br/>these at plan time, and they are the strongest<br/>evidence the old decomposition was wrong*"]
@@ -463,7 +463,7 @@ flowchart TD
     PH23 --> ORPH{"did any live ticket<br/>carry an **External** key?"}
     ORPH -->|yes| ORPT(["**report the orphans at approval** — a<br/>re-decomposed ticket loses its External and<br/>the tracker item it was is now dangling.<br/>*replan never syncs: the export writes once<br/>and never syncs back, and syncing is the<br/>problem this skill refuses to own*"])
     ORPT -.-> WRITE
-    ORPH -->|no| WRITE["**overwrite in place**.<br/>*the calibration store is untouched — a<br/>recorded outcome means 'this shape of work<br/>at that tier went this way', which stays<br/>true however the plan is now shaped*"]
+    ORPH -->|no| WRITE["**overwrite live files in place**.<br/>*the calibration store is untouched — a<br/>recorded outcome means 'this shape of work<br/>at that tier went this way', which stays<br/>true however the plan is now shaped*"]
     WRITE --> RDIAG["**diagrams on** → qoq-artist redraws<br/>the live part's charts before approval.<br/>*charts of frozen milestones stay<br/>as they were approved*"]
 
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
@@ -485,15 +485,17 @@ flowchart TD
     ESGATE -->|"off — experimental"| ESOFF(["**stop** — name the switch.<br/>nothing asked, nothing read<br/>from the tracker"])
     ESGATE -->|on| EIMP(["**ASK which milestone** — epic ·<br/>milestone · list, offering what the<br/>read-only tools can see.<br/>*never a bare ticket (no milestone gate)<br/>and never a board (work nobody started)*"])
     EIMP --> EIMAP["**read the mapping backwards** into<br/>the plan template — External = the key/URL.<br/>fill what no tracker has: **Commands** from<br/>the record, **Estimate** from estimate.mjs.<br/>write **Plan status: approved**"]
-    EIMAP --> ERE{"a plan file already<br/>carries this milestone's<br/>**External**?"}
+    EIMAP --> ERE{"a milestone file already<br/>carries this milestone's<br/>**External**?"}
     ERE -->|"yes — the common<br/>second invocation"| ERES["**resume it** — add tickets the tracker<br/>has gained, touch nothing already there.<br/>*re-importing overwrites every done,<br/>every commit hash, and every assertion<br/>the user was asked for*"]
     ERES --> ELOAD
     ERE -->|no| ECRIT{"acceptance criteria<br/>assertable as written?"}
     ECRIT -->|"no — prose, a title"| ECASK(["**ASK THE USER** for the assertions,<br/>quoted, all tickets in one question,<br/>before anything dispatches.<br/>*never infer them — an invented criterion<br/>is a bar the ticket sets for itself*"])
     ECASK -.-> ELOAD
     ECRIT -->|yes| ELOAD
-    ELOAD["**load the plan, fresh from disk**<br/>every time, resume or not<br/>*(./plans/[file].md — imported or not,<br/>nothing below knows the difference)*"]
-    ELOAD --> EDRAFT{"Plan status<br/>approved?"}
+    ELOAD["**load the plan, fresh from disk**<br/>every time, resume or not: index.md,<br/>then the next milestone's file only<br/>*(./plans/[plan]/ — imported or not,<br/>nothing below knows the difference)*"]
+    ELOAD --> ELEGACY{"a bare<br/>plans/[name].md?"}
+    ELEGACY -->|yes| ELSTOP(["**stop** — the single-file layout,<br/>no longer run. name it; not converted"])
+    ELEGACY -->|"no — a directory"| EDRAFT{"Plan status<br/>approved?"}
     EDRAFT -->|draft| EBACK["back to **qoq plan** —<br/>it was never signed off"]
     EDRAFT -->|approved| EPROG{"any ticket<br/>in-progress?"}
     EPROG -->|"yes — a dead run"| ERECON["reconcile against git log:<br/>committed → done,<br/>otherwise re-dispatch"]
@@ -560,7 +562,7 @@ flowchart TD
     EBLOCK -->|"**failure** — nothing delivered it<br/>*(the only thing that earns a split)*"| EREC
     EREC --> EMORE{"tickets left in<br/>the milestone?"}
     EMORE -->|yes| EWAVE
-    EMORE -->|no| EMGATE["**milestone 1 — qoq refactor --decisions auto**<br/>over the union of every ticket's files.<br/>*the specs are in that union, so cross-ticket<br/>setup duplication and one boundary mocked<br/>three ways are already JSCPD's job —<br/>no third gate is needed here*<br/>**its green base is a full qoq fix — knip on.**<br/>*first moment every consumer exists, so the<br/>first moment a dead-code finding is true*"]
+    EMORE -->|no| EMGATE["**milestone 1 — qoq refactor --decisions auto**<br/>over the union of every ticket's files —<br/>**the whole refactor.md run**: green base,<br/>A1–A4, qoq-designer dispatched. *reading<br/>the union yourself is a skipped gate.*<br/>Gate evidence records each assessment.<br/>*the specs are in that union, so cross-ticket<br/>setup duplication and one boundary mocked<br/>three ways are already JSCPD's job —<br/>no third gate is needed here*<br/>**its green base is a full qoq fix — knip on.**<br/>*first moment every consumer exists, so the<br/>first moment a dead-code finding is true*"]
     EMGATE --> EMSUITE["**milestone 2 — the project's<br/>full build + full test suite**"]
     EMSUITE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
     ENEW --> EWAVE
@@ -573,12 +575,12 @@ flowchart TD
     EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
     EDOCQ -->|"no — the default"| EARCH
     EDOCQ -->|yes| EDOC["**qoq document — plan mode**<br/>*experimental*<br/>qoq-scribe at sonnet over the milestone<br/>text + its ticket-commit range ·<br/>**qoq-artist** on its candidates when<br/>diagrams are on too · prettier ·<br/>**docs(mN)** commit.<br/>*never stops the run: a question,<br/>drift or marker becomes a Docs<br/>advisory, walked through at the end*"]
-    EDOC --> EARCH["**archive with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Completed summary, not just 'green'.<br/>milestone text to .completed.md, summary<br/>stays, downstream Context updated first"]
+    EDOC --> EARCH["**deliver with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Outcome block at the top of the milestone<br/>file, not just 'green'. nothing moves:<br/>index row → delivered, later milestone<br/>files' Context updated"]
     EARCH --> EMS{"milestones<br/>left?"}
     EMS -->|yes| EWAVE
     EMS -->|no| ERVP{"review on?"}
     ERVP -->|"no — the default"| EDWALK
-    ERVP -->|yes| ERVPLAN["**end-of-plan review** — every milestone<br/>archived, none blocked · qoq-reviewer,<br/>mode plan, axis spec · gaps → **ask**: Plan gaps<br/>milestone · replan · accept · drop"]
+    ERVP -->|yes| ERVPLAN["**end-of-plan review** — every milestone<br/>delivered, none blocked · qoq-reviewer,<br/>mode plan, axis spec · gaps → **ask**: Plan gaps<br/>milestone · replan · accept · drop"]
     ERVPLAN --> EDWALK
     EDWALK["**walk the user through every<br/>milestone's Refactor, Docs, Security<br/>and Review advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
     EDWALK --> ESIGNQ{"review on?"}
@@ -744,7 +746,7 @@ flowchart TD
     DARTQ -->|no| DFMT["npx qoq prettier --fix<br/>*the only gate a comments-only<br/>change can trip*"]
     DFMT --> DMODE2{"mode"}
     DMODE2 -->|path| DWALK["walk through markers ·<br/>readme: missing → ask.<br/>answers replace markers ·<br/>**offer** to draw diagram_candidates"] --> DSTOP(["**stop — uncommitted**"])
-    DMODE2 -->|plan| DCOMMIT["commit **only** the report's files —<br/>docs(mN): name. drift + markers →<br/>**Docs advisories**"] --> DARCH(["back to execute → archive"])
+    DMODE2 -->|plan| DCOMMIT["commit **only** the report's files —<br/>docs(mN): name. drift + markers →<br/>**Docs advisories**"] --> DARCH(["back to execute → deliver"])
 
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
@@ -771,7 +773,7 @@ flowchart TD
     MPATH --> MDISP
     MSEC --> MDISP["dispatch — **standalone mode**<br/>*ungated: typing it is the opt-in*"]
 
-    MPLAN["plan · replan — after self-review,<br/>before approval. **only with --diagrams<br/>or future.unstable_skill_diagrams**"] --> MPD["dispatch — **plan mode**<br/>the drafted plan file"]
+    MPLAN["plan · replan — after self-review,<br/>before approval. **only with --diagrams<br/>or future.unstable_skill_diagrams**"] --> MPD["dispatch — **plan mode**<br/>the drafted plan's index.md"]
     MEXEC["execute's milestone gate, after the scribe —<br/>**diagrams and docs both on**<br/>· /qoq document's offer, on a yes"] --> MDD["dispatch — **docs mode**<br/>diagram_candidates + the<br/>scribe's file lists"]
 
     MDISP --> MART
@@ -926,7 +928,7 @@ flowchart TD
     VACC --> VREC
     VDEFER --> VREC
 
-    VEND["last milestone archived, none blocked"] --> VPLAN["**qoq-reviewer — mode plan, axis spec**<br/>Goal · requirements · every Completed<br/>block · diff --stat of the plan's range ·<br/>code only to confirm a gap"]
+    VEND["last milestone delivered, none blocked"] --> VPLAN["**qoq-reviewer — mode plan, axis spec**<br/>Goal · requirements · every Outcome<br/>block · diff --stat of the plan's range ·<br/>code only to confirm a gap"]
     VPLAN --> VGAP(["**ASK** per gap — Plan gaps milestone ·<br/>replan · accept · drop"])
     VGAP -->|"Plan gaps milestone"| VGM["normal milestone gate,<br/>review included"]
     VGM --> VPLAN2["**plan pass once more** —<br/>its gaps resolved · surviving.<br/>surviving → replan · accept · drop"]

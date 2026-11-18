@@ -14,7 +14,7 @@ promised?**
 
 A ticket whose tests assert nothing is not a deferred problem — it is a false
 statement the plan then propagates. A `success` filed with the estimator,
-downstream tickets built on a behaviour nothing pins, an archive entry claiming
+downstream tickets built on a behaviour nothing pins, an Outcome block claiming
 delivery. You sit before the commit because all three are cheap to prevent and
 expensive to unwind.
 

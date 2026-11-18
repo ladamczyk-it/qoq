@@ -57,8 +57,8 @@ the project's `qoq.config.*` sets `future: { unstable_skill_docs: true }`
 ([execute.md](execute.md), Setup). Standalone `/qoq document` needs neither,
 because typing it is the opt-in.
 
-Runs after the gate is green and before the milestone is archived, while its text
-is still in the plan ([execute.md](execute.md)). Nobody is watching, so nothing
+Runs after the gate is green and before the milestone's Outcome block is
+written, while its file is as the gate left it ([execute.md](execute.md)). Nobody is watching, so nothing
 here stops the run.
 
 1. **Dispatch `qoq-scribe`** at **sonnet** — plan mode is translation — with
@@ -67,7 +67,7 @@ here stops the run.
    included), the union of the tickets' files as scope, the plan's
    `**Docs conventions:**` line if it has one, and this skill's absolute path.
 2. **`status: question`** → don't ask now. Write `docs skipped: <question>` into
-   the milestone's **Docs advisories**, archive, carry on.
+   the milestone's **Docs advisories**, deliver, carry on.
    **`status: migrate`** → same, as `docs skipped: docs/ not qoq-managed — run
 /qoq document to migrate`. Migration needs the user on every doc; nobody is
    here, so every later milestone will skip too — say that once, not per
@@ -81,7 +81,7 @@ here stops the run.
    because prettier formats the whole repo. Message
    `docs(m<N>): <milestone name>`, with the run's usual trailer. A file prettier
    changed outside those lists is a report line, not part of the commit.
-5. **Docs advisories** in the milestone's summary block: every `drift` entry and
+5. **Docs advisories** in the milestone's Outcome block: every `drift` entry and
    every `markers` entry, one line each. They go nowhere else — drift is the
    user's decision, and nothing about it is written into `docs/`.
 

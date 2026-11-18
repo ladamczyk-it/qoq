@@ -43,7 +43,7 @@ passes.
   - the **Review** lines of earlier milestones — their accepted entries
   - `standards` only: the refactor gate's advisories for this milestone
 - **plan:** the plan's Goal, Architecture and requirements source, every
-  milestone's Completed block, and the plan's whole range. On a second pass, the
+  milestone's Outcome block, and the plan's whole range. On a second pass, the
   gaps you raised last time, verbatim
 - **pr:** the range `<base>...<head>`, and the pull request's title, body and
   the bodies of the issues it closes — the intent you judge against, standing in
@@ -195,10 +195,10 @@ Not a code review: the milestones were reviewed one at a time already. One
 question — **does what was delivered add up to what the plan set out to do?**
 
 Map every requirement in the plan's Goal and requirements source to the
-milestone or milestones whose Completed block delivered it, using `git diff
+milestone or milestones whose Outcome block delivered it, using `git diff
 --stat` over the plan's range to check a claim against what actually changed.
 Open code only to confirm or dismiss a gap you already suspect. Then look across
-the Completed blocks for drift: a decision one milestone recorded that a later
+the Outcome blocks for drift: a decision one milestone recorded that a later
 one quietly contradicts is a `consistency` finding.
 
 On a second pass you get the gaps you raised before. Mark each `resolved` or

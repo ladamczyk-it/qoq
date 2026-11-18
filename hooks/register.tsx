@@ -1,21 +1,23 @@
 import { atom, read, update } from 'claude-code';
 import type { EngineInterface, Register } from 'claude-code';
 
-import { parsePlan } from './plan';
+import { parseIndex, parsePlan } from './plan';
 import type { Board, Ticket } from './types';
 
 // The `qoq execute` board, above the prompt. The skill knows nothing of it.
 //
-// Once the session reads or edits a `plans/*.md` that is an approved,
-// in-progress or complete plan, the band rereads that file after every later
-// tool call, so it follows the plan as tickets move. Compact: the plan, tickets
+// Once the session reads or edits any file of a `plans/<plan>/` directory
+// whose index is an approved, in-progress or complete plan, the band rereads
+// the index and its milestone files after every later tool call, so it follows
+// the plan as tickets move. Compact: the plan, tickets
 // done and the percentage. Details: one column per milestone, side by side,
 // its tickets one per line.
 
 const board = atom({ plugin: 'qoq', key: 'board' } as const, null);
 const details = atom({ plugin: 'qoq', key: 'details' } as const, false);
 
-const PLAN_FILE = /(?:^|\/)plans\/[^/]+(?<!\.completed)\.md$/;
+// `plans/<plan>/index.md` or `plans/<plan>/m<N>-<slug>.md`; group 1 is the directory.
+const PLAN_FILE = /^(.*(?:^|\/)plans\/[^/]+)\/(?:index|m\d+-[^/]+)\.md$/;
 const SHOWN = new Set(['approved', 'in-progress', 'complete']);
 const SQUARES: Record<string, string> = { done: '🟩', 'in-progress': '🟦', blocked: '🟨' };
 const LEGEND = '🟩 done · 🟦 in progress · 🟨 blocked · 🟫 to do';
@@ -34,27 +36,34 @@ export const tally = ({ milestones }: Board) => {
   };
 };
 
-// Null when the file isn't a plan the band shows: a draft, or not a plan.
-async function load($: EngineInterface, path: string) {
-  const plan = parsePlan(await $.fs.read(path));
+// Null when the directory isn't a plan the band shows: a draft, or not a plan.
+// The index names the milestone files, so nothing lists the directory.
+async function load($: EngineInterface, dir: string) {
+  const index = await $.fs.read(`${dir}/index.md`);
+  const files: Record<string, string> = {};
+  for (const { file } of parseIndex(index)?.rows ?? []) {
+    files[file] = await $.fs.read(`${dir}/${file}`).catch(() => '');
+  }
+  const plan = parsePlan(index, files);
   return plan && SHOWN.has(plan.status) ? plan : null;
 }
 
 export const register: Register = (on) => {
-  let planPath: string | undefined;
+  let planDir: string | undefined;
 
   on('tool.call', async ($, e, next) => {
     const result = await next(e);
     const touched =
       e.tool === 'Read' || e.tool === 'Edit' || e.tool === 'Write' ? e.file_path : undefined;
-    if (touched && touched !== planPath && PLAN_FILE.test(touched)) {
-      const plan = await load($, touched).catch(() => null);
+    const dir = touched ? PLAN_FILE.exec(touched)?.[1] : undefined;
+    if (dir && dir !== planDir) {
+      const plan = await load($, dir).catch(() => null);
       if (plan) {
-        planPath = touched;
+        planDir = dir;
         await update($, board, () => plan);
       }
-    } else if (planPath) {
-      const plan = await load($, planPath).catch(() => null);
+    } else if (planDir) {
+      const plan = await load($, planDir).catch(() => null);
       await update($, board, () => plan);
     }
     return result;

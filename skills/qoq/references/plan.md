@@ -1,10 +1,12 @@
-# `qoq plan` — requirements in, an approved plan file out
+# `qoq plan` — requirements in, an approved plan directory out
 
 Decompose a spec, PRD, or rough description into milestones and tickets that a
-cold subagent can pick up and `qoq execute` can deliver. The plan file is the
-whole handoff — it's what lets tomorrow's session resume work this one started.
+cold subagent can pick up and `qoq execute` can deliver. The plan directory is
+the whole handoff — it's what lets tomorrow's session resume work this one
+started.
 
-The file shape is fixed: [../assets/plan-template.md](../assets/plan-template.md).
+The shape is fixed — an `index.md` plus one `m<N>-<slug>.md` per milestone:
+[../assets/plan-template.md](../assets/plan-template.md).
 Copy it structurally, don't improvise sections — an orchestrator resuming a plan
 across sessions relies on "Status" and "Definition of done" meaning the same
 thing in every ticket it's ever handed.
@@ -24,7 +26,7 @@ loss is invisible until a ticket is being implemented.
 
 ### When not to write a plan
 
-One ticket's worth of work doesn't get a plan file. Go straight to the code; the
+One ticket's worth of work doesn't get a plan. Go straight to the code; the
 gate alone is the bar. The dispatch machinery costs more than it saves below that
 size, and a one-ticket plan is a ceremony that has to be maintained.
 
@@ -96,7 +98,7 @@ install, and it's the same plugin.
 **The grill leaves nothing behind but the conversation** — beyond what
 `domain-modeling` wrote, which is vocabulary and decisions, not the plan. It's
 stateless by design: no workspace, no record. Everything it settled lives only in
-this thread, so it has to land in the plan file as you decompose — the
+this thread, so it has to land in the plan as you decompose — the
 architecture sentence, a ticket's **Context**, the acceptance criterion that
 only got sharp because a question was asked. Note on **Requirements source**
 that the requirements were grilled. A decision nobody wrote down is one the next
@@ -120,7 +122,7 @@ A scenario is not an acceptance criterion, and neither can express the other. A
 criterion is one ticket's assertion — _"a 6th request inside 60s returns 429"_.
 A scenario spans tickets — _"**Given** a signed-in user who has just hit the
 limit, **When** they retry after the window, **Then** the request succeeds and
-the counter has reset"_. Nothing else in the plan file holds the second, and a
+the counter has reset"_. Nothing else in the plan holds the second, and a
 milestone's whole claim is that it is independently shippable, which is a
 statement about journeys rather than about assertions.
 
@@ -133,7 +135,7 @@ requirement.
 test the `XL` rule applies, reached from the other direction.
 
 Prose, not Gherkin. The intended consumer is a model and needs no formal grammar,
-while real Gherkin invites someone to point Cucumber at the plan file, and then
+while real Gherkin invites someone to point Cucumber at the plan, and then
 it wants step definitions and a framework nobody asked for. The bolded keywords
 keep it greppable without inviting a runner.
 
@@ -167,7 +169,7 @@ proposed dispatches the architect — **and so does any doubt about which of tho
 is true.** A skip guessed at is the pass being guessed away.
 
 Report a skipped architect at approval, beside a skipped grill. It's the other
-thing at approval the user can't see from the plan file, and it changes how hard
+thing at approval the user can't see from the plan, and it changes how hard
 they should read a `Contracts: none`.
 
 ### Dispatch `qoq-architect`
@@ -206,6 +208,12 @@ answers. It already holds the files it read, and re-reading them would be the
 most expensive pass in the plan. If it can't be resumed, re-dispatch it with the
 full brief plus the answers. If they don't change the shape, fold them in
 yourself.
+
+Under `--decisions auto` nobody answers them. Each one goes into the approval
+summary, and into the **Context** of the ticket it would change. It never goes
+into a new section of the plan: `index.md` holds the template's sections and
+nothing else. An open question parked in the index is one no dispatch ever
+carries, and it stays there after it's answered.
 
 ### Where the output lands
 
@@ -352,7 +360,7 @@ ticket that can't be asserted up front: it isn't decomposed yet.
 Write what it returns into the ticket's **Estimate** field, in the template's
 one-line shape — tags, stack, verdict, the miss count, and the tier change if
 there was one. Not the raw JSON: the rest of that payload is diagnostics for
-this call, and a plan file is read by every later ticket. That field is what
+this call, and a milestone file is read by every later ticket. That field is what
 closes the loop: `qoq execute` reports each outcome back against exactly those
 tags and that tier, so the next plan starts from a record this one improved.
 
@@ -395,7 +403,7 @@ and the veto.
 
 ### `--tool` — where the tickets end up
 
-`--tool local` is the default and writes the plan file and nothing else.
+`--tool local` is the default and writes the plan directory and nothing else.
 `jira`, `linear` and `trello` add one beat after approval: raise the milestones
 and tickets in that tool. Any other value is a typo rather than a fourth tool —
 ask, don't map it to the nearest one.
@@ -410,10 +418,10 @@ approval would throw away the whole session. The flag alone never turns it on �
 an untested write into a team's tracker is a per-project decision, not a
 per-run one.
 
-**The plan file is the source of truth in every mode.** `qoq execute` runs off
-`./plans/*.md` and nothing else — even `--source jira`, which imports a
+**The plan directory is the source of truth in every mode.** `qoq execute`
+runs off `./plans/<plan>/` and nothing else — even `--source jira`, which imports a
 milestone into one first. So the export is a projection for the people who live
-in a tracker, never a replacement. `--tool jira` still writes the file,
+in a tracker, never a replacement. `--tool jira` still writes the directory,
 still gets approved the same way, and an export that fails halfway leaves a plan
 that works.
 
@@ -424,7 +432,9 @@ has no use for the field tables of three trackers it will never write to.
 
 ### Approval, then handoff
 
-Save to `./plans/YYYY-MM-DD-<feature>.md` with `Plan status: draft`, then ask.
+Save to `./plans/YYYY-MM-DD-<feature>/` — `index.md` with `Plan status: draft`
+and every milestone row `todo`, plus one `m<N>-<slug>.md` per milestone — then
+ask.
 Three things get surfaced at approval because they're the ones a user would want
 to veto: **new dependencies** any ticket needs — including any the architect
 _flagged_, since it never chooses one — the **model ceiling** — if a ticket is
@@ -440,7 +450,7 @@ Say here, too, what was **skipped**: the `grilling` round — installed-and-decl
 or `--decisions auto` — `domain-modeling`, if it didn't run, the **architect**, if the skip condition held, and
 `codebase-design`, if the architect reported it not loaded. None is a veto item;
 they're the things at approval the user can't see from the
-plan file, and they change how hard they should read the acceptance criteria and a
+plan, and they change how hard they should read the acceptance criteria and a
 `Contracts: none` respectively. With diagrams on, list what the artist drew and
 declined, one line each.
 
@@ -455,8 +465,8 @@ changing code:
 1. **`--tool` isn't `local`** → offer to raise the items now and do it on a yes,
    following [export.md](export.md). An outward-facing write gets its own
    confirmation; approving a plan is not the same act as publishing it into a
-   team's tracker. Declined, the plan file stands on its own and the export can
+   team's tracker. Declined, the plan stands on its own and the export can
    be run later.
 2. **Offer `qoq execute`** and run it on a yes. Never dispatch a ticket from
-   here. The plan file is the entire handoff, and folding execution in would put
+   here. The plan directory is the entire handoff, and folding execution in would put
    decomposition reasoning back into the context that has to run the plan.

@@ -90,7 +90,9 @@ question.
 **Sequentially, never in parallel.** They overlap by design — duplication is
 often a missing pattern, and ponytail's answer to a pattern is often "delete it".
 Run together they write conflicting patches into the same files. Each one reads
-the tree the previous one left.
+the tree the previous one left. So an assessment starts only once the previous
+one has returned and its findings are applied or recorded: `qoq-designer` is
+not dispatched in the background while `ponytail-review` is still reading.
 
 Run them in the order given: cheapest and most mechanical first.
 
@@ -194,7 +196,16 @@ The split is the same line `fix` and `refactor` already draw between them: a
 finding with exactly one sensible resolution isn't a matter of taste; a finding
 that changes shape is. `auto` doesn't lower the bar, it declines to guess.
 
+**`auto` changes who decides, never what runs.** The green base and all four
+assessments run exactly as above, in order, with `qoq-designer` dispatched for
+assessment 4. That most of their findings come back as advisories is no reason
+to skip one: an assessment never run returns no advisories, and that reads the
+same as a clean one. Reading the scope yourself in place of an assessment is the
+improvised substitute pass the rule above forbids. Report each of the four
+separately — its findings, `none`, or `skipped — <why>` — because that is what
+a caller writes down.
+
 **Advisories belong to whoever asked.** The milestone gate records them in the
-milestone's `## Completed` summary; `bump` carries them into its per-package
+milestone's Outcome block; `bump` carries them into its per-package
 report. An advisory that evaporates because nobody wrote it down is the failure
 mode this flag is worth guarding against.

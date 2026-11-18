@@ -233,7 +233,7 @@ through the write-back it already has.
 
 ## What gets recorded
 
-The milestone's Completed block gains a **Review** line. It holds the verdict,
+The milestone's Outcome block gains a **Review** line. It holds the verdict,
 then one entry per finding: the id (its `R`/`RS` prefix names the axis) and
 severity, plus how it ended (remediated
 `<hash>`, accepted with its anchor and reason as above, deferred to `<ticket>`,
@@ -242,8 +242,8 @@ the refactor, suite and sheriff results.
 
 ## The end-of-plan pass
 
-This runs once the last milestone has archived, but only when **every**
-milestone is archived and no ticket is `blocked`. A run that stopped on a
+This runs once the last milestone is delivered, but only when **every**
+milestone is delivered or withdrawn and no ticket is `blocked`. A run that stopped on a
 spending limit, or that left blocked tickets, skips it and says why in its
 closing line. A later resume that finishes the plan runs it then.
 
@@ -252,7 +252,7 @@ Dispatch `qoq-reviewer`, cold, at the session's model, with `mode: plan` and
 standards were already read. Pass:
 
 - the plan's Goal, Architecture and requirements source
-- every milestone's Completed block
+- every milestone's Outcome block
 - the range from the plan's first ticket commit to `HEAD`
 - this skill's absolute path
 
@@ -267,7 +267,7 @@ What it returns:
   - drop
 
   Nothing runs without a yes. A Plan gaps milestone goes through the normal
-  milestone gate, review included. After it archives, the end-of-plan pass runs
+  milestone gate, review included. Once it is delivered, the end-of-plan pass runs
   **once more**, with its earlier gaps passed in. Gaps it marks `surviving` go to
   the user with only replan, accept or drop. No second gaps milestone is
   offered, so this can't loop.
@@ -286,7 +286,7 @@ is unchanged. The order is:
 2. the advisory walkthrough: every milestone's Refactor, Docs, Security and
    Review advisories, once
 3. then the sign-off, rendered on this thread from the typed reports and the
-   Completed blocks. The agent never writes it, because it can't see the other
+   Outcome blocks. The agent never writes it, because it can't see the other
    gates or the user's decisions.
 
 The sign-off contains:
