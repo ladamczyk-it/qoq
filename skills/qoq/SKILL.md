@@ -192,31 +192,36 @@ Invoked with: `$ARGUMENTS`
 
 Commands compose, but **only on the main thread**.
 
-| Command    | Calls                                                                | Called by                                                          |
-| ---------- | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `fix`      | its own `qoq-checker`                                                | `refactor`, `bump`, `execute`, `test`, `compress`                  |
-| `refactor` | `fix`                                                                | `bump`, `execute`, `test`                                          |
-| `bump`     | `fix`, `refactor` — both per patch                                   | —                                                                  |
-| `plan`     | `grilling` (external), `mermaid`                                     | —                                                                  |
-| `replan`   | `grilling` (external), `mermaid`                                     | —                                                                  |
-| `execute`  | `fix`, `refactor`, `sheriff`, `review`, `document`, `mermaid`        | `plan` — offered at approval, never dispatched from inside it      |
-| `test`     | `fix`, `refactor`                                                    | —                                                                  |
-| `compress` | `fix`                                                                | —                                                                  |
-| `document` | its own `qoq-scribe`; offers `mermaid`                               | `execute` — per milestone, after the gate                          |
-| `mermaid`  | its own `qoq-artist`                                                 | `plan`, `replan`, `execute` — when `--diagrams` is on              |
-| `sheriff`  | its own `qoq-sheriff`; `fix` to re-gate                              | `execute` — per milestone, when `--sheriff` is on                  |
-| `review`   | its own `qoq-reviewer`; `fix` to re-gate; `sheriff` to recheck a fix | `execute` — per milestone and once per plan, when `--review` is on |
+| Command    | Calls                                                                           | Called by                                                          |
+| ---------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `fix`      | its own `qoq-checker`                                                           | `refactor`, `bump`, `execute`, `test`, `compress`                  |
+| `refactor` | `fix`                                                                           | `bump`, `execute`, `test`                                          |
+| `bump`     | `fix`, `refactor` — both per patch                                              | —                                                                  |
+| `plan`     | `grilling` + `domain-modeling` (external), `mermaid`                            | —                                                                  |
+| `replan`   | `grilling` + `domain-modeling` (external), `mermaid`                            | —                                                                  |
+| `execute`  | `tdd` (external), `fix`, `refactor`, `sheriff`, `review`, `document`, `mermaid` | `plan` — offered at approval, never dispatched from inside it      |
+| `test`     | `tdd` (external), `fix`, `refactor`                                             | —                                                                  |
+| `compress` | `writing-for-agents` (external), `fix`                                          | —                                                                  |
+| `document` | its own `qoq-scribe`; offers `mermaid`                                          | `execute` — per milestone, after the gate                          |
+| `mermaid`  | its own `qoq-artist`                                                            | `plan`, `replan`, `execute` — when `--diagrams` is on              |
+| `sheriff`  | its own `qoq-sheriff`; `fix` to re-gate                                         | `execute` — per milestone, when `--sheriff` is on                  |
+| `review`   | its own `qoq-reviewer`; `fix` to re-gate; `sheriff` to recheck a fix            | `execute` — per milestone and once per plan, when `--review` is on |
 
 `compress` changes what future runs read, never what this one does, so no
 command should be reaching for it mid-task.
 
-Two commands reach for a skill this one doesn't own, and both resolve the name
-the same way: look it up in **your own available-skills list** at the moment you
-need it, because that list is already in the thread's context and is never out of
-date. `refactor`'s assessment 3 is `ponytail-review` (assessment 4 is
-`qoq-designer`, which ships here); `plan` opens with `grilling`, the interview
-that closes the gaps in a set of requirements before they become invented
-acceptance criteria. Each reference states what to do when its skill is missing.
+Six skills this one doesn't own are used, two ways. **On this thread**, looked up
+in **your own available-skills list** at the moment you need it, because that
+list is already in the thread's context and is never out of date: `refactor`'s
+assessment 3 is `ponytail-review` (assessment 4 is `qoq-designer`, which ships
+here); `plan` and `replan` open with `grilling`, the interview that closes the
+gaps in a set of requirements before they become invented acceptance criteria,
+with `domain-modeling` writing down the terms and decisions it settles;
+`compress` judges every cut against `writing-for-agents`. **Preloaded into an
+agent** by its `skills:` frontmatter, never invoked here: `tdd` under every spec
+`execute` and `test` write, and `codebase-design` under `qoq-architect`'s
+contracts. All six normally arrive with qoq as plugin dependencies; each
+reference states what to do when one is missing anyway.
 
 ## Standing rules
 
@@ -274,7 +279,7 @@ blind spots at any cheaper tier.
 | `qoq-checker`       | haiku      | run the tools, return the digest — one per `fix` loop       |
 | `qoq-bumper`        | sonnet     | read a changelog, find what lands here — one per package    |
 | `qoq-architect`     | _session_  | contracts · surface · risks · unknowns — one per plan       |
-| `qoq-developer`     | _dispatch_ | one ticket, red-green-refactor — one per ticket             |
+| `qoq-developer`     | _dispatch_ | one ticket, red → green per criterion — one per ticket      |
 | `qoq-test-reviewer` | sonnet     | do the specs test the criteria — one per ticket, pre-commit |
 | `qoq-tester`        | sonnet     | write the specs for one slice — one per slice               |
 | `qoq-designer`      | sonnet     | stack → smells → patterns — `refactor`'s assessment 4       |
@@ -333,9 +338,11 @@ relay its notice and carry on.
 
 ## Test and code conventions
 
+`tdd` is the base for writing specs — what a good test is, seams, mocking, the
+anti-patterns, the red → green loop.
 [references/test-conventions.md](references/test-conventions.md) holds the house
-rules for writing specs. Whoever writes a test in this project reads it rather
-than reinventing a style.
+rules on top of it and wins where they conflict. Whoever writes a test in this
+project reads both rather than reinventing a style.
 [references/code-conventions.md](references/code-conventions.md) is its sibling
 for production code: names say what, comments say why, and a comment that
 predates the change is never removed without a recorded reason. Both are read by

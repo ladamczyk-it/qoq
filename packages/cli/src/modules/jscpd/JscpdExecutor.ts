@@ -1,5 +1,8 @@
-import { readdirSync } from 'fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'fs';
 import { createRequire } from 'module';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { stripVTControlCharacters } from 'util';
 
 import { EExitCode, getRelativePath, resolveCwdPath } from '@ladamczyk/qoq-utils';
 import c from 'picocolors';
@@ -11,7 +14,27 @@ import { IExecutorOptions } from '../types.ts';
 import { JscpdConfigHandler } from './JscpdConfigHandler.ts';
 import { IModuleJscpdConfig } from './types.ts';
 
-import type { IClone, IStatistic } from '@jscpd/core';
+interface IJscpdReportFile {
+  name: string;
+  start: number;
+  end: number;
+}
+
+// The slice of jscpd v5's own `jscpd-report.json` this executor reads.
+interface IJscpdReport {
+  statistics: { total: { percentage: number } };
+  duplicates: {
+    format: string;
+    lines: number;
+    firstFile: IJscpdReportFile;
+    secondFile: IJscpdReportFile;
+  }[];
+}
+
+// Lines jscpd prints after the console reporter's table: the json reporter's
+// "saved to <tmp dir>" notice (that dir is ours, and gone by the time anyone
+// reads it) and jscpd's own timer. AbstractExecutor#run prints a timer of its own.
+const NOISE = /^(JSON report saved to |time: )/;
 
 export class JscpdExecutor extends AbstractApiExecutor {
   getName(): string {
@@ -30,99 +53,105 @@ export class JscpdExecutor extends AbstractApiExecutor {
     return Promise.resolve();
   }
 
-  protected async execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
-    const { format, threshold, ignore } = this.modulesConfig.modules.jscpd as IModuleJscpdConfig;
+  protected execute(_args: string[], options: IExecutorOptions): Promise<string | EExitCode> {
+    const {
+      format,
+      threshold = JscpdConfigHandler.DEFAULT_THRESHOLD,
+      ignore,
+    } = this.modulesConfig.modules.jscpd as IModuleJscpdConfig;
 
     // Resolved from the consumer's on-demand install (via the @ladamczyk/qoq-jscpd
-    // peer dependency); kept external in rolldown.config.js. We `require` the CJS build
-    // rather than `import()` it: jscpd's ESM entry transitively imports
-    // `colors/safe` without an extension, which Node's ESM resolver rejects.
-    const { detectClonesAndStatistic } = createRequire(import.meta.url)(
-      'jscpd'
-    ) as typeof import('jscpd');
+    // peer dependency); kept external in rolldown.config.js. jscpd v5 is a native
+    // binary, and `runJscpd` is its package's own launcher for this platform's build.
+    const { runJscpd } = createRequire(import.meta.url)('jscpd') as typeof import('jscpd');
 
-    const detectionOptions = {
-      path: this.getPaths(),
-      absolute: true,
-      format,
-      threshold: threshold ?? JscpdConfigHandler.DEFAULT_THRESHOLD,
-      noTips: true,
-      silent: Boolean(options.json),
-      reporters: options.json ? [] : ['console'],
-      ...(ignore?.length ? { ignore } : {}),
-    };
-
-    // jscpd gates its own `console.time('time')`/`console.timeEnd('time')` on the
-    // same `silent` option as the console reporter's duplication table, so we
-    // can't disable one without the other via options alone. We want the table
-    // (the actual finding) but not jscpd's own timer line — we already print a
-    // consistently-formatted one of our own in AbstractExecutor#run — so the
-    // built-in timer is muted for the duration of the call.
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    const noop = (): void => {};
-    const { time: originalTime, timeEnd: originalTimeEnd } = console;
-
-    console.time = noop;
-    console.timeEnd = noop;
-
-    let clones: IClone[];
-    let statistic: IStatistic;
+    // jscpd exits 1 both over the threshold and on its own errors (a missing path,
+    // an unknown format), so the exit code can't be the verdict. The json report
+    // always gets written to a scratch dir instead, and the verdict is read off it.
+    const reportDir = mkdtempSync(join(tmpdir(), 'qoq-jscpd-'));
 
     try {
-      ({ clones, statistic } = await detectClonesAndStatistic(detectionOptions));
-    } finally {
-      console.time = originalTime;
-      console.timeEnd = originalTimeEnd;
-    }
-
-    if (options.json) {
-      this.writeReport(this.buildReport(clones, statistic), options.output);
-    }
-
-    const exceeded = statistic.total.percentage > detectionOptions.threshold;
-
-    if (exceeded && !this.silent) {
-      process.stderr.write(
-        c.red(
-          `ERROR: jscpd found too many duplicates (${statistic.total.percentage}%) over threshold (${detectionOptions.threshold}%)\n`
-        )
+      const result = runJscpd(
+        [
+          ...this.getPaths(),
+          '--absolute',
+          '--format',
+          format.join(','),
+          '--threshold',
+          String(threshold),
+          '--no-tips',
+          // One flag per pattern: v5 splits a single value on commas.
+          ...(ignore ?? []).flatMap((pattern) => ['--ignore', pattern]),
+          ...(options.json ? ['--silent', '--reporters', 'json'] : ['--reporters', 'console,json']),
+          '--output',
+          reportDir,
+        ],
+        { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }
       );
-    }
+      const reportPath = join(reportDir, 'jscpd-report.json');
 
-    return exceeded ? EExitCode.ERROR : EExitCode.OK;
+      if (result.error || !existsSync(reportPath)) {
+        throw new Error(
+          result.error?.message ?? (result.stderr.trim() || `jscpd exited ${result.status}`)
+        );
+      }
+
+      const report = JSON.parse(readFileSync(reportPath, 'utf8')) as IJscpdReport;
+
+      if (options.json) {
+        this.writeReport(this.buildReport(report), options.output);
+      } else {
+        process.stdout.write(
+          result.stdout
+            .split('\n')
+            .filter((line) => !NOISE.test(stripVTControlCharacters(line)))
+            .join('\n')
+        );
+      }
+
+      const { percentage } = report.statistics.total;
+      const exceeded = percentage > threshold;
+
+      if (exceeded && !this.silent) {
+        process.stderr.write(
+          c.red(
+            `ERROR: jscpd found too many duplicates (${percentage}%) over threshold (${threshold}%)\n`
+          )
+        );
+      }
+
+      return Promise.resolve(exceeded ? EExitCode.ERROR : EExitCode.OK);
+    } catch (e) {
+      // AbstractExecutor#run reports any throw as a bare "Unknown error!", so the
+      // reason (no binary for this platform, a bad path) is printed here first.
+      process.stderr.write(c.red(`jscpd: ${(e as Error).message}\n`));
+
+      throw e;
+    } finally {
+      rmSync(reportDir, { recursive: true, force: true });
+    }
   }
 
   // Lean JSON report for `--json`: keep only the clone locations and overall
   // duplication percentage that summarize.mjs needs — drop jscpd's heavy
-  // `fragment` source blobs, token counts, blame data and per-format stats.
-  private buildReport(
-    clones: IClone[],
-    statistic: IStatistic
-  ): {
+  // `fragment` source blobs, token counts, locations and per-format stats.
+  private buildReport({ statistics, duplicates }: IJscpdReport): {
     percentage: number;
-    clones: {
-      format: string;
-      lines: number;
-      firstFile: { name: string; start: number; end: number };
-      secondFile: { name: string; start: number; end: number };
-    }[];
+    clones: IJscpdReport['duplicates'];
   } {
+    const file = ({ name, start, end }: IJscpdReportFile): IJscpdReportFile => ({
+      name,
+      start,
+      end,
+    });
+
     return {
-      percentage: statistic.total.percentage,
-      clones: clones.map((clone) => ({
-        format: clone.format,
-        lines: clone.duplicationA.end.line - clone.duplicationA.start.line + 1,
-        firstFile: {
-          name: clone.duplicationA.sourceId,
-          start: clone.duplicationA.start.line,
-          end: clone.duplicationA.end.line,
-        },
-        secondFile: {
-          name: clone.duplicationB.sourceId,
-          start: clone.duplicationB.start.line,
-          end: clone.duplicationB.end.line,
-        },
+      percentage: statistics.total.percentage,
+      clones: duplicates.map(({ format, lines, firstFile, secondFile }) => ({
+        format,
+        lines,
+        firstFile: file(firstFile),
+        secondFile: file(secondFile),
       })),
     };
   }

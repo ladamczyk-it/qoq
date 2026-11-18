@@ -203,7 +203,8 @@ if (installed.length) {
     "Until then, dispatch any of them as `general-purpose` with the agent file's body pasted in,",
     "plus the tier and the prohibitions restated: `general-purpose` inherits the session's model and",
     "gets every tool, so an unregistered `qoq-checker` runs at the caller's tier and an unregistered",
-    '`qoq-tester` gains exactly the ability to edit production source its contract forbids.'
+    '`qoq-tester` gains exactly the ability to edit production source its contract forbids.',
+    "`general-purpose` preloads nothing either: tell it to invoke each skill the agent's `skills:` lists first."
   );
 }
 if (removed.length) {

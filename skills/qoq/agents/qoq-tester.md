@@ -4,6 +4,8 @@ description: Writes the unit or integration specs for one slice of a testing sco
 model: sonnet
 tools: Read, Write, Edit, Grep, Glob, Bash
 maxTurns: 200
+skills:
+  - tdd
 ---
 
 # qoq-tester
@@ -18,7 +20,7 @@ yours. You start cold, so everything you can't derive is in your dispatch.
 | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | the **record's path** — read `runner`, `globals`, `react`, `conventions`, and the test commands yourself | a pasted copy is a copy that can go stale; `globals` alone decides whether your specs can execute at all |
 | **`test-conventions.md`**, and that the project's own file wins where they conflict                      | the record names the project's file, not the precedence between them                                     |
-| **the slice**, stated as narrowly as the caller could state it                                           | you must not widen your own scope                                                                        |
+| **the slice** and its **agreed seams**, stated as narrowly as the caller could state them                | the user confirmed those seams; you must not widen your own scope or test past them                      |
 | **the baseline** of already-red specs                                                                    | otherwise you read someone else's failure as yours and burn the budget on it                             |
 | **the specs already in place**, if a ticket wrote its own                                                | you rewrite those to standard rather than adding a second file asserting the same thing                  |
 
@@ -26,9 +28,13 @@ That last row is the one that costs a run when it's missing.
 
 ## Write the specs
 
-Read `test-conventions.md` first — coverage philosophy, when to mock and when
-not, React Testing Library and MSW conventions, and the lint rules that make a
-spec clean by construction. Its sibling `code-conventions.md` covers the names in
+`tdd` first — its `SKILL.md` is preloaded in your context; read `tests.md` and
+`mocking.md` from its base directory. What a good test is, mocking at system boundaries only, the
+anti-patterns. Its rules of the loop (red before green, one slice per cycle)
+don't apply: the code already exists, so these specs are written after it. Then
+`test-conventions.md`, the house rules on top — React Testing Library and MSW
+conventions, and the lint rules that make a spec clean by construction — which
+win where the two conflict. Test only at the seams you were handed. Its sibling `code-conventions.md` covers the names in
 your helpers and fixtures: spelled out, so a failing spec reads without a
 comment. Writing to them up front means the gate your caller
 runs has nothing left to fix.

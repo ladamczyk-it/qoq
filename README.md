@@ -71,15 +71,18 @@ flowchart LR
 ```
 
 - **Plan** – `/qoq plan` breaks a spec, or a Jira, Linear or Trello milestone, into milestones and tickets with contracts and acceptance criteria. `/qoq replan` reshapes the plan when the requirements or the codebase move.
-- **Execute** – `/qoq execute` delivers the plan one ticket at a time under TDD: red, green, tidy. A ticket is committed only after `/qoq fix` passes and an independent reviewer approves its tests.
+- **Execute** – `/qoq execute` delivers the plan one ticket at a time test-first, one acceptance criterion at a time, on top of Matt Pocock's [`tdd`](https://github.com/mattpocock/skills) skill. A ticket is committed only after `/qoq fix` passes and an independent reviewer approves its tests.
 - **Keep it healthy** – `/qoq fix` loops on CLI findings until they pass. `refactor`, `test`, `bump` and `compress` handle duplication and code smells, missing coverage, dependency upgrades and agent-facing docs.
 
 Agent-written code meets the same standard as code you write by hand. Each run also leaves things the next one builds on: plans, specs and a clean lint baseline.
 
 ```text
 /plugin marketplace add ladamczyk-it/qoq
+/plugin marketplace add DietrichGebert/ponytail
 /plugin install qoq@qoq-agent-skills
 ```
+
+Installing `qoq` also installs the two plugins it depends on: [`mattpocock-skills`](https://github.com/mattpocock/skills) from Claude Code's official marketplace, for `tdd` and `grilling`, and [`ponytail`](https://github.com/DietrichGebert/ponytail), for `ponytail-review`.
 
 In an interactive terminal, the CLI mentions the skill at the end of a run, including `qoq scan`, if it isn't installed yet. When the run found something the skill handles, the hint names the command for it:
 

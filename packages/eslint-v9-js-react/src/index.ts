@@ -69,6 +69,9 @@ const disabledRules: EslintConfig['rules'] = {
   // Not part of eslint-config-prettier's list below — pure whitespace formatting
   // that Prettier already normalizes, just not one it accounts for.
   '@stylistic/jsx-function-call-newline': 0,
+  // v6 added `list-style` to `recommended`; eslint-config-prettier 10.1.8 doesn't list
+  // it yet, and it governs the same list/argument line breaks Prettier owns.
+  '@stylistic/list-style': 0,
   // Disables every core/`@stylistic` rule that conflicts with (or is made redundant by)
   // Prettier owning formatting — see the JS base config for why this is spread rather
   // than hand-listed.

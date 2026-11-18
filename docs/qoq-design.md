@@ -523,6 +523,18 @@ not a politer version of the same one. Writing that into `plan.md` would be
 re-implementing a skill the user can install, and paying for it in every local
 run's context whether the requirements were vague or not.
 
+**Why `domain-modeling` runs inside the grill, and why its files are the
+user's.** The grill settles terms and decisions and then forgets them; the next
+plan re-litigates the same vocabulary. `domain-modeling` writes them into
+`GLOSSARY.md` and `docs/adr/` as they crystallise, and `tdd` already tells every
+developer to read exactly those files — so the plan produces what its tickets
+consume. Pocock ships the pairing as `grill-with-docs`, which isn't in the
+plugin's published list, so `plan` composes it from the two skills that are.
+ADRs are a person's recorded decisions, so `qoq-scribe` treats `docs/adr/` as
+human-owned rather than migrating it into its index; a missing `domain-modeling`
+is a reported skip rather than a second question, because `grilling`'s own
+missing question already offered the same plugin.
+
 **Why the skill invokes `grilling` and not `grill-me`, which is what a user
 types.** `grill-me` sets `disable-model-invocation: true`, so it never appears in
 the available-skills list a model resolves against and cannot be called from
@@ -567,6 +579,18 @@ one bounded job whose blast radius is its own report. A design error doesn't sta
 where it was made: it becomes a contract, and every ticket in the milestone is
 written against it. This is the one place in the pipeline where a cheaper tier is
 a false economy paid for by everything downstream.
+
+**Why it designs with `codebase-design` preloaded.** A Contract is read by every
+ticket in the milestone, so its words have to mean one thing; `codebase-design`
+is a fixed glossary for exactly the words a Contract uses — interface, seam,
+adapter, depth — and its interface is wider than a type signature, which is the
+width a Contract needs. It's preloaded through `skills:` rather than read by path
+for the same reason `tdd` is: the resolver that builds the available-skills list
+finds it, and nothing here parses the plugin cache. Missing is a reported gap,
+not a stop: the architect works without it, only less consistently worded, and
+an unresolved `skills:` entry is silent — so the agent, which can see its own
+context, is the one that says so. `DESIGN-IT-TWICE.md` is ruled out because it
+spawns parallel sub-agents, which the architect can't and the pipeline forbids.
 
 **Why it reads pattern indexes but not the write-ups.** `qoq-designer` already
 names the hazard — pattern documentation is persuasive by construction, and an
@@ -778,17 +802,30 @@ narrower claim than it looks — the checks aren't dropped, they're the two gate
 plus the full unscoped pass at the milestone. What the run gives up is a hook
 firing on work the run itself verified.
 
-**Why there are two refactor beats rather than one.** They answer different
-questions at different scopes and neither substitutes for the other. The
-ticket-level tidy is ordinary TDD — the developer's own diff, still warm, inside
-its own `Files`, no interface change. The milestone-level beat is `qoq refactor`
-over the union of every ticket's files, and it's the first moment those tickets
-exist as one piece of code: duplication across four tickets, a now-dead export,
-three tickets that each picked a different shape are invisible at any smaller
-scope. This file previously said the third beat belonged _only_ to the milestone,
-on the grounds that per-ticket scope is too small to see anything. That was true
-of the second question and false of the first, and a developer that never tidies
-hands the milestone gate a mess it was never meant to sort.
+**Why the ticket has no refactor beat.** `tdd`, the base the developer writes
+on, puts refactoring in review rather than in the red → green loop, and this
+plan already has a review stage at the right scope: `qoq refactor` over the
+union of every ticket's files, then `qoq-reviewer` when review is on. Under
+`--decisions auto` that refactor applies only the mechanical tier, so its
+judgement-tier findings are advisories, and the end-of-plan walkthrough covers
+them alongside Docs, Security and Review — without that, a default run would
+record a shape problem in the milestone summary and never put it in front of
+anyone. That is the first moment the
+tickets exist as one piece of code — duplication across four tickets, a now-dead
+export, three tickets that each picked a different shape are invisible at any
+smaller scope. An earlier version kept a per-ticket tidy as well, on the grounds
+that a developer that never tidies hands the milestone a mess. What survives of
+it is the part that isn't refactoring: a name that needs a comment is renamed
+while the code is being written, inside the ticket's own `Files`.
+
+**Why one criterion at a time, not every criterion red in one run.** The earlier
+loop transcribed every criterion, ran them red together, then turned them green
+one by one — cheaper by N−1 runs, and the runner's per-test output already
+isolated a criterion that misbehaved. `tdd` names that shape as horizontal
+slicing: the assertions are committed to before any code has taught the writer
+anything, so they pin the shape the writer imagined. Plan-written criteria blunt
+that risk but don't remove it, and keeping the bulk beat would have meant
+overriding the base at its centre — at which point it isn't the base.
 
 **Why the test-integrity gate is a new read-only agent and not a mode on
 `qoq-tester`.** `tools:` is declared once per agent file. `qoq-tester` needs
@@ -796,7 +833,7 @@ hands the milestone gate a mess it was never meant to sort.
 carry `Write, Edit` into the review pass — and the standing rule is that an agent
 permitted to report and fix will quietly do both, with the finding disappearing
 into the diff. A dual-mode tester breaks that by construction. The two would also
-share nothing but `test-conventions.md`, which both read from disk anyway, so the
+share nothing but `tdd` and `test-conventions.md`, which both read from disk anyway, so the
 "reuse" buys no code — only a shared filename.
 
 It's an agent rather than a read on the orchestrating thread for two reasons: the
@@ -899,6 +936,14 @@ discipline.
 **Why N slices means N full-suite runs.** Each slice ends with a run whose whole
 purpose is attribution. It's the same trade `bump` makes one patch at a time,
 for the same reason: a check that can't say which change broke it isn't a check.
+
+**Why the seams are asked, not stated back.** The command used to infer its
+scope and state it back, on the grounds that asking first spends a turn on
+something usually obvious. `tdd` writes no test at an unconfirmed seam, and the
+seam list is a different question from the scope: it's where the testing effort
+lands, and the what-it-misses line on each one is exactly what a stated-back
+scope never showed the user. One turn, before the baseline run, while it's still
+free to change.
 
 ## `document`
 
@@ -1184,6 +1229,57 @@ scribe. Inside `execute` it runs unattended and can stop a run or commit fixes.
 `--review` turns it on for one run, and `future.unstable_skill_review` turns it
 on for a project.
 
+## `compress`
+
+**Why `compress` sits on `writing-for-agents`.** Its principles — one source of
+truth per meaning, the environment as a cache, sediment, pointer wording, leading
+words, positive phrasing — are the vocabulary `compress` was already judging in,
+written down better and maintained by someone else. `compress.md` keeps only what
+is specific to this command: the one test, the literal check, headings as an
+API, and the rule that a behaviour's specification never gets terser than it is
+true. It's invoked on the main thread, like `grilling`, because `compress` has no
+agent to preload it into. The two conflicts are named where they arise:
+positive phrasing never softens a hard guardrail, and a leading word replaces a
+restatement, never a fact.
+
+## Test conventions
+
+**Why `tdd` is the base and `test-conventions.md` only the layer on top.** What
+a good test is, where seams go, when to mock and the anti-patterns are not
+QoQ-specific, and a maintained skill states them better than a second copy here
+would; the copy also went stale on its own, independently of the original. What
+stays in this skill is what no general TDD skill can know: React Testing Library
+and MSW conventions, the lint rules QoQ's own ESLint configs enforce on specs,
+and which TypeScript rules those configs switch off. Precedence runs one way —
+`tdd` < `test-conventions.md` < the project's own file — so every layer only
+has to state where it differs.
+
+**Why `tdd` is resolved when it's needed and missing is a stop.** Same rule as
+`grilling` and `ponytail-review`: the available-skills list is in context and
+never out of date, while a path cached on the discovery record goes stale the
+moment a plugin update moves its cache directory. Unlike those two, there is no
+proceed-without: `grilling` and `ponytail-review` each remove one pass from a
+run that still delivers, but without `tdd` every spec the run writes has lost
+the rules it was meant to be written to, and nothing downstream would notice.
+All three are plugin dependencies of qoq, so the stop only fires for a skill
+copied into `.claude/skills/` by hand, which gets no dependencies.
+
+**Why `tdd` reaches the agents through `skills:` frontmatter, not the
+orchestrator.** The first version invoked `tdd` on the main thread just to learn
+its directory. An eval run of `qoq test` showed the cost: with `tdd`'s red →
+green loop in context, the orchestrator wrote the specs itself, and no tester,
+gate or refactor ran. `tdd`'s instructions are for whoever writes the test, so
+only the agents get them. A second version had `scripts/tdd-path.mjs` resolve the
+directory from the plugin cache and pass three paths in every dispatch. Claude
+Code's subagent `skills:` field replaces both: `qoq-developer`, `qoq-tester` and
+`qoq-test-reviewer` list `tdd`, and Claude Code preloads its `SKILL.md` with the
+base directory `tests.md` and `mocking.md` are read from — resolved by the same
+resolver that builds the available-skills list, so nothing in this skill parses
+`installed_plugins.json` or guesses precedence. A probe confirmed both a bare
+`tdd` and `mattpocock-skills:tdd` resolve to the plugin's copy. The list check
+stays, ahead of any dispatch: an entry that doesn't resolve starts the agent
+without the skill, silently, and a disabled plugin still has its files on disk.
+
 ## Code conventions
 
 **Why names, not comments, carry the what.** A comment that restates the code is
@@ -1200,7 +1296,7 @@ the project's config own the details.
 
 **Why an old comment is evidence.** The commit, ticket or conversation that
 explains a decision is often gone by the time someone reads the code, and the
-comment is what's left. Every deletion pass — a developer's tidy,
+comment is what's left. Every deletion pass — a developer's rename,
 `ponytail-review`'s whole job, a compress instinct — sees it as clutter. So
 removal needs a reason that holds on its own (false, or now carried by a name,
 type or test), the text is quoted into the commit body so history keeps it, and

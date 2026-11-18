@@ -8,20 +8,41 @@ One caller: a person asking for coverage over code that already exists. That's
 what keeps this command to a single success condition — green, gated, tidy.
 
 A ticket's own assertions are not this command's work. `qoq-developer` raises
-them to `test-conventions.md` itself, in the thread that wrote the
+them to `tdd` and `test-conventions.md` itself, in the thread that wrote the
 implementation — it can't dispatch a subagent anyway, and a ticket arrives
 pre-sliced, which is the one thing this command's slicing exists to do.
 
 Browser-driving suites are a different discipline whose conventions don't
 transfer. If one ever needs a command, it's a different command.
 
-## Scope is inferred, then stated
+## `tdd` first
 
-One piece in isolation is a unit test; a flow across pieces is an integration
-test. Work it out from what was asked and **state it back** rather than asking —
-"I'll write unit tests for `TokenService`, integration tests for the login flow"
-is information the user can correct in one word, and asking first spends a turn
-on something usually obvious.
+Every spec this command writes sits on `tdd`. Before the seams are proposed: is
+it in your own available-skills list, under any name? Not there → **stop**, even
+if its files are on disk: a disabled plugin stays in the cache, and the list is
+the only thing that knows it's off. `qoq-tester` lists `tdd` in its `skills:`
+frontmatter, so Claude Code preloads it — but an unresolved entry starts the
+agent without it, silently, so this check can't be skipped. Unregistered and
+dispatched as `general-purpose`, the tester is told to invoke `tdd` with the
+Skill tool first.
+
+**Don't invoke `tdd` here**: loaded into this thread, its red → green loop pulls
+the orchestrator into writing the specs itself, and the tester, the gate and the
+refactor never run. The one rule of it this thread follows — seams agreed before
+any test — is stated below. The stop has no proceed-without:
+
+> `tdd` isn't installed, and every spec this command writes is built on it. It
+> normally arrives with qoq as a plugin dependency; install it with
+> `/plugin install mattpocock-skills`, then `/qoq test <scope>` again.
+
+## Seams are agreed before anything is written
+
+`tdd` writes no test at an unconfirmed seam. Work out the public interfaces the
+scope exposes, and **propose the seams to test** — one line each on what it
+catches and what it misses, and whether it's a unit seam (one piece in
+isolation) or an integration seam (a flow across pieces). Then wait for the
+user's answer. This is the one question asked before the baseline run, and it
+decides where the testing effort lands.
 
 ## The baseline run
 
@@ -54,7 +75,8 @@ from the tree the previous one left green.
 Every dispatch carries: the **record's path**, the **paths to
 `references/test-conventions.md` and `references/code-conventions.md`** in this
 skill (a subagent can't work out where
-the skill lives), the **slice** stated as narrowly as you can state it, the
+the skill lives), the **slice** with its **agreed seams**
+stated as narrowly as you can state them, the
 **baseline** of already-red specs, and **any specs already in place** for this
 slice — a ticket's own hand-written assertions get rewritten to standard, not
 duplicated by a second file asserting the same thing.
@@ -121,8 +143,9 @@ reported and the handoff's `files` removed — nothing half-written left behind.
 
 ## Conventions
 
-[test-conventions.md](test-conventions.md) is the house rulebook — coverage
-philosophy, mocking, React Testing Library, MSW, and the lint rules that make a
-spec clean by construction. The project's own file, named on the record's
-`conventions` field, wins wherever the two conflict: it's human-written and knows
+`tdd` is the base — what a good test is, seams, mocking, the anti-patterns.
+[test-conventions.md](test-conventions.md) is the house rulebook on top of it —
+React Testing Library, MSW, and the lint rules that make a spec clean by
+construction — and wins where the two conflict. The project's own file, named on
+the record's `conventions` field, wins over both: it's human-written and knows
 things this skill can't infer.

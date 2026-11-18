@@ -229,8 +229,8 @@ is unchanged. The order is:
 
 1. the end-of-plan pass, its gap decisions, and the Plan gaps milestone if the
    user approved one
-2. the advisory walkthrough: every milestone's Docs, Security and Review
-   advisories, once
+2. the advisory walkthrough: every milestone's Refactor, Docs, Security and
+   Review advisories, once
 3. then the sign-off, rendered on this thread from the typed reports and the
    Completed blocks. The agent never writes it, because it can't see the other
    gates or the user's decisions.
