@@ -31,7 +31,7 @@ Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 | [`mermaid`](#mermaid)                             | [mermaid.md](../skills/qoq/references/mermaid.md), [qoq-artist](../skills/qoq/agents/qoq-artist.md)                       |
 | [`sheriff`](#sheriff)                             | [sheriff.md](../skills/qoq/references/sheriff.md), [qoq-sheriff](../skills/qoq/agents/qoq-sheriff.md)                     |
 | [`review`](#review)                               | [review.md](../skills/qoq/references/review.md), [qoq-reviewer](../skills/qoq/agents/qoq-reviewer.md)                     |
-| [A plan under a program](#a-plan-under-a-program) | [plan-template.md](../skills/qoq/assets/plan-template.md), [program-status.mjs](../skills/qoq/scripts/program-status.mjs) |
+| [A plan under a feature](#a-plan-under-a-feature) | [plan-template.md](../skills/qoq/assets/plan-template.md), [feature-status.mjs](../skills/qoq/scripts/feature-status.mjs) |
 
 **Legend, shared by all thirteen.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
@@ -945,12 +945,12 @@ flowchart TD
     class VDEF,VNOINT,VSCOPECHK,VSIZE,VBASE note
 ```
 
-## A plan under a program
+## A plan under a feature
 
-No chart of its own. A plan can be one repo's share of a cross-repo program run
-by [`qoq-fullstack`](qoq-fullstack-workflows.md). It carries a **Program** header
+No chart of its own. A plan can be one repo's share of a cross-repo feature run
+by [`qoq-fullstack`](qoq-fullstack-workflows.md). It carries a **Feature** header
 line, a **Serves** column, and `<repo>:M<N>` dependencies
-([plan-template.md](../skills/qoq/assets/plan-template.md#a-repos-share-of-a-program)).
-`execute` asks `scripts/program-status.mjs` whether its next milestone may start,
+([plan-template.md](../skills/qoq/assets/plan-template.md#a-repos-share-of-a-feature)).
+`execute` asks `scripts/feature-status.mjs` whether its next milestone may start,
 and sends its questions to the chief of staff. Everything else in the `plan` and
 `execute` charts above is unchanged.

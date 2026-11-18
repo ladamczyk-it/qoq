@@ -3,3 +3,4 @@ lerna.json
 CHANGELOG.md
 .claude
 evals/fixtures/repo/src/lint/slugify.ts
+.claude-plugin/types

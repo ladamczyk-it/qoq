@@ -1,4 +1,4 @@
-// The delivery order for each repo of a program, chosen so that the repos
+// The delivery order for each repo of a feature, chosen so that the repos
 // running in parallel wait on each other as little as possible.
 //
 // Each repo delivers one milestone at a time, in its Milestones row order,
@@ -12,9 +12,14 @@
 // in other repos, so the piece someone else needs goes first. Ties keep the
 // planned order. The result is kept only if it waits less than the planned order.
 //
-// No imports beyond the core: the same rules as program-state.mjs.
+// No imports beyond qoq's core (../qoq.mjs): the same rules as feature-state.mjs.
+//
+// Usage:   node schedule.mjs --root <parent folder> --feature <slug>
+// Prints the order per repo as JSON. Step 4 of `/qoq-fullstack plan` runs it.
 
-import { closed, delivered, label, list, repoPlans, table } from './program-state.mjs';
+import { join } from 'node:path';
+
+import { closed, delivered, label, list, loadFeature, read, repoPlans, table } from '../qoq.mjs';
 
 const milestonesOf = (index) =>
   table(index ?? '', ['#', 'Milestone', 'Status', 'Depends on']).map((row) => ({
@@ -26,7 +31,7 @@ const milestonesOf = (index) =>
   }));
 
 // `tickets`: repo name → milestone id → ticket count.
-export const schedule = ({ program, brd, indexes, tickets }) => {
+const schedule = ({ feature, brd, indexes, tickets }) => {
   const plans = repoPlans(brd);
   const masterDeps = new Map(
     table(brd, ['#', 'Milestone', 'Status', 'Depends on']).map((row) => [
@@ -34,7 +39,7 @@ export const schedule = ({ program, brd, indexes, tickets }) => {
       list(row['Depends on']),
     ])
   );
-  const repos = (program.repos ?? [])
+  const repos = (feature.repos ?? [])
     .filter((repo) => plans.has(repo.name) && plans.get(repo.name) !== 'none')
     .map((repo) => ({ name: repo.name, milestones: milestonesOf(indexes[repo.name]) }));
 
@@ -171,3 +176,27 @@ export const schedule = ({ program, brd, indexes, tickets }) => {
     }),
   };
 };
+
+const { root, feature, brd, plans, indexes } = loadFeature();
+
+// Ticket counts stand in for each milestone's duration.
+const tickets = Object.fromEntries(
+  (feature.repos ?? []).map((repo) => {
+    const dir = plans.get(repo.name);
+    const rows = table(indexes[repo.name] ?? '', ['#', 'Milestone']);
+    return [
+      repo.name,
+      Object.fromEntries(
+        rows.map((row) => {
+          const start = row.Milestone.indexOf('](');
+          const file =
+            start === -1 ? '' : row.Milestone.slice(start + 2, row.Milestone.indexOf(')', start));
+          const text = file ? (read(join(root, repo.path, dir, file)) ?? '') : '';
+          return [row['#'], (text.match(/^### Ticket /gm) ?? []).length];
+        })
+      ),
+    ];
+  })
+);
+
+process.stdout.write(`${JSON.stringify(schedule({ feature, brd, indexes, tickets }), null, 2)}\n`);

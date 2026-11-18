@@ -228,9 +228,9 @@ carries, and it stays there after it's answered.
 
 ## Phase 3 — Breakdown
 
-### Planning a repo's share of a program
+### Planning a repo's share of a feature
 
-A plan can be one repo's share of a **program**: one feature across several
+A plan can be one repo's share of a **cross-repo feature**: one feature across several
 repos, coordinated by a chief-of-staff session that started this one. When the
 launch prompt names a chief of staff, the
 requirements are the whole BRD, and the parked technology questions that land
@@ -241,8 +241,8 @@ outcome, and it unblocks the repos planned after this one. Every grilling round 
 approval go to the chief of staff with `SendMessage`, never to a local prompt.
 On top of the usual plan:
 
-- the `Program` header line, and a **Serves** column in the Milestones table
-  ([plan-template.md](../assets/plan-template.md#a-repos-share-of-a-program));
+- the `Feature` header line, and a **Serves** column in the Milestones table
+  ([plan-template.md](../assets/plan-template.md#a-repos-share-of-a-feature));
 - a contract consumed from `../contracts/<name>.md` goes **verbatim** into the
   consuming milestone's `Contracts`, and that milestone `Depends on` the
   contract's provider, written `<repo>:M<N>`;
@@ -495,8 +495,8 @@ changing code:
    confirmation; approving a plan is not the same act as publishing it into a
    team's tracker. Declined, the plan stands on its own and the export can
    be run later.
-2. **Offer `qoq execute`** and run it on a yes. A repo planning for a
-   program offers nothing: it reports to the chief of staff,
+2. **Offer `qoq execute`** and run it on a yes. A repo planning its share of a
+   feature offers nothing: it reports to the chief of staff,
    which starts execution. Never dispatch a ticket from
    here. The plan directory is the entire handoff, and folding execution in would put
    decomposition reasoning back into the context that has to run the plan.

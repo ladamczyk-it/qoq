@@ -1,19 +1,19 @@
-# Program template
+# Feature template
 
-A program sits in an unversioned parent folder that holds the repos it spans:
+A feature sits in an unversioned parent folder that holds the repos it spans:
 
 ```
 <project>/
-  program.json                 # the repos — written once, reused by every program
-  program/<slug>/brd.md        # one per program: the master plan
+  feature.json                 # the repos — written once, reused by every feature
+  feature/<slug>/brd.md        # one per feature: the master plan
   contracts/<name>.md          # written by the providing repo's session
   <repo>/  <repo>/  …          # independent git repos, each with its own plans/
 ```
 
-`scripts/program-status.mjs` parses both files below by their table headers, so
+`qoq`'s `scripts/feature-state.mjs` parses both files below by their table headers, so
 keep the column names exactly as written.
 
-## `program.json`
+## `feature.json`
 
 ```json
 {
@@ -36,14 +36,14 @@ keep the column names exactly as written.
 - **`integration`**: named checks, each one an `npm run <script>` in one repo. Master
   milestones list them by name.
 
-## `program/<slug>/brd.md`
+## `feature/<slug>/brd.md`
 
 ```markdown
-# <Feature Name> — Program
+# <Feature Name> — BRD
 
 **Goal:** <one sentence, in the user's terms>
-**Program status:** draft | approved | in-progress | complete
-**Branch:** program/<slug>
+**Feature status:** draft | approved | in-progress | complete
+**Branch:** feature/<slug>
 **Chief of staff:** <the session name the repo sessions message>
 
 ## Actors
@@ -85,7 +85,7 @@ the user approved: it gets no session in `execute`.
 
 ## Contracts and the repo plans
 
-The `contracts/<name>.md` shape, the **Program** header line and the **Serves**
+The `contracts/<name>.md` shape, the **Feature** header line and the **Serves**
 column are part of `qoq`'s plan format, because `qoq plan` writes them. See
-`qoq`'s `assets/plan-template.md`, section "A repo's share of a program". They
+`qoq`'s `assets/plan-template.md`, section "A repo's share of a feature". They
 aren't repeated here.

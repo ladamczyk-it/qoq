@@ -1,4 +1,4 @@
-# `/qoq-fullstack execute` — approved repo plans in, a delivered program out
+# `/qoq-fullstack execute` — approved repo plans in, a delivered feature out
 
 Read [SKILL.md](../SKILL.md)'s entry, state, session and setup rules first. This
 file assumes them.
@@ -31,6 +31,6 @@ Run the setup from SKILL.md, then loop:
 milestone are stuck, and the other repos keep running. Say which repos are
 waiting on it.
 
-**Done.** Every master milestone is delivered → set `Program status: complete`.
+**Done.** Every master milestone is delivered → set `Feature status: complete`.
 Then give one line per repo: its branch, and each delivered milestone's
 **Gate evidence**, read from the repo's milestone file.

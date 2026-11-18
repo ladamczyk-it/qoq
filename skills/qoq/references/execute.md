@@ -47,10 +47,10 @@ milestone established reaches them through their own **Context**, written at
 delivery. The one exception is the end-of-plan pass, which reads every
 milestone's **Outcome** block.
 
-**A plan with a `Program` header line** is one repo's share of a
-program ([plan.md](plan.md#planning-a-repos-share-of-a-program)). The
+**A plan with a `Feature` header line** is one repo's share of a
+feature ([plan.md](plan.md#planning-a-repos-share-of-a-feature)). The
 cross-repo answer comes from
-`node <skill>/scripts/program-status.mjs --root .. --program <slug> --json`.
+`node <skill>/scripts/feature-status.mjs --root .. --feature <slug>`.
 Its `next` entry for this repo is the next milestone, and the script treats a
 `<repo>:M<N>` dependency, and a master milestone that hasn't passed
 integration yet, the same way as any other dependency that isn't delivered.

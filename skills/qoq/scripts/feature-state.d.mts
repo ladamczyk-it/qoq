@@ -1,4 +1,4 @@
-// Types for program-state.mjs, which the plugin's hooks module imports.
+// Types for feature-state.mjs, which the plugin's hooks module imports.
 export type NextMilestone = {
   id: string;
   name: string;
@@ -8,8 +8,8 @@ export type NextMilestone = {
   waitingOn: string[];
 };
 
-export type ProgramReport = {
-  program: string;
+export type FeatureReport = {
+  feature: string;
   status: string;
   master: {
     id: string;
@@ -32,9 +32,9 @@ export type ProgramReport = {
 
 export declare const repoPlans: (brd: string) => Map<string, string>;
 
-export declare const programState: (input: {
+export declare const featureState: (input: {
   slug: string;
-  program: { repos?: { name: string; path: string; role: string }[] };
+  feature: { repos?: { name: string; path: string; role: string }[] };
   brd: string;
   indexes: Record<string, string | undefined>;
-}) => ProgramReport;
+}) => FeatureReport;

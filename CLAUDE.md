@@ -11,7 +11,9 @@ and not as a lint helper. A second skill, `qoq-fullstack`
 (`skills/qoq-fullstack/`), is a separate plugin that depends on `qoq`. It's the
 chief of staff for one feature across several repos, with one `qoq` session per
 repo. Nothing in `skills/qoq` names it. `qoq` holds only the protocol a repo's
-share of a program follows (`Serves`, `<repo>:M<N>`, `scripts/program-status.mjs`).
+share of a feature follows (`Serves`, `<repo>:M<N>`, `scripts/feature-status.mjs`
+and the `feature-state.mjs` core). Scripts only the chief of staff runs live in
+`skills/qoq-fullstack/scripts/` and import that core through `../../qoq/scripts/`.
 
 Structurelint, Skillslint and Justify-disable are the separate
 `@ladamczyk/structurelint`, `@ladamczyk/skillslint` and
@@ -50,7 +52,7 @@ second stale trigger blurb in every session's context.
 
 ## Monorepo Layout
 
-- `hooks/` — the plugin's Claude Code hooks module (`execute`'s progress band), auto-discovered at the plugin root (a marketplace entry can't name it by path); `claude plugin test` runs its `*.test.tsx`, not vitest
+- `hooks/` — the plugin's Claude Code hooks module (`execute`'s plan band, and the `qoq-fullstack` feature board in a chief of staff's session), auto-discovered at the plugin root (a marketplace entry can't name it by path); `claude plugin test` runs its `*.test.tsx`, not vitest
 - `packages/cli` — the `qoq` CLI binary; main orchestrator
 - `packages/utils` — shared utilities
 - `packages/check-engine` — node version enforcement
@@ -64,7 +66,7 @@ second stale trigger blurb in every session's context.
 
 `packages/*/src/**/*.spec.{ts,js}`, Vitest across all packages.
 
-The `skills/qoq/scripts/*.node-test.mjs` files are **`node:test`, not Vitest** —
+The `skills/*/scripts/*.node-test.mjs` files are **`node:test`, not Vitest** —
 `vitest.config.js`'s `projects: ['packages/*']` never sees them. `npm run
 test:skill` runs them, and `husky:pre-push` does too. Appending them to `npm
 test` would break the documented `npm test Name`, since npm puts extra args at

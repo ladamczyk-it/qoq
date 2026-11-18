@@ -1,4 +1,4 @@
-// The program's state, from file texts the caller has already read: the
+// The feature's state, from file texts the caller has already read: the
 // chief of staff's status script reads them from disk, and the plugin's band
 // reads them through the engine. One copy of the rules, so the two never
 // disagree about what may start.
@@ -65,8 +65,8 @@ export const repoPlans = (brd) =>
   new Map(table(brd, ['Repo', 'Plan']).map((row) => [row.Repo, label(row.Plan).replace(/`/g, '')]));
 
 // `indexes`: repo name → that repo's plan index text, or undefined when unread.
-export const programState = ({ slug, program, brd, indexes }) => {
-  const programStatus = brd.match(/\*\*Program status:\*\*\s*([\w-]+)/)?.[1] ?? 'unknown';
+export const featureState = ({ slug, feature, brd, indexes }) => {
+  const featureStatus = brd.match(/\*\*Feature status:\*\*\s*([\w-]+)/)?.[1] ?? 'unknown';
 
   const master = table(brd, ['#', 'Milestone', 'Status', 'Depends on']).map((row) => ({
     id: row['#'],
@@ -79,7 +79,7 @@ export const programState = ({ slug, program, brd, indexes }) => {
 
   const planPaths = repoPlans(brd);
 
-  const repos = (program.repos ?? []).map((repo) => {
+  const repos = (feature.repos ?? []).map((repo) => {
     // `none`: the repo answered "no changes needed" and the user approved it.
     const cell = planPaths.get(repo.name);
     const noChanges = cell === 'none';
@@ -167,8 +167,8 @@ export const programState = ({ slug, program, brd, indexes }) => {
   }
 
   return {
-    program: slug,
-    status: programStatus,
+    feature: slug,
+    status: featureStatus,
     master: master.map(
       ({ id, name, status, dependsOn, integration, repos: served, integrationDue }) => ({
         id,

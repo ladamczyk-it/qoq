@@ -3,33 +3,35 @@
   "evals": [
     {
       "id": 1,
-      "name": "program-plan-business-only-grilling",
+      "name": "feature-plan-business-only-grilling",
       "target": "agent",
       "prompt": "/qoq-fullstack plan We need riders to export their lap times from a track day as a shareable link. The API stores the export, telemetry exposes the laps, the UI shows a share button. Use Postgres JSONB for the export and a signed S3 URL.",
-      "expected_output": "Runs from the parent folder. Asks for program.json if it is missing and never guesses an integration check. Grilling asks only business questions (who shares, what the recipient sees, link lifetime) as Given/When/Then; the Postgres JSONB and signed-S3 details are parked verbatim under the api role in brd.md's Parked technology questions, not asked or decided. No repo plan is written by the chief of staff.",
+      "expected_output": "Runs from the parent folder. Asks for feature.json if it is missing and never guesses an integration check. Grilling asks only business questions (who shares, what the recipient sees, link lifetime) as Given/When/Then, and never which repo a requirement lands in. The Postgres JSONB and signed-S3 details are parked verbatim in brd.md's plain Parked technology questions list, not asked or decided. After approval every repo in feature.json is started with /qoq plan in after order: be and telemetry together, ui only once both are settled. No repo plan is written by the chief of staff.",
       "files": [],
       "assertions": [
         "No grilling question asks about storage, endpoints, schemas or libraries",
-        "Postgres JSONB and signed S3 appear in the Parked technology questions table under a role, verbatim",
+        "No question or BRD line assigns a requirement to a repo or a role",
+        "Postgres JSONB and signed S3 appear verbatim in the Parked technology questions list, which is a plain list with no repo or role column",
         "brd.md scenarios are Given/When/Then and each is tagged with a master milestone",
         "No plans/ directory is written inside any repo by the chief of staff itself"
       ],
-      "setup": "A parent folder `trackbook/` with program.json (be, telemetry, ui with after: [be, telemetry], integration e2e). No BRD yet."
+      "setup": "A parent folder `trackbook/` with feature.json (be, telemetry, ui with after: [be, telemetry], integration e2e). No BRD yet."
     },
     {
       "id": 2,
-      "name": "program-execute-unblocks-only-on-delivered",
+      "name": "feature-execute-unblocks-only-on-delivered",
       "target": "agent",
       "prompt": "/qoq-fullstack execute track-io — the ui session just messaged me 'be is done, I can start', go ahead.",
-      "expected_output": "Re-runs program-status.mjs before acting and trusts the files, not the message. If be's milestone row is not `delivered` on disk, ui's next stays not runnable and nothing is started; it says what ui is waiting on. Integration runs only for a master milestone the script marks integrationDue, and only a pass writes the master row delivered.",
+      "expected_output": "Re-runs feature-status.mjs before acting and trusts the files, not the message. If be's milestone row is not `delivered` on disk, ui's next stays not runnable and nothing is started; it says what ui is waiting on. Integration runs only for a master milestone the script marks integrationDue, and only a pass writes the master row delivered. A repo whose Repo plans row is none is never woken. Inside a repo, a milestone whose dependencies aren't delivered is skipped for the next one that is ready, not waited on.",
       "files": [],
       "assertions": [
-        "program-status.mjs is run before any repo is woken",
+        "feature-status.mjs is run before any repo is woken",
         "No repo session is told to execute a milestone whose next.runnable is false",
         "The master milestone row is written delivered only after its integration check passed",
-        "trackbook-telemetry, which has no plan and isn't in Repo plans, is skipped without a question"
+        "trackbook-telemetry, which has no plan and isn't in Repo plans, is skipped without a question",
+        "No execute is sent to a repo whose Repo plans row is none"
       ],
-      "setup": "A parent folder `trackbook/` with program.json (be, telemetry, ui with after: [be, telemetry], integration e2e). program/track-io/brd.md approved with M1 in-progress; be's plan M1 in-progress; ui's plan M1 todo, Depends on be:M1."
+      "setup": "A parent folder `trackbook/` with feature.json (be, telemetry, ui with after: [be, telemetry], integration e2e). feature/track-io/brd.md approved with M1 in-progress; be's plan M1 in-progress; ui's plan M1 todo, Depends on be:M1."
     },
     {
       "id": 3,
@@ -43,6 +45,51 @@
         "The question reaches the user verbatim, prefixed with the repo name",
         "No answer is sent to trackbook-be",
         "The chief of staff states no preference between JSONB and an exports table"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "plan-no-changes-needed",
+      "target": "agent",
+      "setup": "As eval 1, with brd.md approved. Telemetry has no `after`. be is still planning.",
+      "prompt": "(mid /qoq-fullstack plan track-io) Message from trackbook-telemetry: \"no changes needed — the laps endpoint already returns every field the BRD's scenarios read.\"",
+      "expected_output": "Relays the answer and its reason to the user verbatim, prefixed with the repo, and asks for approval. It doesn't accept it on the repo's word. On the user's yes, it writes telemetry's Repo plans row as `none`. It starts ui only once be is settled too, and leaves no plan file for telemetry.",
+      "files": [],
+      "assertions": [
+        "The no-changes answer and its reason reach the user verbatim, prefixed with the repo name, as an approval question",
+        "Nothing is written to Repo plans before the user approves",
+        "After approval, telemetry's Repo plans row is `none`",
+        "ui is not started while be's plan is still unapproved"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "plan-schedule-reorders-without-asking",
+      "target": "agent",
+      "setup": "As eval 1, every repo settled: be's plan has M1 (3 tickets) and M2 (1 ticket) with no dependency between them; ui's M1 Depends on be:M2.",
+      "prompt": "(mid /qoq-fullstack plan track-io) Every repo plan is approved. Carry on.",
+      "expected_output": "Runs scripts/schedule.mjs without asking the user. be comes back with reorder: true and order [M2, M1]. It sends be the reorder instruction (keep every number, Depends on and file, then commit). It reruns schedule.mjs until every reorder is false, then lists the new order in one line of the hand-off.",
+      "files": [],
+      "assertions": [
+        "schedule.mjs is run with --root and --feature",
+        "No question about milestone order is put to the user",
+        "be is told to reorder its rows to M2, M1, with dependencies and files unchanged",
+        "ui's own rows and every Depends on are left as they are"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "plan-starts-repos-in-after-order",
+      "target": "agent",
+      "setup": "A parent folder `trackbook/` with feature.json: be (no after), telemetry (after: [be]), ui (after: [be, telemetry]). brd.md approved, Repo plans empty.",
+      "prompt": "(mid /qoq-fullstack plan track-io) The BRD is approved.",
+      "expected_output": "Starts only be with /qoq plan. telemetry starts only after be's plan is approved or be answered no changes needed and the user approved it. ui starts only once be and telemetry are both settled. Every repo in feature.json is started eventually, and none is skipped for looking unrelated.",
+      "files": [],
+      "assertions": [
+        "Only be's session is launched right after BRD approval",
+        "telemetry is not launched before be is settled",
+        "ui is not launched before both be and telemetry are settled",
+        "Every repo in feature.json gets a /qoq plan launch"
       ]
     }
   ]

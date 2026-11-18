@@ -1410,12 +1410,12 @@ removal needs a reason that holds on its own (false, or now carried by a name,
 type or test), the text is quoted into the commit body so history keeps it, and
 nobody removes one unattended.
 
-## A plan under a program
+## A plan under a feature
 
 **Why the protocol lives in `qoq`, not in `qoq-fullstack`.** Repo sessions run
 plain `qoq plan` and `qoq execute`, so those are what write the **Serves**
-column and obey `<repo>:M<N>`. `execute` asks `program-status.mjs` before each
-milestone, so a repo session can't start work the program hasn't unblocked,
+column and obey `<repo>:M<N>`. `execute` asks `feature-status.mjs` before each
+milestone, so a repo session can't start work the feature hasn't unblocked,
 even if the chief of staff is dead. The dependency goes one way:
 `qoq-fullstack` depends on `qoq`, and nothing in `qoq` names it. The rationale
 for the chief of staff itself is in [qoq-fullstack-design.md](qoq-fullstack-design.md).

@@ -2,16 +2,16 @@ import { atom, read, update } from 'claude-code';
 import type { EngineInterface, Register } from 'claude-code';
 
 import { parseIndex, parsePlan } from './plan';
-import { loadProgram, repoLine } from './program';
-import type { Board, ProgramBoard, Ticket } from './types';
+import { loadFeature, repoLine } from './feature';
+import type { Board, FeatureBoard, Ticket } from './types';
 
 // The `qoq execute` board, above the prompt. The skill knows nothing of it.
 //
 // Both plugins, `qoq` and `qoq-fullstack`, are this one repository, so both load
 // this module. Only the `qoq` copy draws, since every `qoq-fullstack` install has
 // `qoq` too. Two copies would stack two bands. It draws the plan board in a
-// session working a plan, and the program board in a chief of staff's session,
-// which names a program (the protocol, like the status script, is `qoq`'s).
+// session working a plan, and the feature board in a chief of staff's session,
+// which names a feature (the protocol, like the status script, is `qoq`'s).
 //
 // Once the session reads or edits any file of a `plans/<plan>/` directory
 // whose index is an approved, in-progress or complete plan, the band rereads
@@ -22,13 +22,30 @@ import type { Board, ProgramBoard, Ticket } from './types';
 
 const board = atom({ plugin: 'qoq', key: 'board' } as const, null);
 const details = atom({ plugin: 'qoq', key: 'details' } as const, false);
-const program = atom({ plugin: 'qoq', key: 'program' } as const, null);
-const programDetails = atom({ plugin: 'qoq', key: 'programDetails' } as const, false);
+const feature = atom({ plugin: 'qoq', key: 'feature' } as const, null);
+const featureDetails = atom({ plugin: 'qoq', key: 'featureDetails' } as const, false);
 
 const FULLSTACK = 'qoq-fullstack';
-// The chief of staff reads the BRD, or runs the status script on a program.
-const BRD_FILE = /^(.*)\/program\/([^/]+)\/brd\.md$/;
-const STATUS_RUN = /program-status\.mjs\s+--root\s+(\S+)\s+--program\s+(\S+)/;
+// The chief of staff reads the BRD, or runs the status script on a feature.
+const BRD_FILE = /^(.*)\/feature\/([^/]+)\/brd\.md$/;
+// Any feature script: qoq's feature-status.mjs, or qoq-fullstack's status.mjs and schedule.mjs.
+const STATUS_RUN = /\.mjs\s+--root\s+(\S+)\s+--feature\s+(\S+)/;
+
+// `--root .` names the folder the command ran in. Pin it to an absolute path
+// now: a later `cd` moves the shell, and a relative root would then miss
+// feature.json and clear the band. Run after the command, so a `cd` it led
+// with has already moved the cwd.
+const absolute = (cwd: string, path: string) => {
+  const parts: string[] = [];
+  for (const part of `${cwd}/${path}`.split('/')) {
+    if (part === '..') {
+      parts.pop();
+    } else if (part && part !== '.') {
+      parts.push(part);
+    }
+  }
+  return `/${parts.join('/')}`;
+};
 
 // `plans/<plan>/index.md` or `plans/<plan>/m<N>-<slug>.md`; group 1 is the directory.
 const PLAN_FILE = /^(.*(?:^|\/)plans\/[^/]+)\/(?:index|m\d+-[^/]+)\.md$/;
@@ -63,7 +80,7 @@ async function load($: EngineInterface, dir: string) {
 }
 
 // Module variables: a reload starts them over, and the next tool call that
-// names a plan or a program sets them again.
+// names a plan or a feature sets them again.
 let source: { root: string; slug: string } | undefined;
 let planDir: string | undefined;
 
@@ -81,13 +98,17 @@ export const register: Register = (on) => {
       const ran = e.tool === 'Bash' ? STATUS_RUN.exec(e.command) : null;
       const found = touched ?? ran;
       if (found?.[1] && found[2]) {
-        source = { root: found[1], slug: found[2] };
+        const root = found[1].replace(/^["']|["']$/g, '');
+        source = {
+          root: root.startsWith('/') ? root : absolute(await $.session.cwd(), root),
+          slug: found[2],
+        };
       }
       if (source) {
         const { root, slug } = source;
-        const loaded = await loadProgram($, root, slug).catch(() => null);
-        await update($, program, () => loaded);
-        // A chief of staff's session: the program board, never a plan's.
+        const loaded = await loadFeature($, root, slug).catch(() => null);
+        await update($, feature, () => loaded);
+        // A chief of staff's session: the feature board, never a plan's.
         return result;
       }
     }
@@ -111,12 +132,12 @@ export const register: Register = (on) => {
     if ($.plugin.name === FULLSTACK) {
       return next(e);
     }
-    const live: ProgramBoard | null = await read($, program);
+    const live: FeatureBoard | null = await read($, feature);
     if (!e.props.hasSurvey && typeof live?.slug === 'string') {
       const current = live;
       const below = await next(e).catch(() => undefined);
-      const isOpen = await read($, programDetails);
-      const toggle = () => update($, programDetails, (open) => !open);
+      const isOpen = await read($, featureDetails);
+      const toggle = () => update($, featureDetails, (open) => !open);
       const delivered = current.master.filter((m) => m.status.startsWith('delivered')).length;
       const due = current.master.filter((m) => m.integrationDue).map((m) => m.id);
       const head = `qoq-fullstack · ${current.slug} — ${current.status} · ${delivered}/${current.master.length} master${due.length ? ` · integration due ${due.join(', ')}` : ''}`;

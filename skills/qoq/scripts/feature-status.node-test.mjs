@@ -1,4 +1,4 @@
-// node --test skills/qoq/scripts/program-status.node-test.mjs
+// node --test skills/qoq/scripts/feature-status.node-test.mjs
 //
 // The contract is the JSON a chief of staff and a repo session both branch on:
 // which repo milestone may start, what it waits on, and which master milestone
@@ -7,73 +7,19 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-const SCRIPT = new URL('program-status.mjs', import.meta.url).pathname;
+import { index, parent } from './feature.fixture.mjs';
 
-const write = (path, content) => {
-  mkdirSync(join(path, '..'), { recursive: true });
-  writeFileSync(path, content);
-};
-
-const index = (status, rows) => `# Plan
-
-**Plan status:** ${status}
-
-## Milestones
-
-| #   | Milestone       | Status | Depends on | Serves | Summary |
-| --- | --------------- | ------ | ---------- | ------ | ------- |
-${rows.map(([id, st, deps, serves]) => `| ${id} | [X](m.md) | ${st} | ${deps} | ${serves} | s |`).join('\n')}
-`;
-
-const parent = ({ master, be, ui }) => {
-  const root = mkdtempSync(join(tmpdir(), 'qoq-program-'));
-  write(
-    join(root, 'program.json'),
-    JSON.stringify({
-      repos: [
-        { name: 'be', path: 'trackbook-be', role: 'api' },
-        { name: 'ui', path: 'trackbook-fe', role: 'ui', after: ['be'] },
-      ],
-    })
-  );
-  write(
-    join(root, 'program', 'track-io', 'brd.md'),
-    `# Track IO
-
-**Program status:** approved
-
-## Master milestones
-
-| #   | Milestone | Status | Depends on | Roles | Integration |
-| --- | --------- | ------ | ---------- | ----- | ----------- |
-${master.map(([id, st, deps]) => `| ${id} | Name | ${st} | ${deps} | api, ui | e2e |`).join('\n')}
-
-## Repo plans
-
-| Repo | Plan |
-| ---- | ---- |
-| be   | \`plans/2026-11-18-track-io\` |
-| ui   | \`plans/2026-11-19-track-io\` |
-`
-  );
-  if (be) {
-    write(join(root, 'trackbook-be', 'plans', '2026-11-18-track-io', 'index.md'), be);
-  }
-  if (ui) {
-    write(join(root, 'trackbook-fe', 'plans', '2026-11-19-track-io', 'index.md'), ui);
-  }
-  return root;
-};
+const SCRIPT = new URL('feature-status.mjs', import.meta.url).pathname;
 
 const run = (root) => {
   const { status, stdout, stderr } = spawnSync(
     process.execPath,
-    [SCRIPT, '--root', root, '--program', 'track-io', '--json'],
+    [SCRIPT, '--root', root, '--feature', 'track-io'],
     { encoding: 'utf8' }
   );
   assert.equal(status, 0, stderr);
@@ -168,16 +114,16 @@ test('a missing or draft plan is never runnable', () => {
   assert.equal(repo(report, 'ui').next, null);
 });
 
-test('no program.json exits 1 with the reason', () => {
-  const root = mkdtempSync(join(tmpdir(), 'qoq-program-'));
+test('no feature.json exits 1 with the reason', () => {
+  const root = mkdtempSync(join(tmpdir(), 'qoq-feature-'));
   const { status, stderr } = spawnSync(
     process.execPath,
-    [SCRIPT, '--root', root, '--program', 'x'],
+    [SCRIPT, '--root', root, '--feature', 'x'],
     { encoding: 'utf8' }
   );
 
   assert.equal(status, 1);
-  assert.match(stderr, /no program\.json/);
+  assert.match(stderr, /no feature\.json/);
 });
 
 test('a repo that answered "no changes needed" has no next milestone and needs no plan', () => {
@@ -185,7 +131,7 @@ test('a repo that answered "no changes needed" has no next milestone and needs n
     master: [['M1', 'todo', 'none']],
     be: index('approved', [['M1', 'todo', 'none', 'M1']]),
   });
-  const brd = join(root, 'program', 'track-io', 'brd.md');
+  const brd = join(root, 'feature', 'track-io', 'brd.md');
   writeFileSync(
     brd,
     readFileSync(brd, 'utf8').replace('| ui   | `plans/2026-11-19-track-io` |', '| ui   | none |')
@@ -225,33 +171,4 @@ test('a milestone already in progress stays next even when another is ready', ()
   );
 
   assert.equal(repo(report, 'be').next.id, 'M2');
-});
-
-test('--schedule moves the piece another repo needs first, and never breaks a hard dependency', () => {
-  const root = parent({
-    master: [['M1', 'todo', 'none']],
-    be: index('approved', [
-      ['M1', 'todo', 'none', 'M1'],
-      ['M2', 'todo', 'none', 'M1'],
-    ]),
-    ui: index('approved', [
-      ['M1', 'todo', 'be:M2', 'M1'],
-      ['M2', 'todo', 'M1', 'M1'],
-    ]),
-  });
-  const { status, stdout, stderr } = spawnSync(
-    process.execPath,
-    [SCRIPT, '--root', root, '--program', 'track-io', '--schedule'],
-    { encoding: 'utf8' }
-  );
-  assert.equal(status, 0, stderr);
-  const plan = JSON.parse(stdout);
-  const be = plan.repos.find((r) => r.name === 'be');
-  const ui = plan.repos.find((r) => r.name === 'ui');
-
-  // ui needs be:M2, so be delivers M2 first; ui's own M1 → M2 chain stays.
-  assert.deepEqual(be.order, ['M2', 'M1']);
-  assert.equal(be.reorder, true);
-  assert.deepEqual(ui.order, ['M1', 'M2']);
-  assert.ok(plan.span.chosen < plan.span.planned);
 });

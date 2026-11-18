@@ -23,13 +23,13 @@ in one line that it was parked. Every repo's planning gets the list, and the
 repo it lands in asks it in its own grilling, against code this thread has
 never read.
 
-`program.json` missing → write it with the user: every repo, its role, any
+`feature.json` missing → write it with the user: every repo, its role, any
 `after`, every integration check, and the `permissionMode` repo sessions run in. Never guess an integration check. A
 master milestone with no check is one the user explicitly said needs none.
 
 ## 2. Write and approve the BRD
 
-Write `program/<slug>/brd.md` with `Program status: draft`:
+Write `feature/<slug>/brd.md` with `Feature status: draft`:
 
 - every requirement as a **Given/When/Then scenario** tagged with its milestone;
 - the master milestones with their **Depends on** and **Integration**;
@@ -37,11 +37,11 @@ Write `program/<slug>/brd.md` with `Program status: draft`:
 
 Run the same check as plan.md's definition-of-ready gate, at the business level.
 Every scenario has to be observable without reading code, and every milestone
-has to be deliverable on its own. On approval, set `Program status: approved`.
+has to be deliverable on its own. On approval, set `Feature status: approved`.
 
 ## 3. A plan per repo
 
-**Every repo in `program.json` plans**, in `after` order. Repos with no `after`
+**Every repo in `feature.json` plans**, in `after` order. Repos with no `after`
 start together, and a repo starts once every repo in its `after` is settled:
 its plan is approved, or it answered **no changes needed**. Start each one with:
 
@@ -51,7 +51,7 @@ its plan is approved, or it answered **no changes needed**. Start each one with:
 > `no changes needed — <one line why>`. Otherwise your plan directory is
 > `plans/<YYYY-MM-DD>-<slug>/`. Every milestone row names the master
 > milestones it serves in a **Serves** column, and the header carries the
-> **Program** line (`qoq`'s plan template, "A repo's share of a program").
+> **Feature** line (`qoq`'s plan template, "A repo's share of a feature").
 > Consume a contract only from `<root>/contracts/`. When your plan is approved,
 > write a `contracts/<name>.md` for every contract another repo consumes.
 
@@ -68,7 +68,7 @@ the repos after it: they plan against its code as it stands.
 
 The repos run in parallel, so the order inside each repo decides how long the
 others wait. Once every repo is settled, run
-`node <status> --root <root> --program <slug> --schedule`. It simulates the run,
+`node ${CLAUDE_SKILL_DIR}/scripts/schedule.mjs --root <root> --feature <slug>`. It simulates the run,
 with each milestone's ticket count as its duration, and returns each repo's
 delivery `order`. Milestones that don't depend on each other are reordered so
 that the piece another repo needs goes first. A hard dependency never moves.
@@ -77,7 +77,7 @@ For each repo with `reorder: true`, send it: _reorder the rows of your
 Milestones table to `<order>`. Keep every number, Depends on and file as they
 are, commit, and report back._ This needs no user question, because no
 dependency, scope or milestone changes, only the sequence. Check the result
-with `--schedule` again: every `reorder` is now false. In the hand-off, list
+with `schedule.mjs` again: every `reorder` is now false. In the hand-off, list
 each repo's new order in one line, along with any `idle` the simulation still
 shows. A remaining wait is one only a split milestone could remove, and that is
 a `qoq replan` the user can ask for.

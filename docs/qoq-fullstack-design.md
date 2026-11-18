@@ -3,7 +3,7 @@
 Maintainer reference for [`skills/qoq-fullstack`](../skills/qoq-fullstack/SKILL.md),
 not the spec. Nothing here is loaded at run time. When a rule changes in the
 skill, its argument changes here in the same commit. The protocol side, inside
-`qoq`, is argued in [qoq-design.md](qoq-design.md#a-plan-under-a-program).
+`qoq`, is argued in [qoq-design.md](qoq-design.md#a-plan-under-a-feature).
 
 **Why a separate skill.** `qoq` already routes twelve commands. The chief of
 staff is only needed by people who work across repos, so it gets its own
@@ -13,6 +13,15 @@ trigger description and plugin, and nobody else loads it.
 copy of the repo, so `../qoq/` next to this skill is always `qoq` at the same
 version. The docs don't promise that layout, so the entry stops if the path
 doesn't resolve, rather than guessing.
+
+**Why the scripts are split between the two skills.** A script lives with the
+skill whose sessions run it. A repo session asks `feature-status.mjs` whether
+its next milestone may start, and the band draws from `feature-state.mjs`, so
+both stay in `qoq`, along with the loader they share. Only the chief of staff
+prints the status tables or reorders rows, so `status.mjs` and `schedule.mjs`
+live in `qoq-fullstack`. They import `qoq`'s core through the same `../qoq/`
+path rather than copying the rules, which keeps one definition of what may
+start.
 
 **Why one session per repo, not agent teams.** As of 2026-11, agent teams were
 experimental and interactive-only. Every teammate shares the lead's working
@@ -30,10 +39,10 @@ role and asked by the repo that owns them, against its own code.
 
 **Why the files are the state.** Messages can be held, dropped, or sent by a
 session that died a line later. A repo writes its plan file before it
-messages, and every decision rebuilds from disk with `program-status.mjs`. So
-a restarted chief of staff, a restarted repo session and `program status` all
+messages, and every decision rebuilds from disk with `feature-status.mjs`. So
+a restarted chief of staff, a restarted repo session and `feature status` all
 see the same answer. The same script answers a repo's own `qoq execute`, so a
-session running on its own can't start work the program hasn't unblocked.
+session running on its own can't start work the feature hasn't unblocked.
 
 **Why a master milestone gates on integration, not on repo delivery.** Each
 repo's gate proves its own side of a contract. Only running the repos together
@@ -43,10 +52,10 @@ next master milestone's repo work start.
 
 **Why the parent folder isn't a repo.** A git repo containing the repos it
 coordinates is either submodules or nested repos. Both make a repo's history
-depend on a folder the repo knows nothing about. The program files are
+depend on a folder the repo knows nothing about. The feature files are
 coordination, not product, and each repo's plan holds that repo's history.
 
-**Why `program.json` and not YAML.** The skill ships no dependencies, and
+**Why `feature.json` and not YAML.** The skill ships no dependencies, and
 Node's standard library parses JSON.
 
 **Why the models split the way they do.** `plan` recommends Opus, because the
@@ -64,7 +73,7 @@ apply to every sub-command, plan included.
 `.claude/worktrees/<name>` on a branch of its own. The live test on 2026-11-18
 showed the cost: the plan files in the repo's checkout never moved, so the
 status script, the band and every cross-repo unblock were blind to finished
-work. Delivery is plain branching, `program/<slug>` in each repo's own
+work. Delivery is plain branching, `feature/<slug>` in each repo's own
 checkout, so setup turns isolation off per repo (`worktree.bgIsolation: "none"`)
 and the launch prompt says that commits on that branch are part of the approved
 plan.
@@ -78,13 +87,13 @@ in the background.
 **Why `permissionMode` is a field.** The Haiku chief in that test launched its
 repo session in `default` mode while it ran in `auto` itself. A session in a
 different mode holds incoming messages for approval, so the relay stalled.
-The mode is now chosen once by the user and read from `program.json`, never
+The mode is now chosen once by the user and read from `feature.json`, never
 inferred.
 
 **Why every repo plans, and why "no changes needed" counts.** The master plan
 names no repos, because whether a requirement lands in a repo is a judgement
 about that repo's code, which the chief of staff hasn't read. So every repo in
-`program.json` plans, in its `after` order (for Trackbook: telemetry, then the
+`feature.json` plans, in its `after` order (for Trackbook: telemetry, then the
 API, then the UI). A repo that finds nothing to do says so, and once the user
 approves, its `none` row settles it. The repos after it then plan against its
 existing contracts. Without that answer, a feature that doesn't touch telemetry
@@ -100,7 +109,7 @@ milestone.
 row order, and `execute` skips any milestone whose dependencies aren't
 delivered. So row order between milestones that don't depend on each other is
 pure sequencing. It changes no scope, so there's nothing for the user to
-decide. `--schedule` simulates the parallel run, with ticket count as duration,
+decide. `schedule.mjs` simulates the parallel run, with ticket count as duration,
 and puts first whatever has the most work waiting on it in other repos. It
 keeps the result only if the run gets shorter. A wait it can't remove needs a
 milestone split, which is a replan the user asks for.
