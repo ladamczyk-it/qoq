@@ -38,7 +38,7 @@ passes.
   `Files` — the intent you judge against — plus:
   - the plan's `**Review context:**` line if it has one — a settled answer,
     never a suggestion
-  - the milestone's **Security** line when the sheriff ran — what it found and
+  - the milestone's **Security** line — what the sheriff found and
     how each ended, accepted reasons included. Never re-raise those as yours
   - the **Review** lines of earlier milestones — their accepted entries
   - `standards` only: the refactor gate's advisories for this milestone

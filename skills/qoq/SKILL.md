@@ -108,7 +108,6 @@ not a path.
 | `/qoq execute <plan> --session-limit 60`       | stop before spending past 60% of the 5-hour limit      |
 | `/qoq execute <plan> --weekly-limit 80`        | same for the 7-day limit; both default to 100          |
 | `/qoq execute <plan> --docs`                   | also document each milestone — experimental, opt-in    |
-| `/qoq execute <plan> --sheriff`                | also security-sweep each milestone — experimental      |
 | `/qoq execute <plan> --review`                 | also review each milestone and the plan — experimental |
 | `/qoq test <what to cover>`                    | —                                                      |
 | `/qoq compress`                                | every `CLAUDE.md` and `AGENTS.md` git tracks           |
@@ -136,9 +135,8 @@ for `bump`'s experimental vulnerability scan, and
 `future.unstable_skill_bump_with_scan: true` is its config twin. `--diagrams`
 (twin: `future.unstable_skill_diagrams: true`) turns on `qoq-artist` in `plan`,
 `replan` and — with docs on too — `execute`; `--to` is where `mermaid` writes
-([references/mermaid.md](references/mermaid.md)). `--sheriff` (twin:
-`future.unstable_skill_sheriff: true`) turns on `execute`'s milestone security
-sweep and `plan`'s `Security sweep` proposals
+([references/mermaid.md](references/mermaid.md)). `execute`'s milestone security
+sweep and `plan`'s `Security sweep` proposals are always on, with no switch
 ([references/sheriff.md](references/sheriff.md)). `--review` (twin:
 `future.unstable_skill_review: true`) turns on `execute`'s milestone review, the
 end-of-plan pass and the sign-off ([references/review.md](references/review.md)).
@@ -204,7 +202,7 @@ Commands compose, but **only on the main thread**.
 | `compress` | `writing-for-agents` (external), `fix`                                          | —                                                                  |
 | `document` | its own `qoq-scribe`; offers `mermaid`                                          | `execute` — per milestone, after the gate                          |
 | `mermaid`  | its own `qoq-artist`                                                            | `plan`, `replan`, `execute` — when `--diagrams` is on              |
-| `sheriff`  | its own `qoq-sheriff`; `fix` to re-gate                                         | `execute` — per milestone, when `--sheriff` is on                  |
+| `sheriff`  | its own `qoq-sheriff`; `fix` to re-gate                                         | `execute` — every milestone, always                                |
 | `review`   | `code-review` (external), its own `qoq-reviewer` ×2 axes; `fix`; `sheriff`      | `execute` — per milestone and once per plan, when `--review` is on |
 
 `compress` changes what future runs read, never what this one does, so no

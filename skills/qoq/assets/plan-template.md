@@ -45,7 +45,7 @@ done>` · suite `<the full build + suite result, as reported>`
 **Decisions that outlive this milestone:** none | <what later work is built on>
 **Open advisories:** none | <non-blocking findings still true>
 **Docs advisories:** none | <scribe drift, `qoq-scribe:` markers, docs skipped>
-**Security:** <absent unless the sheriff ran> clean | <S<n> <severity> —
+**Security:** clean | <S<n> <severity> —
 remediated `<hash>` · accepted · deferred to <ticket> · open advisory>
 **Review:** <absent unless the reviewer ran> clean | <R<n>·RS<n> <severity> —
 remediated `<hash>` · accepted — <file>:'<anchor>' — "<reason>" · deferred to
@@ -237,8 +237,8 @@ Archived from [<plan-name>.md](<plan-name>.md). Append-only.
   `qoq-scribe` question, passed to every later dispatch so it's never asked
   twice; the second is what the scribe found that only the user can settle —
   plan-vs-delivery drift and purpose it couldn't determine.
-- **Security context**, **Security sweep** and **Security** are the sheriff's,
-  and absent while it's off. The first is the user's answer to a `qoq-sheriff`
+- **Security context**, **Security sweep** and **Security** are the sheriff's.
+  **Security** is always written, and the other two only when they apply. The first is the user's answer to a `qoq-sheriff`
   question, passed to every later sweep; the second is a plan-time proposal the
   user confirmed, buying a ticket an early sweep before its commit; the third
   records how every finding ended, so an accepted risk is visible to whoever

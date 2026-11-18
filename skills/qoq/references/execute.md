@@ -175,8 +175,8 @@ property of the file in front of it and stays on.
 dispatch carries those files, the ticket's acceptance criteria, the milestone's
 `Contracts`, and the path to `references/test-conventions.md`.
 
-**A ticket with `Security sweep: ticket`** gets one more read after Gate 2,
-when the sheriff is on: an early `qoq-sheriff` sweep over its own diff, before
+**A ticket with `Security sweep: ticket`** gets one more read after Gate 2: an
+early `qoq-sheriff` sweep over its own diff, before
 the commit. What it finds and what that costs the ticket is
 [sheriff.md](sheriff.md)'s.
 
@@ -371,11 +371,11 @@ write.
 Red → write the failure up as a new ticket: sized, rated, dispatched like any
 other. Don't patch it on this thread; the lead doesn't implement.
 
-Green → **sheriff**, when it's on (Setup). `qoq-sheriff` sweeps the
+Green → **sheriff**, always. `qoq-sheriff` sweeps the
 milestone's combined diff for logic-level security problems, and its findings
 are routed, remediated or recorded before anything below runs —
 [sheriff.md](sheriff.md) owns all of it, including the two places it stops the
-run. Off → straight on, no Security line.
+run.
 
 Then **review**, when it's on (Setup). `qoq-reviewer` reads the milestone's
 final diff, security fixes included, on two parallel axes. Spec checks it
@@ -442,8 +442,8 @@ of dispatching. The stop has no proceed-without:
 > normally arrives with qoq as a plugin dependency; install it with
 > `/plugin install mattpocock-skills`, then `/qoq execute` again.
 
-Then two checks: are `qoq-developer` and `qoq-test-reviewer` (and `qoq-sheriff` and
-`qoq-reviewer`, when they're on) registered under
+Then two checks: are `qoq-developer` and `qoq-test-reviewer` and `qoq-sheriff` (and
+`qoq-reviewer`, when it's on) registered under
 `.claude/agents/`? If one isn't, dispatch `general-purpose` with that agent
 file's body pasted in and told to invoke `tdd` with the Skill tool first, since
 `general-purpose` preloads nothing — for the developer, with the tier passed explicitly, since
@@ -457,11 +457,9 @@ invoked with `--docs`, or when the project's `qoq.config.*` sets
 `future: { unstable_skill_docs: true }` — one Grep for
 `unstable_skill_docs\s*:\s*true` over the config file, read as source text and
 never evaluated. Decide it once here and say which in the run's opening line.
-**The sheriff** is the same kind of switch — `--sheriff`, or
-`future.unstable_skill_sheriff: true` — and runs at the milestone gate whether or
-not docs are on ([sheriff.md](sheriff.md)). Without it a plan's
-`Security sweep: ticket` fields do nothing; say so in the opening line if the
-plan has any. **The review** is the same kind of switch: `--review`, or
+**The sheriff** isn't a switch. It runs at every milestone gate and on every
+`Security sweep: ticket` ([sheriff.md](sheriff.md)). **The review** is a
+switch: `--review`, or
 `future.unstable_skill_review: true`. It runs at the milestone gate after the
 sheriff, and again once at the end of the plan ([review.md](review.md)).
 **Diagrams** are the same kind of switch — `--diagrams`, or

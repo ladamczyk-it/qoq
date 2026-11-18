@@ -55,10 +55,8 @@ post separate reviews.
 
 ## Pipeline — from `execute`
 
-**Experimental, so opt-in:** it runs only when `execute` was given `--sheriff`,
-or the project's `qoq.config.*` sets `future: { unstable_skill_sheriff: true }`
-([execute.md](execute.md), Setup). No skip rule: on, it sweeps every milestone,
-spec-only ones included — a clean report on a small diff is cheap, and deciding
+**Always on.** Every `execute` run sweeps every milestone. There's no flag and
+no config switch, and no skip rule either: spec-only milestones are swept too — a clean report on a small diff is cheap, and deciding
 "nothing security-relevant here" is the judgment this agent exists to make.
 
 ### The milestone sweep

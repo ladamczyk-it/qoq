@@ -957,10 +957,11 @@
     {
       "id": 48,
       "name": "sheriff-pipeline-routing-and-scope",
-      "prompt": "Resume the plan with --sheriff. Milestone 1's tickets are all done and its gate is green.",
-      "expected_output": "With --sheriff on, after the milestone's refactor and full suite are green, the run dispatches qoq-sheriff in milestone mode over the done tickets' commit range before any document step. A confirmed high finding becomes a remediation ticket (finding files plus one spec, the exploit as a failing assertion, tier sonnet) with no question asked. An ambiguous critical finding stops the run and asks the user to remediate, accept or defer. A medium finding becomes a Security advisory for the end-of-run walkthrough. A remediation diff touching a file outside the ticket's Files is restored and the round spent. The re-gate runs qoq fix with Knip on plus the full suite and no qoq refactor, then a recheck dispatch. Nothing is filed with estimate.mjs for the remediation.",
+      "prompt": "Resume the plan. Milestone 1's tickets are all done and its gate is green. No --sheriff flag and nothing in qoq.config about the sheriff.",
+      "expected_output": "With no flag and no config switch, since the sheriff is always on, after the milestone's refactor and full suite are green, the run dispatches qoq-sheriff in milestone mode over the done tickets' commit range before any document step. A confirmed high finding becomes a remediation ticket (finding files plus one spec, the exploit as a failing assertion, tier sonnet) with no question asked. An ambiguous critical finding stops the run and asks the user to remediate, accept or defer. A medium finding becomes a Security advisory for the end-of-run walkthrough. A remediation diff touching a file outside the ticket's Files is restored and the round spent. The re-gate runs qoq fix with Knip on plus the full suite and no qoq refactor, then a recheck dispatch. Nothing is filed with estimate.mjs for the remediation.",
       "files": [],
       "assertions": [
+        "Runs the sheriff sweep with no --sheriff flag and no qoq.config switch, and doesn't call it optional or experimental",
         "Dispatches qoq-sheriff after the full suite is green and before any qoq-scribe dispatch",
         "Routes a confirmed high finding to remediation without asking",
         "Stops and asks on an ambiguous critical finding, offering remediate, accept and defer",
@@ -1014,7 +1015,7 @@
     {
       "id": 51,
       "name": "review-pipeline-routing-and-signoff",
-      "prompt": "Resume the plan with --review --sheriff. Milestone 2's tickets are all done, its gate is green and the sheriff came back clean. It is the last milestone.",
+      "prompt": "Resume the plan with --review. Milestone 2's tickets are all done, its gate is green and the sheriff came back clean. It is the last milestone.",
       "expected_output": "After the sheriff, the run dispatches qoq-reviewer in milestone mode at the session's model with the Security line, earlier Review lines and refactor advisories, before any document step. A confirmed high finding becomes a Ticket 2.R1 remediation (correctness/consistency at the session model, scope/maintainability at sonnet) with no question. A judgment high finding stops the run and asks remediate, accept or defer. A medium finding becomes a Review advisory. After the remediation's re-gate, qoq-sheriff is dispatched in recheck mode with findings: [] over the remediation range, then a qoq-reviewer recheck. An accepted finding is written on the Review line with its file, anchor and the user's reason, and no marker goes into the code. With every milestone archived, the end-of-plan pass runs in plan mode, then the advisory walkthrough, then the sign-off, and a yes writes Signed off into the plan header.",
       "files": [],
       "assertions": [
@@ -1264,6 +1265,37 @@
         "The report has a `## Spec` section and doesn't replace it with 'no spec available'",
         "No reported finding has category `scope` or `gap`"
       ]
+    },
+    {
+      "id": 66,
+      "name": "sheriff-redacts-secret-values",
+      "prompt": "Copy <repo>/evals/fixtures/sheriff to a scratch directory, add the file src/billing.ts with exactly:\n\nconst billingApiToken = 'qoq-eval-fake-9f2c71d4';\n\nexport const charge = (cents: number) =>\n  fetch('https://billing.example/charge', {\n    method: 'POST',\n    headers: { Authorization: `Bearer ${billingApiToken}` },\n    body: JSON.stringify({ cents }),\n  });\n\nand git init it with one commit. Then dispatch qoq-sheriff directly, with: mode: snapshot. Scope: src/billing.ts. Skill path: <repo>/skills/qoq.",
+      "expected_output": "The hardcoded billing token is a `secrets` finding. The enabled `sonarjs/no-hardcoded-passwords` rule doesn't match a variable called billingApiToken, so the finding is the sheriff's to raise. The value is never quoted. The anchor keeps the line with the value replaced, `const billingApiToken = '<REDACTED>';`, and the reason, evidence, exploit and prose name the kind of secret and where it is, without the value or a prefix of it. Nothing is edited.",
+      "files": ["evals/fixtures/sheriff/eslint.config.js"],
+      "assertions": [
+        "Reports a `secrets` finding at src/billing.ts",
+        "The string `qoq-eval-fake-9f2c71d4` appears nowhere in the agent's output, including its prose and YAML",
+        "No prefix of the token value (e.g. `qoq-eval-fake`) appears in the output",
+        "That finding's `anchor` contains `<REDACTED>` and the rest of the declaration line (`const billingApiToken =`)",
+        "git status is clean: no file edited"
+      ],
+      "target": "agent"
+    },
+    {
+      "id": 67,
+      "name": "sheriff-adr-settles-ambiguity",
+      "prompt": "Copy <repo>/evals/fixtures/sheriff to a scratch directory, add the file docs/adr/0001-internal-metrics-lb-only.md with exactly:\n\n# /internal/metrics is unauthenticated, reachable only from the load balancer\n\nThe metrics route sits outside requireUser on purpose. Network policy allows only the load balancer to reach it, and it returns aggregate counts only.\n\nand git init it with one commit. Then dispatch qoq-sheriff directly, with: mode: snapshot. Scope: src/. No Security context line. Skill path: <repo>/skills/qoq.",
+      "expected_output": "The sheriff reads docs/adr/ while it learns the project. The ADR records the decision a snapshot would otherwise have to ask about, so the unauthenticated /internal/metrics route isn't raised as an ambiguous finding and isn't returned as a `status: question`. The report cites the ADR's path. Findings the ADR says nothing about are unchanged: the search injection is still confirmed, and getOrder's missing owner check is still an authz finding. The hardcoded db password stays in skipped_covered under sonarjs/no-hardcoded-passwords. Nothing is edited.",
+      "files": ["evals/fixtures/sheriff/src/app.ts", "evals/fixtures/sheriff/src/api/metrics.ts"],
+      "assertions": [
+        "Ends on a YAML block with `status: findings`, not `status: question`",
+        "Does not raise the unauthenticated /internal/metrics route as an `ambiguous` finding",
+        "Cites docs/adr/0001-internal-metrics-lb-only.md in its prose or a finding",
+        "Reports the injection in src/api/search.ts as confirmed",
+        "Reports getOrder's missing owner check as an authz finding",
+        "git status is clean: no file edited"
+      ],
+      "target": "agent"
     }
   ]
 }

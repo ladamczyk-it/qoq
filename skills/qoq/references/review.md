@@ -141,8 +141,7 @@ milestone.
 
 ### The milestone review
 
-This runs after the sheriff and its remediation loop, when the sheriff is on,
-and before `document`. The reviewer should read the diff that will ship, with
+This runs after the sheriff and its remediation loop, and before `document`. The reviewer should read the diff that will ship, with
 the security fixes already in it. The scribe then documents code nobody is about
 to change.
 
@@ -156,7 +155,7 @@ Dispatch at the **session's** model, cold: a fresh dispatch every time, never
 - the milestone's Goal and Contracts, plus every ticket's acceptance criteria and
   **Files**
 - the plan's `**Review context:**` line, if it has one
-- the milestone's **Security** line, if the sheriff ran
+- the milestone's **Security** line
 - every earlier milestone's **Review** line
 - this skill's absolute path
 
@@ -191,10 +190,9 @@ put to them, now or at the end, the user can choose:
   new final milestone called "Review follow-ups" when none is left. Confirm the
   placement in the same question. It runs in a later run, not this one.
 
-**`security_noticed`.** With the sheriff on, these lines are listed in the
-sign-off as "the reviewer noticed; the sheriff already swept this milestone", and
-nothing more. With the sheriff off, each one becomes a Review advisory
-suggesting `/qoq sheriff <file>`. They never route as findings.
+**`security_noticed`.** These lines are listed in the sign-off as "the reviewer
+noticed; the sheriff already swept this milestone", and nothing more. They never
+route as findings.
 
 ### Remediation
 
@@ -215,7 +213,7 @@ recheck. Read it there. The differences are:
   to the user, with "hand to `qoq replan`" as the recommended option. Rework of
   that size is a plan change, not a patch.
 - **Commit:** `fix(m<N>): review R1,RS2`, with `--no-verify`.
-- **Sheriff after the re-gate, when it's on.** Dispatch `qoq-sheriff` with
+- **Sheriff after the re-gate.** Dispatch `qoq-sheriff` with
   `mode: recheck`, `findings: []` and the remediation's range. That reads only
   the review fix, so a change made for maintainability can't quietly drop a
   guard. Anything it raises routes by sheriff.md's table, and its remediation

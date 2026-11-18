@@ -563,9 +563,7 @@ flowchart TD
     EMGATE --> EMSUITE["**milestone 2 — the project's<br/>full build + full test suite**"]
     EMSUITE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
     ENEW --> EWAVE
-    EMSUITE -->|green| ESHQ{"sheriff on?<br/>*--sheriff, or qoq.config<br/>future.unstable_skill_sheriff*"}
-    ESHQ -->|"no — the default"| ERVQ
-    ESHQ -->|yes| ESH["**qoq sheriff — milestone sweep**<br/>*experimental* · see the sheriff chart<br/>qoq-sheriff at the session's model, cold,<br/>over the done tickets' range ·<br/>confirmed critical/high → remediation ·<br/>ambiguous critical/high → **stop, ask** ·<br/>medium/low → Security advisory"]
+    EMSUITE -->|green| ESH["**qoq sheriff — milestone sweep**<br/>*always on* · see the sheriff chart<br/>qoq-sheriff at the session's model, cold,<br/>over the done tickets' range ·<br/>confirmed critical/high → remediation ·<br/>ambiguous critical/high → **stop, ask** ·<br/>medium/low → Security advisory"]
     ESH --> ERVQ
     ERVQ{"review on?<br/>*--review, or qoq.config<br/>future.unstable_skill_review*"}
     ERVQ -->|"no — the default"| EDOCQ
@@ -819,7 +817,7 @@ flowchart TD
     SDIFF --> SDISP
     SSNAP --> SDISP
 
-    SEXEC["execute's milestone gate, green —<br/>**only with --sheriff or<br/>future.unstable_skill_sheriff: true**"] --> SDISPM["mode **milestone** — done tickets'<br/>range · union · Goal · Contracts ·<br/>criteria · Security context line"]
+    SEXEC["execute's milestone gate, green —<br/>**every milestone, always**"] --> SDISPM["mode **milestone** — done tickets'<br/>range · union · Goal · Contracts ·<br/>criteria · Security context line"]
     SDISP["dispatch at the **session's** model, cold"] --> SAG
     SDISPM --> SAG
 
@@ -918,7 +916,7 @@ flowchart TD
         VSCOPECHK -->|"no — restore, round spent"| VREM
         VSCOPECHK -->|yes| VGATES["Gate 1 · Gate 2 · commit<br/>**fix(mN): review R1,RS2**"]
         VGATES --> VREGATE["**re-gate** — qoq fix, knip on ·<br/>full build + suite · no refactor"]
-        VREGATE --> VSH["sheriff on: **qoq-sheriff recheck**,<br/>findings: [] over this diff only ·<br/>its fix ends the chain"]
+        VREGATE --> VSH["**qoq-sheriff recheck**,<br/>findings: [] over this diff only ·<br/>its fix ends the chain"]
         VSH --> VRECHK["**qoq-reviewer recheck** — per axis<br/>that raised one · its findings by<br/>anchor + the remediation diff"]
     end
     VRECHK -->|"all resolved"| VREC["**Review** line on the milestone ·<br/>verdict into **Gate evidence**"]

@@ -1135,11 +1135,26 @@ the marker silent until someone happened to edit that block, which may be never.
 It comes back `ambiguous`, never `confirmed`, because the user may still accept
 it on a different reason, and that decision is theirs.
 
-**Why opt-in inside `execute`.** Same reason as the scribe: it's experimental,
-and inside `execute` it runs unattended and can stop a run or commit fixes. A
-miscalibrated sweep nine milestones deep is expensive. `--sheriff` turns it on
-for one run, `future.unstable_skill_sheriff` for a project. Standalone
-`/qoq sheriff` needs neither, and it only prints until the user says yes.
+**Why always on inside `execute`, with no opt-out.** It started as an opt-in
+pilot, because inside `execute` it runs unattended and can stop a run or commit
+fixes, and a miscalibrated sweep nine milestones deep is expensive. The pilot
+is over: a security read is now as much a part of the milestone gate as the
+refactor and the full suite. An opt-out would put the one gate that catches what
+linters can't in the same place as the experimental ones, where a default run
+skips it. A clean sweep of a small diff is cheap, so an unswept milestone costs
+more than a swept one. The `future.unstable_skill_sheriff` key was removed
+outright rather than deprecated, so a config still setting it fails to type-check
+and gets cleaned up.
+
+**Why secrets are redacted in findings.** A finding's anchor is a verbatim source
+line, and the report travels to a committed plan file, a remediation ticket and
+a PR comment posted under the user's name. Quoting the credential would leak it
+three more times. `<REDACTED>` in place of the value keeps the rest of the line,
+so the recheck still finds its spot. This follows `diagnosing-bugs`' rule.
+
+**Why ADRs settle intent.** `qoq plan` records decisions in `docs/adr/` through
+`domain-modeling`. A decision someone already wrote down is the same answer a
+`Security context` line gives, so asking for it again would be noise.
 
 ## `review`
 

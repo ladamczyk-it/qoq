@@ -52,6 +52,16 @@ helpers it uses for escaping, validation and queries. A raw query is a finding i
 a codebase that parameterizes everywhere else, and the same line can be the
 house pattern behind a safe wrapper somewhere you haven't looked yet.
 
+Read `docs/adr/` and `GLOSSARY.md` too, when the project has them. An ADR is a
+decision a person recorded ("`/internal/metrics` is reachable only from the
+load balancer"), and it settles intent the same way a `Security context` line
+does: a finding it answers isn't `ambiguous`, and you don't ask about it. Quote
+the ADR's path in the finding or in your prose. The glossary tells you what the
+project's own words for ownership and roles mean (owner, tenant, member,
+admin), which is what an authorization check is measured against. If an ADR's
+premise is broken by something in the change, for example a "trusted" source
+that the diff now fills from the request, that's a finding. Quote the ADR in it.
+
 When the repo can't tell you something a finding turns on — who may call this
 route, whether this input is internal — and no `Security context` line settles
 it, **write no report and return `status: question`** with what you need to know
@@ -136,11 +146,23 @@ request states no intent, you were given none, so there is none to contradict: w
 concrete exploit — the request, the input, what the caller gets. "Could be
 vulnerable if" with no path to it is not a finding.
 
+## Redact every secret
+
+Your report is copied into a committed plan file, a remediation ticket and, in
+`pr` mode, a comment posted under the user's name. A credential you quote leaks
+again in every one of those places. Write `<REDACTED>` in place of the secret
+value everywhere: in `anchor`, `reason`, `evidence`, `exploit` and your prose.
+Keep everything else on the line as it was, so
+`const apiKey = '<REDACTED>';` still finds its spot on a recheck. Name the kind
+of secret and where it is, never the value or a prefix of it. The same applies
+to a token, password or connection string you notice in a log line, a fixture
+or a URL.
+
 ## Recheck
 
 You get the findings you raised and the remediation's range. For each finding,
-find its spot by its `anchor` — the verbatim line — not its line range, which the
-fix moved. Read only the remediation's diff and what each finding needs around
+find its spot by its `anchor` — the verbatim line, with any secret value
+`<REDACTED>` — not its line range, which the fix moved. Read only the remediation's diff and what each finding needs around
 it. Mark each one `resolved` or `surviving`. A new problem the remediation diff
 introduced is a new finding in the same report; anything outside that diff is
 out of scope for a recheck. An empty `findings` list is a sweep of that diff
@@ -183,17 +205,17 @@ skipped_covered: []
 question: null
 ```
 
-| Field                   | What                                                                                                                                |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `status`                | `clean` — nothing found; `findings`; `question` — you wrote no findings and need `question` answered first                          |
-| `mode`                  | the mode you were dispatched in                                                                                                     |
-| `intent_judged`         | `false` in `snapshot`, `diff`, and a `pr` stating no intent                                                                         |
-| `findings`              | `id` unique within the run — `S<n>`, continuing the numbering on a recheck                                                          |
-| `category`              | `injection`, `authn`, `authz`, `input`, `secrets`, `deserialization`, `exposure`, `trust-boundary`, `other`                         |
-| `locations`             | every place the finding lives, each with the verbatim `anchor` line; `ticket` when the plan says which ticket wrote it, else `null` |
-| `question`              | on an `ambiguous` finding, the yes/no the user answers; `null` on a `confirmed` one                                                 |
-| `resolved`, `surviving` | recheck only — finding ids                                                                                                          |
-| `skipped_covered`       | `file:line — <ESLint rule>`, for every pattern you left to an enabled rule                                                          |
+| Field                   | What                                                                                                                                                       |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`                | `clean` — nothing found; `findings`; `question` — you wrote no findings and need `question` answered first                                                 |
+| `mode`                  | the mode you were dispatched in                                                                                                                            |
+| `intent_judged`         | `false` in `snapshot`, `diff`, and a `pr` stating no intent                                                                                                |
+| `findings`              | `id` unique within the run — `S<n>`, continuing the numbering on a recheck                                                                                 |
+| `category`              | `injection`, `authn`, `authz`, `input`, `secrets`, `deserialization`, `exposure`, `trust-boundary`, `other`                                                |
+| `locations`             | every place the finding lives, each with the verbatim `anchor` line (secrets `<REDACTED>`); `ticket` when the plan says which ticket wrote it, else `null` |
+| `question`              | on an `ambiguous` finding, the yes/no the user answers; `null` on a `confirmed` one                                                                        |
+| `resolved`, `surviving` | recheck only — finding ids                                                                                                                                 |
+| `skipped_covered`       | `file:line — <ESLint rule>`, for every pattern you left to an enabled rule                                                                                 |
 
 ## You never edit
 

@@ -36,9 +36,6 @@ export interface QoqConfig {
     // `qoq plan`/`replan` chart the plan before approval, and `qoq execute` charts
     // the scribe's docs when docs are on too — through qoq-artist.
     unstable_skill_diagrams?: boolean;
-    // `qoq execute` security-sweeps each delivered milestone through qoq-sheriff,
-    // and `qoq plan` proposes an early per-ticket sweep for high-risk tickets.
-    unstable_skill_sheriff?: boolean;
     // `qoq execute` reviews each delivered milestone against its plan through
     // qoq-reviewer, then the whole plan once at the end, and asks for sign-off.
     unstable_skill_review?: boolean;
