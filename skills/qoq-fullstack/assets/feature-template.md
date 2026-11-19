@@ -44,7 +44,7 @@ keep the column names exactly as written.
 **Goal:** <one sentence, in the user's terms>
 **Feature status:** draft | approved | in-progress | complete
 **Branch:** feature/<slug>
-**Chief of staff:** <the session name the repo sessions message>
+**Chief of staff:** <this session's name as ListAgents lists it — never a made-up one>
 
 ## Actors
 
@@ -77,10 +77,12 @@ keep the column names exactly as written.
 | be        | `plans/2026-11-18-<slug>` |
 ```
 
-**Status** uses the same values as a plan's milestone rows. Only the chief of staff
+**Status** uses the same values as a plan's milestone rows, starting at `todo`. Only the chief of staff
 writes `delivered <YYYY-MM-DD>`, and only after the integration check passes.
 **Integration** is `none` only if the user said so while the BRD was being written.
-A **Repo plans** row of `none` is a repo that answered "no changes needed" and
+**Repo plans** starts empty. A row is written only when the user approves that
+repo's plan or its "no changes needed", because the scripts read any other
+cell, `pending` included, as a plan directory. A row of `none` is a repo that answered "no changes needed" and
 the user approved: it gets no session in `execute`.
 
 ## Contracts and the repo plans

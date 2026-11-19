@@ -13,7 +13,9 @@
         "No question or BRD line assigns a requirement to a repo or a role",
         "Postgres JSONB and signed S3 appear verbatim in the Parked technology questions list, which is a plain list with no repo or role column",
         "brd.md scenarios are Given/When/Then and each is tagged with a master milestone",
-        "No plans/ directory is written inside any repo by the chief of staff itself"
+        "No plans/ directory is written inside any repo by the chief of staff itself",
+        "Repo plans has no rows until a repo's plan or no-changes answer is approved",
+        "The BRD's Chief of staff line is this session's name as ListAgents lists it, not an invented one"
       ],
       "setup": "A parent folder `trackbook/` with feature.json (be, telemetry, ui with after: [be, telemetry], integration e2e). No BRD yet."
     },
@@ -29,7 +31,8 @@
         "No repo session is told to execute a milestone whose next.runnable is false",
         "The master milestone row is written delivered only after its integration check passed",
         "trackbook-telemetry, which has no plan and isn't in Repo plans, is skipped without a question",
-        "No execute is sent to a repo whose Repo plans row is none"
+        "No execute is sent to a repo whose Repo plans row is none",
+        "be, whose next.runnable is true, is started with /qoq execute without first asking the user"
       ],
       "setup": "A parent folder `trackbook/` with feature.json (be, telemetry, ui with after: [be, telemetry], integration e2e). feature/track-io/brd.md approved with M1 in-progress; be's plan M1 in-progress; ui's plan M1 todo, Depends on be:M1."
     },
@@ -89,7 +92,8 @@
         "Only be's session is launched right after BRD approval",
         "telemetry is not launched before be is settled",
         "ui is not launched before both be and telemetry are settled",
-        "Every repo in feature.json gets a /qoq plan launch"
+        "Every repo in feature.json gets a /qoq plan launch",
+        "Before writing a repo's Repo plans row, the chief reads that repo's plan index.md and sees Plan status: approved; it does not wait for the status script to show the plan"
       ]
     }
   ]

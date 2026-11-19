@@ -14,7 +14,9 @@ Run the setup from SKILL.md, then loop:
 2. **Wake each repo that has work**, out of the repos in the **Repo plans** table.
    A repo the BRD doesn't list is outside this run: skip it. `after` orders
    planning only, never execution, so it never makes a repo wait. A repo whose `next.runnable` is true and
-   whose session is idle or gone gets `/qoq execute <planDir>`. A resumed
+   whose session is idle or gone gets `/qoq execute <planDir>`. Don't ask
+   first. The user approved that plan and ran `execute`, so a question here
+   just stalls every runnable repo. A resumed
    execute reconciles an `in-progress` ticket against `git log` on its own
    (`qoq`'s execute reference), so restarting a dead session is always safe.
 3. **Integration.** For every master milestone with `integrationDue`, run each

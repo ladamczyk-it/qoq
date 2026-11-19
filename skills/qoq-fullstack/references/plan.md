@@ -59,7 +59,10 @@ Approval of each repo plan reaches the user through the relay, like any other
 question, and so does a **no changes needed** with its reason. A repo can't
 approve its own plan, nor its own "nothing to do".
 
-Once the user approves, check the files. Then write the repo's row into the
+Once the user approves, check the files: the plan directory's `index.md`
+exists and says `Plan status: approved`, or for `none`, no plan directory was
+written. Read the index itself. The status script can't see a repo's plan until
+its row is in the table, so it can't do this check. Then write the repo's row into the
 BRD's **Repo plans** table, as its plan directory or `none`, and start every repo
 whose `after` is now settled. A `none` repo's existing contracts still hold for
 the repos after it: they plan against its code as it stands.
