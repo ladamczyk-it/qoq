@@ -7,7 +7,13 @@
 Structurelint, Skillslint, Justify-disable and npm-outdated behind one CLI.
 Node >=22.15.0. The `qoq` skill (`skills/qoq/`) is a guarded delivery loop
 (plan, execute, fix) that uses that CLI as its gate, so describe it that way
-and not as a lint helper.
+and not as a lint helper. A second skill, `qoq-fullstack`
+(`skills/qoq-fullstack/`), is a separate plugin that depends on `qoq`. It's the
+chief of staff for one feature across several repos, with one `qoq` session per
+repo. Nothing in `skills/qoq` names it. `qoq` holds only the protocol a repo's
+share of a feature follows (`Serves`, `<repo>:M<N>`, `scripts/feature-status.mjs`
+and the `feature-state.mjs` core). Scripts only the chief of staff runs live in
+`skills/qoq-fullstack/scripts/` and import that core through `../../qoq/scripts/`.
 
 Structurelint, Skillslint and Justify-disable are the separate
 `@ladamczyk/structurelint`, `@ladamczyk/skillslint` and
@@ -37,16 +43,16 @@ Structurelint, Skillslint and Justify-disable are the separate
 ## Versioning
 
 `.claude-plugin/marketplace.json` is generated, not authored: `metadata.version`
-tracks the lib version and the plugin `description` is copied from
-`skills/qoq/SKILL.md`'s frontmatter. `scripts/sync-plugin-version.js` writes both
+tracks the lib version and each plugin's `description` is copied from
+`skills/<plugin name>/SKILL.md`'s frontmatter. `scripts/sync-plugin-version.js` writes both
 from semantic-release's `prepare` step (`npm run sync:plugin-version`), and
-`@semantic-release/git` commits them. **Never edit either by hand** — the release
+`@semantic-release/git` commits them. **Never edit either by hand** (adding a new plugin entry once is the exception) — the release
 run overwrites them, and a plugin description that disagrees with `SKILL.md` is a
 second stale trigger blurb in every session's context.
 
 ## Monorepo Layout
 
-- `hooks/` — the plugin's Claude Code hooks module (`execute`'s progress band), auto-discovered at the plugin root (a marketplace entry can't name it by path); `claude plugin test` runs its `*.test.tsx`, not vitest
+- `hooks/` — the plugin's Claude Code hooks module (`execute`'s plan band, and the `qoq-fullstack` feature board in a chief of staff's session), auto-discovered at the plugin root (a marketplace entry can't name it by path); `claude plugin test` runs its `*.test.tsx`, not vitest
 - `packages/cli` — the `qoq` CLI binary; main orchestrator
 - `packages/utils` — shared utilities
 - `packages/check-engine` — node version enforcement
@@ -60,7 +66,7 @@ second stale trigger blurb in every session's context.
 
 `packages/*/src/**/*.spec.{ts,js}`, Vitest across all packages.
 
-The `skills/qoq/scripts/*.node-test.mjs` files are **`node:test`, not Vitest** —
+The `skills/*/scripts/*.node-test.mjs` files are **`node:test`, not Vitest** —
 `vitest.config.js`'s `projects: ['packages/*']` never sees them. `npm run
 test:skill` runs them, and `husky:pre-push` does too. Appending them to `npm
 test` would break the documented `npm test Name`, since npm puts extra args at
@@ -91,9 +97,12 @@ that stops a wrong action stays in the skill; a why that only argues for a
 decision already made goes to `qoq-design.md` — is `references/compress.md`'s own
 test, applied to the skill itself.
 
-**All three change in the same commit, every direction.** Prose in `skills/qoq/`
-→ update the matching diagram in `docs/qoq-workflows.md` and any design note in
-`docs/qoq-design.md` that argues for it. A diagram → update the reference file
+**All three change in the same commit, every direction**, for each skill and its
+own docs pair: `skills/qoq/` ↔ `docs/qoq-workflows.md` + `docs/qoq-design.md`,
+and `skills/qoq-fullstack/` ↔ `docs/qoq-fullstack-workflows.md` +
+`docs/qoq-fullstack-design.md` (overview chart first). Prose in a skill → update
+the matching diagram and any design note that argues for it. Its evals are
+`evals/qoq-fullstack-evals.json`. A diagram → update the reference file
 its header table names.
 
 Prose wins on a disagreement. But a stale diagram or a design note for a rule

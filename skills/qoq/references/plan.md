@@ -228,6 +228,34 @@ carries, and it stays there after it's answered.
 
 ## Phase 3 — Breakdown
 
+### Planning a repo's share of a feature
+
+A plan can be one repo's share of a **cross-repo feature**: one feature across several
+repos, coordinated by a chief-of-staff session that started this one. When the
+launch prompt names a chief of staff, the
+requirements are the whole BRD, and the parked technology questions that land
+here become the first round of `grilling`. **Decide first whether anything lands
+in this repo.** If nothing does, write no plan and report
+`no changes needed — <one line why>` to the chief of staff: that's a valid
+outcome, and it unblocks the repos planned after this one. Every grilling round and the
+approval go to the chief of staff with `SendMessage`, never to a local prompt.
+On top of the usual plan:
+
+- the `Feature` header line, and a **Serves** column in the Milestones table
+  ([plan-template.md](../assets/plan-template.md#a-repos-share-of-a-feature));
+- a contract consumed from `../contracts/<name>.md` goes **verbatim** into the
+  consuming milestone's `Contracts`, and that milestone `Depends on` the
+  contract's provider, written `<repo>:M<N>`;
+- a contract this repo provides, once the plan is approved, is written to
+  `../contracts/<name>.md` before you report back;
+- **Depends on lists only hard dependencies**: what this milestone can't be
+  built without. Don't chain a milestone to the one before it by default. Row
+  order is the delivery order, and the chief of staff may ask for the rows to be
+  reordered so another repo is unblocked sooner. Apply that as asked: the order
+  changes, while every number, dependency and file stays as it is;
+- a piece another repo needs (a contract, translations, a shared endpoint) goes
+  in its own small milestone, so the consumer waits for that piece alone.
+
 ### Two independent subsystems don't get one plan
 
 Say so and write separate plans — a plan with two unrelated halves can never be
@@ -467,6 +495,8 @@ changing code:
    confirmation; approving a plan is not the same act as publishing it into a
    team's tracker. Declined, the plan stands on its own and the export can
    be run later.
-2. **Offer `qoq execute`** and run it on a yes. Never dispatch a ticket from
+2. **Offer `qoq execute`** and run it on a yes. A repo planning its share of a
+   feature offers nothing: it reports to the chief of staff,
+   which starts execution. Never dispatch a ticket from
    here. The plan directory is the entire handoff, and folding execution in would put
    decomposition reasoning back into the context that has to run the plan.

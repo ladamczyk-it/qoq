@@ -44,7 +44,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "knip": "6.45.1"
+    "knip": "6.46.1"
   },
   "devDependencies": {
     "rimraf": "6.1.4",

@@ -47,6 +47,18 @@ milestone established reaches them through their own **Context**, written at
 delivery. The one exception is the end-of-plan pass, which reads every
 milestone's **Outcome** block.
 
+**A plan with a `Feature` header line** is one repo's share of a
+feature ([plan.md](plan.md#planning-a-repos-share-of-a-feature)). The
+cross-repo answer comes from
+`node <skill>/scripts/feature-status.mjs --root .. --feature <slug>`.
+Its `next` entry for this repo is the next milestone, and the script treats a
+`<repo>:M<N>` dependency, and a master milestone that hasn't passed
+integration yet, the same way as any other dependency that isn't delivered.
+When `next.runnable` is false, stop at that milestone boundary and report what
+`waitingOn` lists. That's a normal pause, not a blocked ticket. Every question
+this run would ask the user goes to the chief of staff named in the launch
+prompt, using `SendMessage`. Write to the plan file before you send it.
+
 A ticket sitting at `in-progress` means a previous run died mid-flight.
 Reconcile against `git log`: if the ticket's files were committed, mark it
 `done`; otherwise re-dispatch it. Don't ask the user to remember what happened.
