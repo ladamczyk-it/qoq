@@ -1,3 +1,17 @@
+# [7.1.0](https://github.com/ladamczyk-it/qoq/compare/v7.0.0...v7.1.0) (2026-11-19)
+
+
+### Bug Fixes
+
+* bump packages ([26011a2](https://github.com/ladamczyk-it/qoq/commit/26011a2490f250258624ea270bbfa8fb0061bb51))
+* **skill:** qoq-fullstack evals 1-6 pass, three planning gaps closed ([3622638](https://github.com/ladamczyk-it/qoq/commit/3622638b21dfb6654f9dad1df2eada229771d998))
+
+
+### Features
+
+* **skill:** qoq-fullstack names it a feature, and owns its chief-only scripts ([a6f9af9](https://github.com/ladamczyk-it/qoq/commit/a6f9af953e45eb245d666f5b40b2a6504b76d4fd))
+* **skill:** qoq-fullstack, a chief of staff for one feature across several repos ([6f842fc](https://github.com/ladamczyk-it/qoq/commit/6f842fc7cecf2776ac1cbd991e6c763878e01c88))
+
 # [7.0.0](https://github.com/ladamczyk-it/qoq/compare/v6.8.2...v7.0.0) (2026-11-18)
 
 
