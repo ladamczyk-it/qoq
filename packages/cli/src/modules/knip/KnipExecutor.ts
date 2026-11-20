@@ -44,6 +44,7 @@ export class KnipExecutor extends AbstractCommandExecutor {
         ignoreFiles,
         ignoreMembers,
         ignoreUnresolved,
+        workspaces: extraWorkspaces,
       } = knip as IModuleKnipConfig;
       const configFilePath = resolveCliPackagePath(
         `/bin/knip.config.${configType === EConfigType.ESM ? 'm' : 'c'}js`
@@ -61,7 +62,7 @@ export class KnipExecutor extends AbstractCommandExecutor {
         ignoreUnresolved
       );
 
-      if (!workspaces) {
+      if (!workspaces && !extraWorkspaces) {
         writeFileSync(
           configFilePath,
           formatCode(this.modulesConfig.configType, {}, [], JSON.stringify(configForFile))
@@ -69,19 +70,25 @@ export class KnipExecutor extends AbstractCommandExecutor {
       } else {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { entry: srcEntry, project: srcProject, ...rest } = configForFile;
+        // Once Knip sees `workspaces`, top-level entry/project no longer apply to the root,
+        // so the root moves to "." unless npm workspaces already name every package.
+        const rootWorkspaces = workspaces ?? ['.'];
 
         const newConfigForMonorepo = {
           ...rest,
-          workspaces: workspaces.reduce(
-            (acc: Record<string, { entry: string[]; project: string[] }>, current: string) => {
-              acc[current] = {
-                entry,
-                project,
-              };
-              return acc;
-            },
-            {}
-          ),
+          workspaces: {
+            ...rootWorkspaces.reduce(
+              (acc: Record<string, Record<string, unknown>>, current: string) => {
+                acc[current] = {
+                  entry,
+                  project,
+                };
+                return acc;
+              },
+              {}
+            ),
+            ...extraWorkspaces,
+          },
         };
 
         writeFileSync(

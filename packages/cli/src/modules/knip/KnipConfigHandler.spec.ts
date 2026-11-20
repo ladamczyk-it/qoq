@@ -46,9 +46,43 @@ describe('KnipConfigHandler', () => {
         },
       });
     });
+
+    it('should serialize knip.workspaces when set', () => {
+      const handler = new KnipConfigHandler(
+        {
+          ...structuredClone(dummyModulesConfig),
+          modules: {
+            knip: {
+              entry: ['src/{index,cli,main,root}.{js,ts}'],
+              project: ['src/**/*.{js,ts}'],
+              ignore: [],
+              ignoreDependencies: [],
+              ignoreBinaries: [],
+              ignoreFiles: [],
+              ignoreMembers: [],
+              ignoreUnresolved: [],
+              workspaces: { website: {} },
+            },
+          },
+        },
+        {}
+      );
+
+      expect(handler.getConfigFromModules().knip?.workspaces).toStrictEqual({ website: {} });
+    });
   });
 
   describe('getModulesFromConfig', () => {
+    it('should carry knip.workspaces into the modules verbatim', () => {
+      const handler = new KnipConfigHandler(structuredClone(dummyModulesConfig), {
+        knip: { workspaces: { website: { entry: ['src/pages/**'] } } },
+      });
+
+      expect(handler.getModulesFromConfig().modules.knip?.workspaces).toStrictEqual({
+        website: { entry: ['src/pages/**'] },
+      });
+    });
+
     it('should return the modules from config', () => {
       expect(configHandler.getModulesFromConfig()).toStrictEqual({
         configPaths: {

@@ -7,4 +7,5 @@ export interface IModuleKnipConfig {
   ignoreFiles: string[];
   ignoreMembers: string[];
   ignoreUnresolved: string[];
+  workspaces?: Record<string, Record<string, unknown>>;
 }
