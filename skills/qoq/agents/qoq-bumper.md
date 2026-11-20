@@ -1,9 +1,15 @@
 ---
 name: qoq-bumper
-description: Reads a single npm package's changelog, release notes, and migration guide for the range between its current version and the next sensible target, then greps this codebase to find which of those breaking changes actually land here. Dispatched by `qoq bump` once per major-version package, and for any package the split ladder gave up on. Takes the package name, current version and repository URL — it resolves the target itself. Returns breaking changes with the files they affect, migration steps, and a risk read. Never edits anything.
+description: Finds which breaking changes in one npm package upgrade land in this codebase. Dispatched by `qoq bump` only, one per package; never edits.
 model: sonnet
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 omitClaudeMd: true
+hooks:
+  PreToolUse:
+    - matcher: Bash
+      hooks:
+        - type: command
+          command: node "$CLAUDE_PROJECT_DIR/.claude/skills/qoq/scripts/agent-guard.mjs" qoq-bumper || exit 2
 ---
 
 # qoq-bumper
