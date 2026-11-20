@@ -1,6 +1,6 @@
 ---
 name: qoq
-description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`, `document`, `mermaid`, `sheriff`, `review`, `feedback`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped or known vulnerabilities in them fixed, a spec broken into tickets, an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context, the why behind code written down as JSDoc and `./docs` for the next session or person, a flow, lifecycle, data model or architecture drawn as a Mermaid diagram that renders on GitHub, or a change or a path checked for security problems a linter can't see — injection, missing auth checks, leaked secrets, unsafe input, or a delivered change or pull request checked against its plan or description for wrong turns, scope creep or inconsistency between tickets, or feedback about qoq itself passed to its maintainers. Trigger it even when the user never says "qoq" or names a tool.
+description: Guarded delivery loop and quality gate for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`, `document`, `mermaid`, `sheriff`, `review`, `feedback`. Use it whenever the user wants lint or formatting cleaned up, dead code or dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped or their vulnerabilities fixed, a spec broken into tickets, a stalled plan reshaped, an approved plan executed or resumed (from a plan file or a Jira, Linear or Trello milestone), tests written for existing code, CLAUDE.md, AGENTS.md or skill docs made terser, the why behind code written down as JSDoc and `./docs`, a Mermaid diagram drawn, a change checked for security problems a linter can't see, a delivery or pull request checked against its plan or description, or feedback about qoq sent to its maintainers. Trigger it even when the user never says "qoq" or names a tool.
 argument-hint: '[fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff|review|feedback] [scope]'
 allowed-tools:
   - Read
@@ -13,8 +13,8 @@ allowed-tools:
   - AskUserQuestion
   - Bash(npm run:*)
   - Bash(npm test:*)
-  - Bash(npm install:*)
-  - Bash(npm ci:*)
+  - Bash(npm install)
+  - Bash(npm ci)
   - Bash(npm view:*)
   - Bash(npx qoq:*)
   - Bash(git clone:*)
@@ -25,10 +25,8 @@ allowed-tools:
   - Bash(git diff:*)
   - Bash(git add:*)
   - Bash(git commit:*)
-  - Bash(git checkout:*)
   - Bash(git branch:*)
   - Bash(git apply:*)
-  - Bash(git restore:*)
   - Bash(git revert:*)
   - Bash(git symbolic-ref:*)
   - Bash(git merge-base:*)
@@ -46,8 +44,12 @@ hooks:
             let s = "";
             process.stdin.on("data", (d) => (s += d)).on("end", () => {
               const c = JSON.parse(s).tool_input?.command ?? "";
-              if (/(^|[\s;&|(`])npx\s+(?:-{1,2}[\w-]+\s+)*(?!qoq(?:\s|$))[^\s-]/.test(c)) {
+              if (/(^|[\s;&|(`])(?:npx|npm\s+(?:exec|x))\s+(?:-{1,2}[\w-]+\s+)*(?!qoq(?:\s|$))[^\s-]/.test(c)) {
                 process.stderr.write("qoq: npx is for qoq and nothing else. Run the project script verbatim (npm test, npm run <script>); a project with no script for this is a question for the user.\n");
+                process.exit(2);
+              }
+              if (/(^|[\s;&|(`])node\s+(?:-\S+\s+)*?(?:-[a-zA-Z]*[ep]|--eval|--print)(?=[\s=]|$)/.test(c)) {
+                process.stderr.write("qoq: node runs a script file here, never inline code (-e, -p). Use the skill\u0027s scripts or the project\u0027s own; anything else is a question for the user.\n");
                 process.exit(2);
               }
             });
@@ -109,7 +111,6 @@ not a path.
 | `/qoq execute <plan> --session-limit 60`       | stop before spending past 60% of the 5-hour limit      |
 | `/qoq execute <plan> --weekly-limit 80`        | same for the 7-day limit; both default to 100          |
 | `/qoq execute <plan> --docs`                   | also document each milestone — experimental, opt-in    |
-| `/qoq execute <plan> --review`                 | also review each milestone and the plan — experimental |
 | `/qoq test <what to cover>`                    | —                                                      |
 | `/qoq compress`                                | every `CLAUDE.md` and `AGENTS.md` git tracks           |
 | `/qoq compress docs/ skills/qoq/references`    | those paths only                                       |
@@ -126,32 +127,15 @@ not a path.
 | `/qoq feedback`                                | asks which command or agent it's about                 |
 | `/qoq feedback qoq-developer`                  | about that agent — any command, agent, or `qoq`        |
 
-Eleven flags exist. `--decisions auto` is for the two callers that can't stop to
-answer questions — `execute`'s milestone gate and `bump`
-([references/refactor.md](references/refactor.md)). `--session-limit` and
-`--weekly-limit` cap what a plan run may spend of the account's 5-hour and 7-day
-limits; give neither and no usage check runs at all
-([references/execute.md](references/execute.md)). `--docs` turns on `execute`'s
-experimental per-milestone `document` step, which `qoq.config`'s
-`future.unstable_skill_docs: true` also does. `--scan` is the same kind of switch
-for `bump`'s experimental vulnerability scan, and
-`future.unstable_skill_bump_with_scan: true` is its config twin. `--diagrams`
-(twin: `future.unstable_skill_diagrams: true`) turns on `qoq-artist` in `plan`,
-`replan` and — with docs on too — `execute`; `--to` is where `mermaid` writes
-([references/mermaid.md](references/mermaid.md)). `execute`'s milestone security
-sweep and `plan`'s `Security sweep` proposals are always on, with no switch
-([references/sheriff.md](references/sheriff.md)). `--review` (twin:
-`future.unstable_skill_review: true`) turns on `execute`'s milestone review, the
-end-of-plan pass and the sign-off ([references/review.md](references/review.md)).
-
-`--tool` and `--source` are the two ends of the same road, and both default to
-`local`. `--tool` is `plan`'s: `jira`, `linear` or `trello` offer to raise the
-approved tickets there. `--source` is `execute`'s: those same three values ask
-which milestone to run, import it into a plan directory, and then execute it
-like any other. Both directions are experimental: each tracker needs its
-`future.unstable_skill_plan_<tool>: true` in `qoq.config` as well, and the flag
-alone is refused ([references/plan.md](references/plan.md)). Neither makes a tracker authoritative — the plan directory is
-the state in both directions ([references/export.md](references/export.md)).
+Each flag belongs to the command in its row, and that command's reference owns
+it. Three things hold across them. `--scan`, `--docs`, `--diagrams`, `--tool`
+and `--source` are experimental, each with a `future.unstable_skill_*` twin in
+`qoq.config`; the trackers need flag and twin both, and the flag alone is
+refused. `execute`'s security sweep and review run at every milestone, with no
+switch. `--decisions auto` is only for the two callers that can't stop to ask:
+`execute`'s milestone gate and `bump`. Neither `--tool` nor `--source` makes a
+tracker authoritative — the plan directory is the state
+([references/export.md](references/export.md)).
 
 ## Entry
 
@@ -209,7 +193,7 @@ Commands compose, but **only on the main thread**.
 | `document` | its own `qoq-scribe`; offers `mermaid`                                                               | `execute` — per milestone, after the gate                           |
 | `mermaid`  | its own `qoq-artist`                                                                                 | `plan`, `replan`, `execute` — when `--diagrams` is on               |
 | `sheriff`  | its own `qoq-sheriff`; `fix` to re-gate                                                              | `execute` — every milestone, always                                 |
-| `review`   | `code-review` (external), its own `qoq-reviewer` ×2 axes; `fix`; `sheriff`                           | `execute` — per milestone and once per plan, when `--review` is on  |
+| `review`   | `code-review` (external), its own `qoq-reviewer` ×2 axes; `fix`; `sheriff`                           | `execute` — every milestone and once per plan, always               |
 | `feedback` | —                                                                                                    | every top-level command, at the end, when `learn.mjs --due` says so |
 
 `compress` changes what future runs read, never what this one does, so no
@@ -250,10 +234,12 @@ Never compose `npx vitest …` or `npx tsc …` out of a dependency spotted in
 files, and it is plausible enough that nobody notices it was invented. A project
 with no script for something is a project that has to be asked.
 
-**Nothing runs in parallel.** Not tickets, not test slices, not assessments, not
-patches. Every check that matters is an attribution question — "did _this_
-change break it?" — which a second agent writing concurrently makes
-unanswerable.
+**Nothing that writes runs in parallel.** Not tickets, not test slices, not
+patches, not anything that edits or commits. Every check that matters is an
+attribution question — "did _this_ change break it?" — which a second agent
+writing concurrently makes unanswerable. Read-only agents may run together
+where a reference says so (`review`'s two axes); `refactor`'s assessments stay
+sequential for their own reason ([references/refactor.md](references/refactor.md)).
 
 **An agent that reports never fixes.** `qoq-checker`, `qoq-bumper`,
 `qoq-designer`, `qoq-architect`, `qoq-test-reviewer`, `qoq-sheriff`, `qoq-reviewer` and `qoq-retro` return findings and edit
@@ -277,28 +263,26 @@ read.
 
 ## Agents
 
-Twelve, in `agents/`. Everything is pinned except five: `qoq-developer`, whose tier
-is a property of the ticket and is passed at dispatch, `qoq-scribe`, whose tier
-follows its mode and is passed at dispatch, `qoq-architect`, which
-inherits the session's model because a design error propagates into every ticket
-that inherits the contract, and `qoq-sheriff` and `qoq-reviewer`, which run at
-the session's model, always cold, because a judgment read shares the author's
-blind spots at any cheaper tier.
+Twelve, in `agents/`. Each one's model is in its own frontmatter. Four have
+none: `qoq-developer` and `qoq-scribe` take the tier passed at dispatch (the
+ticket's rating, the scribe's mode), and `qoq-architect` and `qoq-sheriff`
+inherit the session's model, because a design error propagates into every
+ticket and a missed security finding ships. Never pin a tier on those four.
 
-| Agent               | Model      | Job                                                         |
-| ------------------- | ---------- | ----------------------------------------------------------- |
-| `qoq-checker`       | haiku      | run the tools, return the digest — one per `fix` loop       |
-| `qoq-bumper`        | sonnet     | read a changelog, find what lands here — one per package    |
-| `qoq-architect`     | _session_  | contracts · surface · risks · unknowns — one per plan       |
-| `qoq-developer`     | _dispatch_ | one ticket, red → green per criterion — one per ticket      |
-| `qoq-test-reviewer` | sonnet     | do the specs test the criteria — one per ticket, pre-commit |
-| `qoq-tester`        | sonnet     | write the specs for one slice — one per slice               |
-| `qoq-designer`      | sonnet     | stack → smells → patterns — `refactor`'s assessment 4       |
-| `qoq-scribe`        | _dispatch_ | the why, as comments and docs — one per run or milestone    |
-| `qoq-artist`        | sonnet     | a validated Mermaid chart, or a reasoned decline            |
-| `qoq-sheriff`       | _session_  | logic-level security findings — one per sweep or recheck    |
-| `qoq-reviewer`      | _session_  | spec · standards axes, in parallel — per milestone or plan  |
-| `qoq-retro`         | sonnet     | lessons from retries — per retried milestone, then the plan |
+| Agent               | Job                                                         |
+| ------------------- | ----------------------------------------------------------- |
+| `qoq-checker`       | run the tools, return the digest — one per `fix` loop       |
+| `qoq-bumper`        | read a changelog, find what lands here — one per package    |
+| `qoq-architect`     | contracts · surface · risks · unknowns — one per plan       |
+| `qoq-developer`     | one ticket, red → green per criterion — one per ticket      |
+| `qoq-test-reviewer` | do the specs test the criteria — one per ticket, pre-commit |
+| `qoq-tester`        | write the specs for one slice — one per slice               |
+| `qoq-designer`      | stack → smells → patterns — `refactor`'s assessment 4       |
+| `qoq-scribe`        | the why, as comments and docs — one per run or milestone    |
+| `qoq-artist`        | a validated Mermaid chart, or a reasoned decline            |
+| `qoq-sheriff`       | logic-level security findings — one per sweep or recheck    |
+| `qoq-reviewer`      | spec · standards axes, in parallel — per milestone or plan  |
+| `qoq-retro`         | lessons from retries — per retried milestone, then the plan |
 
 Entry copies them into the project's `.claude/agents/`, because an agent file
 inside a skill is registered by nothing, and Claude Code picks that directory up

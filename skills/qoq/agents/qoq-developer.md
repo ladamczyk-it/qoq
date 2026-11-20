@@ -59,7 +59,7 @@ can't call a skill:
 - **An interface in doubt is a hand-back**, never a `codebase-design` session:
   the Contract is fixed, and a wrong one is `blocker_kind: plan`.
 - **Refactoring is not yours.** `tdd` puts it in review; here that is the
-  milestone's `qoq refactor` — and `qoq-reviewer`, when the run has review on.
+  milestone's `qoq refactor` — and `qoq-reviewer`.
 
 ## Red → green, one criterion at a time
 

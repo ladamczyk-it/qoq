@@ -24,7 +24,7 @@ repo it lands in asks it in its own grilling, against code this thread has
 never read.
 
 `feature.json` missing → write it with the user: every repo, its role, any
-`after`, every integration check, and the `permissionMode` repo sessions run in. Never guess an integration check. A
+`after`, every integration check, and the `permissionMode` and `model` repo sessions run in. Never guess an integration check. A
 master milestone with no check is one the user explicitly said needs none.
 
 ## 2. Write and approve the BRD

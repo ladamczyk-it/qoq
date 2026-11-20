@@ -15,6 +15,10 @@ allowed-tools:
   - Bash(git branch:*)
   - Bash(node:*)
   - Bash(claude --version:*)
+  - Bash(claude --bg:*)
+  - Bash(cd:*)
+  - Bash(git switch:*)
+  - Bash(git checkout -b:*)
 ---
 
 # QoQ fullstack — a scrum of scrums
@@ -71,17 +75,21 @@ sends a message, so if a message and the file disagree, believe the file.
 One session per repo, named `<project>-<repo>` (e.g. `trackbook-be`):
 
 ```
-cd <root>/<path> && claude --bg --model opus --permission-mode <mode> --name <project>-<repo> "<launch prompt>"
+cd <root>/<path> && claude --bg --model <model> --permission-mode <mode> --name <project>-<repo> "<launch prompt>"
 ```
 
 `<mode>` is `feature.json`'s `permissionMode`, which the user chose when the
 file was written. Never infer it from this session's own mode. A background session that hits a
 permission prompt waits in a window nobody is watching.
 
-**Repo sessions run on `opus`.** Inside its repo, a session is the lead that
+`<model>` is `feature.json`'s `model`, chosen by the user with the same file;
+`opus` is the recommendation. Inside its repo, a session is the lead that
 makes the decisions: it plans, gates and escalates, and it dispatches each
-ticket to a `qoq-developer` at the tier the plan rated. `opus` resolves
-through the user's `ANTHROPIC_DEFAULT_OPUS_MODEL`, like every `qoq` tier.
+ticket to a `qoq-developer` at the tier the plan rated. A tier name resolves
+through the user's `ANTHROPIC_DEFAULT_*_MODEL`, like every `qoq` tier. A
+`feature.json` written before the field existed has none: ask once, recommend
+`opus`, write the answer in, then launch. Never infer it from this session's
+model.
 
 Each session starts in its own repo, so it loads that repo's CLAUDE.md,
 `qoq.config`, discovery record and agents. Start a session only if `ListAgents`
@@ -153,5 +161,5 @@ Before the first session starts in a repo, check:
 
 ## Status
 
-Read-only, and a Haiku-sized job (`/model haiku`). Run `node ${CLAUDE_SKILL_DIR}/scripts/status.mjs --root <root> --feature <slug>`
+Read-only. Run `node ${CLAUDE_SKILL_DIR}/scripts/status.mjs --root <root> --feature <slug>`
 and print what it prints. With no slug, list `feature/*/` and ask which one.

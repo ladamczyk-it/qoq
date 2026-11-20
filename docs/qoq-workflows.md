@@ -569,10 +569,8 @@ flowchart TD
     EMSUITE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
     ENEW --> EWAVE
     EMSUITE -->|green| ESH["**qoq sheriff — milestone sweep**<br/>*always on* · see the sheriff chart<br/>qoq-sheriff at the session's model, cold,<br/>over the done tickets' range ·<br/>confirmed critical/high → remediation ·<br/>ambiguous critical/high → **stop, ask** ·<br/>medium/low → Security advisory"]
-    ESH --> ERVQ
-    ERVQ{"review on?<br/>*--review, or qoq.config<br/>future.unstable_skill_review*"}
-    ERVQ -->|"no — the default"| EDOCQ
-    ERVQ -->|yes| ERV["**qoq review — milestone review**<br/>*experimental* · see the review chart<br/>qoq-reviewer · spec + standards axes,<br/>session's model, cold, over the final diff, security fixes in ·<br/>confirmed high → remediation ·<br/>judgment high → **stop, ask** ·<br/>medium/low → Review advisory"]
+    ESH --> ERV
+    ERV["**qoq review — milestone review**<br/>*always on* · see the review chart<br/>qoq-reviewer · spec + standards axes,<br/>sonnet, cold, over the final diff, security fixes in ·<br/>confirmed high → remediation ·<br/>judgment high → **stop, ask** ·<br/>medium/low → Review advisory"]
     ERV --> EDOCQ
     EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
     EDOCQ -->|"no — the default"| ERETQ
@@ -586,19 +584,15 @@ flowchart TD
     EARCH --> EMS{"milestones<br/>left?"}
     EMS -->|yes| EWAVE
     EMS -->|no| EFRQ{"any milestone<br/>had a retro?"}
-    EFRQ -->|no| ERVP
+    EFRQ -->|no| ERVPLAN
     EFRQ -->|yes| EFRET(["**final retro** — qoq-retro merges every<br/>Retro, ranked by recurrence → ## Retro.<br/>*only one Retro → taken as is, no dispatch*<br/>planning + skill lessons, **no ask** →<br/>**estimate.mjs --lesson**, and to **learn.mjs**<br/>when learning consent is on.<br/>**ASK** only about code lessons: add a<br/>follow-up milestone for them?<br/>*a Feature plan: never asked — code<br/>lessons reported to the chief of staff*"])
     EFRET -->|"follow-up yes — *only if the<br/>plan has none yet*"| EFUP["**Follow-up: retro lessons** appended to<br/>this plan — plan.md Phase 3, no grill,<br/>no architect · approved, then run.<br/>*its own retro reports only, never<br/>a second follow-up*"]
     EFUP --> EWAVE
-    EFRET -->|"no follow-up"| ERVP
-    ERVP{"review on?"}
-    ERVP -->|"no — the default"| EDWALK
-    ERVP -->|yes| ERVPLAN["**end-of-plan review** — every milestone<br/>delivered, none blocked · qoq-reviewer,<br/>mode plan, axis spec · gaps → **ask**: Plan gaps<br/>milestone · replan · accept · drop"]
+    EFRET -->|"no follow-up"| ERVPLAN
+    ERVPLAN["**end-of-plan review** — every milestone<br/>delivered, none blocked · qoq-reviewer,<br/>mode plan, axis spec · gaps → **ask**: Plan gaps<br/>milestone · replan · accept · drop"]
     ERVPLAN --> EDWALK
     EDWALK["**walk the user through every<br/>milestone's Refactor, Docs, Security<br/>and Review advisories, once** —<br/>drift · markers · skipped questions.<br/>marker answers → **docs: resolve<br/>scribe markers** commit"]
-    EDWALK --> ESIGNQ{"review on?"}
-    ESIGNQ -->|"no — the default"| EFIN
-    ESIGNQ -->|yes| ESIGN(["**sign-off** — verdict · asked vs<br/>delivered · open items · gate evidence ·<br/>yes → **Signed off** in the plan header"])
+    EDWALK --> ESIGN(["**sign-off** — verdict · asked vs<br/>delivered · open items · gate evidence ·<br/>yes → **Signed off** in the plan header"])
     ESIGN --> EFIN(["**done** — plan delivered"])
 
     classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
@@ -896,8 +890,8 @@ flowchart TD
     VINT -->|"no — empty, template, bare link"| VNOINT["intent not judged —<br/>spec: own-contract correctness only,<br/>no scope or gap · standards unchanged"]
     VNOINT --> VDISP
 
-    VEXEC["execute's milestone gate, after the sheriff —<br/>**only with --review or<br/>future.unstable_skill_review: true**"] --> VDISPM["mode **milestone** — final range ·<br/>union · Goal · Contracts · criteria ·<br/>Review context · Security line ·<br/>earlier Review lines · refactor advisories"]
-    VDISP["mode **pr** · range rev-parsed, diff<br/>non-empty · **two dispatches together**,<br/>session's model, cold"] --> VBASE
+    VEXEC["execute's milestone gate, after the sheriff —<br/>**every milestone, always**"] --> VDISPM["mode **milestone** — final range ·<br/>union · Goal · Contracts · criteria ·<br/>Review context · Security line ·<br/>earlier Review lines · refactor advisories"]
+    VDISP["mode **pr** · range rev-parsed, diff<br/>non-empty · **two dispatches together**,<br/>sonnet, cold"] --> VBASE
     VDISPM --> VBASE
     VBASE -->|"yes — invoked once per run"| VAG
     VBASE -->|"yes"| VAGS
@@ -969,7 +963,7 @@ flowchart TD
     FASKT --> FCAT
     FEND(["a **top-level** run printed its last line<br/>*never an inner command, --decisions auto,<br/>a Feature plan's run, or feedback itself*"]) --> FDUE{"learn.mjs --due<br/>*--ended-badly on a FAIL,<br/>a blocked ticket, a stop*"}
     FDUE -->|"exit 1 — asked this week"| FQUIET(["say nothing"])
-    FDUE -->|"exit 0"| FSAT(["**ASK** did /qoq &lt;command&gt;<br/>do what you needed?"])
+    FDUE -->|"exit 0"| FSAT(["**ASK** did /qoq &lt;command&gt;<br/>do what you needed?<br/>*says the answer goes to the<br/>maintainers, Skip sends nothing*"])
     FSAT -->|yes| FSEND
     FSAT -->|skip| FQUIET
     FSAT -->|"no — target known"| FCAT
@@ -978,7 +972,7 @@ flowchart TD
     FTXT -->|no| FSEND
     FTXT -->|yes| FREW["**rewrite** without paths, files,<br/>identifiers, packages, project names —<br/>keep what they meant"]
     FREW --> FPREV(["**ASK** — This goes to the qoq<br/>maintainers: the exact text ·<br/>Send · Don't send"])
-    FPREV -->|send| FSEND["**learn.mjs --kind feedback**<br/>target · category · text.<br/>*no consent flag: typing it is the consent*<br/>exit 3 → rewrite again, not the user's job"]
+    FPREV -->|send| FSEND["**learn.mjs --kind feedback**<br/>target · category · text.<br/>*no consent flag: answering is the consent*<br/>exit 3 → rewrite again, not the user's job"]
     FPREV -->|"don't send"| FQUIET
     FSEND --> FOUT(["one line: sent · unreachable"])
 

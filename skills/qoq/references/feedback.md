@@ -5,8 +5,9 @@ skill asks once a run is over. People rarely volunteer praise. They speak up
 when something didn't work, and that's the signal worth keeping. Either way it
 is one record: a **target**, a **category**, and optional **text**.
 
-Typing feedback is the consent. No `learning` flag is read, and nothing is asked
-before the questions below.
+Answering is the consent: typing `/qoq feedback`, or answering the end-of-run
+question, which says where the answer goes. No `learning` flag is read, and
+nothing is asked before the questions below.
 
 ## Asking: always the dialog
 
@@ -63,8 +64,10 @@ Pass `--ended-badly` when the run ended on a FAIL, a `blocked` ticket, or a stop
 the user didn't choose. That's when an answer is worth most, so it's due every
 time. Otherwise it's due once a week per machine. Exit 1 → say nothing.
 
-Exit 0 → one question: _Did `/qoq <command>` do what you needed?_ **Yes** ·
-**No** · **Skip**.
+Exit 0 → one question: _Did `/qoq <command>` do what you needed? Your answer
+goes to the qoq maintainers; Skip sends nothing._ **Yes** · **No** · **Skip**.
+Keep that second sentence: unlike `/qoq feedback`, nobody here chose to give
+feedback, so the question itself is the disclosure.
 
 - **Yes** → send `--target <command> --category satisfied`, no text, no preview.
 - **No** → the category question above, with the target already known, then the

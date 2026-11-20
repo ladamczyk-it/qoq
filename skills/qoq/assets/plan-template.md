@@ -202,7 +202,7 @@ ticket was raised as; absent otherwise>
       not the scoped variants a ticket gate uses)
 - [ ] Sheriff on: `qoq-sheriff` over the milestone's diff, its findings routed
       and recorded on the Outcome block's **Security** line
-- [ ] Review on: `qoq-reviewer` (spec + standards) over the final diff, findings
+- [ ] Review: `qoq-reviewer` (spec + standards) over the final diff, findings
       routed and recorded on the Outcome block's **Review** line
 - [ ] Any ticket retried: `qoq-retro` over this file's Logs, its lessons
       written below as the Retro section and counted on the Outcome block's
@@ -290,8 +290,7 @@ ticket was raised as; absent otherwise>
   sweep; the second is a plan-time proposal the user confirmed, buying a ticket
   an early sweep before its commit; the third records how every finding ended,
   which keeps an accepted risk visible to whoever reads the plan later.
-- **Review context**, **Review** and **Signed off** are the reviewer's, and
-  absent while it's off. The first is the user's answer to a `qoq-reviewer`
+- **Review context**, **Review** and **Signed off** are the reviewer's. The first is the user's answer to a `qoq-reviewer`
   question, passed to every later review. The second records how every finding
   ended. An accepted entry carries its anchor and reason because it's the only
   record of the acceptance: later reviews read it instead of a marker in the

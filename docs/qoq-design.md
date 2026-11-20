@@ -257,6 +257,27 @@ rare, and the message says why. It has no exception for an `npx` the project's
 docs give, either. Discovery used to record one as an answer, which left a field
 the hook would never let run. Now it asks for a script that wraps it.
 
+The same hook blocks `npm exec` and `npm x`, which are `npx` under another
+name, and inline `node -e`/`-p`. That second rule is a speed bump, not a
+boundary: a script written to disk and run with `node` still passes, because
+`Bash(node:*)` and `Write` are both approved. What it stops is the reflex, the
+one-liner reached for to parse a report, which bump.md now routes to the Read
+tool instead.
+
+**Why `allowed-tools` leaves some git and npm commands to prompt.** It
+pre-approves what the commands run constantly. `git checkout` and `git restore`
+aren't on it, because either one throws away uncommitted work with no undo, and
+`bump`'s and `sheriff`'s single-file reverts are rare enough that a prompt costs
+nothing. `npm install` and `npm ci` are approved bare only: `bump` reinstalls
+after editing `package.json`, and `npm install <anything>` would otherwise
+install a package nobody approved.
+
+**Why "nothing that writes runs in parallel", not "nothing runs in
+parallel".** The rule exists for attribution, "did _this_ change break it?",
+and only a writer can muddy that. `review`'s two read-only axes always ran
+together, which the old wording contradicted. `refactor`'s assessments stay
+sequential for their own reason: each one reads the tree the previous left.
+
 **Why the bumper starts at the repository URL.** `@ladamczyk/outdated` (run
 through `qoq`'s npm check, so the skill never needs a second `npx`) already hands over each package's `repository`, so the changelog is one shallow clone
 away — greppable, with real tags, instead of a search that has to find the right
@@ -859,7 +880,7 @@ firing on work the run itself verified.
 **Why the ticket has no refactor beat.** `tdd`, the base the developer writes
 on, puts refactoring in review rather than in the red → green loop, and this
 plan already has a review stage at the right scope: `qoq refactor` over the
-union of every ticket's files, then `qoq-reviewer` when review is on. Under
+union of every ticket's files, then `qoq-reviewer`. Under
 `--decisions auto` that refactor applies only the mechanical tier, so its
 judgement-tier findings are advisories. Gate evidence records each of the four
 assessments by name, because an eval run on sonnet showed the lead reading the
@@ -1335,10 +1356,14 @@ that ships, security fixes included, and the sheriff's loop can still change it.
 The scribe should document code no one is about to change, and a review fix
 changes it.
 
-**Why the session's model, always cold.** It is the same argument as the
-sheriff's. Plan fit is pure judgment, and the author's context is exactly what
-makes a wrong turn look right. There's no raise field because the session is
-already the ceiling.
+**Why `sonnet`, always cold.** It used to run at the session's model on the
+sheriff's argument, but the blind spot that argument guards against is the
+author's _context_, and a cold dispatch already holds none of it. What's left
+is the tier, and the review now runs on every milestone, twice (one per axis),
+plus once per plan: at Opus that was the dearest recurring gate in a run. The
+sheriff keeps the session's model, because its misses ship and nothing later
+catches them; a review miss is drift the walkthrough and the sign-off still
+surface.
 
 **Why acceptances live in the plan, not in the code.** Scope and plan fit only
 mean something inside the plan that set them. A marker saying "accepted scope
@@ -1404,10 +1429,11 @@ report. The sign-off also needs the other gates' evidence and the user's
 decisions from the walkthrough. Keeping the agent's output typed and having the
 main thread render the summary means neither one has to be shaped for the other.
 
-**Why opt-in inside `execute`.** It is the same reason as the sheriff and the
-scribe. Inside `execute` it runs unattended and can stop a run or commit fixes.
-`--review` turns it on for one run, and `future.unstable_skill_review` turns it
-on for a project.
+**Why always on inside `execute`, with no switch.** It began opt-in, like the
+scribe, because it runs unattended and can stop a run or commit fixes. It
+graduated: the cross-ticket drift it finds (one ticket returning `null` where
+the next expects a throw) is what no per-ticket gate can see, and an opt-in
+gate is a gate most runs skip.
 
 ## `feedback`
 
@@ -1436,8 +1462,11 @@ Other cover nearly everything, so most feedback is one keypress. The built-in
 `/feedback` survey can't be triggered from a skill.
 
 **Why no consent flag, when the retro has one.** Nobody typed a retro lesson, so
-sending it needs a yes given in advance. Feedback is typed by the person sending
-it, on purpose, to qoq. The preview still names where it goes, _the qoq
+sending it needs a yes given in advance. Feedback is given by the person sending
+it, on purpose, to qoq. That only holds if they know it's sent: the end-of-run
+question says the answer goes to the maintainers, because a bare "did it do
+what you needed?" reads as a local check, and a Yes that leaves the machine
+unannounced is a disclosure gap, however small the payload. The preview still names where it goes, _the qoq
 maintainers_, because the text it shows is a rewrite of what they said, and they
 should see exactly what leaves the machine.
 

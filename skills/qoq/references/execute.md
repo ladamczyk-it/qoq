@@ -418,14 +418,14 @@ are routed, remediated or recorded before anything below runs —
 [sheriff.md](sheriff.md) owns all of it, including the two places it stops the
 run.
 
-Then **review**, when it's on (Setup). `qoq-reviewer` reads the milestone's
+Then **review**, always. `qoq-reviewer` reads the milestone's
 final diff, security fixes included, on two parallel axes. Spec checks it
 against its Goal, Contracts and criteria for wrong turns, scope creep and
 cross-ticket inconsistency. Standards checks it against the project's
 conventions and `code-review`'s smell baseline. Its findings are
 routed, remediated or recorded before anything below runs.
 [review.md](review.md) owns all of it, including the two places where it stops
-the run. Off → straight on, no Review line.
+the run.
 
 Then **document**, when docs are on (Setup), then **deliver**. `qoq-scribe`
 runs in plan mode over the milestone — [document.md](document.md) owns how,
@@ -461,7 +461,7 @@ plan's status goes `complete` with the last row delivered.
 
 **Record what the gates proved, not that they ran.** The Outcome block's **Gate
 evidence** field takes the refactor's verdict and the suite's result as reported,
-plus the sheriff's and the reviewer's verdicts when they ran, and the retro's
+plus the sheriff's and the reviewer's verdicts, and the retro's
 lesson count on the **Retro** line when it ran.
 "Green" is a claim; "refactor clean, 412 passed / 0 failed" is evidence, and an
 Outcome block is read by people who can no longer see the run.
@@ -476,7 +476,7 @@ In this order:
    lessons are the one question: on a yes, one follow-up milestone is appended
    to this plan and run before anything below.
    [retro.md](retro.md) owns it, including why there's never a second follow-up.
-1. **The end-of-plan review, then its gap decisions.** Review on only.
+1. **The end-of-plan review, then its gap decisions.**
    [review.md](review.md) covers both, and also when the pass is skipped.
 2. **The advisory walkthrough**, once: every milestone's Refactor, Docs,
    Security and Review advisories, each with its own options. Refactor
@@ -484,10 +484,8 @@ In this order:
    refactor beat in the ticket, they are the only place a shape problem in
    delivered code reaches the user, so they're walked through even on a run
    with every experimental flag off.
-3. **The sign-off.** Review on only: the summary from [review.md](review.md),
-   and the user's yes written into the plan header.
-
-Review off → step 2 only, as before.
+3. **The sign-off.** The summary from [review.md](review.md), and the user's
+   yes written into the plan header.
 
 ## Setup
 
@@ -508,7 +506,7 @@ of dispatching. The stop has no proceed-without:
 > `/plugin install mattpocock-skills`, then `/qoq execute` again.
 
 Then two checks: are `qoq-developer`, `qoq-test-reviewer`, `qoq-sheriff` and
-`qoq-retro` (and `qoq-reviewer`, when it's on) registered under
+`qoq-retro` and `qoq-reviewer` registered under
 `.claude/agents/`? If one isn't, dispatch `general-purpose` with that agent
 file's body pasted in and told to invoke `tdd` with the Skill tool first, since
 `general-purpose` preloads nothing — for the developer, with the tier passed explicitly, since
@@ -523,10 +521,9 @@ invoked with `--docs`, or when the project's `qoq.config.*` sets
 `unstable_skill_docs\s*:\s*true` over the config file, read as source text and
 never evaluated. Decide it once here and say which in the run's opening line.
 **The sheriff** isn't a switch. It runs at every milestone gate and on every
-`Security sweep: ticket` ([sheriff.md](sheriff.md)). **The review** is a
-switch: `--review`, or
-`future.unstable_skill_review: true`. It runs at the milestone gate after the
-sheriff, and again once at the end of the plan ([review.md](review.md)).
+`Security sweep: ticket` ([sheriff.md](sheriff.md)). **The review** isn't a switch
+either. It runs at the milestone gate after the sheriff, and again once at the
+end of the plan ([review.md](review.md)).
 **Diagrams** are the same kind of switch — `--diagrams`, or
 `future.unstable_skill_diagrams: true` — and need docs on to do anything
 ([mermaid.md](mermaid.md)).
