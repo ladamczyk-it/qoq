@@ -8,6 +8,12 @@ import { AbstractConfigHandler } from '../abstract/AbstractConfigHandler.ts';
 import { getFilesExtensions } from '../helpers.ts';
 import { IModulesConfig } from '../types.ts';
 
+import { IModuleKnipConfig } from './types.ts';
+
+const withWorkspaces = (
+  workspaces: IModuleKnipConfig['workspaces'] | undefined
+): Pick<IModuleKnipConfig, 'workspaces'> => (workspaces ? { workspaces } : {});
+
 export class KnipConfigHandler extends AbstractConfigHandler {
   static readonly DEFAULT_IGNORE = [
     'skills/**',
@@ -112,6 +118,8 @@ export class KnipConfigHandler extends AbstractConfigHandler {
       ignoreFiles: knipIgnoreFiles.filter((entry) => !!entry).map(omitStartingDotFromPath),
       ignoreMembers: knipIgnoreMembers.filter((entry) => !!entry),
       ignoreUnresolved: knipIgnoreUnresolved.filter((entry) => !!entry),
+      // not prompted for: kept from the existing config
+      ...withWorkspaces(this.modulesConfig.modules.knip?.workspaces),
     };
   }
 
@@ -156,6 +164,10 @@ export class KnipConfigHandler extends AbstractConfigHandler {
       true
     );
 
+    if (knip?.workspaces && Object.keys(knip.workspaces).length > 0) {
+      this.config.knip.workspaces = knip.workspaces;
+    }
+
     if (Object.keys(this.config.knip).length === 0) {
       delete this.config.knip;
     }
@@ -164,7 +176,7 @@ export class KnipConfigHandler extends AbstractConfigHandler {
   }
 
   private readonly assignKnipFieldIfCustom = (
-    key: keyof NonNullable<QoqConfig['knip']>,
+    key: Exclude<keyof NonNullable<QoqConfig['knip']>, 'workspaces'>,
     value: string[] | undefined,
     defaultValue: string[],
     requireNonEmpty: boolean
@@ -196,6 +208,7 @@ export class KnipConfigHandler extends AbstractConfigHandler {
       ignoreUnresolved: this.config.knip?.ignoreUnresolved
         ? [...KnipConfigHandler.DEFAULT_IGNORE_UNRESOLVED, ...this.config.knip.ignoreUnresolved]
         : KnipConfigHandler.DEFAULT_IGNORE_UNRESOLVED,
+      ...withWorkspaces(this.config.knip?.workspaces),
     };
 
     return super.getModulesFromConfig();

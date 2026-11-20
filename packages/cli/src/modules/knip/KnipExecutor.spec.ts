@@ -47,6 +47,16 @@ const configWithKnip = {
   },
 };
 
+const getWrittenConfig = (): Record<string, unknown> => {
+  const [firstCall] = vi.mocked(writeFileSync).mock.calls;
+  const code = firstCall?.[1] as string;
+
+  return JSON.parse(code.slice(code.indexOf('{'), code.lastIndexOf('}') + 1)) as Record<
+    string,
+    unknown
+  >;
+};
+
 const getArgs = (): string[] => {
   const [firstCall] = vi.mocked(executeCommand).mock.calls;
   const [, args] = firstCall ?? [];
@@ -97,6 +107,60 @@ describe('KnipExecutor', () => {
       expect(args).toContain('--production');
       expect(args).toContain('--fix');
       expect(args).toContain('--reporter json > "out/knip-report.json"');
+    });
+
+    it('should keep entry and project at the top level when there are no workspaces', async () => {
+      await new KnipExecutor(configWithKnip, true, true).run(baseOptions);
+
+      expect(getWrittenConfig()).toStrictEqual({ entry: ['index.ts'], project: ['src/**'] });
+    });
+
+    it('should move the root to "." and add knip.workspaces verbatim when npm has none', async () => {
+      const executor = new KnipExecutor(
+        {
+          ...configWithKnip,
+          modules: {
+            knip: { ...configWithKnip.modules.knip, workspaces: { website: {} } },
+          },
+        },
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(getWrittenConfig()).toStrictEqual({
+        workspaces: {
+          '.': { entry: ['index.ts'], project: ['src/**'] },
+          website: {},
+        },
+      });
+    });
+
+    it('should merge knip.workspaces over the npm workspaces', async () => {
+      const executor = new KnipExecutor(
+        {
+          ...configWithKnip,
+          workspaces: ['packages/*'],
+          modules: {
+            knip: {
+              ...configWithKnip.modules.knip,
+              workspaces: { website: { ignoreDependencies: ['left-pad'] } },
+            },
+          },
+        },
+        true,
+        true
+      );
+
+      await executor.run(baseOptions);
+
+      expect(getWrittenConfig()).toStrictEqual({
+        workspaces: {
+          'packages/*': { entry: ['index.ts'], project: ['src/**'] },
+          website: { ignoreDependencies: ['left-pad'] },
+        },
+      });
     });
 
     it('should report and exit when config generation throws', async () => {

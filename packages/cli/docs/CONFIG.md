@@ -93,7 +93,8 @@ Knip execution can be configured via:
         project: [...],
         ignore: [...],
         ignoreDependencies: [...],
-        ignoreBinaries: [...]
+        ignoreBinaries: [...],
+        workspaces: { website: {} }
     }
 }
 ```
@@ -105,6 +106,7 @@ where:
 - `ignore` described in [source docs](https://knip.dev/reference/configuration#ignore)
 - `ignoreDependencies` described in [source docs](https://knip.dev/reference/configuration#ignoredependencies), defaults to `['@ladamczyk/qoq-*']`
 - `ignoreBinaries` described in [source docs](https://knip.dev/reference/configuration#ignorebinaries)
+- `workspaces` – extra Knip [workspaces](https://knip.dev/features/monorepos-and-workspaces), passed to Knip's config verbatim. Use it for a nested package with its own `package.json` that isn't an npm workspace, such as a docs site in `website/`: Knip then checks that directory's dependencies against its own `package.json`, and stops counting its files as the root's. Each value is a Knip workspace config (`entry`, `project`, `ignoreDependencies`, …); `{}` leaves it to Knip's plugins. When it's set and the repo has no npm `workspaces`, `entry` and `project` move under the root workspace `"."`; with npm `workspaces`, these entries are merged over them
 
 # Eslint
 

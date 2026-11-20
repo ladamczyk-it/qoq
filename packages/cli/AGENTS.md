@@ -138,6 +138,7 @@ export default {
     ignoreFiles: [],
     ignoreMembers: [],
     ignoreUnresolved: [],
+    workspaces: {}, // extra Knip workspaces, verbatim, e.g. { website: {} } for a nested docs site
   },
 
   eslint: [

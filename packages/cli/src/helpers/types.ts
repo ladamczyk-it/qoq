@@ -72,6 +72,9 @@ export interface QoqConfig {
     ignoreFiles?: string[];
     ignoreMembers?: string[];
     ignoreUnresolved?: string[];
+    // Extra Knip workspaces, passed to Knip's config verbatim — e.g. a nested app
+    // with its own package.json that isn't an npm workspace.
+    workspaces?: Record<string, Record<string, unknown>>;
   };
   configPaths?: {
     prettier?: string;
