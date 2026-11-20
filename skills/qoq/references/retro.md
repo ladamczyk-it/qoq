@@ -118,6 +118,12 @@ section and the index's header. It merges lessons that say the
 same thing and ranks them by how many milestones they recur in. A lesson seen in
 three milestones is a pattern. Seen once, it may be an accident.
 
+When only one milestone had a Retro, there is nothing to merge: skip the
+dispatch and take that milestone's lessons as the summary. Everything below
+still happens, the index's `## Retro` included, because that section is the
+plan's only record of the run's lessons, and a reader opening the index
+shouldn't have to open every milestone file to find them.
+
 Bring the user the merged summary, grouped by kind. Planning and skill lessons
 need no approval: they're recorded as soon as the summary exists (below), since
 they change no code and the next plan only reads them as advice. **Code lessons

@@ -85,8 +85,9 @@ remediated `<hash>` · accepted · deferred to <ticket> · open advisory>
 **Review:** <absent unless the reviewer ran> clean | <R<n>·RS<n> <severity> —
 remediated `<hash>` · accepted — <file>:'<anchor>' — "<reason>" · deferred to
 <ticket> · open advisory>
-**Retro:** <absent unless a ticket retried> <n> code · <n> planning · <n> skill
-lessons | none worth recording
+**Retro:** <the whole line is absent unless the retro ran — a milestone with no
+retried ticket has no Retro line, not a "none"> <n> code · <n> planning · <n>
+skill lessons | ran, none worth recording
 
 ## Scope
 

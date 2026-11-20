@@ -471,7 +471,8 @@ Outcome block is read by people who can no longer see the run.
 In this order:
 
 0. **The final retro**, when any milestone had one. It merges the milestone
-   retros and records the planning and skill lessons without asking. Code
+   retros into the index's `## Retro` section, even when there was only one
+   to merge, and records the planning and skill lessons without asking. Code
    lessons are the one question: on a yes, one follow-up milestone is appended
    to this plan and run before anything below.
    [retro.md](retro.md) owns it, including why there's never a second follow-up.
