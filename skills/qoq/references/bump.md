@@ -14,7 +14,8 @@ dirty tree. This isn't a warning to proceed past.
 
 The planning phase **writes nothing** — not the tree, not a patch file. It works
 out what's outdated with `npx qoq npm --json` (an explicit tool name skips the
-check's throttle; the result is `npm-report.json` in the record's report directory), groups minor and
+check's throttle; the result is `npm-report.json` in the record's report directory, read with
+the Read tool, never an inline `node -e`), groups minor and
 patch bumps, and plans **at most one major step per package**. Majors (and any
 package queued from a previous round's failure) get a `qoq-bumper` dispatch,
 which is the analysis itself and has to happen before the choice.

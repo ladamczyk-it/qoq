@@ -24,7 +24,7 @@ conflict.** Where they meet:
 | 1. Pin the fixed point | The range is given: a PR's `origin/<base>...refs/qoq/pr-<n>`, or a milestone's `<first>^..<last>`. Keep its fail-early check: `git rev-parse` both ends and confirm a non-empty diff on this thread before either dispatch.                     |
 | 2. Spec source         | The plan (milestone Goal, Contracts, criteria) or the PR's title, body and closed issues. Ignore its discovery chain and its issue-tracker setup line.                                                                                          |
 | 3. Standards sources   | The record's `conventions` file and [code-conventions.md](code-conventions.md) only. Don't run its repo-wide search. **Keep its smell baseline**, pasted verbatim into every `standards` dispatch, because the agent has no other access to it. |
-| 4. Spawn both          | Both are `qoq-reviewer`, one with `axis: spec` and one with `axis: standards`, at the session's model, with the inputs below. They're read-only, so running them in parallel is safe.                                                           |
+| 4. Spawn both          | Both are `qoq-reviewer`, one with `axis: spec` and one with `axis: standards`, at its pinned model, with the inputs below. They're read-only, so running them in parallel is safe.                                                              |
 | 5. Aggregate           | The agent returns typed YAML, not prose under 400 words. Render the report as the base lays it out (below).                                                                                                                                     |
 
 Missing → ask once:
@@ -84,7 +84,7 @@ link.
 3. **Decide whether it states intent.** It does when the title, body or a closed
    issue says what the change should do. If all that's there is "fixes stuff",
    an empty template or a bare issue link, it doesn't.
-4. **Dispatch** at the **session's** model with `mode: pr`, the clone's path as
+4. **Dispatch** with `mode: pr`, the clone's path as
    the repo to read (never the working directory), the range, the title, body
    and issue texts verbatim, whether intent was stated, and this skill's
    absolute path. For `review` that's two dispatches issued together, one
@@ -134,10 +134,8 @@ and the next review raises the same finding again. Say that once.
 
 ## Pipeline — from `execute`
 
-**Experimental, so opt-in.** It runs only when `execute` was given `--review`, or
-when the project's `qoq.config.*` sets `future: { unstable_skill_review: true }`
-([execute.md](execute.md), Setup). With no skip rule, it reviews every
-milestone.
+**Always on.** No flag, no config switch and no skip rule: it reviews every
+milestone ([execute.md](execute.md), Setup).
 
 ### The milestone review
 
@@ -145,8 +143,7 @@ This runs after the sheriff and its remediation loop, and before `document`. The
 the security fixes already in it. The scribe then documents code nobody is about
 to change.
 
-Dispatch at the **session's** model, cold: a fresh dispatch every time, never
-`SendMessage`. Pass:
+Dispatch cold: a fresh dispatch every time, never `SendMessage`. Pass:
 
 - `mode: milestone`
 - the range `<first ticket commit>^..<last>` over **`done`** tickets, including
@@ -247,7 +244,7 @@ milestone is delivered or withdrawn and no ticket is `blocked`. A run that stopp
 spending limit, or that left blocked tickets, skips it and says why in its
 closing line. A later resume that finishes the plan runs it then.
 
-Dispatch `qoq-reviewer`, cold, at the session's model, with `mode: plan` and
+Dispatch `qoq-reviewer`, cold, with `mode: plan` and
 `axis: spec`. There's no Standards pass here, because each milestone's
 standards were already read. Pass:
 
@@ -278,8 +275,7 @@ What it returns:
 
 ## The sign-off
 
-The sign-off happens only when the review is on. With it off, the end of the run
-is unchanged. The order is:
+The order is:
 
 1. the end-of-plan pass, its gap decisions, and the Plan gaps milestone if the
    user approved one

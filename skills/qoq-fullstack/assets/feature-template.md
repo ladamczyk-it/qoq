@@ -23,7 +23,8 @@ keep the column names exactly as written.
     { "name": "ui", "path": "trackbook-remix-fe", "role": "ui", "after": ["be", "telemetry"] }
   ],
   "integration": [{ "name": "e2e", "repo": "ui", "script": "test:e2e" }],
-  "permissionMode": "auto"
+  "permissionMode": "auto",
+  "model": "opus"
 }
 ```
 
@@ -33,6 +34,9 @@ keep the column names exactly as written.
 - **`permissionMode`**: the `--permission-mode` every repo session starts in,
   chosen by the user. A background session that hits a permission prompt
   waits for nobody.
+- **`model`**: the `--model` every repo session starts on, chosen by the user;
+  `opus` is the recommendation, because each repo session is the lead that
+  plans, gates and escalates. N repos run N sessions on it at once.
 - **`integration`**: named checks, each one an `npm run <script>` in one repo. Master
   milestones list them by name.
 

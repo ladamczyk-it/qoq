@@ -24,7 +24,7 @@ flowchart LR
     USER(["**user**"])
     COS["**chief of staff**<br/>parent folder<br/>owns brd.md · feature.json"]
     STATUS["**feature-status.mjs**<br/>rebuilds state from disk"]
-    subgraph REPOS["repo sessions — claude --bg --model opus, in parallel"]
+    subgraph REPOS["repo sessions — claude --bg --model ‹feature.json model›, in parallel"]
         BE["**be**<br/>qoq plan · qoq execute"]
         TEL["**telemetry**<br/>qoq plan · qoq execute"]
         UI["**ui**<br/>qoq plan · qoq execute"]
@@ -53,11 +53,11 @@ flowchart TD
     PSUB{"sub-command?"}
     PSUB -->|status| PSTAT["**status.mjs**<br/>print its tables — read-only"]
     PSUB -->|plan| PJSON{"feature.json<br/>in the parent folder?"}
-    PJSON -->|no| PJASK(["**ASK THE USER**<br/>repos · after (dependency order) ·<br/>integration checks · permissionMode<br/>— never guessed"])
+    PJSON -->|no| PJASK(["**ASK THE USER**<br/>repos · after (dependency order) ·<br/>integration checks · permissionMode · model<br/>— never guessed"])
     PJASK --> PGRILL
     PJSON -->|yes| PGRILL["**grilling — business only**<br/>actors · Given/When/Then ·<br/>milestone edges. *no repo is named:<br/>a technology question is parked<br/>for the repos, never asked here*"]
     PGRILL --> PBRD(["**ASK THE USER**<br/>approve brd.md"])
-    PBRD --> PREPO["**every** repo, in **after** order:<br/>claude --bg --model opus --name project-repo<br/>→ **qoq plan** on the whole BRD →<br/>a plan, or **no changes needed**"]
+    PBRD --> PREPO["**every** repo, in **after** order:<br/>claude --bg --model ‹model› --name project-repo<br/>→ **qoq plan** on the whole BRD →<br/>a plan, or **no changes needed**"]
     PREPO --> PRELAY(["**relay** each repo's grilling<br/>and approval to the user,<br/>verbatim, prefixed by repo"])
     PRELAY --> PCON["approved: Repo plans row = plan dir or none ·<br/>provider writes contracts/name.md →<br/>start repos whose after is settled"]
     PCON --> PSCHED["**schedule.mjs** — automatic, no questions:<br/>simulate the parallel run, reorder rows<br/>so the piece another repo needs goes first.<br/>*hard dependencies never move*"]

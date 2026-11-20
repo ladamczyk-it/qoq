@@ -17,7 +17,7 @@
         "Repo plans has no rows until a repo's plan or no-changes answer is approved",
         "The BRD's Chief of staff line is this session's name as ListAgents lists it, not an invented one"
       ],
-      "setup": "A parent folder `trackbook/` with feature.json (be, telemetry, ui with after: [be, telemetry], integration e2e). No BRD yet."
+      "setup": "A parent folder `trackbook/` with feature.json (be, telemetry, ui with after: [be, telemetry], integration e2e, permissionMode auto, model opus). No BRD yet."
     },
     {
       "id": 2,
@@ -34,7 +34,7 @@
         "No execute is sent to a repo whose Repo plans row is none",
         "be, whose next.runnable is true, is started with /qoq execute without first asking the user"
       ],
-      "setup": "A parent folder `trackbook/` with feature.json (be, telemetry, ui with after: [be, telemetry], integration e2e). feature/track-io/brd.md approved with M1 in-progress; be's plan M1 in-progress; ui's plan M1 todo, Depends on be:M1."
+      "setup": "A parent folder `trackbook/` with feature.json (be, telemetry, ui with after: [be, telemetry], integration e2e, permissionMode auto, model opus). feature/track-io/brd.md approved with M1 in-progress; be's plan M1 in-progress; ui's plan M1 todo, Depends on be:M1."
     },
     {
       "id": 3,
@@ -84,7 +84,7 @@
       "id": 6,
       "name": "plan-starts-repos-in-after-order",
       "target": "agent",
-      "setup": "A parent folder `trackbook/` with feature.json: be (no after), telemetry (after: [be]), ui (after: [be, telemetry]). brd.md approved, Repo plans empty.",
+      "setup": "A parent folder `trackbook/` with feature.json: be (no after), telemetry (after: [be]), ui (after: [be, telemetry]); permissionMode auto, model opus. brd.md approved, Repo plans empty.",
       "prompt": "(mid /qoq-fullstack plan track-io) The BRD is approved.",
       "expected_output": "Starts only be with /qoq plan. telemetry starts only after be's plan is approved or be answered no changes needed and the user approved it. ui starts only once be and telemetry are both settled. Every repo in feature.json is started eventually, and none is skipped for looking unrelated.",
       "files": [],

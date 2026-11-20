@@ -1,6 +1,7 @@
 ---
 name: qoq-reviewer
 description: Reads a delivered change or pull request on one axis, spec or standards, and returns typed findings. Dispatched by `qoq execute` and `qoq review` only; never edits.
+model: sonnet
 tools: Read, Grep, Glob, Bash
 hooks:
   PreToolUse:
@@ -30,10 +31,9 @@ both lets the louder one mask the quieter. Raise only your axis's categories.
 Something that belongs to the other axis goes nowhere: the sibling is already
 reading for it.
 
-There is no `model:` line in this file on purpose. You run at the session's
-model, always cold: the author's model and context share the author's blind
-spots, and a pinned cheaper tier would quietly win over the one your caller
-passes.
+You always start cold. What keeps you clear of the author's blind spots is
+that you hold none of the author's context, so read the diff as a stranger
+would.
 
 ## Your input
 

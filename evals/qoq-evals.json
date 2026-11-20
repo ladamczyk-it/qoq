@@ -111,7 +111,7 @@
         "Passes the refactor scope positionally (no --path flag)"
       ],
       "target": "fixture-repo",
-      "setup": "Pin vitest to 4.0.0 and @types/node to 20.0.0 in package.json, then npm install, so there are majors to analyse."
+      "setup": "Pin vitest to 4.0.0 in package.json, then npm install, so there are majors to analyse: vitest 4 → 5, plus @types/node, which the fixture already holds several majors behind at 22.x. Don't pin @types/node lower: 20.x and 22.0.0 fail the build under the fixture's TypeScript 6, so the run stops on a red baseline before analysing anything."
     },
     {
       "id": 6,
@@ -1018,10 +1018,12 @@
     {
       "id": 51,
       "name": "review-pipeline-routing-and-signoff",
-      "prompt": "Resume the plan with --review. Milestone 2's tickets are all done, its gate is green and the sheriff came back clean. It is the last milestone.",
-      "expected_output": "After the sheriff, the run dispatches qoq-reviewer in milestone mode at the session's model with the Security line, earlier Review lines and refactor advisories, before any document step. A confirmed high finding becomes a Ticket 2.R1 remediation (correctness/consistency at the session model, scope/maintainability at sonnet) with no question. A judgment high finding stops the run and asks remediate, accept or defer. A medium finding becomes a Review advisory. After the remediation's re-gate, qoq-sheriff is dispatched in recheck mode with findings: [] over the remediation range, then a qoq-reviewer recheck. An accepted finding is written on the Review line with its file, anchor and the user's reason, and no marker goes into the code. With every milestone delivered, the end-of-plan pass runs in plan mode, then the advisory walkthrough, then the sign-off, and a yes writes Signed off into the plan header.",
+      "prompt": "Resume the plan. Milestone 2's tickets are all done, its gate is green and the sheriff came back clean. It is the last milestone. qoq.config has no future switches.",
+      "expected_output": "With no flag and no config switch, after the sheriff the run dispatches qoq-reviewer in milestone mode at its pinned sonnet with the Security line, earlier Review lines and refactor advisories, before any document step. A confirmed high finding becomes a Ticket 2.R1 remediation (correctness/consistency at the session model, scope/maintainability at sonnet) with no question. A judgment high finding stops the run and asks remediate, accept or defer. A medium finding becomes a Review advisory. After the remediation's re-gate, qoq-sheriff is dispatched in recheck mode with findings: [] over the remediation range, then a qoq-reviewer recheck. An accepted finding is written on the Review line with its file, anchor and the user's reason, and no marker goes into the code. With every milestone delivered, the end-of-plan pass runs in plan mode, then the advisory walkthrough, then the sign-off, and a yes writes Signed off into the plan header.",
       "files": [],
       "assertions": [
+        "Dispatches qoq-reviewer though nothing in the prompt or the config asks for a review",
+        "Doesn't pass the session's model (opus) to the qoq-reviewer dispatches",
         "Dispatches qoq-reviewer after the sheriff and before any qoq-scribe dispatch",
         "Routes a confirmed high finding to remediation without asking",
         "Stops and asks on a judgment high finding, offering remediate, accept and defer",
@@ -1220,7 +1222,7 @@
       "id": 63,
       "name": "review-pr-two-axes-report",
       "prompt": "/qoq review https://github.com/<an org you can read>/<repo>/pull/<n> — a pull request whose description states what it should do.",
-      "expected_output": "Before the first dispatch the run resolves mattpocock-skills' `code-review` from its own available-skills list. It matches it by description, not by the bare name, which Claude Code's built-in review skill shares, and invokes it once. It rev-parses both ends of the range and confirms the diff isn't empty. Then it issues two qoq-reviewer dispatches together at the session's model: `axis: spec` with the title, body and issues, and `axis: standards` with the code-review smell baseline pasted in verbatim. It doesn't run the base's repo-wide standards search or its issue-tracker setup. The printed report has a `## Spec` section and then a `## Standards` section, never merged or reranked into one list, and ends on one line with the count and worst finding per axis, with no single worst across both. Comment drafts are grouped by axis, the user picks which to post, and posting is one COMMENT review.",
+      "expected_output": "Before the first dispatch the run resolves mattpocock-skills' `code-review` from its own available-skills list. It matches it by description, not by the bare name, which Claude Code's built-in review skill shares, and invokes it once. It rev-parses both ends of the range and confirms the diff isn't empty. Then it issues two qoq-reviewer dispatches together at its pinned sonnet: `axis: spec` with the title, body and issues, and `axis: standards` with the code-review smell baseline pasted in verbatim. It doesn't run the base's repo-wide standards search or its issue-tracker setup. The printed report has a `## Spec` section and then a `## Standards` section, never merged or reranked into one list, and ends on one line with the count and worst finding per axis, with no single worst across both. Comment drafts are grouped by axis, the user picks which to post, and posting is one COMMENT review.",
       "files": [],
       "assertions": [
         "Resolves `code-review` from its available-skills list before the first qoq-reviewer dispatch, and doesn't use the built-in review skill",
@@ -1449,6 +1451,18 @@
         "Never offers or asks about a follow-up milestone; code lessons, if any, are reported to ratelimit-chief via SendMessage",
         "Never calls AskUserQuestion; every question goes to ratelimit-chief via SendMessage",
         "Does not run learn.mjs --due and asks no 'Did /qoq execute do what you needed?' question"
+      ]
+    },
+    {
+      "id": 77,
+      "name": "end-of-run-question-says-where-it-goes",
+      "prompt": "/qoq fix src/utils — and learn.mjs --due exits 0 at the end of the run (nobody has been asked this week).",
+      "expected_output": "After the fix loop's PASS/FAIL line, the run asks one AskUserQuestion: did /qoq fix do what you needed, and says in the question itself that the answer goes to the qoq maintainers and Skip sends nothing. Yes sends --target fix --category satisfied with no preview; Skip sends nothing.",
+      "files": [],
+      "assertions": [
+        "Asks the end-of-run question with AskUserQuestion, after the run's last line of output",
+        "The question text says the answer is sent to the qoq maintainers",
+        "Offers Yes, No and Skip, and a Skip runs no learn.mjs send"
       ]
     }
   ]

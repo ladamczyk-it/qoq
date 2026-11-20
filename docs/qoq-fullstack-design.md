@@ -5,7 +5,7 @@ not the spec. Nothing here is loaded at run time. When a rule changes in the
 skill, its argument changes here in the same commit. The protocol side, inside
 `qoq`, is argued in [qoq-design.md](qoq-design.md#a-plan-under-a-feature).
 
-**Why a separate skill.** `qoq` already routes twelve commands. The chief of
+**Why a separate skill.** `qoq` already routes thirteen commands. The chief of
 staff is only needed by people who work across repos, so it gets its own
 trigger description and plugin, and nobody else loads it.
 
@@ -59,11 +59,14 @@ coordination, not product, and each repo's plan holds that repo's history.
 Node's standard library parses JSON.
 
 **Why the models split the way they do.** `plan` recommends Opus, because the
-business grilling and the BRD are the judgement-heavy part. `execute` and
-`status` recommend Haiku, because there the chief of staff only coordinates:
-it reads the status script, wakes repos, and relays questions word for word.
-Every technical decision is made in a repo session, and those are pinned to
-`--model opus`. On 2026-11-18, Haiku passed both execute evals. It believed the
+business grilling and the BRD are the judgement-heavy part. `execute`
+recommends Haiku, because there the chief of staff only coordinates: it reads
+the status script, wakes repos, and relays questions word for word. `status`
+recommends nothing: it's one script call, and the thread's context, not the
+model, is what it costs. Every technical decision is made in a repo session,
+and those start on `feature.json`'s `model`, recommended `opus`. It's a field
+for the same reason `permissionMode` is: N repos run N sessions at once, so the
+spend is the user's call, made once, never inferred. On 2026-11-18, Haiku passed both execute evals. It believed the
 files over a "be is done" message, and it relayed a technical question without
 answering it, even though the repo leaned towards one answer. The skill can
 only recommend the model for its own thread, because frontmatter `model:` would

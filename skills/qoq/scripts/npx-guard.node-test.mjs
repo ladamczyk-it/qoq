@@ -28,6 +28,10 @@ test('lets qoq and non-npx commands through', () => {
     'npm test',
     'npm run test:execute -- src/a.spec.ts',
     'echo npxfoo',
+    'npm exec -- qoq --check',
+    'node /skill/scripts/entry.mjs --project . --command fix',
+    'node --version',
+    'node -r ./setup.mjs script.mjs --print-only',
   ]) {
     assert.equal(guard(command).status, 0, command);
   }
@@ -41,10 +45,28 @@ test('blocks npx for anything but qoq, with the reason on stderr', () => {
     'npx -y vitest',
     'npx qoqx',
     '(npx prettier --check .)',
+    'npm exec vitest',
+    'npm exec -- tsc --noEmit',
+    'npm x eslint .',
   ]) {
     const { status, stderr } = guard(command);
     assert.equal(status, 2, command);
     assert.match(stderr, /npx is for qoq and nothing else/);
+  }
+});
+
+test("blocks inline node code, so the allowlist can't be stepped around", () => {
+  for (const command of [
+    "node -e \"require('fs').rmSync('x')\"",
+    'node --eval 1',
+    'node -p process.env',
+    'node -pe 1',
+    'node --input-type=module -e "x"',
+    'cd src && node -e 1',
+  ]) {
+    const { status, stderr } = guard(command);
+    assert.equal(status, 2, command);
+    assert.match(stderr, /never inline code/);
   }
 });
 
