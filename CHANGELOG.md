@@ -1,3 +1,21 @@
+# [7.2.0](https://github.com/ladamczyk-it/qoq/compare/v7.1.0...v7.2.0) (2026-11-20)
+
+
+### Bug Fixes
+
+* bump packages ([de4ffc3](https://github.com/ladamczyk-it/qoq/commit/de4ffc3ff346a26e9909c4ed541a346a00545311))
+* **skill:** index Retro from a single milestone retro, no Retro line without one ([5e745dc](https://github.com/ladamczyk-it/qoq/commit/5e745dc5d28d6feedeff6e6935b3eb63e548801c))
+* skills merge ([7897d1e](https://github.com/ladamczyk-it/qoq/commit/7897d1e159a33737303429842afa88e2c0d93aee))
+
+
+### Features
+
+* **cli:** knip.workspaces passes extra Knip workspaces through ([3d4aa51](https://github.com/ladamczyk-it/qoq/commit/3d4aa51a9c4138c04c85f381a3b5d71fc1880338))
+* **skill:** guard reporter and tester agents with a PreToolUse hook ([70e6108](https://github.com/ladamczyk-it/qoq/commit/70e610857a7faed2913fa1b77c78cfa9c365ddb1))
+* **skill:** qoq feedback, and an end-of-run question that feeds it ([1b2d45b](https://github.com/ladamczyk-it/qoq/commit/1b2d45b73746050e08b94568ceb42609c99547cd))
+* **skill:** retro after retried milestones, lessons fed to the next plan ([e62e053](https://github.com/ladamczyk-it/qoq/commit/e62e053a45155e634a9add4b687614f9cc1b821c))
+* **skill:** review always on, tighter permissions, cheaper judges ([3d3b480](https://github.com/ladamczyk-it/qoq/commit/3d3b480609ad003dc273d3c5935b4f1b693b68fd))
+
 # [7.1.0](https://github.com/ladamczyk-it/qoq/compare/v7.0.0...v7.1.0) (2026-11-19)
 
 
