@@ -24,6 +24,10 @@ export interface QoqConfig {
   // Consent for anonymous usage stats. Undefined means "not asked yet" — an
   // interactive run prompts once and writes the answer back here.
   stats?: boolean;
+  // Consent for the qoq skill to send its retro's planning and skill lessons
+  // (never code) to the learning sink. Separate from `stats`, which promises a
+  // count and nothing more. The CLI reads it not at all.
+  learning?: boolean;
   // `false` hides the qoq skill hint printed after a failing run and the wizard.
   hints?: boolean;
   // Opt-ins for experimental features. The CLI itself reads none of them; the qoq

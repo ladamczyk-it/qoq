@@ -16,24 +16,25 @@ in the reference file too.
 Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 — also outside the skill, and for the same reason these diagrams are.
 
-| Diagram                                           | Prose it reflects                                                                                                         |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| [Entry and discovery](#entry-and-discovery)       | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)                                    |
-| [`fix`](#fix)                                     | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml)                                  |
-| [`refactor`](#refactor)                           | [refactor.md](../skills/qoq/references/refactor.md)                                                                       |
-| [`bump`](#bump)                                   | [bump.md](../skills/qoq/references/bump.md)                                                                               |
-| [`plan`](#plan)                                   | [plan.md](../skills/qoq/references/plan.md)                                                                               |
-| [`replan`](#replan)                               | [replan.md](../skills/qoq/references/replan.md)                                                                           |
-| [`execute`](#execute)                             | [execute.md](../skills/qoq/references/execute.md)                                                                         |
-| [`test`](#test)                                   | [test.md](../skills/qoq/references/test.md)                                                                               |
-| [`compress`](#compress)                           | [compress.md](../skills/qoq/references/compress.md)                                                                       |
-| [`document`](#document)                           | [document.md](../skills/qoq/references/document.md), [qoq-scribe](../skills/qoq/agents/qoq-scribe.md)                     |
-| [`mermaid`](#mermaid)                             | [mermaid.md](../skills/qoq/references/mermaid.md), [qoq-artist](../skills/qoq/agents/qoq-artist.md)                       |
-| [`sheriff`](#sheriff)                             | [sheriff.md](../skills/qoq/references/sheriff.md), [qoq-sheriff](../skills/qoq/agents/qoq-sheriff.md)                     |
-| [`review`](#review)                               | [review.md](../skills/qoq/references/review.md), [qoq-reviewer](../skills/qoq/agents/qoq-reviewer.md)                     |
-| [A plan under a feature](#a-plan-under-a-feature) | [plan-template.md](../skills/qoq/assets/plan-template.md), [feature-status.mjs](../skills/qoq/scripts/feature-status.mjs) |
+| Diagram                                           | Prose it reflects                                                                                                                                |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [Entry and discovery](#entry-and-discovery)       | [skill](../skills/qoq/SKILL.md), [discovery.md](../skills/qoq/references/discovery.md)                                                           |
+| [`fix`](#fix)                                     | [fix.md](../skills/qoq/references/fix.md), [cli.yaml](../skills/qoq/references/cli.yaml)                                                         |
+| [`refactor`](#refactor)                           | [refactor.md](../skills/qoq/references/refactor.md)                                                                                              |
+| [`bump`](#bump)                                   | [bump.md](../skills/qoq/references/bump.md)                                                                                                      |
+| [`plan`](#plan)                                   | [plan.md](../skills/qoq/references/plan.md)                                                                                                      |
+| [`replan`](#replan)                               | [replan.md](../skills/qoq/references/replan.md)                                                                                                  |
+| [`execute`](#execute)                             | [execute.md](../skills/qoq/references/execute.md), [retro.md](../skills/qoq/references/retro.md), [qoq-retro](../skills/qoq/agents/qoq-retro.md) |
+| [`test`](#test)                                   | [test.md](../skills/qoq/references/test.md)                                                                                                      |
+| [`compress`](#compress)                           | [compress.md](../skills/qoq/references/compress.md)                                                                                              |
+| [`document`](#document)                           | [document.md](../skills/qoq/references/document.md), [qoq-scribe](../skills/qoq/agents/qoq-scribe.md)                                            |
+| [`mermaid`](#mermaid)                             | [mermaid.md](../skills/qoq/references/mermaid.md), [qoq-artist](../skills/qoq/agents/qoq-artist.md)                                              |
+| [`sheriff`](#sheriff)                             | [sheriff.md](../skills/qoq/references/sheriff.md), [qoq-sheriff](../skills/qoq/agents/qoq-sheriff.md)                                            |
+| [`review`](#review)                               | [review.md](../skills/qoq/references/review.md), [qoq-reviewer](../skills/qoq/agents/qoq-reviewer.md)                                            |
+| [A plan under a feature](#a-plan-under-a-feature) | [plan-template.md](../skills/qoq/assets/plan-template.md), [feature-status.mjs](../skills/qoq/scripts/feature-status.mjs)                        |
+| [`feedback`](#feedback)                           | [feedback.md](../skills/qoq/references/feedback.md)                                                                                              |
 
-**Legend, shared by all thirteen.** Purple = a subagent and everything it does.
+**Legend, shared by all fourteen.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
 invoked from inside another.
 
@@ -530,7 +531,7 @@ flowchart TD
         T3 -->|no| TADD["may **add** cases per tdd + test-conventions.md.<br/>**never change what a green assertion<br/>expects on your own judgment** — that is a<br/>hand-back with the criterion quoted.<br/>*a Gate 2 rejection is the one exception,<br/>and only for the assertions it cites*"]
         TADD --> T4["**prove it runs** — the project's<br/>own `test:one` + `build`, then<br/>`npx qoq staged --skip-knip` over its files<br/>*scoped and report-less: the<br/>digest and the gate stay<br/>with the caller*"]
         T4 -->|"red, budget left"| T2
-        T4 -->|"can't finish — budget spent, wrong<br/>Contract, unassertable criterion"| THAND(["**`status: handoff`** + `blocker` verbatim,<br/>`files` on disk.<br/>never narrow the ticket,<br/>never weaken the gate"])
+        T4 -->|"can't finish — budget spent, wrong<br/>Contract, unassertable criterion"| THAND(["**`status: handoff`** + `blocker` verbatim<br/>+ `blocker_category`, `files` on disk.<br/>*missing either → resumed once to<br/>give both, no attempt spent*.<br/>never narrow the ticket,<br/>never weaken the gate"])
         T4 -->|"green"| TRET["**`status: green`** — `files`: every file<br/>changed, spec and source both ·<br/>`specs` · `advisories`"]
     end
 
@@ -555,7 +556,7 @@ flowchart TD
     EESC -->|"no — top rung already"| EBLOCK(["**Status: blocked** — bring the<br/>user the report: bad ticket,<br/>or session model too small"])
 
     TCOM --> EDONE["**Status: done** + commit hash, the<br/>developer's `advisories`.<br/>**tick each acceptance criterion and write<br/>its evidence pointer** from the reviewer's<br/>mapping — *never from your own reading<br/>of the diff*"]
-    EDONE --> ELOG["**Log** — one line per transition:<br/>dispatch, each gate verdict,<br/>re-dispatch *(resumed / fresh)*,<br/>done/blocked + hash"]
+    EDONE --> ELOG["**Log** — one line per transition:<br/>dispatch, each gate verdict,<br/>re-dispatch *(resumed / fresh)*,<br/>done/blocked + hash.<br/>**a FAIL line is gate — category —<br/>evidence**: *all the retro reads*"]
     EBLOCK --> ELOG
     ELOG --> EXBACK
     EXBACK["**imported plan only** — write the status<br/>**label** and the commit back to the item's<br/>**External** key. *the one state qoq writes:<br/>a run knows the transition as it happens,<br/>an export sets one and walks away.<br/>never the workflow column, never a list move.<br/>a rejected write is a report line, not a stop*"]
@@ -574,12 +575,23 @@ flowchart TD
     ERVQ -->|yes| ERV["**qoq review — milestone review**<br/>*experimental* · see the review chart<br/>qoq-reviewer · spec + standards axes,<br/>session's model, cold, over the final diff, security fixes in ·<br/>confirmed high → remediation ·<br/>judgment high → **stop, ask** ·<br/>medium/low → Review advisory"]
     ERV --> EDOCQ
     EDOCQ{"docs on?<br/>*--docs, or qoq.config<br/>future.unstable_skill_docs*"}
-    EDOCQ -->|"no — the default"| EARCH
+    EDOCQ -->|"no — the default"| ERETQ
     EDOCQ -->|yes| EDOC["**qoq document — plan mode**<br/>*experimental*<br/>qoq-scribe at sonnet over the milestone<br/>text + its ticket-commit range ·<br/>**qoq-artist** on its candidates when<br/>diagrams are on too · prettier ·<br/>**docs(mN)** commit.<br/>*never stops the run: a question,<br/>drift or marker becomes a Docs<br/>advisory, walked through at the end*"]
-    EDOC --> EARCH["**deliver with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Outcome block at the top of the milestone<br/>file, not just 'green'. nothing moves:<br/>index row → delivered, later milestone<br/>files' Context updated"]
+    EDOC --> ERETQ
+    ERETQ{"any ticket retried,<br/>escalated or blocked?<br/>*always on*"}
+    ERETQ -->|no| EARCH
+    ERETQ -->|yes| ERET["**milestone retro** — qoq-retro at sonnet,<br/>cold, over the milestone file's Logs ·<br/>lessons typed **code · planning · skill**<br/>→ the file's ## Retro section.<br/>*proposals only: nothing applied mid-run*"]
+    ERET --> EARCH
+    EARCH["**deliver with the evidence** — the refactor<br/>verdict and the suite result into the<br/>Outcome block at the top of the milestone<br/>file, not just 'green'. nothing moves:<br/>index row → delivered, later milestone<br/>files' Context updated"]
     EARCH --> EMS{"milestones<br/>left?"}
     EMS -->|yes| EWAVE
-    EMS -->|no| ERVP{"review on?"}
+    EMS -->|no| EFRQ{"any milestone<br/>had a retro?"}
+    EFRQ -->|no| ERVP
+    EFRQ -->|yes| EFRET(["**final retro** — qoq-retro merges every<br/>Retro, ranked by recurrence → ## Retro.<br/>planning + skill lessons, **no ask** →<br/>**estimate.mjs --lesson**, and to **learn.mjs**<br/>when learning consent is on.<br/>**ASK** only about code lessons: add a<br/>follow-up milestone for them?"])
+    EFRET -->|"follow-up yes — *only if the<br/>plan has none yet*"| EFUP["**Follow-up: retro lessons** appended to<br/>this plan — plan.md Phase 3, no grill,<br/>no architect · approved, then run.<br/>*its own retro reports only, never<br/>a second follow-up*"]
+    EFUP --> EWAVE
+    EFRET -->|"no follow-up"| ERVP
+    ERVP{"review on?"}
     ERVP -->|"no — the default"| EDWALK
     ERVP -->|yes| ERVPLAN["**end-of-plan review** — every milestone<br/>delivered, none blocked · qoq-reviewer,<br/>mode plan, axis spec · gaps → **ask**: Plan gaps<br/>milestone · replan · accept · drop"]
     ERVPLAN --> EDWALK
@@ -594,8 +606,8 @@ flowchart TD
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
     classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
 
-    class EDEV,EGATE2 agent
-    class EASK,EPERM,EIMP,ECASK,EDWALK,ESOFF,ESIGN,EUNRES user
+    class EDEV,EGATE2,ERET agent
+    class EASK,EPERM,EIMP,ECASK,EDWALK,ESOFF,ESIGN,EUNRES,EFRET user
     class ETDDSTOP user
     class EBACK,EMGATE,EGATE,EDOC,ESH,ERV,ERVPLAN skill
     class CONTRA note
@@ -944,6 +956,40 @@ flowchart TD
     class VASKQ,VBASEQ,VPRINT,VPOST,VUSER,VESC,VREPLAN,VGAP,VSIGN user
     class VDEF,VNOINT,VSCOPECHK,VSIZE,VBASE note
 ```
+
+---
+
+## `feedback`
+
+```mermaid
+flowchart TD
+    FIN(["**/qoq feedback** *[target]*"]) --> FT{"target given?"}
+    FT -->|no| FASKT(["**ASK** which — the command run<br/>last in this session first, then qoq"])
+    FT -->|yes| FCAT
+    FASKT --> FCAT
+    FEND(["a **top-level** run printed its last line<br/>*never an inner command, --decisions auto,<br/>or feedback itself*"]) --> FDUE{"learn.mjs --due<br/>*--ended-badly on a FAIL,<br/>a blocked ticket, a stop*"}
+    FDUE -->|"exit 1 — asked this week"| FQUIET(["say nothing"])
+    FDUE -->|"exit 0"| FSAT(["**ASK** did /qoq &lt;command&gt;<br/>do what you needed?"])
+    FSAT -->|yes| FSEND
+    FSAT -->|skip| FQUIET
+    FSAT -->|"no — target known"| FCAT
+    FCAT(["**ASK** what went wrong — wrong result ·<br/>ignored what I asked · did too much ·<br/>too slow or costly · *Other = their text*"])
+    FCAT --> FTXT{"any text?"}
+    FTXT -->|no| FSEND
+    FTXT -->|yes| FREW["**rewrite** without paths, files,<br/>identifiers, packages, project names —<br/>keep what they meant"]
+    FREW --> FPREV(["**ASK** — This goes to the qoq<br/>maintainers: the exact text ·<br/>Send · Don't send"])
+    FPREV -->|send| FSEND["**learn.mjs --kind feedback**<br/>target · category · text.<br/>*no consent flag: typing it is the consent*<br/>exit 3 → rewrite again, not the user's job"]
+    FPREV -->|"don't send"| FQUIET
+    FSEND --> FOUT(["one line: sent · unreachable"])
+
+    classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
+    classDef note fill:#f59e0b1f,stroke:#f59e0b,stroke-width:2px
+
+    class FASKT,FSAT,FCAT,FPREV user
+    class FEND note
+```
+
+---
 
 ## A plan under a feature
 

@@ -45,6 +45,11 @@ board; omit the whole field on a local plan>
 | --- | ---------------------- | -------- | ---------- | ---------- |
 | M1  | [<Name>](m1-<slug>.md) | <status> | none       | <one line> |
 | M2  | [<Name>](m2-<slug>.md) | <status> | M1         | <one line> |
+
+## Retro
+
+<!-- Absent unless a milestone had a retro. The final retro's merged lessons,
+     written once the last milestone is delivered — see the field note. -->
 ```
 
 A plan that is a repo's share of a feature also has a **Feature** header line
@@ -80,6 +85,9 @@ remediated `<hash>` · accepted · deferred to <ticket> · open advisory>
 **Review:** <absent unless the reviewer ran> clean | <R<n>·RS<n> <severity> —
 remediated `<hash>` · accepted — <file>:'<anchor>' — "<reason>" · deferred to
 <ticket> · open advisory>
+**Retro:** <the whole line is absent unless the retro ran — a milestone with no
+retried ticket has no Retro line, not a "none"> <n> code · <n> planning · <n>
+skill lessons | ran, none worth recording
 
 ## Scope
 
@@ -87,6 +95,7 @@ remediated `<hash>` · accepted — <file>:'<anchor>' — "<reason>" · deferred
 **Goal:** <what this milestone delivers on its own — should be independently
 shippable/testable>
 **Depends on:** none | Milestone <N>
+**Follow-up of:** <absent unless the final retro appended this milestone> retro
 **Contracts:** none | <the interface this milestone's tickets share — inline when
 small (a type, a payload shape, an error shape), or a path when the project
 already keeps `openapi.yaml` / `.proto` / a zod schema>
@@ -168,7 +177,7 @@ ticket exists. No "similar to Ticket 1.3" — restate what's needed.
   <!-- Orchestrator-written, append-only. One line per transition; no schema
        beyond a timestamp and what happened. -->
   - `<YYYY-MM-DD HH:MM>` dispatched @ <tier> (attempt <n>)
-  - `<YYYY-MM-DD HH:MM>` qoq fix FAIL — <what>
+  - `<YYYY-MM-DD HH:MM>` qoq fix FAIL — <category> — <evidence>
   - `<YYYY-MM-DD HH:MM>` re-dispatched (attempt <n>)
   - `<YYYY-MM-DD HH:MM>` qoq fix PASS · tests approved
   - `<YYYY-MM-DD HH:MM>` done `<hash>`
@@ -195,12 +204,22 @@ ticket was raised as; absent otherwise>
       and recorded on the Outcome block's **Security** line
 - [ ] Review on: `qoq-reviewer` (spec + standards) over the final diff, findings
       routed and recorded on the Outcome block's **Review** line
+- [ ] Any ticket retried: `qoq-retro` over this file's Logs, its lessons
+      written below as the Retro section and counted on the Outcome block's
+      **Retro** line
 - [ ] Both results written into the Outcome block's **Gate evidence** — what the
       refactor found and what the suite reported, not "green"
 - [ ] Milestone delivered: Outcome block written at the top of this file, the
       index row set to `delivered <YYYY-MM-DD>` with the **Delivered** sentence
       as its Summary, later milestone files' ticket **Context** updated with
       anything this milestone actually established
+
+## Retro
+
+<!-- Absent unless the retro ran. qoq-retro's lessons, verbatim. -->
+
+- L1 · <code | planning | skill> · <category> — <lesson> — from <ticket>
+  attempt <n>: <the Log line> → <the change it proposes>
 ```
 
 ## Field notes
@@ -251,7 +270,8 @@ ticket was raised as; absent otherwise>
   definitions nobody asked for. More than about six means the milestone is too
   big — the same test the `XL` rule applies, reached from the other direction.
 - **Log** is orchestrator-written and append-only — one line per transition, a
-  timestamp and what happened, no schema beyond that. It exists because `Status`
+  timestamp and what happened. A failure line is the one with a fixed shape:
+  gate, category, evidence, because it's all the retro reads. It exists because `Status`
   says where a ticket is and nothing says how it got there: two gate rejections
   and an escalation are invisible in a `done` ticket otherwise, and they're what
   a resume, and the user, read a plan's history from.
@@ -276,6 +296,12 @@ ticket was raised as; absent otherwise>
   ended. An accepted entry carries its anchor and reason because it's the only
   record of the acceptance: later reviews read it instead of a marker in the
   code. The third is the user's yes at the end of the plan.
+- **Retro**, **Follow-up of** and both `## Retro` sections are the retro's
+  (`references/retro.md`). A milestone file's section holds that milestone's
+  lessons. The index's holds the merged ones from the end of the run, and
+  whether the user took the follow-up milestone for the code ones.
+  **Follow-up of** marks the one milestone the final retro may append. A plan
+  that already has one never gets a second.
 - **Diagrams** is `qoq-artist`'s, written into the index before approval when
   diagrams are on and absent otherwise. It lives in the index so no ticket
   dispatch carries it, and it records the shape that was approved: `execute`

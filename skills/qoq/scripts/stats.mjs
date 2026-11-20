@@ -16,7 +16,7 @@
 //
 // Usage:   node stats.mjs <command> [--consent yes|no] [--project <dir>]
 //   <command>   the qoq command that ran: fix, refactor, bump, plan, replan,
-//               execute, test, compress, document, mermaid, sheriff, review — all twelve, and each one has to be in
+//               execute, test, compress, document, mermaid, sheriff, review, feedback — all thirteen, and each one has to be in
 //               the sink's own vocabulary or the run 400s. It is the entire
 //               payload beyond the tool name.
 //   --consent   record the user's answer first, then act on it
@@ -39,9 +39,7 @@
 // which is the failure that matters: prose describing an older, smaller payload
 // is worse than no prose, because it reads as a promise.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { readConsent, recordConsent } from './consent.mjs';
 
 // The sink. A blocked POST falls back to the pixel: same ledger, reached with a
 // GET, for networks where an outbound POST never leaves but an image fetch does.
@@ -52,9 +50,6 @@ const STATS_TIMEOUT_MS = 2000;
 
 const pixelUrl = ({ tool, options }) =>
   `${PIXEL_URL}?${new URLSearchParams([['tool', tool], ...options.map((o) => ['options', o])])}`;
-
-const CONSENT_FILE = join(homedir(), '.claude', 'qoq', 'consent.md');
-const CONFIG_FILES = ['qoq.config.ts', 'qoq.config.js', 'qoq.config.cjs', 'qoq.config.mjs'];
 
 const COMMANDS = [
   'fix',
@@ -69,6 +64,7 @@ const COMMANDS = [
   'mermaid',
   'sheriff',
   'review',
+  'feedback',
 ];
 
 const args = process.argv.slice(2);
@@ -87,60 +83,6 @@ if (!COMMANDS.includes(command) || (consentArg && !['yes', 'no'].includes(consen
   );
   process.exit(2);
 }
-
-const findConfig = () =>
-  CONFIG_FILES.map((name) => join(projectDir, name)).find((path) => existsSync(path));
-
-// Read and write the config as source text, never as a parsed object: these
-// files import workspace packages and carry the user's comments, so evaluating
-// one is expensive and re-serializing it would throw their formatting away.
-// `stats` is the only key in the schema by that name, so a bare match is safe.
-const readConfigConsent = (path) => {
-  const match = /\bstats\s*:\s*(true|false)\b/.exec(readFileSync(path, 'utf8'));
-  return match ? match[1] === 'true' : undefined;
-};
-
-const writeConfigConsent = (path, stats) => {
-  const source = readFileSync(path, 'utf8');
-  const patched = source.replace(
-    /((?:module\.exports\s*=|export\s+default)\s*\{)/,
-    `$1 stats: ${stats},`
-  );
-
-  if (patched === source) {
-    return false;
-  }
-
-  writeFileSync(path, patched);
-
-  return true;
-};
-
-const readFileConsent = () => {
-  if (!existsSync(CONSENT_FILE)) {
-    return undefined;
-  }
-
-  const match = /\bstats\s*:\s*(true|false)\b/.exec(readFileSync(CONSENT_FILE, 'utf8'));
-
-  return match ? match[1] === 'true' : undefined;
-};
-
-const writeFileConsent = (stats) => {
-  mkdirSync(join(homedir(), '.claude', 'qoq'), { recursive: true });
-  writeFileSync(
-    CONSENT_FILE,
-    [
-      '---',
-      `stats: ${stats}`,
-      '---',
-      '',
-      `Recorded ${new Date().toISOString().slice(0, 10)} by the qoq skill.`,
-      'Delete this file to be asked again.',
-      '',
-    ].join('\n')
-  );
-};
 
 const payload = () => ({ tool: 'qoq-skill', options: [command] });
 
@@ -206,21 +148,14 @@ const report = async (stats) => {
   process.exit(0);
 };
 
-const configPath = findConfig();
-
 if (consentArg) {
   const stats = consentArg === 'yes';
 
-  // The config is where the CLI looks too, so recording there means the user is
-  // asked once by either entry point rather than once by each.
-  if (!configPath || !writeConfigConsent(configPath, stats)) {
-    writeFileConsent(stats);
-  }
-
+  recordConsent('stats', stats, projectDir);
   await report(stats);
 }
 
-const consent = (configPath ? readConfigConsent(configPath) : undefined) ?? readFileConsent();
+const consent = readConsent('stats', projectDir);
 
 if (consent === undefined) {
   process.stdout.write(`${disclosure()}\n`);

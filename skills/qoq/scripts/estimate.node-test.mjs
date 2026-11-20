@@ -285,3 +285,44 @@ test('a missing or unknown tier is a usage error, not a guess', () => {
   assert.equal(it.estimate('opus').status, 4);
   assert.equal(it.run('--tags', 'a', '--stack', 'react', '--tier', 'haiku').status, 4);
 });
+
+test('a planning lesson reaches its own bucket and its stack, and no other', () => {
+  const it = world();
+  const lesson = (tags, stack, text) =>
+    it.run('--lesson', '--kind', 'planning', '--tags', tags, '--stack', stack, '--category', 'ticket-context', '--text', text); // prettier-ignore
+
+  assert.equal(lesson('mechanical,architectural', 'react', 'name the migration').status, 0);
+  assert.equal(lesson('pattern-repeat', 'react', 'same stack, other shape').status, 0);
+  assert.equal(lesson('mechanical,architectural', 'nestjs', 'other stack').status, 0);
+
+  assert.deepEqual(
+    json(it.estimate('haiku')).lessons.map(({ text }) => text),
+    ['name the migration']
+  );
+  assert.deepEqual(
+    json(it.run('--lessons', '--stack', 'react')).map(({ text }) => text),
+    ['name the migration', 'same stack, other shape']
+  );
+  assert.equal(json(it.estimate('haiku')).verdict, 'baseline');
+});
+
+test('a skill lesson is stored beside planning ones and keeps its kind', () => {
+  const it = world();
+
+  assert.equal(it.run('--lesson', '--kind', 'skill', '--tags', 'mechanical,architectural', '--stack', 'react', '--category', 'steering', '--text', 'brief omits the wrapper').status, 0); // prettier-ignore
+  assert.deepEqual(
+    json(it.estimate('haiku')).lessons.map(({ kind, category }) => [kind, category]),
+    [['skill', 'steering']]
+  );
+});
+
+test('a lesson needs a kind, a category of that kind, and text', () => {
+  const it = world();
+  const lesson = (kind, category, text) =>
+    it.run('--lesson', '--kind', kind, '--tags', 'a', '--stack', 'react', '--category', category, '--text', text).status; // prettier-ignore
+
+  assert.equal(lesson('planning', 'vibes', 'x'), 4);
+  assert.equal(lesson('planning', 'steering', 'x'), 4);
+  assert.equal(lesson('code', 'navigation', 'x'), 4);
+  assert.equal(lesson('planning', 'contract', ' '), 4);
+});

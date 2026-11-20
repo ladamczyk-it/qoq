@@ -1,7 +1,7 @@
 ---
 name: qoq
-description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`, `document`, `mermaid`, `sheriff`, `review`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped or known vulnerabilities in them fixed, a spec broken into tickets, an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context, the why behind code written down as JSDoc and `./docs` for the next session or person, a flow, lifecycle, data model or architecture drawn as a Mermaid diagram that renders on GitHub, or a change or a path checked for security problems a linter can't see — injection, missing auth checks, leaked secrets, unsafe input, or a delivered change or pull request checked against its plan or description for wrong turns, scope creep or inconsistency between tickets. Trigger it even when the user never says "qoq" or names a tool.
-argument-hint: '[fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff|review] [scope]'
+description: Quality toolkit for JavaScript/TypeScript repos — `fix`, `refactor`, `bump`, `plan`, `replan`, `execute`, `test`, `compress`, `document`, `mermaid`, `sheriff`, `review`, `feedback`. Use it whenever the user wants lint or formatting cleaned up, dead code or dead dependencies removed, a branch checked before merge, duplication refactored, npm dependencies bumped or known vulnerabilities in them fixed, a spec broken into tickets, an existing plan reshaped or re-decomposed after it stalled or the requirements moved, an approved plan executed or resumed — from a plan file or a Jira, Linear or Trello milestone — tests written for code that already exists, or agent-facing markdown (CLAUDE.md, AGENTS.md, skill docs) made terser to stop burning context, the why behind code written down as JSDoc and `./docs` for the next session or person, a flow, lifecycle, data model or architecture drawn as a Mermaid diagram that renders on GitHub, or a change or a path checked for security problems a linter can't see — injection, missing auth checks, leaked secrets, unsafe input, or a delivered change or pull request checked against its plan or description for wrong turns, scope creep or inconsistency between tickets, or feedback about qoq itself passed to its maintainers. Trigger it even when the user never says "qoq" or names a tool.
+argument-hint: '[fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff|review|feedback] [scope]'
 allowed-tools:
   - Read
   - Write
@@ -56,25 +56,26 @@ hooks:
 
 # QoQ — quality over quantity
 
-Twelve commands, one shared discovery record, eleven agents.
+Thirteen commands, one shared discovery record, twelve agents.
 
 **This file routes.** Each command's reference owns its rules — read the one you
 need, not all of them.
 
-| Command    | Does                                                        | Reference                                        |
-| ---------- | ----------------------------------------------------------- | ------------------------------------------------ |
-| `fix`      | check/fix loop over tool findings, ends on PASS/FAIL        | [references/fix.md](references/fix.md)           |
-| `refactor` | green base, then four judgement assessments over a scope    | [references/refactor.md](references/refactor.md) |
-| `bump`     | analyse dependencies, pick, then apply one patch at a time  | [references/bump.md](references/bump.md)         |
-| `plan`     | requirements → an approved plan directory under `./plans/`  | [references/plan.md](references/plan.md)         |
-| `replan`   | an existing plan, reshaped — delivered work stays frozen    | [references/replan.md](references/replan.md)     |
-| `execute`  | an approved plan, local or imported → delivered milestones  | [references/execute.md](references/execute.md)   |
-| `test`     | unit/integration coverage for code that already exists      | [references/test.md](references/test.md)         |
-| `compress` | strip agent-facing markdown to what an agent acts on        | [references/compress.md](references/compress.md) |
-| `document` | _experimental_ — the why, as JSDoc, agent-owned `./docs`    | [references/document.md](references/document.md) |
-| `mermaid`  | a validated Mermaid chart — printed, or written to a doc    | [references/mermaid.md](references/mermaid.md)   |
-| `sheriff`  | security judgment on a change — typed findings, remediated  | [references/sheriff.md](references/sheriff.md)   |
-| `review`   | a delivery or PR judged against its intent — typed findings | [references/review.md](references/review.md)     |
+| Command    | Does                                                         | Reference                                        |
+| ---------- | ------------------------------------------------------------ | ------------------------------------------------ |
+| `fix`      | check/fix loop over tool findings, ends on PASS/FAIL         | [references/fix.md](references/fix.md)           |
+| `refactor` | green base, then four judgement assessments over a scope     | [references/refactor.md](references/refactor.md) |
+| `bump`     | analyse dependencies, pick, then apply one patch at a time   | [references/bump.md](references/bump.md)         |
+| `plan`     | requirements → an approved plan directory under `./plans/`   | [references/plan.md](references/plan.md)         |
+| `replan`   | an existing plan, reshaped — delivered work stays frozen     | [references/replan.md](references/replan.md)     |
+| `execute`  | an approved plan, local or imported → delivered milestones   | [references/execute.md](references/execute.md)   |
+| `test`     | unit/integration coverage for code that already exists       | [references/test.md](references/test.md)         |
+| `compress` | strip agent-facing markdown to what an agent acts on         | [references/compress.md](references/compress.md) |
+| `document` | _experimental_ — the why, as JSDoc, agent-owned `./docs`     | [references/document.md](references/document.md) |
+| `mermaid`  | a validated Mermaid chart — printed, or written to a doc     | [references/mermaid.md](references/mermaid.md)   |
+| `sheriff`  | security judgment on a change — typed findings, remediated   | [references/sheriff.md](references/sheriff.md)   |
+| `review`   | a delivery or PR judged against its intent — typed findings  | [references/review.md](references/review.md)     |
+| `feedback` | what the user thinks of a command or agent → the maintainers | [references/feedback.md](references/feedback.md) |
 
 Two files sit under every command rather than beside them. What this skill knows
 about the _project_ is one cached record, derived once per top-level run:
@@ -86,7 +87,7 @@ file states neither, so there is one copy of each to go stale.
 
 ## Usage
 
-**Scope is positional, everywhere.** One spelling across all twelve commands, so
+**Scope is positional, everywhere.** One spelling across all thirteen commands, so
 nobody has to remember which one took a flag. `mermaid`'s is a description,
 not a path.
 
@@ -122,6 +123,8 @@ not a path.
 | `/qoq sheriff main..HEAD`                      | that range's diff, no plan — intent not judged         |
 | `/qoq sheriff <PR link>`                       | any repo's PR, security → proposed comments            |
 | `/qoq review <PR link>`                        | any repo's PR vs its description → proposed comments   |
+| `/qoq feedback`                                | asks which command or agent it's about                 |
+| `/qoq feedback qoq-developer`                  | about that agent — any command, agent, or `qoq`        |
 
 Eleven flags exist. `--decisions auto` is for the two callers that can't stop to
 answer questions — `execute`'s milestone gate and `bump`
@@ -186,24 +189,28 @@ Invoked with: `$ARGUMENTS`
 4. **Run the command**, then close the run by reporting anything discovery
    repaired — one line per field, _after_ the real work, never before it.
 
+5. **Then the end-of-run question**, if `learn.mjs --due` says it's time —
+   [references/feedback.md](references/feedback.md). Top-level runs only.
+
 ## Who calls whom
 
 Commands compose, but **only on the main thread**.
 
-| Command    | Calls                                                                           | Called by                                                          |
-| ---------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `fix`      | its own `qoq-checker`                                                           | `refactor`, `bump`, `execute`, `test`, `compress`                  |
-| `refactor` | `fix`                                                                           | `bump`, `execute`, `test`                                          |
-| `bump`     | `fix`, `refactor` — both per patch                                              | —                                                                  |
-| `plan`     | `grilling` + `domain-modeling` (external), `mermaid`                            | —                                                                  |
-| `replan`   | `grilling` + `domain-modeling` (external), `mermaid`                            | —                                                                  |
-| `execute`  | `tdd` (external), `fix`, `refactor`, `sheriff`, `review`, `document`, `mermaid` | `plan` — offered at approval, never dispatched from inside it      |
-| `test`     | `tdd` (external), `fix`, `refactor`                                             | —                                                                  |
-| `compress` | `writing-for-agents` (external), `fix`                                          | —                                                                  |
-| `document` | its own `qoq-scribe`; offers `mermaid`                                          | `execute` — per milestone, after the gate                          |
-| `mermaid`  | its own `qoq-artist`                                                            | `plan`, `replan`, `execute` — when `--diagrams` is on              |
-| `sheriff`  | its own `qoq-sheriff`; `fix` to re-gate                                         | `execute` — every milestone, always                                |
-| `review`   | `code-review` (external), its own `qoq-reviewer` ×2 axes; `fix`; `sheriff`      | `execute` — per milestone and once per plan, when `--review` is on |
+| Command    | Calls                                                                                                | Called by                                                           |
+| ---------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `fix`      | its own `qoq-checker`                                                                                | `refactor`, `bump`, `execute`, `test`, `compress`                   |
+| `refactor` | `fix`                                                                                                | `bump`, `execute`, `test`                                           |
+| `bump`     | `fix`, `refactor` — both per patch                                                                   | —                                                                   |
+| `plan`     | `grilling` + `domain-modeling` (external), `mermaid`                                                 | —                                                                   |
+| `replan`   | `grilling` + `domain-modeling` (external), `mermaid`                                                 | —                                                                   |
+| `execute`  | `tdd` (external), `fix`, `refactor`, `sheriff`, `review`, `document`, `mermaid`; its own `qoq-retro` | `plan` — offered at approval, never dispatched from inside it       |
+| `test`     | `tdd` (external), `fix`, `refactor`                                                                  | —                                                                   |
+| `compress` | `writing-for-agents` (external), `fix`                                                               | —                                                                   |
+| `document` | its own `qoq-scribe`; offers `mermaid`                                                               | `execute` — per milestone, after the gate                           |
+| `mermaid`  | its own `qoq-artist`                                                                                 | `plan`, `replan`, `execute` — when `--diagrams` is on               |
+| `sheriff`  | its own `qoq-sheriff`; `fix` to re-gate                                                              | `execute` — every milestone, always                                 |
+| `review`   | `code-review` (external), its own `qoq-reviewer` ×2 axes; `fix`; `sheriff`                           | `execute` — per milestone and once per plan, when `--review` is on  |
+| `feedback` | —                                                                                                    | every top-level command, at the end, when `learn.mjs --due` says so |
 
 `compress` changes what future runs read, never what this one does, so no
 command should be reaching for it mid-task.
@@ -249,7 +256,7 @@ change break it?" — which a second agent writing concurrently makes
 unanswerable.
 
 **An agent that reports never fixes.** `qoq-checker`, `qoq-bumper`,
-`qoq-designer`, `qoq-architect`, `qoq-test-reviewer`, `qoq-sheriff` and `qoq-reviewer` return findings and edit
+`qoq-designer`, `qoq-architect`, `qoq-test-reviewer`, `qoq-sheriff`, `qoq-reviewer` and `qoq-retro` return findings and edit
 nothing. An agent permitted to do both will quietly do both, and the finding
 disappears into the diff instead of reaching the user. Where an agent's tools
 are wider than its contract, `scripts/agent-guard.mjs` closes the gap as a
@@ -270,7 +277,7 @@ read.
 
 ## Agents
 
-Eleven, in `agents/`. Everything is pinned except five: `qoq-developer`, whose tier
+Twelve, in `agents/`. Everything is pinned except five: `qoq-developer`, whose tier
 is a property of the ticket and is passed at dispatch, `qoq-scribe`, whose tier
 follows its mode and is passed at dispatch, `qoq-architect`, which
 inherits the session's model because a design error propagates into every ticket
@@ -291,6 +298,7 @@ blind spots at any cheaper tier.
 | `qoq-artist`        | sonnet     | a validated Mermaid chart, or a reasoned decline            |
 | `qoq-sheriff`       | _session_  | logic-level security findings — one per sweep or recheck    |
 | `qoq-reviewer`      | _session_  | spec · standards axes, in parallel — per milestone or plan  |
+| `qoq-retro`         | sonnet     | lessons from retries — per retried milestone, then the plan |
 
 Entry copies them into the project's `.claude/agents/`, because an agent file
 inside a skill is registered by nothing, and Claude Code picks that directory up
@@ -320,7 +328,7 @@ the full brief instead, the way every retry worked before resume, when:
   ticket, and the old context would mislead
 - **it stopped on `maxTurns`**: a partial return is a hand-back and spends an
   attempt. It's never resumed
-- **the agent judges**: `qoq-sheriff`, `qoq-reviewer` and `qoq-test-reviewer` are
+- **the agent judges**: `qoq-sheriff`, `qoq-reviewer`, `qoq-test-reviewer` and `qoq-retro` are
   cold every time, because a primed reader shares the blind spots it should catch
 - **it's `qoq-checker`**: its context is raw reports, and a fresh digest is cheaper
 
