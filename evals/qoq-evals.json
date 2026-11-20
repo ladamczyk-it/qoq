@@ -1400,6 +1400,40 @@
         "No .v2 file or second plan directory is written",
         "The new milestone file follows the template: Scope, Tickets with a #### Execution block, Definition of done"
       ]
+    },
+    {
+      "id": 74,
+      "name": "execute-retro-after-retried-milestone",
+      "target": "fixture-repo",
+      "setup": "Copy repo-states/ratelimit-after-1.1/src/ and repo-states/ratelimit-m1-tickets-done/src/ into src/ and commit them on a feature branch as ticket 1.1's and 1.2's commits. Copy repo-states/ratelimit-m1-tickets-done/plans/m1-retried.md over plans/2026-08-20-ratelimit/m1-fixed-window-rate-limiting.md with the two commit hashes filled in, set the index's Plan status and M1 row to in-progress, and commit.",
+      "prompt": "/qoq execute plans/2026-08-20-ratelimit",
+      "expected_output": "Resumes at M1's milestone gate: both tickets are done, ticket 1.1 took three attempts. After the gate and before delivery it dispatches qoq-retro over the milestone file's Logs, writes its lessons into m1-fixed-window-rate-limiting.md as a `## Retro` section and counts them on the Outcome block's Retro line. As the last milestone is delivered, it runs the final retro, writes `## Retro` into index.md below the Milestones table, records planning and skill lessons through estimate.mjs --lesson without asking, and asks only about code lessons. Nothing moves to a .completed.md file.",
+      "files": [],
+      "assertions": [
+        "qoq-retro is dispatched for M1, after the milestone gate and before the Outcome block is written",
+        "m1-fixed-window-rate-limiting.md has a `## Retro` section with at least one lesson in the shape `L<n> · <code|planning|skill> · <category> — … — from Ticket 1.1 attempt <n>: <Log line> → <change>`",
+        "Every lesson quotes a FAIL or REJECTED line from ticket 1.1's Log; none is about ticket 1.2",
+        "The Outcome block at the top of the milestone file has a **Retro:** line with the count per kind",
+        "index.md has a `## Retro` section below the Milestones table, and the M1 row reads delivered",
+        "Planning or skill lessons, if any, are recorded with estimate.mjs --lesson without asking the user",
+        "The only retro question to the user is whether to add a follow-up milestone for code lessons, asked only if there are code lessons",
+        "No .completed.md file is created and no `## Completed` section is added"
+      ]
+    },
+    {
+      "id": 75,
+      "name": "execute-no-retro-when-every-ticket-passed-first-try",
+      "target": "fixture-repo",
+      "setup": "Copy repo-states/ratelimit-after-1.1/src/ and repo-states/ratelimit-m1-tickets-done/src/ into src/ and commit them on a feature branch as ticket 1.1's and 1.2's commits. Copy repo-states/ratelimit-m1-tickets-done/plans/m1-clean.md over plans/2026-08-20-ratelimit/m1-fixed-window-rate-limiting.md with the two commit hashes filled in, set the index's Plan status and M1 row to in-progress, and commit.",
+      "prompt": "/qoq execute plans/2026-08-20-ratelimit",
+      "expected_output": "Resumes at M1's milestone gate with both tickets done first try. Runs the gate and delivers M1 with no retro: qoq-retro is never dispatched, no `## Retro` section appears in the milestone file or the index, and the Outcome block has no Retro line.",
+      "files": [],
+      "assertions": [
+        "qoq-retro is never dispatched",
+        "Neither m1-fixed-window-rate-limiting.md nor index.md gains a `## Retro` section",
+        "The Outcome block has no **Retro:** line",
+        "M1 is delivered: Outcome block written and the index row reads delivered"
+      ]
     }
   ]
 }
