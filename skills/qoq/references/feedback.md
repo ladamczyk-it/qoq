@@ -71,5 +71,6 @@ Exit 0 → one question: _Did `/qoq <command>` do what you needed?_ **Yes** ·
   text step.
 - **Skip** → nothing.
 
-Never after an inner command, after `--decisions auto`, or after `feedback`
-itself. Nobody is there to answer the first two, and the last just asked.
+Never after an inner command, after `--decisions auto`, in a run of a plan with
+a `Feature` header line, or after `feedback` itself. Nobody is there to answer
+the first three, and the last just asked.

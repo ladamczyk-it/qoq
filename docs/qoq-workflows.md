@@ -31,8 +31,8 @@ Why any of it is shaped this way is a third file, [qoq-design.md](qoq-design.md)
 | [`mermaid`](#mermaid)                             | [mermaid.md](../skills/qoq/references/mermaid.md), [qoq-artist](../skills/qoq/agents/qoq-artist.md)                                              |
 | [`sheriff`](#sheriff)                             | [sheriff.md](../skills/qoq/references/sheriff.md), [qoq-sheriff](../skills/qoq/agents/qoq-sheriff.md)                                            |
 | [`review`](#review)                               | [review.md](../skills/qoq/references/review.md), [qoq-reviewer](../skills/qoq/agents/qoq-reviewer.md)                                            |
-| [A plan under a feature](#a-plan-under-a-feature) | [plan-template.md](../skills/qoq/assets/plan-template.md), [feature-status.mjs](../skills/qoq/scripts/feature-status.mjs)                        |
 | [`feedback`](#feedback)                           | [feedback.md](../skills/qoq/references/feedback.md)                                                                                              |
+| [A plan under a feature](#a-plan-under-a-feature) | [plan-template.md](../skills/qoq/assets/plan-template.md), [feature-status.mjs](../skills/qoq/scripts/feature-status.mjs)                        |
 
 **Legend, shared by all fourteen.** Purple = a subagent and everything it does.
 Amber dashed = a command run directly. Cyan = the user. Red = a qoq command
@@ -587,7 +587,7 @@ flowchart TD
     EMS -->|yes| EWAVE
     EMS -->|no| EFRQ{"any milestone<br/>had a retro?"}
     EFRQ -->|no| ERVP
-    EFRQ -->|yes| EFRET(["**final retro** — qoq-retro merges every<br/>Retro, ranked by recurrence → ## Retro.<br/>planning + skill lessons, **no ask** →<br/>**estimate.mjs --lesson**, and to **learn.mjs**<br/>when learning consent is on.<br/>**ASK** only about code lessons: add a<br/>follow-up milestone for them?"])
+    EFRQ -->|yes| EFRET(["**final retro** — qoq-retro merges every<br/>Retro, ranked by recurrence → ## Retro.<br/>*only one Retro → taken as is, no dispatch*<br/>planning + skill lessons, **no ask** →<br/>**estimate.mjs --lesson**, and to **learn.mjs**<br/>when learning consent is on.<br/>**ASK** only about code lessons: add a<br/>follow-up milestone for them?<br/>*a Feature plan: never asked — code<br/>lessons reported to the chief of staff*"])
     EFRET -->|"follow-up yes — *only if the<br/>plan has none yet*"| EFUP["**Follow-up: retro lessons** appended to<br/>this plan — plan.md Phase 3, no grill,<br/>no architect · approved, then run.<br/>*its own retro reports only, never<br/>a second follow-up*"]
     EFUP --> EWAVE
     EFRET -->|"no follow-up"| ERVP
@@ -967,7 +967,7 @@ flowchart TD
     FT -->|no| FASKT(["**ASK** which — the command run<br/>last in this session first, then qoq"])
     FT -->|yes| FCAT
     FASKT --> FCAT
-    FEND(["a **top-level** run printed its last line<br/>*never an inner command, --decisions auto,<br/>or feedback itself*"]) --> FDUE{"learn.mjs --due<br/>*--ended-badly on a FAIL,<br/>a blocked ticket, a stop*"}
+    FEND(["a **top-level** run printed its last line<br/>*never an inner command, --decisions auto,<br/>a Feature plan's run, or feedback itself*"]) --> FDUE{"learn.mjs --due<br/>*--ended-badly on a FAIL,<br/>a blocked ticket, a stop*"}
     FDUE -->|"exit 1 — asked this week"| FQUIET(["say nothing"])
     FDUE -->|"exit 0"| FSAT(["**ASK** did /qoq &lt;command&gt;<br/>do what you needed?"])
     FSAT -->|yes| FSEND

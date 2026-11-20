@@ -127,11 +127,18 @@ shouldn't have to open every milestone file to find them.
 Bring the user the merged summary, grouped by kind. Planning and skill lessons
 need no approval: they're recorded as soon as the summary exists (below), since
 they change no code and the next plan only reads them as advice. **Code lessons
-are the one question**, and only when there are any: add a follow-up milestone
-for them? They change the project, so they wait for a yes.
+are the one question**, and only when there are any and the plan has no
+`Feature` line: add a follow-up milestone for them? They change the project, so they wait for a yes.
 
 Write the summary into `index.md` as **`## Retro`**, below the Milestones table,
 whatever the answers. The plan stays the one record of what this run learned.
+
+**A plan with a `Feature` header line gets no follow-up milestone.** Send the
+code lessons to the chief of staff with the summary, as a report and not a
+question. A repo milestone that serves no master milestone escapes every
+integration check, and a change to the feature's scope belongs to the chief of
+staff, not to one repo. The consent question below goes to the chief of staff
+too, like every question in a feature run ([execute.md](execute.md)).
 
 ## The follow-up milestone
 

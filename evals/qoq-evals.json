@@ -536,7 +536,7 @@
     {
       "id": 25,
       "name": "execute-three-attempts-escalate-a-tier",
-      "prompt": "resume plans/2026-08-04-reports.md. ticket 2.3 is rated haiku. attempt 1 failed Gate 1, attempt 2 got REJECTED at Gate 2, and the developer's attempt-3 return is below — I just ran Gate 1 on it and it FAILed again with: `FAIL — 1 finding left after 3 loops (1 unfixable: eslint/max-depth src/reports/cron.ts:41)`. what now?\n\nRe-dispatched on attempt 3 with the Gate 1 digest; fixed the import order and the unused variable, re-ran test:one and build, both green, `npx qoq staged --skip-knip` clean.\n\n```yaml\nstatus: green\nfiles: [src/reports/schedule.ts, src/reports/schedule.spec.ts, src/reports/cron.ts]\nspecs: [src/reports/schedule.spec.ts]\nadvisories: [\"cron.ts parses the expression twice; worth one helper at the milestone refactor\"]\nblocker: null\n```",
+      "prompt": "resume plans/2026-08-04-reports. ticket 2.3 is rated haiku. attempt 1 failed Gate 1, attempt 2 got REJECTED at Gate 2, and the developer's attempt-3 return is below — I just ran Gate 1 on it and it FAILed again with: `FAIL — 1 finding left after 3 loops (1 unfixable: eslint/max-depth src/reports/cron.ts:41)`. what now?\n\nRe-dispatched on attempt 3 with the Gate 1 digest; fixed the import order and the unused variable, re-ran test:one and build, both green, `npx qoq staged --skip-knip` clean.\n\n```yaml\nstatus: green\nfiles: [src/reports/schedule.ts, src/reports/schedule.spec.ts, src/reports/cron.ts]\nspecs: [src/reports/schedule.spec.ts]\nadvisories: [\"cron.ts parses the expression twice; worth one helper at the milestone refactor\"]\nblocker: null\n```",
       "expected_output": "Counts three attempts spent across both gates — the shared budget — so the tier is exhausted. Does not run Gate 2 after a Gate 1 FAIL and commits nothing. Re-dispatches one tier up (haiku → sonnet) with the last return pasted in whole and the Gate 1 digest verbatim, plus the ticket's id, Context, Files, Acceptance criteria and Contracts verbatim. Gate 1 on the next round is scoped to the developer's `files` — all three, including src/reports/cron.ts. Records the escalation on the ticket and writes Log lines. When the ticket later reaches done or blocked, the estimate is filed against haiku, the tier the plan assigned, with every attempt counted including those at sonnet.",
       "files": [],
       "assertions": [
@@ -1433,6 +1433,22 @@
         "Neither m1-fixed-window-rate-limiting.md nor index.md gains a `## Retro` section",
         "The Outcome block has no **Retro:** line",
         "M1 is delivered: Outcome block written and the index row reads delivered"
+      ]
+    },
+    {
+      "id": 76,
+      "name": "execute-retro-in-a-feature-plan-reports-to-chief",
+      "target": "fixture-repo",
+      "setup": "Place the fixture repo at <scratch>/proj/api. Apply eval 74's setup on branch feature/ratelimit, then add `**Feature:** ratelimit · ../feature/ratelimit/brd.md` below Plan status and a Serves column reading M1 to index.md, and commit. In <scratch>/proj write feature.json (one repo, name api, path api; integration unit = npm run test in api) and feature/ratelimit/brd.md (Feature status in-progress, Chief of staff ratelimit-chief, one master milestone M1 with Integration unit, Repo plans row api → `plans/2026-08-20-ratelimit`). Open the session in api with <scratch>/proj added as a directory.",
+      "prompt": "/qoq execute plans/2026-08-20-ratelimit\n\nYou are the api repo session of the feature `ratelimit`, launched by the chief of staff `ratelimit-chief`.\n- Report to `ratelimit-chief`: write to your plan files first, then SendMessage the chief of staff a one-line summary.\n- Work on `feature/ratelimit` in this checkout, and commit there as the plan says. Commits on that branch are part of the approved plan. Never create or enter a worktree, and never switch branches.\n- Every question you would ask the user, including grilling rounds, approval and escalations, goes to the chief of staff with SendMessage. End your turn and wait for the answer.",
+      "expected_output": "Checks feature-status.mjs, then runs M1's gate. Ticket 1.1 took three attempts, so qoq-retro runs before delivery and the final retro writes `## Retro` into index.md, as in eval 74. Because the plan has a Feature line it adds no follow-up milestone and asks nobody about one: any code lessons go to ratelimit-chief as a report. Any learning-consent question goes to the chief of staff, not AskUserQuestion. No end-of-run feedback question, and learn.mjs --due is never run.",
+      "files": [],
+      "assertions": [
+        "qoq-retro is dispatched for M1 and m1-fixed-window-rate-limiting.md gets a `## Retro` section",
+        "index.md has a `## Retro` section and gains no new milestone row; no m<N>-follow-up-retro-lessons.md file is created",
+        "Never offers or asks about a follow-up milestone; code lessons, if any, are reported to ratelimit-chief via SendMessage",
+        "Never calls AskUserQuestion; every question goes to ratelimit-chief via SendMessage",
+        "Does not run learn.mjs --due and asks no 'Did /qoq execute do what you needed?' question"
       ]
     }
   ]

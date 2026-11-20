@@ -1035,6 +1035,13 @@ ones it skipped at approval. Asking first would make the store depend on someone
 answering at the end of a long run. When they didn't, the next plan would start
 without what this one learned.
 
+**Why a feature plan gets no follow-up.** A repo's milestones reach the
+feature through **Serves**, and a master milestone's integration check runs once
+every repo milestone serving it is delivered. A follow-up serves nothing, so it
+would run outside every integration check, possibly after the last one passed.
+And adding work to one repo's share changes the feature's scope, which is the
+chief of staff's call. So the code lessons go to the chief of staff as a report.
+
 **Why only one follow-up.** The follow-up milestone retries too, and its retro
 finds lessons too. If every final retro could add a milestone, a run that kept
 learning would never finish. One follow-up applies the lessons the user
@@ -1409,6 +1416,11 @@ looking for a way to give feedback. They complain when something didn't work, in
 the moment, and a command they'd have to remember misses that moment. The
 command is there for anyone who wants it. The question is what actually collects
 most of the feedback.
+
+**Why a feature run never asks.** Its session runs in the background, and
+every question goes through the chief of staff to the user. "Did `/qoq execute`
+do what you needed?" once per repo is noise relayed N times, about runs the user
+never watched. The chief of staff's own session is where the user is.
 
 **Why weekly, and every time after a bad ending.** Asked after every `fix`, the
 question becomes noise and gets skipped by reflex. A run that ended on a FAIL, a
