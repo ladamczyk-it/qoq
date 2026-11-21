@@ -40,7 +40,7 @@ describe('JscpdConfigHandler', () => {
         modules: {
           jscpd: {
             format: ['javascript'],
-            ignore: ['**/*.spec.js'],
+            ignore: ['**/*.spec.js', '**/*.test.js'],
             threshold: 2,
           },
         },
@@ -68,7 +68,7 @@ describe('JscpdConfigHandler', () => {
   describe('minimal config from wizard defaults', () => {
     // defaults derived from an empty project (see getModulesFromConfig spec above)
     const defaultFormat = ['javascript'];
-    const defaultIgnore = ['**/*.spec.js'];
+    const defaultIgnore = ['**/*.spec.js', '**/*.test.js'];
 
     it('omits everything when the user accepts the defaults', async () => {
       prompts.inject([JscpdConfigHandler.DEFAULT_THRESHOLD, defaultFormat, defaultIgnore]);

@@ -1,6 +1,15 @@
 {
   "absolute": true,
   "format": "javascript,jsx,typescript,tsx",
-  "ignore": ["**/*.spec.js", "**/*.spec.jsx", "**/*.spec.ts", "**/*.spec.tsx"],
+  "ignore": [
+    "**/*.spec.js",
+    "**/*.spec.jsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.test.js",
+    "**/*.test.jsx",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ],
   "threshold": "2"
 }
