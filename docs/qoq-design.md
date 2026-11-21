@@ -938,7 +938,10 @@ frontmatter. It is an allowlist per role, not a denylist: a missed read costs a
 hand-back, and a missed write costs the finding. Every segment of a compound
 command is checked, redirection is refused except to `/dev/null`, and `node` is
 limited to this skill's own scripts, because `node -e` writes as well as `sed -i`
-does. The hook fails closed (`|| exit 2`), so a guard that can't load blocks
+does. `cd` is allowed, but only to an absolute path inside the project (added
+2026-11-21): a checker started in a subdirectory, with `cd` refused, failed every
+command, because every `cli.yaml` form is relative to the root. A relative target
+isn't allowed because the guard can't know where the shell currently is. The hook fails closed (`|| exit 2`), so a guard that can't load blocks
 calls instead of allowing them. The source names the script through
 `$CLAUDE_PROJECT_DIR/.claude/skills/qoq`, which is right for a symlinked
 checkout; `sync-agents.mjs` rewrites that path to the skill's real location when

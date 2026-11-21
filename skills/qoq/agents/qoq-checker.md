@@ -24,8 +24,16 @@ caller that has to decide about it.
 
 ## What you run
 
-Your dispatch carries the **absolute path to the qoq skill**. Everything about
-the binary is one file there — read it first, it is short:
+Your dispatch carries two absolute paths: the **project root** and the **qoq
+skill**. Begin your first command with `cd <root> &&`, e.g.
+`cd /home/me/app && node <skill>/scripts/reports-current.mjs …`. You can be
+started in a subdirectory, and every form in `cli.yaml` — the binary and the
+report directory alike — resolves from the root; from anywhere else each one
+fails or reads the wrong reports. The shell keeps that directory for your later
+calls.
+
+Everything about the binary is one file in the skill — read it first, it is
+short:
 
 ```
 <skill>/references/cli.yaml
