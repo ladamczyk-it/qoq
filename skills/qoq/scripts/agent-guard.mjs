@@ -230,6 +230,11 @@ const checkCommand = (policy, argv, projectDir) => {
   if (READ_ONLY.includes(head)) {
     return null;
   }
+  // `VAR=x cmd` sets the environment for an allowed head: NODE_OPTIONS alone
+  // turns `node <script>` into arbitrary code.
+  if (/^[A-Za-z_]\w*=/.test(head)) {
+    return `inline variable prefixes (${head}) are not allowed`;
+  }
   const line = argv.join(' ');
   const allowed = policy.bash.find((p) => line === p || line.startsWith(`${p} `));
   if (!allowed) {
@@ -259,6 +264,20 @@ const checkSegment = (policy, segment, projectDir) => {
   return argv[0] === 'git'
     ? checkGit(policy, argv, projectDir)
     : checkCommand(policy, argv, projectDir);
+};
+
+// What a role may run, printed with every refusal so the agent sees the shape
+// once instead of retrying variations of what it was refused.
+const shape = (role) => {
+  const policy = ROLES[role];
+  if (!policy) {
+    return 'nothing';
+  }
+  const git = policy.git?.length ? [`git ${policy.git.join('|')}`] : [];
+  return [
+    '`cd <absolute dir in the project>`',
+    ...[...policy.bash, ...git, ...READ_ONLY].map((c) => `\`${c}\``),
+  ].join(', ');
 };
 
 export const check = (role, payload, projectDir = process.env.CLAUDE_PROJECT_DIR) => {
@@ -304,7 +323,7 @@ if (process.argv[1] && real(process.argv[1]) === fileURLToPath(import.meta.url))
       }
       if (reason) {
         process.stderr.write(
-          `${role}: ${reason}. Your contract allows only what your agent file lists — hand back to your caller instead of working around this.\n`
+          `${role}: ${reason}. You may run ${shape(role)}, with no inline variables or substitution. Hand back to your caller instead of working around this.\n`
         );
         process.exit(2);
       }

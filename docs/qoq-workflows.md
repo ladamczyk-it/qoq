@@ -163,7 +163,7 @@ flowchart TD
         DIG --> SUM["return the **digest**<br/>tool → rule → files<br/>(never the raw reports)"]
     end
 
-    CHK -->|"brief: project root +<br/>skill path, both absolute"| CD["`cd &lt;root&gt;` first<br/>*it may start in a subdirectory;<br/>every cli.yaml form is root-relative*"]
+    CHK -->|"brief: project root +<br/>skill path, both absolute"| CD["`cd &lt;root&gt;` as its own first call<br/>*it may start in a subdirectory;<br/>every cli.yaml form is root-relative*<br/>then one cli.yaml form per call, as written"]
     CD --> C0
     SUM --> ANY{"findings?"}
     ANY -->|none| OUT(["**done**<br/>summarise every loop's fixes"])
@@ -498,7 +498,9 @@ flowchart TD
     ELOAD["**load the plan, fresh from disk**<br/>every time, resume or not: index.md,<br/>then the next milestone's file only<br/>*(./plans/[plan]/ — imported or not,<br/>nothing below knows the difference)*"]
     ELOAD --> ELEGACY{"a bare<br/>plans/[name].md?"}
     ELEGACY -->|yes| ELSTOP(["**stop** — the single-file layout,<br/>no longer run. name it; not converted"])
-    ELEGACY -->|"no — a directory"| EDRAFT{"Plan status<br/>approved?"}
+    ELEGACY -->|"no — a directory"| EREPO{"plan dir inside<br/>$CLAUDE_PROJECT_DIR?"}
+    EREPO -->|"no — another repo"| EREPOSTOP(["**stop** — run execute from<br/>a session in that repo<br/>*guards confine every agent<br/>to this project*"])
+    EREPO -->|yes| EDRAFT{"Plan status<br/>approved?"}
     EDRAFT -->|draft| EBACK["back to **qoq plan** —<br/>it was never signed off"]
     EDRAFT -->|approved| EPROG{"any ticket<br/>in-progress?"}
     EPROG -->|"yes — a dead run"| ERECON["reconcile against git log:<br/>committed → done,<br/>otherwise re-dispatch"]

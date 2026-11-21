@@ -941,7 +941,13 @@ limited to this skill's own scripts, because `node -e` writes as well as `sed -i
 does. `cd` is allowed, but only to an absolute path inside the project (added
 2026-11-21): a checker started in a subdirectory, with `cd` refused, failed every
 command, because every `cli.yaml` form is relative to the root. A relative target
-isn't allowed because the guard can't know where the shell currently is. The hook fails closed (`|| exit 2`), so a guard that can't load blocks
+isn't allowed because the guard can't know where the shell currently is. An
+inline `VAR=x` prefix is refused on its own: it sets the environment of an allowed
+head, and `NODE_OPTIONS` alone turns `node <script>` into arbitrary code. Every
+refusal lists what the role may run, because retro records showed checkers
+retrying variations of a refused command instead of handing back. For the same
+reason `execute` refuses a plan from another repo instead of `cd`ing out to it:
+the guards would refuse every gate there. The hook fails closed (`|| exit 2`), so a guard that can't load blocks
 calls instead of allowing them. The source names the script through
 `$CLAUDE_PROJECT_DIR/.claude/skills/qoq`, which is right for a symlinked
 checkout; `sync-agents.mjs` rewrites that path to the skill's real location when

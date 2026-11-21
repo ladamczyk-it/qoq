@@ -77,6 +77,11 @@ A ticket sitting at `in-progress` means a previous run died mid-flight.
 Reconcile against `git log`: if the ticket's files were committed, mark it
 `done`; otherwise re-dispatch it. Don't ask the user to remember what happened.
 
+**A plan directory outside this session's project** (`$CLAUDE_PROJECT_DIR`)
+belongs to another repo. Name it, say to run `execute` from a session opened in
+that repo, and stop. Every agent's guard confines it to this project, so each
+gate there would be refused.
+
 `Plan status: draft` means it was never signed off — send it back to `qoq plan`
 rather than executing an unapproved plan.
 

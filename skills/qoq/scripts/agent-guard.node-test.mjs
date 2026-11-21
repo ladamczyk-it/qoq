@@ -60,6 +60,12 @@ test('cd reaches the project from a subdirectory, and goes nowhere else', () => 
   assert.match(bash('qoq-checker', 'cd ..'), /absolute path inside the project \(\/work\/app\)/);
 });
 
+test('an inline variable prefix is refused, even before an allowed command', () => {
+  blocks('qoq-checker', 'NODE_OPTIONS=--require=/tmp/x.js npx qoq --check --json');
+  blocks('qoq-checker', 'cd /work/app && FORCE_COLOR=0 npx qoq --check --json');
+  assert.match(bash('qoq-checker', 'CI=1 npx qoq --check --json'), /inline variable/);
+});
+
 test('a clever compound still has every segment checked', () => {
   blocks('qoq-sheriff', 'git diff main...HEAD; rm -rf src');
   blocks('qoq-sheriff', 'git log | tee notes.txt');
@@ -143,7 +149,8 @@ test('as a hook: exit 2 and a reason on stderr blocks; exit 0 allows', () => {
 
   const no = hook('qoq-sheriff', 'rm -rf src');
   assert.equal(no.status, 2);
-  assert.match(no.stderr, /^qoq-sheriff: `rm` is not allowed\. .*hand back/);
+  assert.match(no.stderr, /^qoq-sheriff: `rm` is not allowed\. You may run .*`git diff\|log/);
+  assert.match(no.stderr, /Hand back to your caller/);
 
   assert.equal(
     spawnSync(
