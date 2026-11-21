@@ -668,6 +668,20 @@ and useful, because it's the thing that can say "this doesn't fit". That's the
 move `qoq-designer`'s caller already makes; here it happens one step earlier,
 under a citation the reading can't revise.
 
+**Why the integration surface lists what resolves or overrides a setting.**
+Two retro lessons in a row (ticket-context, qoq 7.2.0) came from framework
+behaviour the ticket never read. One was a lint plugin that resolves a
+dependency by naming convention, so a rename broke a link nobody had written
+down. The other was a setting used as a safety boundary that a nested config
+could override. Both are what the architect is already for: integration
+problems found on the page instead of one ticket at a time. A positive
+criterion can't catch a bypass, because the boundary holds in every spec that
+doesn't try to get around it. Only a negative criterion does, which is why each
+reachable override of a safety boundary becomes one. Two limits keep tickets
+from filling up with specs for paths that can't happen. Only reachable
+overrides count, and only for safety boundaries. Any other setting gets its
+resolve and override mechanisms listed as context, not as specs.
+
 **Why the skip is one conjunction and not a judgement call.** A skip has to be
 decidable from what the main thread already holds — the requirements and
 `Explore`'s findings — or it's a guess about a pass being guessed away. Single

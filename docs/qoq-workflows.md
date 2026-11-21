@@ -399,7 +399,7 @@ flowchart TD
         PSCOPE{"independent<br/>subsystems?"}
         PSCOPE -->|yes| PSPLIT(["**say so** — separate plans,<br/>one each. never one plan<br/>with both"])
         PSCOPE -->|no| PSLICE["**slice** *(to-tickets' rules)* — vertical,<br/>never one layer · **prefactor** ticket first"]
-        PSLICE --> PDEC["**decompose** — per ticket:<br/>size XS/S/M *(never bigger)*<br/>complexity → agent tier, nothing else<br/>Context that stands alone<br/>**criteria written as assertions,<br/>derived from the Scenarios** — so each<br/>has a parent rather than an author<br/>*Risks feed sizing*"]
+        PSLICE --> PDEC["**decompose** — per ticket:<br/>size XS/S/M *(never bigger)*<br/>complexity → agent tier, nothing else<br/>Context that stands alone<br/>**criteria written as assertions,<br/>derived from the Scenarios** — so each<br/>has a parent rather than an author<br/>+ **one negative criterion per reachable<br/>override** of a safety boundary *(architect Risks)*<br/>*Risks feed sizing*"]
         PDEC --> PTAG["**tag the ticket** — mechanical ·<br/>architectural · pattern-repeat<br/>*(multiple, extensible)*<br/>+ the stack it lands in"]
         PTAG --> PEST["**scripts/estimate.mjs** — *size + tier is<br/>one decision*, counted per tier from<br/>this repo's `.claude/qoq-estimator.json`.<br/>a **miss** = not delivered inside<br/>the three-attempt budget"]
         PEST -->|"2 — split: tickets of this shape<br/>keep ending up **blocked**<br/>*(not a model problem)*"| PDEC

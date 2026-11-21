@@ -113,6 +113,16 @@ what changes, the shared types, the config, the migrations, the boundaries whose
 shape is now assumed. This is the anti-scope-expansion payload; it lands in
 ticket `Context`.
 
+For every framework or tool setting the work relies on, read what **resolves**
+it (a naming convention, a plugin lookup, a nested config) and what
+**overrides** it (an inline disable, an env var, a CLI flag, a per-file
+config). Tickets assume the setting is the whole story, and that assumption is
+where the scope a plan never contained comes from. Cite each one you can reach
+in this repo. Give an unreachable one a single line saying why, so nobody
+checks it again. A reachable override of a setting that acts as a safety
+boundary (an auth guard, a sandbox, a lint ban, a CSP) is also a **Risk**.
+Every such Risk becomes a negative criterion.
+
 **Risks** — what could turn a ticket into three. A broken upstream assumption, a
 type used in eleven places, an implicit contract nobody wrote down. Concrete and
 cited; a risk without a `file:line` is a worry.
