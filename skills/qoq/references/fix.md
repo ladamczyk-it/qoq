@@ -82,6 +82,11 @@ Two checks, answering different questions.
 `build` isn't scoped, because there's no such thing as a scoped build and a fix
 that breaks the type graph shows up nowhere else.
 
+A JSCPD clone between a spec and its source is unfixable here: deduping breaks
+the spec ([test-conventions.md](test-conventions.md#relaxations-in-test-files)),
+and widening `jscpd.ignore` is a scope decision for a person. Carry it with the
+missing glob as the reason.
+
 An unfixable finding is **never retried**. It stays in the digest — the checker
 will keep reporting it — but the loop skips it from then on and lists it at the
 end. Otherwise every subsequent loop re-attempts the same fix, re-breaks the same

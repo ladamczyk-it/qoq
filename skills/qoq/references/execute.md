@@ -395,8 +395,9 @@ When every ticket in a milestone is `done` or `blocked`:
    the gate. `--decisions auto` because nobody is watching — the safe tier is applied and
    everything shape-changing comes back as an advisory. The specs are in that
    union, so cross-ticket spec problems — duplicated setup across four tickets,
-   one boundary mocked three ways — are already assessment 1's job. No third gate
-   is needed here.
+   one boundary mocked three ways — are already assessments 2–4's job. JSCPD
+   skips spec files by default, so assessment 1 never sees them. No third gate is
+   needed here.
 2. The project's **full** build and test suite from the record — not the scoped
    variants a ticket gate uses.
 

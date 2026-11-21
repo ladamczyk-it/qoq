@@ -78,14 +78,21 @@ structured, not a pass to run afterwards:
 If the target project turns out to be on a different ESLint setup these are still
 sound defaults, just no longer independently enforced there.
 
-## TypeScript relaxations in test files
+## Relaxations in test files
 
-Two rules that apply to production TypeScript are deliberately **off** in spec
-files under this repo's `eslint-v9-ts-*` test configs — worth knowing so you
-don't over-engineer test code to satisfy a rule that isn't running:
+Three checks that apply to production code are deliberately **off** in spec
+files: two in this repo's `eslint-v9-ts-*` test configs, and JSCPD through its
+default ignore. They're worth knowing so you don't over-engineer test code to
+satisfy a check that isn't running:
 
 - `@typescript-eslint/no-unsafe-assignment`/`-argument`/`-member-access`. A
   loosely-typed mock doesn't need casting gymnastics.
 - `sonarjs/no-duplicate-string`. Repeating an expected error message across
   several `expect` calls doesn't need hoisting into a constant for this rule's
   sake — only if it genuinely reads better.
+- **JSCPD**, which ignores `**/*.spec.*` and `**/*.test.*` by default. An
+  expected value pinned from source stays a literal in the spec: importing it
+  makes the assertion compare the code with itself, so it can never fail. If
+  JSCPD still flags spec against source, the project's `jscpd.ignore` is missing
+  that spec's glob — the fix is that glob in `qoq.config`, never a change to
+  either file.
