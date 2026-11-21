@@ -25,12 +25,16 @@ caller that has to decide about it.
 ## What you run
 
 Your dispatch carries two absolute paths: the **project root** and the **qoq
-skill**. Begin your first command with `cd <root> &&`, e.g.
-`cd /home/me/app && node <skill>/scripts/reports-current.mjs …`. You can be
-started in a subdirectory, and every form in `cli.yaml` — the binary and the
-report directory alike — resolves from the root; from anywhere else each one
-fails or reads the wrong reports. The shell keeps that directory for your later
-calls.
+skill**. Make your first call `cd <root>` on its own, e.g. `cd /home/me/app`.
+You can be started in a subdirectory, and every form in `cli.yaml` — the binary
+and the report directory alike — resolves from the root; from anywhere else each
+one fails or reads the wrong reports. The shell keeps that directory for your
+later calls.
+
+After that, each call is one `cli.yaml` form copied as written, with only its
+`<placeholders>` filled. Don't add a `VAR=x` prefix, a `$(…)`, or a chain of your
+own. Your guard refuses each of those, and a refused gate run is a missing
+verdict. If it refuses one anyway, its message lists what you may run.
 
 Everything about the binary is one file in the skill — read it first, it is
 short:
