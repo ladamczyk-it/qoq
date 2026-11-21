@@ -43,11 +43,21 @@ export const readConsent = (key, projectDir) => {
   return existsSync(file) ? readKey(readFileSync(file, 'utf8'), key) : undefined;
 };
 
+// The insert is written in the shape Prettier would print, because a consent
+// answer that leaves the config unformatted turns the next gate red on a file
+// the ticket never touched: on its own line at the next line's indent for a
+// multi-line object, `{ key: value }` for an empty one, inline otherwise.
 const writeConfig = (path, key, value) => {
   const source = readFileSync(path, 'utf8');
   const patched = source.replace(
-    /((?:module\.exports\s*=|export\s+default)\s*\{)/,
-    `$1 ${key}: ${value},`
+    /((?:module\.exports\s*=|export\s+default)\s*\{)(\s*\}|\n([ \t]*))?/,
+    (_, open, rest, indent) => {
+      if (indent !== undefined) {
+        return `${open}\n${indent}${key}: ${value},\n${indent}`;
+      }
+
+      return rest ? `${open} ${key}: ${value} }` : `${open} ${key}: ${value},`;
+    }
   );
 
   if (patched === source) {
