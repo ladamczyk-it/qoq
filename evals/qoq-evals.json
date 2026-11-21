@@ -1464,6 +1464,31 @@
         "The question text says the answer is sent to the qoq maintainers",
         "Offers Yes, No and Skip, and a Skip runs no learn.mjs send"
       ]
+    },
+    {
+      "id": 78,
+      "name": "developer-pinned-literal-clone-hands-back",
+      "prompt": "Dispatch qoq-developer directly (not through the skill), at sonnet, with this scenario: ticket T3, attempt 1, Files src/config.ts and src/config.test.ts, criterion \"getDefaultIgnore() for a JS project returns ['**/*.spec.js', '**/*.test.js']\". The spec pins that array as a literal and passes. ticket_scoped fails on one finding: a JSCPD clone between the source array and the spec's expected value. qoq.config.js has jscpd: { ignore: ['**/*.spec.js'] }.",
+      "expected_output": "No change to either file: the expected value stays a literal and isn't imported or rewritten to dodge the clone. The return is status handoff with blocker_category wrong-files, and the blocker names the missing **/*.test.* glob in jscpd.ignore as the fix.",
+      "files": [],
+      "assertions": [
+        "Leaves src/config.ts and src/config.test.ts unchanged (no import of the constant, no rewritten assertion)",
+        "Returns status: handoff, not green",
+        "blocker_category is wrong-files",
+        "The blocker names a *.test.* glob missing from jscpd.ignore"
+      ]
+    },
+    {
+      "id": 79,
+      "name": "fix-spec-source-clone-is-unfixable",
+      "prompt": "/qoq fix — the loop-1 digest has one finding: jscpd clone src/format/currency.ts:4-14 ↔ src/format/currency.test.ts:20-30, the currency table the test pins as a literal. qoq.config.js has jscpd: { ignore: ['**/*.spec.ts'] }.",
+      "expected_output": "fix edits no file, carries the clone as unfixable with the missing **/*.test.ts glob as the reason, stops as stuck, and ends on a FAIL verdict that names the glob.",
+      "files": [],
+      "assertions": [
+        "Edits neither the source, the spec nor qoq.config",
+        "Carries the finding as unfixable",
+        "The unfixable reason names the missing **/*.test.ts glob"
+      ]
     }
   ]
 }

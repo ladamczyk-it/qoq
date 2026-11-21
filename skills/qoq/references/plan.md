@@ -331,6 +331,10 @@ to the journey it serves, which gives it a parent rather than an author. A
 criterion that serves no scenario is either an invention or evidence the scenario
 list is incomplete — and either way it's a question, not a ticket.
 
+A criterion that pins a value copied from source says so and names the source —
+"returns the `DEFAULT_IGNORE` list from `config.ts`, pinned as a literal" — so
+the spec-axis reviewer reads the clone JSCPD may report as intended.
+
 Where the milestone has a `Contracts` shape, write the criteria **against that
 shape**. The developer asserts against the contract, not against whatever its own
 implementation ends up returning, and it can only do that if the criteria are

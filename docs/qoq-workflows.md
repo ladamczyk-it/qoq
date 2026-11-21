@@ -564,7 +564,7 @@ flowchart TD
     EBLOCK -->|"**failure** — nothing delivered it<br/>*(the only thing that earns a split)*"| EREC
     EREC --> EMORE{"tickets left in<br/>the milestone?"}
     EMORE -->|yes| EWAVE
-    EMORE -->|no| EMGATE["**milestone 1 — qoq refactor --decisions auto**<br/>over the union of every ticket's files —<br/>**the whole refactor.md run**: green base,<br/>A1–A4, qoq-designer dispatched. *reading<br/>the union yourself is a skipped gate.*<br/>Gate evidence records each assessment.<br/>*the specs are in that union, so cross-ticket<br/>setup duplication and one boundary mocked<br/>three ways are already JSCPD's job —<br/>no third gate is needed here*<br/>**its green base is a full qoq fix — knip on.**<br/>*first moment every consumer exists, so the<br/>first moment a dead-code finding is true*"]
+    EMORE -->|no| EMGATE["**milestone 1 — qoq refactor --decisions auto**<br/>over the union of every ticket's files —<br/>**the whole refactor.md run**: green base,<br/>A1–A4, qoq-designer dispatched. *reading<br/>the union yourself is a skipped gate.*<br/>Gate evidence records each assessment.<br/>*the specs are in that union, so cross-ticket<br/>setup duplication and one boundary mocked<br/>three ways are already A2–A4's job<br/>(JSCPD skips specs) — no third gate*<br/>**its green base is a full qoq fix — knip on.**<br/>*first moment every consumer exists, so the<br/>first moment a dead-code finding is true*"]
     EMGATE --> EMSUITE["**milestone 2 — the project's<br/>full build + full test suite**"]
     EMSUITE -->|red| ENEW["write the failure up as a new<br/>ticket — sized, rated, dispatched"]
     ENEW --> EWAVE

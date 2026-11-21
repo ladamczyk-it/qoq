@@ -109,7 +109,9 @@ export class JscpdConfigHandler extends AbstractConfigHandler {
     }) as TJscpdFormat[];
 
   protected getDefaultIgnore = (): string[] =>
-    this.getDefaultFormat().map(
-      (key) => `**/*.spec.${key.replace('javascript', 'js').replace('typescript', 'ts')}`
-    );
+    this.getDefaultFormat().flatMap((key) => {
+      const ext = key.replace('javascript', 'js').replace('typescript', 'ts');
+
+      return [`**/*.spec.${ext}`, `**/*.test.${ext}`];
+    });
 }
