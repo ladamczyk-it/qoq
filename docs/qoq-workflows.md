@@ -163,7 +163,8 @@ flowchart TD
         DIG --> SUM["return the **digest**<br/>tool → rule → files<br/>(never the raw reports)"]
     end
 
-    CHK --> C0
+    CHK -->|"brief: project root +<br/>skill path, both absolute"| CD["`cd &lt;root&gt;` first<br/>*it may start in a subdirectory;<br/>every cli.yaml form is root-relative*"]
+    CD --> C0
     SUM --> ANY{"findings?"}
     ANY -->|none| OUT(["**done**<br/>summarise every loop's fixes"])
     ANY -->|yes| FIX["fix the findings"]

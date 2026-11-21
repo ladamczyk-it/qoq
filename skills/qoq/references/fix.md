@@ -59,8 +59,9 @@ PASS over code nothing checked.
 caller asked to skip Knip. That file holds both invocations, the report directory
 and both helper scripts, for this command and for everyone else.
 
-**The dispatch hands the checker the one thing it cannot derive**: this skill's
-absolute path, which is what `<skill>` in that file stands for. Neither helper
+**The dispatch hands the checker the two things it cannot derive**: the project
+root (`$CLAUDE_PROJECT_DIR`) and this skill's absolute path, which is what
+`<skill>` in that file stands for. Neither helper
 script defaults an argument — both exit 2 when called bare.
 
 ## Verifying a fix

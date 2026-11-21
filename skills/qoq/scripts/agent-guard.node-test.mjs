@@ -51,6 +51,15 @@ test('qoq-checker runs the CLI forms cli.yaml gives it, and nothing that writes'
   blocks('qoq-checker', 'git checkout -- src');
 });
 
+test('cd reaches the project from a subdirectory, and goes nowhere else', () => {
+  allows('qoq-checker', 'cd /work/app && npx qoq --check --json');
+  allows('qoq-tester', 'cd /work/app/packages/x && npm test');
+  for (const command of ['cd', 'cd ..', 'cd -', 'cd packages', 'cd /tmp', 'cd /work/apple']) {
+    blocks('qoq-checker', command);
+  }
+  assert.match(bash('qoq-checker', 'cd ..'), /absolute path inside the project \(\/work\/app\)/);
+});
+
 test('a clever compound still has every segment checked', () => {
   blocks('qoq-sheriff', 'git diff main...HEAD; rm -rf src');
   blocks('qoq-sheriff', 'git log | tee notes.txt');

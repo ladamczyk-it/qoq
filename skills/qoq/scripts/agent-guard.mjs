@@ -213,8 +213,17 @@ const checkGit = (policy, argv, projectDir) => {
 
 const FIND_WRITES = new Set(['-delete', '-exec', '-execdir', '-ok', '-fprint']);
 
-const checkCommand = (policy, argv) => {
+const checkCommand = (policy, argv, projectDir) => {
   const [head] = argv;
+  // `cd` writes nothing, but every cli.yaml form is relative, so an agent
+  // started in a subdirectory needs it. Absolute and inside the project only:
+  // a relative target can't be checked without knowing where the shell is.
+  if (head === 'cd') {
+    const [, dir, extra] = argv;
+    return dir?.startsWith('/') && !extra && inside(real(dir), real(projectDir ?? ''))
+      ? null
+      : `cd only to an absolute path inside the project (${projectDir})`;
+  }
   if (head === 'find' && argv.some((w) => FIND_WRITES.has(w))) {
     return 'find may not delete or exec';
   }
@@ -247,7 +256,9 @@ const checkSegment = (policy, segment, projectDir) => {
   if (!argv.length) {
     return null;
   }
-  return argv[0] === 'git' ? checkGit(policy, argv, projectDir) : checkCommand(policy, argv);
+  return argv[0] === 'git'
+    ? checkGit(policy, argv, projectDir)
+    : checkCommand(policy, argv, projectDir);
 };
 
 export const check = (role, payload, projectDir = process.env.CLAUDE_PROJECT_DIR) => {
