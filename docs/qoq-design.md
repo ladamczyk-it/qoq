@@ -1104,6 +1104,12 @@ service, and there's no pixel fallback because a GET would put the sentence in
 an access log. Code lessons never leave the machine. Planning and skill lessons
 are about qoq's process, and those are the ones another project can learn from.
 
+**Why the consent key is written in Prettier's shape.** Both keys are patched
+into the project's `qoq.config.*` as source text, so a careless insert leaves
+the file unformatted. The next gate then fails on a file the running ticket never
+touched. The writer puts the key on its own line at the next line's indent, or
+writes `{ key: value }` into an empty object, so no formatter run is needed.
+
 ## `test`
 
 **Why N slices means N full-suite runs.** Each slice ends with a run whose whole

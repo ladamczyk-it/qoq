@@ -87,6 +87,21 @@ test('--consent no records the answer in the config the CLI also reads', () => {
   assert.match(readFileSync(join(root, 'qoq.config.js'), 'utf8'), /stats: false/);
 });
 
+test('the recorded answer is written in the shape Prettier prints', () => {
+  const multiLine = "export default {\n  prettier: {\n    sources: ['.'],\n  },\n};\n";
+  const cases = [
+    [multiLine, multiLine.replace('{\n', '{\n  stats: false,\n')],
+    ['export default {};\n', 'export default { stats: false };\n'],
+  ];
+
+  for (const [before, after] of cases) {
+    const root = project(before);
+
+    run(root, home(), 'bump', '--consent', 'no');
+    assert.equal(readFileSync(join(root, 'qoq.config.js'), 'utf8'), after);
+  }
+});
+
 test('a recorded decline is then read back instead of asking again', () => {
   const root = project(NO_STATS);
   const dir = home();
