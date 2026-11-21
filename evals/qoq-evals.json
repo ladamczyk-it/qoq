@@ -1489,6 +1489,25 @@
         "Carries the finding as unfixable",
         "The unfixable reason names the missing **/*.test.ts glob"
       ]
+    },
+    {
+      "id": 80,
+      "name": "plan-unattended-grant-minimal-and-split",
+      "prompt": "/qoq plan --decisions auto add a GitHub Actions workflow: on every pull request, an AI agent writes missing specs for the changed files, the job runs npm test over them, comments the result on the PR, and on merge to master the same workflow publishes the package to npm with NPM_TOKEN",
+      "expected_output": "Dispatches qoq-architect: the workflow grants an unattended process tokens and a secret. The architect names the minimal grant per job or step and returns, under Contracts, one line per step on what it writes to the shared workspace. Its Risks include NPM_TOKEN or a write-scoped token sharing a process with the generated specs that npm test runs. Phase 3 puts generating and running the specs in a different ticket and a different job from publishing, from the start. Every grant wider than the minimum sits in Context beside the criterion that needs it, and each grant has a negative criterion one size up. The publish step has a criterion that it doesn't read files the generation step wrote. Those tickets propose Security sweep: ticket.",
+      "files": [],
+      "assertions": [
+        "Dispatches qoq-architect rather than skipping it",
+        "The architect's return names a minimal grant (permissions or token scope) per job or step",
+        "Contracts list, per step, what it writes to the shared workspace",
+        "A Risk names the secret or write token sharing a process with generated code that npm test runs",
+        "Generating and running the specs and publishing to npm are separate tickets, in separate jobs or steps",
+        "Every grant wider than the minimum is paired in Context with the criterion that needs it",
+        "At least one negative criterion asserts a grant can't do the thing one size up (e.g. the PR job's token can't push or publish)",
+        "A criterion asserts the publish step doesn't read the files the generation step wrote",
+        "Tickets that grant a token or secret propose Security sweep: ticket"
+      ],
+      "target": "fixture-repo"
     }
   ]
 }

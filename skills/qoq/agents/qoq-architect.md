@@ -123,6 +123,21 @@ checks it again. A reachable override of a setting that acts as a safety
 boundary (an auth guard, a sandbox, a lint ban, a CSP) is also a **Risk**.
 Every such Risk becomes a negative criterion.
 
+For every tool grant, token scope or secret the work hands an **unattended
+process** (one acting with no human approving each action: a CI job or step, an
+agent or subagent's `tools:`, an MCP grant, a `claude --bg` session, a cron job,
+a bot), name the **smallest grant** that serves the Scenarios. Anything wider
+has to name the criterion that fails without it. Over-grants pass every
+positive spec, so the plan is the only place they get caught. Where steps share
+a workspace, return one line per step under **Contracts**: what it writes
+there. Two shapes are **Risks**:
+
+- a process that holds a secret and also runs generated or third-party code
+  (LLM output, a PR's code, a downloaded script, a postinstall). Children
+  inherit the environment, so unsetting the secret partway through doesn't
+  hide it.
+- a secret-holding step that reads what an untrusted step wrote.
+
 **Risks** — what could turn a ticket into three. A broken upstream assumption, a
 type used in eleven places, an implicit contract nobody wrote down. Concrete and
 cited; a risk without a `file:line` is a worry.

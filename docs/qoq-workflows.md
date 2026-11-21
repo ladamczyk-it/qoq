@@ -378,7 +378,7 @@ flowchart TD
     subgraph P2["Phase 2 — Design"]
         direction TB
         PEXP["dispatch **Explore** — *locate*:<br/>deps · existing patterns · test conventions<br/>*(reads excerpts, not whole files —<br/>it locates, it does not audit)*"]
-        PEXP --> PSKIP{"single existing module **and**<br/>no new data shape, payload<br/>or persisted field **and**<br/>no new dependency?"}
+        PEXP --> PSKIP{"single existing module **and**<br/>no new data shape, payload<br/>or persisted field **and**<br/>no new dependency **and**<br/>no grant to an unattended process?"}
         PSKIP -->|yes| PNONE["**Contracts: none** — nothing to design.<br/>*say so at approval: it is the other thing<br/>the user cannot see from the plan*"]
         PSKIP -->|"no, or any doubt"| PARCH["dispatch **qoq-architect** — *audit*:<br/>**codebase-design** preloaded · read<br/>deep in what Explore located, **carrying<br/>the Scenarios**. *a journey constrains a<br/>contract: journeys are what, contracts<br/>are how, and that is the order*"]
         PARCH --> PIDX["**indexes only while scanning** —<br/>patterns/index.md + the stack index for<br/>the **scope's own files**, never package.json.<br/>*a write-up read before the scan is<br/>persuasive by construction, and at design<br/>time there is no code to falsify it against*"]
@@ -399,8 +399,8 @@ flowchart TD
         direction TB
         PSCOPE{"independent<br/>subsystems?"}
         PSCOPE -->|yes| PSPLIT(["**say so** — separate plans,<br/>one each. never one plan<br/>with both"])
-        PSCOPE -->|no| PSLICE["**slice** *(to-tickets' rules)* — vertical,<br/>never one layer · **prefactor** ticket first"]
-        PSLICE --> PDEC["**decompose** — per ticket:<br/>size XS/S/M *(never bigger)*<br/>complexity → agent tier, nothing else<br/>Context that stands alone<br/>**criteria written as assertions,<br/>derived from the Scenarios** — so each<br/>has a parent rather than an author<br/>+ **one negative criterion per reachable<br/>override** of a safety boundary *(architect Risks)*<br/>*Risks feed sizing*"]
+        PSCOPE -->|no| PSLICE["**slice** *(to-tickets' rules)* — vertical,<br/>never one layer · **prefactor** ticket first<br/>· **one ticket per trust level** when a secret<br/>would share a process with untrusted code"]
+        PSLICE --> PDEC["**decompose** — per ticket:<br/>size XS/S/M *(never bigger)*<br/>complexity → agent tier, nothing else<br/>Context that stands alone<br/>**criteria written as assertions,<br/>derived from the Scenarios** — so each<br/>has a parent rather than an author<br/>+ **one negative criterion per reachable<br/>override** of a safety boundary *(architect Risks)*<br/>+ per unattended grant: **its criterion** if wider<br/>than minimal, **a negative one size up**<br/>*Risks feed sizing*"]
         PDEC --> PTAG["**tag the ticket** — mechanical ·<br/>architectural · pattern-repeat<br/>*(multiple, extensible)*<br/>+ the stack it lands in"]
         PTAG --> PEST["**scripts/estimate.mjs** — *size + tier is<br/>one decision*, counted per tier from<br/>this repo's `.claude/qoq-estimator.json`.<br/>a **miss** = not delivered inside<br/>the three-attempt budget"]
         PEST -->|"2 — split: tickets of this shape<br/>keep ending up **blocked**<br/>*(not a model problem)*"| PDEC
@@ -409,7 +409,7 @@ flowchart TD
         PBUMP --> PFLAG["flag the moved tier<br/>for approval"]
         PFLAG --> PXL
         PXL -->|yes| PSPLIT
-        PXL -->|no| PREV["**self-review — the definition-of-ready gate**:<br/>requirement + scenario coverage · no<br/>placeholders · **exact Files** · cross-ticket<br/>interfaces · Depends on that's real ·<br/>**every criterion a spec can assert**<br/>*against the Contracts, before any code*"]
+        PXL -->|no| PREV["**self-review — the definition-of-ready gate**:<br/>requirement + scenario coverage · no<br/>placeholders · **exact Files** · cross-ticket<br/>interfaces · Depends on that's real ·<br/>**every criterion a spec can assert**<br/>*against the Contracts, before any code*<br/>· **every wider grant names its criterion**"]
     end
 
     PREV --> PSAVE["save → ./plans/YYYY-MM-DD-[feature]/<br/>index.md + one m[N]-[slug].md per milestone"]

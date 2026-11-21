@@ -191,8 +191,9 @@ dependency. That is the plan whose design output would have been three short
 
 The condition is decidable from what you already hold: the requirements and
 `Explore`'s findings. A boundary crossed, a shape invented, or a dependency
-proposed dispatches the architect — **and so does any doubt about which of those
-is true.** A skip guessed at is the pass being guessed away.
+proposed dispatches the architect. So does a tool, token scope or secret granted
+to an unattended process, however small the diff — **and so does any doubt about
+which of those is true.** A skip guessed at is the pass being guessed away.
 
 Report a skipped architect at approval, beside a skipped grill. It's the other
 thing at approval the user can't see from the plan, and it changes how hard
@@ -308,6 +309,10 @@ from here, because its frontmatter sets `disable-model-invocation: true`.
   split, a type widened, a duplicate merged), that reshaping is its own ticket,
   with no behaviour change. Its criteria assert the existing behaviour still
   holds, and every feature ticket that relies on it `Depends on` it.
+- **One ticket per trust level.** When the architect returns the
+  secret-plus-untrusted-code Risk, each side gets its own ticket and its own
+  step or process from the start. Splitting later means rewriting the ticket
+  that already shipped them together.
 
 These change how the work is cut, never how a ticket is written: **Files**
 stay exact paths and criteria stay assertions. `to-tickets` leaves file paths
@@ -341,6 +346,14 @@ required` on `/admin` still returns 401 when a nested route's config sets
 `auth: optional`". Without those criteria, the spec only proves the boundary
 holds when nothing tries to get around it.
 
+A grant to an unattended process works the same way. Each grant wider than the
+architect's minimum sits in `Context` beside the criterion that fails without
+it ("`contents: write`, for criterion 3"). Each grant gets one negative
+criterion one size up: "the job's token can't push to `master`", "the agent
+with `tools: Read, Grep` can't write a file". Each secret-holding step gets one
+too: "the publish step reads only `dist/`, never the files the generation step
+wrote".
+
 Where the milestone has a `Contracts` shape, write the criteria **against that
 shape**. The developer asserts against the contract, not against whatever its own
 implementation ends up returning, and it can only do that if the criteria are
@@ -366,7 +379,8 @@ round for a rating that's easy to get wrong.
 
 **Security sweep**: propose `ticket` for a ticket that touches
 authentication or authorization, parses input from outside the process, or
-handles a secret, and leave the field off everywhere else — off means the
+handles a secret, or grants an unattended process a tool, token scope or
+secret, and leave the field off everywhere else — off means the
 milestone sweep only ([sheriff.md](sheriff.md)). It's a proposal: the user
 confirms each one at approval.
 
@@ -463,6 +477,8 @@ it something a reader can point at:
   milestone's `Contracts` where there is one
 - **standalone `Context`** — enough that the ticket needs no other ticket, and no
   part of this conversation, to be done
+- **grants paired** — in a plan that grants an unattended process anything,
+  every grant wider than the minimum names its criterion
 
 A ticket that fails any of these isn't ready to dispatch, and the cost of finding
 that out here is one edit rather than three attempts and an escalation.

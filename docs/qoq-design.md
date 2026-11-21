@@ -682,6 +682,22 @@ from filling up with specs for paths that can't happen. Only reachable
 overrides count, and only for safety boundaries. Any other setting gets its
 resolve and override mechanisms listed as context, not as specs.
 
+**Why a grant to an unattended process is checked at plan time.** Three retro
+lessons (contract and decomposition) came from the same place: plans that gave
+a CI job or an agent tokens and tools, which then needed security rework after
+the tickets had shipped. `qoq-sheriff` reads code, so it sees a grant only once
+the grant is written, and by then the slicing that would have kept a secret away
+from untrusted code is already committed. An over-grant also passes every
+positive spec, because nothing a spec asserts needs less than it was given.
+That's why the architect names the minimum, every wider grant has to name the
+criterion that needs it, and each grant gets a negative criterion one size up.
+A grant is also enough to dispatch the architect on its own, because the
+smallest plans are the ones most likely to be a one-line grant change. The
+trust-level split fires only when a secret would share a process with generated
+or third-party code. Children inherit the environment, so that's the one case
+where no in-process measure helps. Any other difference in grants is a Risk and
+a criterion, not a new ticket.
+
 **Why the skip is one conjunction and not a judgement call.** A skip has to be
 decidable from what the main thread already holds — the requirements and
 `Explore`'s findings — or it's a guess about a pass being guessed away. Single
