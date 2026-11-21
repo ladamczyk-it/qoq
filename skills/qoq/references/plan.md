@@ -335,6 +335,12 @@ A criterion that pins a value copied from source says so and names the source â€
 "returns the `DEFAULT_IGNORE` list from `config.ts`, pinned as a literal" â€” so
 the spec-axis reviewer reads the clone JSCPD may report as intended.
 
+A ticket that relies on a setting as a safety boundary gets one **negative
+criterion per reachable override** the architect listed as a Risk: "`auth:
+required` on `/admin` still returns 401 when a nested route's config sets
+`auth: optional`". Without those criteria, the spec only proves the boundary
+holds when nothing tries to get around it.
+
 Where the milestone has a `Contracts` shape, write the criteria **against that
 shape**. The developer asserts against the contract, not against whatever its own
 implementation ends up returning, and it can only do that if the criteria are
