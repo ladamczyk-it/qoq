@@ -43,7 +43,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@eslint-react/eslint-plugin": "5.30.5",
+    "@eslint-react/eslint-plugin": "5.30.6",
     "@ladamczyk/qoq-eslint-v9-js": "^7.2.0",
     "@ladamczyk/qoq-eslint-v9-js-react": "^7.2.0",
     "@ladamczyk/qoq-eslint-v9-ts": "^7.2.0",

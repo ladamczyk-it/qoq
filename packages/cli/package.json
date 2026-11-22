@@ -39,13 +39,13 @@
     "@eslint/compat": "2.1.1",
     "@ladamczyk/qoq-utils": "^7.2.0",
     "@npmcli/package-json": "8.0.1",
-    "cac": "7.1.0",
+    "cac": "7.1.1",
     "cosmiconfig": "10.0.1",
     "fast-glob": "3.3.3",
     "micromatch": "4.0.8",
     "picocolors": "1.1.1",
     "prompts": "2.4.2",
-    "react-fast-compare": "3.2.3"
+    "react-fast-compare": "3.2.4"
   },
   "devDependencies": {
     "@types/micromatch": "4.0.10",
