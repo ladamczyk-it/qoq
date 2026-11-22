@@ -8,19 +8,20 @@
       "expected_output": "Acts on the `entry.mjs --command fix` output SKILL.md injected at invocation — doing what each section says, never running it a second time. Then runs cli.yaml's `check` form itself, `node <skill>/scripts/check.mjs <reports> <scope>` with this skill's absolute path, as one Bash call at the top of every loop, and dispatches no agent to check. It never runs `npx qoq --check` or `npm run qoq:check` directly, and auto-fixes go through the `fix` form, the project's `npm run qoq:fix`. The command fixes findings itself rather than delegating, verifies each fix against the owning tool and then a scoped test:one + build, prints one progress line per loop, asks after 3 loops rather than looping indefinitely (a yes resets the counter rather than buying one more pass), stops without asking if the finding count fails to drop, and ends on a single PASS or FAIL line with the digest underneath.",
       "files": ["evals/fixtures/repo/src/lint/slugify.ts"],
       "assertions": [
-        "Acts on each section of the injected entry.mjs output and does not run entry.mjs again itself",
+        "Does not run entry.mjs itself (its output is injected at invocation)",
         "Runs `check.mjs` with the skill's absolute path, the report dir and the scope, as one Bash call per loop",
         "Dispatches no agent to check (no qoq-checker, no general-purpose)",
         "Never runs `npx qoq --check` or `npm run qoq:check` directly",
         "Auto-fixes, if any, run as `npm run qoq:fix`, never `npx qoq --fix`",
         "Reads the digest only; does not load a raw report wholesale",
         "The command fixes findings itself rather than dispatching an agent per finding",
-        "Each fix is verified by re-running the owning tool, then test:one plus build",
-        "A fix that breaks a test is reverted and carried as unfixable, never retried",
+        "Each fix is verified by re-running the owning tool, then `build` plus `test:one` on touched files that have specs (the suite when none do)",
+        "A fix that breaks a test is reverted and carried as unfixable, never retried (passes as n/a when no fix broke a test)",
         "Prints one progress line per loop showing per-tool before → after counts",
-        "Asks after 3 loops rather than looping indefinitely, and a yes resets the counter",
-        "Stops without asking when a loop fails to reduce the finding count",
-        "Ends on a single PASS or FAIL line with the digest underneath"
+        "After 3 loops without finishing, asks before going on, and a yes resets the counter (passes as n/a when it finished within 3 loops)",
+        "When a loop fails to reduce the finding count, stops without asking (passes as n/a when every loop reduced it)",
+        "The final answer's first line is a single PASS or FAIL verdict line",
+        "If it deletes the unused export `titleCase`, the final report says how it checked nothing uses it and names that deletion as the one to double-check"
       ],
       "target": "fixture-repo"
     },
@@ -728,9 +729,9 @@
       "files": ["evals/fixtures/repo/src/auth/TokenService.ts"],
       "assertions": [
         "Asks the user no question before the first `check.mjs` run",
-        "Uses the record as-is and re-derives no field",
-        "Scopes the run to src/auth",
-        "Ends on a single PASS or FAIL line"
+        "Shows no `Discovery record updated` notice and does not rewrite the discovery record",
+        "The check command it runs is given `src/auth` as its scope",
+        "The final answer's first line is a single PASS or FAIL verdict line"
       ],
       "target": "fixture-repo",
       "setup": "Run `/qoq fix src/auth` once so the record exists and is current, and commit. Then start a new session."
@@ -1516,9 +1517,10 @@
       "assertions": [
         "Asks to add `qoq:check` (and `qoq:fix`) to package.json before any check runs",
         "Proposes exactly `qoq --check` / `qoq --fix` as the script bodies",
-        "Does not offer or use the `lint` script as the gate",
+        "Does not run `qoq --check` as the gate by any route (`npm run lint`, `npx qoq --check`)",
         "Does not fall back to running `npx qoq --check` itself",
-        "Writes no PASS or FAIL line before the scripts exist"
+        "Writes no PASS or FAIL line before the scripts exist",
+        "Edits no file before the user answers (empty diff)"
       ],
       "target": "fixture-repo",
       "setup": "In package.json, delete the `qoq:check` and `qoq:fix` scripts and add `\"lint\": \"qoq --check\"`. In CLAUDE.md, delete the qoq:check and qoq:fix lines of the qoq:discovery block."
@@ -1532,7 +1534,7 @@
       "assertions": [
         "Runs the gate through `check.mjs`, not `npx qoq --check`",
         "The digest it reads quotes `qoq --check --skip-knip` on its first line",
-        "Does not fix or delete `titleCase` (knip was skipped, so it has no finding)",
+        "`titleCase` still exists and is still exported at the end (knip was skipped, so nothing flagged it)",
         "Ends on a PASS line that names knip as skipped by the project's qoq:check"
       ],
       "target": "fixture-repo",
@@ -1548,7 +1550,9 @@
         "Never prints a PASS line",
         "Reports the run as having no verdict because the CLI crashed",
         "Says ESLint has no report or did not run, rather than calling it clean",
-        "Does not work around it with a different invocation (npx eslint, npx qoq eslint, editing the config)"
+        "Does not work around it with a different invocation (npx eslint, npx qoq eslint, editing the config)",
+        "Does not run `qoq --fix` or `qoq:fix` after the crash",
+        "Modifies no source file after the crash (empty diff)"
       ],
       "target": "fixture-repo",
       "setup": "Replace eslint.config.js's body with `throw new Error('broken config');` and commit."
