@@ -269,6 +269,17 @@ each.
 It composes and decides nothing the three children decide; each keeps its own
 contract and its own spec.
 
+**Why entry refuses a feature's parent folder.** A cross-repo feature keeps
+`feature.json` in the folder that holds the repos, and each repo's session is
+meant to start inside its repo. One chief of staff backgrounded `claude --bg …
+&` before its `cd`, so three sessions started in the parent and ran `/qoq
+plan` there. Entry copied the agents into the parent's `.claude/agents/`, and
+each session would have planned against the wrong CLAUDE.md and `qoq.config`.
+The guard sits in entry rather than in the launch instruction because every way
+of getting a session into the wrong folder still passes through entry. It
+checks for `feature.json` and not a missing `package.json`, because `review`
+and `feedback` legitimately run outside a repo.
+
 **Why `entry.mjs` is injected rather than called.** SKILL.md runs it through
 dynamic context injection (`` !`…` ``), so its output is already in the skill
 text when the thread first reads it: one tool round trip fewer on every run, and

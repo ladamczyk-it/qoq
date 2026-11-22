@@ -25,6 +25,8 @@
 //     fallback — and for an agent whose contract is a restriction, the fallback
 //     is the restriction gone. `fix` dispatches no agent (its gate is
 //     check.mjs), so it only reports the install.
+//   - a project holding feature.json is a feature's parent folder, not a repo:
+//     one `project` section, and nothing runs.
 //
 // Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff|review|feedback>
 //
@@ -32,6 +34,8 @@
 // a single `command` section asking for one.
 
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const COMMANDS = [
@@ -72,6 +76,17 @@ if (!COMMANDS.includes(command)) {
     : 'none given';
   process.stdout.write(
     `## command\n${given}.\nACTION: ask which command, never guess. Then run \`node ${script('entry.mjs')} --project ${project} --command <answer>\` yourself and do what it prints.\n`
+  );
+  process.exit(0);
+}
+
+// A feature's parent folder holds feature.json and the repos, but it is not a
+// repo: a run here would copy the agents into it and read the wrong CLAUDE.md
+// and qoq.config. It happens when a repo session is launched before its `cd`.
+// Stop before anything writes.
+if (existsSync(join(project, 'feature.json'))) {
+  process.stdout.write(
+    `## project\n${project} holds feature.json — a feature's parent folder, not a repo. Nothing was run or written.\nACTION: stop. If a chief of staff launched you, SendMessage it that you started in the parent folder and must be relaunched from inside your repo; otherwise tell the user to run /qoq from inside the repo.\n`
   );
   process.exit(0);
 }
