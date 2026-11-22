@@ -1,3 +1,11 @@
+## [7.3.1](https://github.com/ladamczyk-it/qoq/compare/v7.3.0...v7.3.1) (2026-11-22)
+
+
+### Bug Fixes
+
+* **skill:** qoq entry stops in a feature's parent folder ([4284ed7](https://github.com/ladamczyk-it/qoq/commit/4284ed767ce7cd670db37dc38e169978c4f67607))
+* **skill:** qoq-fullstack forwards the spending limits to every repo ([da8c5e9](https://github.com/ladamczyk-it/qoq/commit/da8c5e9f7d0665c99275c1fe0da161960689100f))
+
 # [7.3.0](https://github.com/ladamczyk-it/qoq/compare/v7.2.0...v7.3.0) (2026-11-22)
 
 
