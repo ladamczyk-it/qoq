@@ -152,7 +152,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    CHK["run the **check** form, one Bash call<br/>`node &lt;skill&gt;/scripts/check.mjs<br/>&lt;report dir&gt; [--skip-knip] &lt;scope&gt;`<br/>*no agent: copying commands needs no model*"]
+    CHK["run the **check** form, one Bash call<br/>`node &lt;skill&gt;/scripts/check.mjs<br/>&lt;report dir&gt; [--skip-knip] [&lt;scope&gt;]`<br/>*no agent: copying commands needs no model*"]
 
     subgraph CHECKER["check.mjs *(everything the script does)*"]
         direction TB

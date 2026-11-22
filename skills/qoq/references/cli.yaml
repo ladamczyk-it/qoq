@@ -5,8 +5,8 @@ symlink_test: test -L node_modules/@ladamczyk/qoq-cli
 reports: node_modules/@ladamczyk/qoq-cli/bin/report
 
 run:
-  check: node <skill>/scripts/check.mjs <reports> <scope>...
-  ticket: node <skill>/scripts/check.mjs <reports> --skip-knip <scope>...
+  check: node <skill>/scripts/check.mjs <reports> [<scope>...]
+  ticket: node <skill>/scripts/check.mjs <reports> --skip-knip [<scope>...]
   fix: npm run qoq:fix
   fix_if_symlinked: npm run build && npm run qoq:fix
   scoped: npx qoq staged <file>...

@@ -25,9 +25,11 @@
 //   - a crash header: the CLI reports a thrown tool as a bare "Unknown error!"
 //     and writes no report, so a tool with no section would otherwise read clean
 //
-// Usage:   node check.mjs <report-dir> [--skip-knip] <scope...>
+// Usage:   node check.mjs <report-dir> [--skip-knip] [<scope...>]
 //   run from the project root. <report-dir> is cli.yaml's `reports`.
-//   <scope...>  files or directories the verdict is about
+//   <scope...>  files or directories the verdict is about; defaults to `.`.
+//               It only decides reuse, so a wider scope is never wrong, just
+//               re-runs more often.
 //
 // Exit code: 0 no findings, 1 findings, 2 no verdict (no `qoq:check`, a failed
 // build, a CLI crash, or no reports at all). Exit 2 is never PASS.
@@ -45,15 +47,16 @@ const LINK = join('node_modules', '@ladamczyk', 'qoq-cli');
 
 const args = process.argv.slice(2);
 const skipKnip = args.includes('--skip-knip');
-const [reportDir, ...scope] = args.filter((a) => a !== '--skip-knip');
+const [reportDir, ...given] = args.filter((a) => a !== '--skip-knip');
+const scope = given.length ? given : ['.'];
 
 const fail = (message) => {
   process.stderr.write(`qoq check: ${message}\n`);
   process.exit(2);
 };
 
-if (!reportDir || scope.length === 0) {
-  fail('usage: check.mjs <report-dir> [--skip-knip] <scope...>');
+if (!reportDir) {
+  fail('usage: check.mjs <report-dir> [--skip-knip] [<scope...>]');
 }
 
 const script = existsSync('package.json')

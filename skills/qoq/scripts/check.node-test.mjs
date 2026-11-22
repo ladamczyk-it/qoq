@@ -160,3 +160,10 @@ test('a failed build is no verdict', () => {
   assert.match(stderr, /npm run build/);
   assert.deepEqual(calls(dir), []);
 });
+
+test('no scope means the whole project, not a usage error', () => {
+  const dir = project();
+  const bare = spawnSync(process.execPath, [SCRIPT, REPORTS], { cwd: dir, encoding: 'utf8' });
+  assert.equal(bare.status, 0, bare.stderr);
+  assert.deepEqual(calls(dir), ['--check --json']);
+});
