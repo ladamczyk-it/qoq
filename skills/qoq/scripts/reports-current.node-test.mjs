@@ -1,7 +1,7 @@
 // node --test skills/qoq/scripts/reports-current.node-test.mjs
 //
 // The contract is the exit code, so the test drives the script the way
-// qoq-checker does: as a subprocess, reading the code and nothing else.
+// a CLI caller does: as a subprocess, reading the code and nothing else.
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';

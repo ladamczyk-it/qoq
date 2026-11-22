@@ -65,7 +65,7 @@ flowchart TD
         CISC -->|"yes — edits prose, runs no tool,<br/>dispatches no agent"| MODELS
         CISC -->|"no"| CHECK
 
-        CHECK["**2. discovery-check.mjs** —<br/>hash the package.json scripts block +<br/>the watched deps (vitest/jest,<br/>@testing-library/react) named in<br/>package.json and the lockfile,<br/>compare it to the record's hash field<br/>*the scripts too: a renamed script<br/>moves no lockfile, and every command<br/>field on the record quotes one*<br/>*those parts only: a version bump or an<br/>unrelated transitive dependency changes<br/>no word of the record*<br/>*the qoq CLI is not watched: its<br/>invocation is a constant, not a field*"]
+        CHECK["**2. discovery-check.mjs** —<br/>hash the package.json scripts block +<br/>the watched deps (vitest/jest,<br/>@testing-library/react) named in<br/>package.json and the lockfile,<br/>compare it to the record's hash field<br/>*the scripts too: a renamed script<br/>moves no lockfile, and every command<br/>field on the record quotes one*<br/>*those parts only: a version bump or an<br/>unrelated transitive dependency changes<br/>no word of the record*<br/>*the qoq CLI package is not watched:<br/>the gate is the qoq:check script,<br/>already in the scripts block*"]
         CHECK --> MODELS
         MODELS["**3. model-tiers.mjs** —<br/>reads ANTHROPIC_DEFAULT_*_MODEL from<br/>the settings `env` blocks, local over<br/>project over user<br/>*prints one WARN per tier mapped to a<br/>dearer family, and nothing otherwise —<br/>no mapping is the normal case*"]
         MODELS --> STATSN
@@ -74,8 +74,8 @@ flowchart TD
 
     HEAD --> SECT["**stdout: one section per check**"]
 
-    SECT -.->|"line is `agents installed:` **and**<br/>the command is fix / test / execute"| AASK
-    AASK(["**caller ASKS THE USER**<br/>continue now on the general-purpose<br/>fallback, or exit and re-run with them<br/>registered?<br/>*those three dispatch a pinned agent<br/>inside the pickup window — and for<br/>qoq-tester the fallback is its<br/>restriction gone*<br/>*refactor is the exception: it opens with<br/>a fix, but a question in front of another<br/>command's question is the noise this<br/>narrowing exists to remove*"])
+    SECT -.->|"line is `agents installed:` **and** the command is<br/>test / execute / document / sheriff / review"| AASK
+    AASK(["**caller ASKS THE USER**<br/>continue now on the general-purpose<br/>fallback, or exit and re-run with them<br/>registered?<br/>*those five dispatch a pinned agent<br/>inside the pickup window — and for<br/>qoq-tester the fallback is its<br/>restriction gone*<br/>*fix dispatches no agent: its gate<br/>is check.mjs*"])
 
     SECT -.->|"a models section is present"| MWARN(["**show the WARN lines to the user**<br/>*a cheaper tier sent to a dearer model<br/>is spend nobody chose on this run*"])
 
@@ -99,8 +99,8 @@ flowchart TD
 
         D0 --> DOCS["**read the project's docs first** —<br/>CLAUDE.md / AGENTS.md / README.md.<br/>*a written answer outranks a guess*"]
         DOCS --> D1["**check `proposed`**<br/>*a starting point with a stale record's<br/>standing: usually right, worth a glance,<br/>yours to overrule when the docs say so*"]
-        D1 --> D3["**1. project commands**, unresolved only<br/>test — full suite · test — single file · build<br/>*the project's own scripts —<br/>npx is qoq's alone*<br/>*test:one is always here: both runners take<br/>a path positionally, so a default is easy to<br/>write and easy to be wrong about*"]
-        D3 --> D4["**2. test conventions**, unresolved only<br/>runner · globals on or off ·<br/>React? · a testing-gate.md<br/>at the root<br/>*no CLI step: npx qoq --check --json is<br/>the same line in every project, so<br/>nothing reads the CLI's AGENTS.md*"]
+        D1 --> D3["**1. project commands**, unresolved only<br/>test — full suite · test — single file · build ·<br/>qoq:check · qoq:fix<br/>*the project's own scripts —<br/>npx is qoq's alone*<br/>*test:one is always here: both runners take<br/>a path positionally, so a default is easy to<br/>write and easy to be wrong about*<br/>*a missing qoq:check / qoq:fix has one<br/>answer: add it — no other script stands in*"]
+        D3 --> D4["**2. test conventions**, unresolved only<br/>runner · globals on or off ·<br/>React? · a testing-gate.md<br/>at the root"]
         D4 --> REC["write the record — **JSON**,<br/>hash included →<br/>node_modules/@ladamczyk/qoq-cli/bin/<br/>qoq-skill-discovery.json"]
 
         BLOCK(["**stop, write nothing**<br/>half a record is read as<br/>whole by the next run"])
@@ -152,22 +152,24 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    CHK["dispatch **qoq-checker**<br/>(Haiku, one instance)"]
+    CHK["run the **check** form, one Bash call<br/>`node &lt;skill&gt;/scripts/check.mjs<br/>&lt;report dir&gt; [--skip-knip] [&lt;scope&gt;]`<br/>*no agent: copying commands needs no model*"]
 
-    subgraph CHECKER["qoq-checker flow *(everything the agent does)*"]
+    subgraph CHECKER["check.mjs *(everything the script does)*"]
         direction TB
-        C0{"run `reports-current.mjs<br/>&lt;report dir&gt; &lt;scope&gt;`<br/>exit 0 or 1?"}
-        C0 -->|"1 — stale or missing"| RUN["the check: `npx qoq --check --json`<br/>*a constant — nothing read off the<br/>record, nothing derived*<br/>*--json is what writes the reports at all*<br/>*no narrowing: positionals are TOOL<br/>names, and `staged` writes no reports*"]
-        C0 -->|"0 — current"| DIG
-        RUN --> DIG["the digest: `node &lt;skill&gt;/scripts/<br/>summarize.mjs &lt;report dir&gt;`<br/>*the report dir is a constant too;<br/>the skill path is handed in at dispatch*"]
-        DIG --> SUM["return the **digest**<br/>tool → rule → files<br/>(never the raw reports)"]
+        C00{"package.json has<br/>a qoq:check script?"}
+        C00 -->|no| NOV
+        C00 -->|yes| C0{"reports current, **and** the marker<br/>says the same mode + script<br/>wrote them?"}
+        C0 -->|"no"| RUN["empty the report files<br/>*a tool the script skips leaves no<br/>stale report behind*<br/>build first if the CLI is a symlink<br/>then `npm run qoq:check -- --json<br/>[--skip-knip]`<br/>*the project's flags hold*"]
+        C0 -->|"yes"| DIG
+        RUN -->|"exit 0 or 1"| DIG["the digest, first line quoting<br/>the script that ran<br/>*never the raw reports*"]
+        RUN -->|"crash, failed build"| NOV(["**exit 2: no verdict**<br/>partial digest under a ⚠ header<br/>*never PASS — nor is any exit but<br/>0 or 3: 1 is node failing to start it*"])
     end
 
-    CHK -->|"brief: project root +<br/>skill path, both absolute"| CD["cd &lt;root&gt; as its own first call<br/>*it may start in a subdirectory;<br/>every cli.yaml form is root-relative*<br/>then one cli.yaml form per call, as written"]
-    CD --> C0
+    CHK --> C00
+    DIG --> SUM["digest"]
     SUM --> ANY{"findings?"}
     ANY -->|none| OUT(["**done**<br/>summarise every loop's fixes"])
-    ANY -->|yes| FIX["fix the findings"]
+    ANY -->|yes| FIX["fix the findings<br/>*auto-fixes: `npm run qoq:fix`*"]
 
     FIX --> VERT["verify **against the owning tool only**<br/>eslint finding → re-run eslint,<br/>not the whole suite"]
     VERT --> VT["then the **scoped** check —<br/>`test:one` on the touched files<br/>*(the ones that have tests)* + `build`"]
@@ -182,11 +184,9 @@ flowchart TD
     PERM -.->|"yes — counter resets"| CHK
     PERM -.->|no| OUT
 
-    classDef agent fill:#8b5cf61f,stroke:#8b5cf6,stroke-width:2px
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
 
-    class CHECKER agent
-    class PERM,PROG user
+    class PERM,PROG,NOV user
 ```
 
 ### Where the scoped gate runs

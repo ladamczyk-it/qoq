@@ -1,7 +1,7 @@
 // node --test skills/qoq/scripts/summarize.node-test.mjs
 //
 // The contract is what reaches the digest, so the test drives the script the way
-// qoq-checker does: as a subprocess over a report dir, reading stdout.
+// check.mjs does: as a subprocess over a report dir, reading stdout.
 //
 // It exists because of one bug: knip emits unused files per-issue in the array
 // shape, the summarizer read them only from the top-level `files` key, and every

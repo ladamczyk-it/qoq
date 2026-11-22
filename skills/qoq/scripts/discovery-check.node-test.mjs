@@ -149,20 +149,27 @@ test('a build with no script is asked about, never invented from a dependency', 
   assert.ok(!('build' in proposed));
 });
 
-// How the CLI is invoked is a constant, not a discovered field, so a project
-// without it discovers exactly what any other project does. Nothing here watches
-// that package, and nothing proposes a `run` or a `check`.
-test('the CLI is neither watched nor proposed', () => {
+// The gate runs the project's qoq:check and qoq:fix verbatim, so a project
+// without them is asked to add them, and no other script name stands in.
+test('qoq:check and qoq:fix are proposed from their scripts, and asked about when missing', () => {
+  const withThem = JSON.stringify({
+    scripts: { test: 'vitest', 'qoq:check': 'qoq --check', 'qoq:fix': 'qoq --fix' },
+  });
+  const { proposed } = JSON.parse(run(fixture({ manifest: withThem })).stdout);
+  assert.equal(proposed['qoq:check'], 'npm run qoq:check');
+  assert.equal(proposed['qoq:fix'], 'npm run qoq:fix');
+
+  const without = JSON.stringify({ scripts: { test: 'vitest', lint: 'qoq --check' } });
+  const { proposed: p, unresolved } = JSON.parse(run(fixture({ manifest: without })).stdout);
+  assert.ok(unresolved.includes('qoq:check'));
+  assert.ok(unresolved.includes('qoq:fix'));
+  assert.ok(!('qoq:check' in p));
+});
+
+test('the CLI package is not watched', () => {
   const project = mkdtempSync(join(tmpdir(), 'discovery-check-'));
   writeFileSync(join(project, 'package.json'), '{"scripts":{"test":"vitest"}}');
-
-  const { status, stdout } = run(project);
-  const { proposed, unresolved } = JSON.parse(stdout);
-
-  assert.equal(status, 1);
-  assert.ok(!('run' in proposed));
-  assert.ok(!('check' in proposed));
-  assert.ok(!unresolved.includes('check'));
+  assert.equal(run(project).status, 1);
 });
 
 test('an unparsable record is treated as missing rather than half-read', () => {
@@ -180,7 +187,7 @@ test('a changed agent file in the skill is not staleness', () => {
   mkdirSync(join(skill, 'scripts'));
   mkdirSync(join(skill, 'agents'));
   copyFileSync(SCRIPT, join(skill, 'scripts', 'discovery-check.mjs'));
-  writeFileSync(join(skill, 'agents', 'qoq-checker.md'), 'first version\n');
+  writeFileSync(join(skill, 'agents', 'qoq-sheriff.md'), 'first version\n');
 
   const project = fixture();
   const script = join(skill, 'scripts', 'discovery-check.mjs');
@@ -188,7 +195,7 @@ test('a changed agent file in the skill is not staleness', () => {
     spawnSync(process.execPath, [script, '--project', project], { encoding: 'utf8' }).stdout.trim();
 
   const before = hashWith();
-  writeFileSync(join(skill, 'agents', 'qoq-checker.md'), 'second version\n');
+  writeFileSync(join(skill, 'agents', 'qoq-sheriff.md'), 'second version\n');
 
   assert.equal(hashWith(), before);
 });

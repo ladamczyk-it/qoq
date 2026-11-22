@@ -26,10 +26,9 @@ Which review lenses are installed is deliberately **not** here: a cached answer
 goes stale silently the moment somebody installs one, so `ponytail-review` is
 resolved from the available-skills list at the moment it's needed.
 
-**How the qoq CLI is invoked is not here either.** It is a constant, spelled out
-in [cli.yaml](cli.yaml) — so there is nothing to discover, no field to go stale,
-and nothing that has to read the CLI's own docs to learn two flags. Everyone runs
-the same line.
+**How the qoq CLI is invoked is the project's `qoq:check` and `qoq:fix`
+scripts**, run verbatim by the forms in [cli.yaml](cli.yaml). Their flags are the
+project's choice (`--skip-npm`, say). The record only says they exist.
 
 ## The record
 
@@ -49,6 +48,8 @@ commentary fields.
   "test": "npm test",
   "test:one": "npm run test -- {file}",
   "build": "npm run build",
+  "qoq:check": "npm run qoq:check",
+  "qoq:fix": "npm run qoq:fix",
   "runner": "vitest",
   "globals": true,
   "react": true,
@@ -73,8 +74,7 @@ transitive dependency each moved the hash without changing a word of the record.
 it was handed rather than deriving its own — two implementations that disagree
 mean a record that never matches and an agent dispatched on every run.
 
-There is no `lint` field, and no `run` or `check` field — linting is what the CLI
-does, and its invocation is a constant.
+There is no `lint` field — linting is what the CLI does, through `qoq:check`.
 
 `test:one` carries a `{file}` placeholder. It exists because most checks in this
 skill are narrow — one spec just written, one file just fixed — and re-running a
@@ -115,6 +115,13 @@ it, usually because a previous run asked, and it outranks anything
 An `npx vitest …` or `npx tsc …` the docs give is still not recordable: the hook
 blocks it, so the field would never run. Ask the user for a `package.json` script
 that wraps it, and record that script.
+
+**A missing `qoq:check` or `qoq:fix` has one answer: add it.** Offer to add
+`"qoq:check": "qoq --check"` or `"qoq:fix": "qoq --fix"` to `package.json`,
+saying the user can add `--skip-<tool>` flags later. Don't take another script
+in its place. `lint` or `foo:check` running `qoq` isn't the gate, and accepting
+one is how unrelated flags change what the gate checks. A decline stops the
+command: there's no gate to run.
 
 **Anything still ambiguous is a question, and the file stays unwritten until it's
 answered.** Half a record is worse than none — the next run reads it as whole.

@@ -88,7 +88,7 @@ N slices is N full-suite runs. That cost is the design, not an oversight.
 The split follows from where the digest can exist ([cli.yaml](cli.yaml)): the
 tester proves the specs _work_ — the project's own scripts, then the CLI's
 `scoped` form over the specs it wrote, which takes paths but writes no reports —
-and this thread proves they're _good_, which needs the digest only a `full` run
+and this thread proves they're _good_, which needs the digest only the `check` form
 produces.
 
 1. **The tester's own proof, before it hands back.** `test:one` on the specs it

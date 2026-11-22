@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // Are the reports in <report-dir> still current for <scope>?
 //
-// `qoq fix` calls qoq-checker at the top of every loop, and re-running every
+// `check.mjs` asks this at the top of every `qoq fix` loop, and re-running every
 // tool each time is the most expensive thing in the system. This is the cheap
 // answer: an mtime comparison. Reports are current only when the OLDEST report
 // on disk is newer than the NEWEST file in scope — one source file touched
 // after one report was written makes the whole set stale.
 //
-// It's a script rather than a paragraph of prose for the checker to carry out,
+// It's code rather than a paragraph of prose for a caller to carry out,
 // because a wrong answer here is silent: a stale digest read as current makes
 // `fix` declare PASS over code nothing checked.
 //
@@ -18,9 +18,11 @@
 //
 // Exit code: 0 current (reuse them), 1 stale or missing (re-run the check),
 // 2 usage error. Branch on the code; stdout is for humans reading a log.
+// `check.mjs` imports `reportsCurrent` instead of spawning it.
 
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const REPORTS = [
   'prettier-report.json',
@@ -35,13 +37,6 @@ const REPORTS = [
 ];
 
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
-
-const [reportDir, ...scope] = process.argv.slice(2);
-
-if (!reportDir || scope.length === 0) {
-  process.stderr.write('usage: reports-current.mjs <report-dir> <scope...>\n');
-  process.exit(2);
-}
 
 // Oldest report wins: one tool that didn't re-run leaves the set stale.
 const oldestReport = (dir) => {
@@ -77,19 +72,27 @@ const newestSource = (paths) => {
   return newest;
 };
 
-const reports = oldestReport(reportDir);
+// `current: false` carries the reason a log line should say.
+export const reportsCurrent = (reportDir, scope) => {
+  const reports = oldestReport(reportDir);
+  if (reports === undefined) {
+    return { current: false, reason: `stale: no reports in ${reportDir}` };
+  }
+  if (newestSource(scope) >= reports) {
+    return { current: false, reason: 'stale: a file in scope is newer than the reports' };
+  }
+  return { current: true, reason: 'current' };
+};
 
-if (reports === undefined) {
-  process.stdout.write(`stale: no reports in ${reportDir}\n`);
-  process.exit(1);
+// import.meta.url is realpath'd and argv[1] isn't, so compare real paths: through
+// the .claude/skills/qoq symlink this block otherwise never runs.
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+  const [reportDir, ...scope] = process.argv.slice(2);
+  if (!reportDir || scope.length === 0) {
+    process.stderr.write('usage: reports-current.mjs <report-dir> <scope...>\n');
+    process.exit(2);
+  }
+  const { current, reason } = reportsCurrent(reportDir, scope);
+  process.stdout.write(`${reason}\n`);
+  process.exit(current ? 0 : 1);
 }
-
-const source = newestSource(scope);
-
-if (source >= reports) {
-  process.stdout.write('stale: a file in scope is newer than the reports\n');
-  process.exit(1);
-}
-
-process.stdout.write('current\n');
-process.exit(0);
