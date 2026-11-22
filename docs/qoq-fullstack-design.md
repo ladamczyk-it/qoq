@@ -72,6 +72,21 @@ answering it, even though the repo leaned towards one answer. The skill can
 only recommend the model for its own thread, because frontmatter `model:` would
 apply to every sub-command, plan included.
 
+**Why a spending limit is checked twice and asked once.** `--session-limit`
+and `--weekly-limit` cap the account, and every session on it reads the same
+number. The chief of staff checks before each loop round, so nothing new is
+woken past the limit. Each repo gets the flags too, because only its own
+per-ticket check can stop a milestone already under way. Since they all reach
+the limit at nearly the same time, N copies of the same question would only be
+noise, so it's asked once for the whole run. Quoting that one answer to a
+repo that asks later passes on the user's decision, which keeps the rule that
+this thread never answers a repo's question on its own. The flags last for one
+run, as they do in `qoq`. A limit saved in the BRD or `feature.json` would
+silently apply to the next run. Only these two flags are accepted. `--docs` and
+`--diagrams` are per-repo choices. `--tool` and `--source` would put a tracker
+next to the BRD's Repo plans table. A flag nobody forwards is refused up front,
+because otherwise it would fail N times in sessions nobody watches.
+
 **Why no worktrees.** By default a `claude --bg` session moves its edits into
 `.claude/worktrees/<name>` on a branch of its own. The live test on 2026-11-18
 showed the cost: the plan files in the repo's checkout never moved, so the

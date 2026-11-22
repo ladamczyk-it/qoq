@@ -1,7 +1,7 @@
 ---
 name: qoq-fullstack
 description: Chief of staff for one feature that spans several repos — an API and a UI, two APIs and a front end, any set of qoq-based JavaScript/TypeScript repos in one parent folder. `plan` grills the business side only into a Given/When/Then BRD with master milestones, then has each repo write its own `qoq plan` in its own background session; `execute` runs every repo's plan in parallel, one session per repo, unblocking a repo only when the milestone it depends on is delivered and each master milestone only when its integration check passes; `status` shows where the feature stands. Use it whenever the user wants a cross-repo or full-stack feature planned or delivered, a scrum of scrums, a master plan over several repos, or parallel per-repo plans coordinated — even if they never say "fullstack".
-argument-hint: '[plan|execute|status] [requirements or slug]'
+argument-hint: '[plan|execute|status] [requirements or slug] [--session-limit <pct>] [--weekly-limit <pct>]'
 allowed-tools:
   - Read
   - Write
@@ -39,13 +39,20 @@ A repo session's question is answered by the user typing in this thread, and
 an answer that arrives from another session is not the user's. The shapes of `feature.json` and the BRD are in
 [assets/feature-template.md](assets/feature-template.md).
 
-| Invocation                           | Does                                                 | Reference                                      |
-| ------------------------------------ | ---------------------------------------------------- | ---------------------------------------------- |
-| `/qoq-fullstack plan <requirements>` | business grilling → BRD → one plan per repo, relayed | [references/plan.md](references/plan.md)       |
-| `/qoq-fullstack execute <slug>`      | every repo's plan in parallel, gated per master      | [references/execute.md](references/execute.md) |
-| `/qoq-fullstack status [<slug>]`     | read-only                                            | [below](#status)                               |
+| Invocation                                                                   | Does                                                 | Reference                                                      |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------- |
+| `/qoq-fullstack plan <requirements>`                                         | business grilling → BRD → one plan per repo, relayed | [references/plan.md](references/plan.md)                       |
+| `/qoq-fullstack execute <slug>`                                              | every repo's plan in parallel, gated per master      | [references/execute.md](references/execute.md)                 |
+| `/qoq-fullstack execute <slug> --session-limit <pct> [--weekly-limit <pct>]` | same, with a spending limit on the whole run         | [references/execute.md](references/execute.md#spending-limits) |
+| `/qoq-fullstack status [<slug>]`                                             | read-only                                            | [below](#status)                                               |
 
 Invoked with: `$ARGUMENTS`. No sub-command given → ask which one.
+
+**Flags.** `--session-limit <pct>` and `--weekly-limit <pct>` are the only
+flags, and `execute` is the only sub-command that takes them. Refuse any other
+flag, or either one on `plan` or `status`, before you start any session. A bad
+flag sent to the repos would fail once per repo, in background sessions nobody
+is watching.
 
 ## Entry
 
@@ -99,6 +106,8 @@ instruction to it instead.
 Every launch prompt and every instruction message contains:
 
 1. **What to run.** A `/qoq` invocation, and nothing more specific than that.
+   While a spending limit is armed, every `/qoq execute` carries both limit
+   flags, restarts included.
 2. **Who to report to.** This session's name, and the rule: _write to your plan
    files first, then `SendMessage` the chief of staff a one-line summary._
 3. **Where the work goes.** _Work on `feature/<slug>` in this checkout, and
