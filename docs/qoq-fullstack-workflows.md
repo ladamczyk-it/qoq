@@ -69,7 +69,12 @@ flowchart TD
     PEXEC["offer **execute**"] --> PSETUP
     PSETUP(["**setup, once per repo**<br/>crossSessionInbound accept +<br/>bgIsolation none? ·<br/>claude --version · feature/slug branch"])
     PSETUP --> PLOOP["**feature-status.mjs**<br/>*the files are the state*"]
-    PLOOP --> PWAKE["each repo with **next.runnable**,<br/>idle or gone → **qoq execute** in it.<br/>*repos in parallel; one ticket<br/>at a time inside each*"]
+    PLOOP --> PLIM{"limit armed?<br/>**usage-check.mjs**"}
+    PLIM -->|"off, or under it"| PWAKE
+    PLIM -->|"reached — or a repo<br/>relays its limit question"| PLASK(["**ASK THE USER — once**<br/>for every repo and this thread.<br/>*later repo questions get<br/>that answer, quoted*"])
+    PLASK -->|"yes → limit off"| PWAKE
+    PLASK -->|no| PLSTOP["wake nothing, no integration ·<br/>status stays in-progress ·<br/>resume with the same flags"]
+    PWAKE["each repo with **next.runnable**,<br/>idle or gone → **qoq execute** in it,<br/>+ both limit flags while armed.<br/>*repos in parallel; one ticket<br/>at a time inside each*"]
     PWAKE --> PDUE{"a master milestone<br/>integrationDue?"}
     PDUE -->|yes| PINT["run its checks —<br/>npm run script in that repo"]
     PINT -->|pass| PDEL["master row → **delivered**<br/>*the only write that<br/>unblocks the next master*"]
@@ -84,8 +89,8 @@ flowchart TD
     classDef command fill:#f59e0b1a,stroke:#f59e0b,stroke-width:2px,stroke-dasharray:4 3
     classDef user fill:#06b6d422,stroke:#0891b2,stroke-width:2px
     classDef skill fill:#ef44441f,stroke:#ef4444,stroke-width:2px
-    class PSTAT,PLOOP,PSCHED command
-    class PJASK,PBRD,PRELAY,PSETUP,PFAIL,PESC user
+    class PSTAT,PLOOP,PSCHED,PLIM command
+    class PJASK,PBRD,PRELAY,PSETUP,PFAIL,PESC,PLASK user
     class PREPO,PWAKE,PREPLAN,PEXEC skill
 ```
 

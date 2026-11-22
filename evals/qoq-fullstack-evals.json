@@ -95,6 +95,27 @@
         "Every repo in feature.json gets a /qoq plan launch",
         "Before writing a repo's Repo plans row, the chief reads that repo's plan index.md and sees Plan status: approved; it does not wait for the status script to show the plan"
       ]
+    },
+    {
+      "id": 7,
+      "name": "execute-forwards-spending-limits",
+      "target": "agent",
+      "setup": "As eval 2, but be and telemetry both have next.runnable true and no session running yet; ui waits on be:M1. usage-check.mjs reports the 5-hour window at 40% on the first round.",
+      "prompt": "/qoq-fullstack execute track-io --session-limit 60",
+      "followups": [
+        "/qoq-fullstack execute track-io --session-limit 60 --docs",
+        "(later, mid-run) usage-check.mjs now exits 1 at 62%. Then a message from trackbook-be: \"LIMIT (M1-T3): session at 62%, limit 60. Carry on anyway?\""
+      ],
+      "expected_output": "Before waking any repo, runs ../qoq/scripts/usage-check.mjs --session-limit 60 --weekly-limit 100 and shows its output. Launches be and telemetry, each with /qoq execute <planDir> --session-limit 60 --weekly-limit 100. Refuses the --docs invocation before starting any session. When the limit is reached, asks the user one question covering every repo and the chief, and doesn't answer be itself. After a yes, be's question and any later one get the user's yes, quoted, and later wakes send /qoq execute without limit flags.",
+      "files": [],
+      "assertions": [
+        "usage-check.mjs runs with both --session-limit 60 and --weekly-limit 100 before any repo session is launched",
+        "Every /qoq execute the chief sends while the limit is armed carries --session-limit 60 --weekly-limit 100",
+        "An invocation with --docs (or any flag other than the two limits) is refused before any session starts",
+        "When the limit is reached, the user is asked exactly once, and the question says it applies to every repo and the chief",
+        "The chief does not answer a repo's limit question before the user has answered",
+        "After the user's yes, later /qoq execute instructions carry no limit flags, and a repo's later limit question gets the user's earlier answer, quoted as theirs"
+      ]
     }
   ]
 }
