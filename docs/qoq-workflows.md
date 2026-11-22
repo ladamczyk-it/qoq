@@ -163,7 +163,7 @@ flowchart TD
         DIG --> SUM["return the **digest**<br/>tool → rule → files<br/>(never the raw reports)"]
     end
 
-    CHK -->|"brief: project root +<br/>skill path, both absolute"| CD["`cd &lt;root&gt;` as its own first call<br/>*it may start in a subdirectory;<br/>every cli.yaml form is root-relative*<br/>then one cli.yaml form per call, as written"]
+    CHK -->|"brief: project root +<br/>skill path, both absolute"| CD["cd &lt;root&gt; as its own first call<br/>*it may start in a subdirectory;<br/>every cli.yaml form is root-relative*<br/>then one cli.yaml form per call, as written"]
     CD --> C0
     SUM --> ANY{"findings?"}
     ANY -->|none| OUT(["**done**<br/>summarise every loop's fixes"])
