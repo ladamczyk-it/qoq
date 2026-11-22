@@ -5,9 +5,10 @@ symlink_test: test -L node_modules/@ladamczyk/qoq-cli
 reports: node_modules/@ladamczyk/qoq-cli/bin/report
 
 run:
-  full: npx qoq --check --json
-  ticket: rm -f <reports>/knip-report.json && npx qoq --check --json --skip-knip
-  fix: npx qoq --fix
+  check: node <skill>/scripts/check.mjs <reports> <scope>...
+  ticket: node <skill>/scripts/check.mjs <reports> --skip-knip <scope>...
+  fix: npm run qoq:fix
+  fix_if_symlinked: npm run build && npm run qoq:fix
   scoped: npx qoq staged <file>...
   ticket_scoped: npx qoq staged --skip-knip <file>...
   tools: npx qoq <tool>...
@@ -20,6 +21,12 @@ narrow: --skip-<tool>
 exit: { 0: clean, 1: findings }
 
 facts:
+  - check and ticket are the gate; never run npx qoq --check or npm run qoq:check yourself
+  - the gate runs the project's qoq:check, fix runs qoq:fix, both verbatim; no other script is read
+  - each must be a single qoq command, because check appends -- --json
+  - check exit is 0 clean, 1 findings, 2 no verdict (missing script, failed build, CLI crash); 2 is never PASS
+  - check reuses reports only when they are current and the same mode and script wrote them, empties them before a run, and builds first when the CLI is symlinked
+  - the digest's first line quotes the script that ran
   - positional args are tool names, never paths
   - staged is the only path-scoped form
   - staged takes no --json and no --fix, and writes no reports
@@ -28,22 +35,13 @@ facts:
   - scan is a subcommand, not a tool name; it reads package-lock.json, needs the network, and is never part of --check
   - knip ignores the file list; staged runs it repo-wide like every other form
   - ticket forms drop knip because half the milestone does not exist yet
-  - ticket deletes knip-report.json first — summarize.mjs reads that file whatever ran, so a leftover would re-report a skipped tool from stale data
 
 digest:
-  cmd: node <skill>/scripts/summarize.mjs <reports>
-  exit: { 0: none, 1: findings, 2: error }
-  raw: open one report only for one finding's line numbers
-
-reuse:
-  cmd: node <skill>/scripts/reports-current.mjs <reports> <scope>...
-  exit: { 0: reuse the reports, 1: re-run full }
-  note: never reuse across the ticket/full boundary — a ticket run left no knip report, so a full verdict built on it would be missing a tool
+  raw: open one report only for one finding's line numbers; clone code is read from the source files at the digest's line ranges
 
 may_run:
-  bump: [tools, scan]
-  fix: [full, ticket, fix, digest, reuse]
-  qoq-checker: [full, ticket, digest, reuse]
+  bump: [check, tools, scan]
+  fix: [check, ticket, fix, fix_if_symlinked]
   qoq-developer: [ticket_scoped]
   qoq-tester: [scoped]
   qoq-bumper: []

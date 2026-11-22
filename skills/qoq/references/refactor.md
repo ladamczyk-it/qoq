@@ -171,7 +171,7 @@ where a discriminated union does the job is worse than no assessment at all.
 3. **Declined → next assessment, unchanged.** A no is an answer, not a retry.
 4. **Approved → apply, then dispatch `qoq fix` again.** Reshaping code produces
    new formatting and lint findings, and the next assessment deserves the same
-   green base the first one got. Cheap in practice: the checker's mtime scan
+   green base the first one got. Cheap in practice: check.mjs's mtime scan
    short-circuits when nothing changed, so a re-green after an assessment that
    applied nothing costs a stat sweep.
 

@@ -18,15 +18,13 @@
 //   - `review` skips it too. Standalone it reads a pull request from any
 //     repository through a scratch clone, so the working directory's record
 //     describes the wrong project; inside `execute`, execute's own run did it.
-//   - a fresh agent install is a question for `fix`, `test`, `execute`,
-//     `document`, `sheriff` and `review`, and a line in the end-of-run notice for
-//     everything else. Those six dispatch an agent inside the window before Claude Code registers the
+//   - a fresh agent install is a question for `test`, `execute`, `document`,
+//     `sheriff` and `review`, and a line in the end-of-run notice for everything
+//     else. Those five dispatch an agent inside the window before Claude Code registers the
 //     directory, so their first dispatch can land on the `general-purpose`
 //     fallback — and for an agent whose contract is a restriction, the fallback
-//     is the restriction gone. `refactor` is the deliberate exception: it opens with a
-//     `fix`, so its first checker does land in that window, but putting a
-//     question in front of a command whose next move is another command's
-//     question is the noise this narrowing exists to remove.
+//     is the restriction gone. `fix` dispatches no agent (its gate is
+//     check.mjs), so it only reports the install.
 //
 // Usage:   node entry.mjs --project <dir> --command <fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff|review|feedback>
 //
@@ -51,7 +49,7 @@ const COMMANDS = [
   'review',
   'feedback',
 ];
-const ASKS_ON_INSTALL = ['fix', 'test', 'execute', 'document', 'sheriff', 'review'];
+const ASKS_ON_INSTALL = ['test', 'execute', 'document', 'sheriff', 'review'];
 const SKIPS_DISCOVERY = ['compress', 'review', 'feedback'];
 
 const args = process.argv.slice(2);

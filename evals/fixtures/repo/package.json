@@ -5,7 +5,9 @@
   "scripts": {
     "test": "vitest run --passWithNoTests",
     "test:one": "vitest run",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "qoq:check": "qoq --check",
+    "qoq:fix": "qoq --fix"
   },
   "devDependencies": {
     "@ladamczyk/qoq-cli": "6.3.0",

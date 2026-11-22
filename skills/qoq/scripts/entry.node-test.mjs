@@ -76,17 +76,15 @@ test('compress and review skip discovery', () => {
 
 // The rule that had drifted across three prose files. These three dispatch a
 // pinned agent inside the window before Claude Code registers the directory.
-test('a fresh install is a question for fix, test, execute, document, sheriff and review', () => {
-  for (const command of ['fix', 'test', 'execute', 'document', 'sheriff', 'review']) {
+test('a fresh install is a question for test, execute, document, sheriff and review', () => {
+  for (const command of ['test', 'execute', 'document', 'sheriff', 'review']) {
     assert.match(run(fixture(), command).stdout, /ACTION: ask the user before carrying on/);
   }
 });
 
-// The deliberate exception: refactor opens with a fix, so its first checker does
-// land in the window — and a question in front of a command whose next move is
-// another command's question is noise.
-test('refactor and the rest only report the install at the end', () => {
-  for (const command of ['refactor', 'bump', 'plan', 'replan', 'compress']) {
+// `fix` dispatches no agent any more; refactor and the rest dispatch theirs late.
+test('fix, refactor and the rest only report the install at the end', () => {
+  for (const command of ['fix', 'refactor', 'bump', 'plan', 'replan', 'compress']) {
     const { stdout } = run(fixture(), command);
     assert.match(stdout, /agents installed:/);
     assert.doesNotMatch(stdout, /ACTION: ask the user before carrying on/);

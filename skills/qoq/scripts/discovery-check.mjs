@@ -15,9 +15,10 @@
 //     stack behind `runner` and `react` — by name in package.json's dependencies,
 //     by the lines naming them in the project's lockfile.
 //
-// How the qoq CLI is invoked is deliberately not a field and not an input. It is
-// a constant (`npx qoq --check --json`, SKILL.md's CLI section), so there is
-// nothing here to go stale and no reason to watch that package.
+// How the qoq CLI is invoked is the project's own `qoq:check` and `qoq:fix`
+// scripts, run verbatim (check.mjs and cli.yaml's `fix`). They are proposed like
+// `test` and `build`, so a project without one is asked to add it. There is no
+// reason to watch the CLI package itself.
 //
 // Deliberately NOT the whole of either file. package.json's `version` moves on
 // every release commit, and a lockfile moves whenever any transitive dependency
@@ -182,6 +183,8 @@ const proposeRunner = (proposed, unresolved) => {
 const SCRIPTED = [
   ['test', 'test', 'npm test'],
   ['build', 'build', 'npm run build'],
+  ['qoq:check', 'qoq:check', 'npm run qoq:check'],
+  ['qoq:fix', 'qoq:fix', 'npm run qoq:fix'],
 ];
 
 // The fields that are reading, not judgement. Everything genuinely ambiguous is

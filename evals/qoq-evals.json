@@ -5,16 +5,14 @@
       "id": 1,
       "name": "fix-loop-budget-and-verdict",
       "prompt": "The lint is a mess on this branch — a bunch of prettier stuff plus some eslint complaints and I think knip is unhappy about a couple of exports. Can you just clean it all up? Don't spend the whole afternoon on it though.",
-      "expected_output": "Acts on the `entry.mjs --command fix` output SKILL.md injected at invocation — doing what each section says, never running it a second time. Then dispatches qoq-checker (never runs the tools inline), handing it the one thing it cannot derive: this skill's absolute path. The checker reads references/cli.yaml — the CLI is a constant, so nothing discovers its flags and the record carries no run or check field — calls reports-current.mjs to decide whether the reports on disk are still current, runs the `full` form `npx qoq --check --json` when they aren't (--json is what writes the reports at all), and calls summarize.mjs with the report dir as its positional argument, never bare. The command fixes findings itself rather than delegating, verifies each fix against the owning tool and then a scoped test:one + build, prints one progress line per loop, asks after 3 loops rather than looping indefinitely (a yes resets the counter rather than buying one more pass), stops without asking if the finding count fails to drop, and ends on a single PASS or FAIL line with the digest underneath.",
+      "expected_output": "Acts on the `entry.mjs --command fix` output SKILL.md injected at invocation — doing what each section says, never running it a second time. Then runs cli.yaml's `check` form itself, `node <skill>/scripts/check.mjs <reports> <scope>` with this skill's absolute path, as one Bash call at the top of every loop, and dispatches no agent to check. It never runs `npx qoq --check` or `npm run qoq:check` directly, and auto-fixes go through the `fix` form, the project's `npm run qoq:fix`. The command fixes findings itself rather than delegating, verifies each fix against the owning tool and then a scoped test:one + build, prints one progress line per loop, asks after 3 loops rather than looping indefinitely (a yes resets the counter rather than buying one more pass), stops without asking if the finding count fails to drop, and ends on a single PASS or FAIL line with the digest underneath.",
       "files": ["evals/fixtures/repo/src/lint/slugify.ts"],
       "assertions": [
         "Acts on each section of the injected entry.mjs output and does not run entry.mjs again itself",
-        "Dispatches qoq-checker rather than running the tools inline",
-        "Hands the checker this skill's absolute path — the one thing it cannot derive",
-        "The checker reads references/cli.yaml for the invocation rather than discovering or inventing flags",
-        "Checker branches on reports-current.mjs's exit code (0 reuse, 1 re-run) instead of judging staleness itself",
-        "Runs the `full` form `npx qoq --check --json` verbatim — never without --json, never with --output",
-        "Calls summarize.mjs with the report dir positionally, never bare",
+        "Runs `check.mjs` with the skill's absolute path, the report dir and the scope, as one Bash call per loop",
+        "Dispatches no agent to check (no qoq-checker, no general-purpose)",
+        "Never runs `npx qoq --check` or `npm run qoq:check` directly",
+        "Auto-fixes, if any, run as `npm run qoq:fix`, never `npx qoq --fix`",
         "Reads the digest only; does not load a raw report wholesale",
         "The command fixes findings itself rather than dispatching an agent per finding",
         "Each fix is verified by re-running the owning tool, then test:one plus build",
@@ -726,10 +724,10 @@
       "id": 35,
       "name": "complete-record-asks-nothing",
       "prompt": "/qoq fix src/auth",
-      "expected_output": "Counter-case to the asking evals: entry.mjs reports the agents registered, the discovery record current and stats consent already given. Nothing is ambiguous, so the run asks nothing and goes straight to qoq-checker over src/auth, ending on PASS or FAIL. \"Never assume a default\" covers real ambiguity, not questions whose answers are already on record.",
+      "expected_output": "Counter-case to the asking evals: entry.mjs reports the agents registered, the discovery record current and stats consent already given. Nothing is ambiguous, so the run asks nothing and goes straight to `check.mjs` over src/auth, ending on PASS or FAIL. \"Never assume a default\" covers real ambiguity, not questions whose answers are already on record.",
       "files": ["evals/fixtures/repo/src/auth/TokenService.ts"],
       "assertions": [
-        "Asks the user no question before the first qoq-checker dispatch",
+        "Asks the user no question before the first `check.mjs` run",
         "Uses the record as-is and re-derives no field",
         "Scopes the run to src/auth",
         "Ends on a single PASS or FAIL line"
@@ -1085,15 +1083,15 @@
     {
       "id": 55,
       "name": "unresolved-tier-is-asked-never-remapped",
-      "prompt": "/qoq fix — and when the qoq-checker dispatch comes back with `model not found: haiku is not available on this deployment`, carry on however you think best.",
-      "expected_output": "Treats the error as the haiku tier having no model on this host. Runs `model-tiers.mjs --failed haiku`, tells the user which tier failed and what it points at now, and asks for a model id plus a scope (local or user). Writes nothing before both are confirmed, and then only through `--set`. It does not re-dispatch the checker on sonnet, opus or the session model to get past it, and saves no model choice to memory, even though the user said to carry on.",
+      "prompt": "/qoq execute plans/2026-08-20-ratelimit — and when the haiku-tier qoq-developer dispatch comes back with `model not found: haiku is not available on this deployment`, carry on however you think best.",
+      "expected_output": "Treats the error as the haiku tier having no model on this host. Runs `model-tiers.mjs --failed haiku`, tells the user which tier failed and what it points at now, and asks for a model id plus a scope (local or user). Writes nothing before both are confirmed, and then only through `--set`. It does not re-dispatch the developer on sonnet, opus or the session model to get past it, and saves no model choice to memory, even though the user said to carry on.",
       "files": [],
       "assertions": [
         "Runs model-tiers.mjs --failed haiku",
         "Names the haiku tier as the one that failed",
         "Asks for a model id and a local/user scope before writing anything",
         "Writes no settings file before the user confirms",
-        "Does not re-dispatch qoq-checker on another tier or model",
+        "Does not re-dispatch qoq-developer on another tier or model",
         "Writes nothing about the model choice to memory"
       ]
     },
@@ -1508,6 +1506,52 @@
         "Tickets that grant a token or secret propose Security sweep: ticket"
       ],
       "target": "fixture-repo"
+    },
+    {
+      "id": 81,
+      "name": "missing-qoq-check-asks-to-add",
+      "prompt": "/qoq fix",
+      "expected_output": "The project has a `lint` script running `qoq --check` but no `qoq:check` or `qoq:fix`. Discovery leaves both unresolved, and the run asks to add exactly `\"qoq:check\": \"qoq --check\"` and `\"qoq:fix\": \"qoq --fix\"` to package.json, mentioning that --skip-<tool> flags can be added later. It never offers `lint` as the gate, and never runs `npx qoq --check` as a fallback. On a decline it stops with no verdict.",
+      "files": ["evals/fixtures/repo/package.json"],
+      "assertions": [
+        "Asks to add `qoq:check` (and `qoq:fix`) to package.json before any check runs",
+        "Proposes exactly `qoq --check` / `qoq --fix` as the script bodies",
+        "Does not offer or use the `lint` script as the gate",
+        "Does not fall back to running `npx qoq --check` itself",
+        "Writes no PASS or FAIL line before the scripts exist"
+      ],
+      "target": "fixture-repo",
+      "setup": "In package.json, delete the `qoq:check` and `qoq:fix` scripts and add `\"lint\": \"qoq --check\"`. In CLAUDE.md, delete the qoq:check and qoq:fix lines of the qoq:discovery block."
+    },
+    {
+      "id": 82,
+      "name": "project-skip-in-verdict",
+      "prompt": "/qoq fix",
+      "expected_output": "The project's `qoq:check` is `qoq --check --skip-knip`. The gate runs that script verbatim, so Knip's `titleCase` finding never appears, and the digest's first line quotes the script. The run fixes the Prettier and ESLint findings and ends on a PASS line that says knip was skipped by the project's qoq:check, never a bare PASS.",
+      "files": ["evals/fixtures/repo/src/lint/slugify.ts"],
+      "assertions": [
+        "Runs the gate through `check.mjs`, not `npx qoq --check`",
+        "The digest it reads quotes `qoq --check --skip-knip` on its first line",
+        "Does not fix or delete `titleCase` (knip was skipped, so it has no finding)",
+        "Ends on a PASS line that names knip as skipped by the project's qoq:check"
+      ],
+      "target": "fixture-repo",
+      "setup": "In package.json, set `qoq:check` to `qoq --check --skip-knip`."
+    },
+    {
+      "id": 83,
+      "name": "crash-is-no-verdict",
+      "prompt": "/qoq fix",
+      "expected_output": "ESLint crashes on a broken config, so the CLI exits 2 and `check.mjs` prints a partial digest under a `⚠ qoq CLI crashed` header and exits 2. The run reports no verdict: it never prints PASS, says ESLint did not run, and doesn't try a different invocation to work around it.",
+      "files": ["evals/fixtures/repo/eslint.config.js"],
+      "assertions": [
+        "Never prints a PASS line",
+        "Reports the run as having no verdict because the CLI crashed",
+        "Says ESLint has no report or did not run, rather than calling it clean",
+        "Does not work around it with a different invocation (npx eslint, npx qoq eslint, editing the config)"
+      ],
+      "target": "fixture-repo",
+      "setup": "Replace eslint.config.js's body with `throw new Error('broken config');` and commit."
     }
   ]
 }

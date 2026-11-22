@@ -58,7 +58,7 @@ hooks:
 
 # QoQ — quality over quantity
 
-Thirteen commands, one shared discovery record, twelve agents.
+Thirteen commands, one shared discovery record, eleven agents.
 
 **This file routes.** Each command's reference owns its rules — read the one you
 need, not all of them.
@@ -182,7 +182,7 @@ Commands compose, but **only on the main thread**.
 
 | Command    | Calls                                                                                                | Called by                                                           |
 | ---------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `fix`      | its own `qoq-checker`                                                                                | `refactor`, `bump`, `execute`, `test`, `compress`                   |
+| `fix`      | `scripts/check.mjs`, no agent                                                                        | `refactor`, `bump`, `execute`, `test`, `compress`                   |
 | `refactor` | `fix`                                                                                                | `bump`, `execute`, `test`                                           |
 | `bump`     | `fix`, `refactor` — both per patch                                                                   | —                                                                   |
 | `plan`     | `grilling` + `domain-modeling` (external), `mermaid`                                                 | —                                                                   |
@@ -241,12 +241,12 @@ writing concurrently makes unanswerable. Read-only agents may run together
 where a reference says so (`review`'s two axes); `refactor`'s assessments stay
 sequential for their own reason ([references/refactor.md](references/refactor.md)).
 
-**An agent that reports never fixes.** `qoq-checker`, `qoq-bumper`,
+**An agent that reports never fixes.** `qoq-bumper`,
 `qoq-designer`, `qoq-architect`, `qoq-test-reviewer`, `qoq-sheriff`, `qoq-reviewer` and `qoq-retro` return findings and edit
 nothing. An agent permitted to do both will quietly do both, and the finding
 disappears into the diff instead of reaching the user. Where an agent's tools
 are wider than its contract, `scripts/agent-guard.mjs` closes the gap as a
-`PreToolUse` hook in its frontmatter: a shell allowlist for `qoq-checker`,
+`PreToolUse` hook in its frontmatter: a shell allowlist for
 `qoq-bumper`, `qoq-sheriff` and `qoq-reviewer`, test files only for
 `qoq-tester`. A hand-back that quotes the guard is a contract question for the
 user, never a reason to re-dispatch as `general-purpose`.
@@ -255,15 +255,16 @@ user, never a reason to re-dispatch as `general-purpose`.
 weakened gate. If the bar can't be met, that's a report, not something to route
 around.
 
-**The CLI is a constant.** `npx qoq` is installed wherever this skill runs;
-nothing discovers it, checks for it, or derives its flags. Whoever needs it reads
-`references/cli.yaml` at the moment they need it. What stays with `fix` is the
+**The gate is the project's `qoq:check`, the fix its `qoq:fix`**, run verbatim
+through the forms in `references/cli.yaml`. Discovery asks to add a missing one.
+Nothing derives the CLI's flags. Whoever needs it reads `references/cli.yaml` at
+the moment they need it. What stays with `fix` is the
 _verdict_ — it owns the check/fix loop and the one PASS/FAIL line its callers
 read.
 
 ## Agents
 
-Twelve, in `agents/`. Each one's model is in its own frontmatter. Four have
+Eleven, in `agents/`. Each one's model is in its own frontmatter. Four have
 none: `qoq-developer` and `qoq-scribe` take the tier passed at dispatch (the
 ticket's rating, the scribe's mode), and `qoq-architect` and `qoq-sheriff`
 inherit the session's model, because a design error propagates into every
@@ -271,7 +272,6 @@ ticket and a missed security finding ships. Never pin a tier on those four.
 
 | Agent               | Job                                                         |
 | ------------------- | ----------------------------------------------------------- |
-| `qoq-checker`       | run the tools, return the digest — one per `fix` loop       |
 | `qoq-bumper`        | read a changelog, find what lands here — one per package    |
 | `qoq-architect`     | contracts · surface · risks · unknowns — one per plan       |
 | `qoq-developer`     | one ticket, red → green per criterion — one per ticket      |
@@ -314,7 +314,6 @@ the full brief instead, the way every retry worked before resume, when:
   attempt. It's never resumed
 - **the agent judges**: `qoq-sheriff`, `qoq-reviewer`, `qoq-test-reviewer` and `qoq-retro` are
   cold every time, because a primed reader shares the blind spots it should catch
-- **it's `qoq-checker`**: its context is raw reports, and a fresh digest is cheaper
 
 Write `resumed` or `fresh` on the Log line wherever a Log records the retry.
 

@@ -167,9 +167,9 @@ test("a copied agent's guard hook names this skill's real path, and that script 
   const dir = project();
   run(dir);
 
-  const checker = readFileSync(join(dir, '.claude', 'agents', 'qoq-checker.md'), 'utf8');
-  assert.doesNotMatch(checker, /\$CLAUDE_PROJECT_DIR\/\.claude\/skills\/qoq/);
-  const [, script] = checker.match(/command: node "([^"]+)" qoq-checker \|\| exit 2/) ?? [];
-  assert.ok(script, 'qoq-checker carries the agent-guard hook');
+  const sheriff = readFileSync(join(dir, '.claude', 'agents', 'qoq-sheriff.md'), 'utf8');
+  assert.doesNotMatch(sheriff, /\$CLAUDE_PROJECT_DIR\/\.claude\/skills\/qoq/);
+  const [, script] = sheriff.match(/command: node "([^"]+)" qoq-sheriff \|\| exit 2/) ?? [];
+  assert.ok(script, 'qoq-sheriff carries the agent-guard hook');
   assert.ok(existsSync(script), `${script} exists`);
 });

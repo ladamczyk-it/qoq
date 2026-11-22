@@ -24,46 +24,35 @@ const allows = (role, command) =>
 const blocks = (role, command) =>
   assert.notEqual(bash(role, command), null, `${role} should not run: ${command}`);
 
-test('qoq-checker runs the CLI forms cli.yaml gives it, and nothing that writes', () => {
-  allows('qoq-checker', 'npx qoq --check --json');
-  allows(
-    'qoq-checker',
-    'rm -f node_modules/@ladamczyk/qoq-cli/bin/report/knip-report.json && npx qoq --check --json --skip-knip'
-  );
-  allows('qoq-checker', `node ${SCRIPTS}summarize.mjs node_modules/@ladamczyk/qoq-cli/bin/report`);
+test('node runs only scripts outside the code under test, never inline code', () => {
+  allows('qoq-tester', `node ${SCRIPTS}summarize.mjs node_modules/@ladamczyk/qoq-cli/bin/report`);
   blocks('qoq-tester', 'node /work/app/tests/scripts/x.mjs');
   // Through a symlink, the way a checkout keeps the skill at .claude/skills/qoq.
   const link = join(mkdtempSync(join(tmpdir(), 'agent-guard-')), 'scripts');
   symlinkSync(SCRIPTS, link);
-  allows('qoq-checker', `node ${link}/summarize.mjs r`);
-  allows(
-    'qoq-checker',
-    'test -L node_modules/@ladamczyk/qoq-cli && npm run build && npx qoq --check --json'
-  );
-  allows('qoq-checker', 'npx qoq --check --json 2>&1 > /dev/null');
+  allows('qoq-tester', `node ${link}/summarize.mjs r`);
+  allows('qoq-tester', 'npm test 2>&1 > /dev/null');
 
-  blocks('qoq-checker', 'npx qoq --fix');
-  blocks('qoq-checker', "node -e \"require('fs').rmSync('src', { recursive: true })\"");
   blocks('qoq-tester', "node -e \"require('fs').writeFileSync('src/a.ts', '')\"");
-  blocks('qoq-checker', 'rm -rf src');
-  blocks('qoq-checker', "sed -i 's/a/b/' src/index.ts");
-  blocks('qoq-checker', 'echo x > src/index.ts');
-  blocks('qoq-checker', 'git checkout -- src');
+  blocks('qoq-tester', 'rm -rf src');
+  blocks('qoq-tester', "sed -i 's/a/b/' src/index.ts");
+  blocks('qoq-tester', 'echo x > src/index.ts');
+  blocks('qoq-tester', 'git checkout -- src');
 });
 
 test('cd reaches the project from a subdirectory, and goes nowhere else', () => {
-  allows('qoq-checker', 'cd /work/app && npx qoq --check --json');
+  allows('qoq-tester', 'cd /work/app && npx qoq staged src/a.ts');
   allows('qoq-tester', 'cd /work/app/packages/x && npm test');
   for (const command of ['cd', 'cd ..', 'cd -', 'cd packages', 'cd /tmp', 'cd /work/apple']) {
-    blocks('qoq-checker', command);
+    blocks('qoq-tester', command);
   }
-  assert.match(bash('qoq-checker', 'cd ..'), /absolute path inside the project \(\/work\/app\)/);
+  assert.match(bash('qoq-tester', 'cd ..'), /absolute path inside the project \(\/work\/app\)/);
 });
 
 test('an inline variable prefix is refused, even before an allowed command', () => {
-  blocks('qoq-checker', 'NODE_OPTIONS=--require=/tmp/x.js npx qoq --check --json');
-  blocks('qoq-checker', 'cd /work/app && FORCE_COLOR=0 npx qoq --check --json');
-  assert.match(bash('qoq-checker', 'CI=1 npx qoq --check --json'), /inline variable/);
+  blocks('qoq-tester', 'NODE_OPTIONS=--require=/tmp/x.js npm test');
+  blocks('qoq-tester', 'cd /work/app && FORCE_COLOR=0 npm test');
+  assert.match(bash('qoq-tester', 'CI=1 npm test'), /inline variable/);
 });
 
 test('a clever compound still has every segment checked', () => {

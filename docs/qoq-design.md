@@ -118,16 +118,26 @@ is nearly every run — pays none of it. `test:one` stays unresolved every time:
 both runners take a path positionally, so a default is easy to write and easy to
 be wrong about, and a project with its own single-file script wants that one.
 
-**Why the CLI isn't discovered at all.** The record used to carry `run` and
+**Why the CLI's flags aren't discovered.** The record used to carry `run` and
 `check`, and the agent read the CLI's own `AGENTS.md` — thousands of tokens — to
-learn two flags. Both were discovery of a constant: `npx qoq --check --json` is
-the same line in every project this skill runs in, and the one variation
-(a workspace symlink, in the CLI's own monorepo) is a `test -L` that any thread
-can run in the moment it matters. So the fields are gone, the CLI is no longer a
-watched dependency, and the script no longer exits 3 on a missing install — a
-project without the CLI is not a case this skill spends a field, a hash input and
-an agent dispatch to handle. What replaces all of it is `references/cli.yaml`,
-which the threads that actually run the binary open when they need it.
+learn two flags. So the fields went, the CLI is no longer a watched dependency,
+and the script no longer exits 3 on a missing install. What replaces all of it is
+`references/cli.yaml`, which the threads that actually run the binary open when
+they need it.
+
+**Why the gate runs the project's `qoq:check`, and only that name (2026-11-22).**
+For a while the gate was a constant, `npx qoq --check --json`. That ignored the
+project's own script: a `"qoq:check": "qoq --check --skip-npm"` still ran npm.
+Now `check.mjs` runs `npm run qoq:check -- --json` and the `fix` form runs
+`npm run qoq:fix`, both verbatim, so the project's flags hold. No skip parser:
+the script is the source of truth, and quoting it on the digest's first line
+says what ran. Only those two names are read. Guessing from `lint` or
+`foo:check` is how a script with unrelated flags would quietly change the gate,
+and a fixed name can be documented in one sentence. Both are required:
+discovery asks to add a missing one, the same way it asks for a missing `test`,
+but the only answer it takes is adding that script. A fallback to the old
+constant would be a second code path to keep in sync, and `--json` is appended
+by npm, so each script must be a single `qoq` command (README).
 
 The cost of the old arrangement wasn't only tokens. Two fields concatenated as
 `<run> <check>` meant every caller had to be told the concatenation, and a record
@@ -152,8 +162,9 @@ in three; and the whys around it were re-read on every dispatch by agents that
 needed a command line, not an argument. YAML costs about a third of the tokens
 the same content cost as a Markdown section, and it can be diffed for drift by
 eye. What stays in prose is only what stops a wrong action in context — the
-checker's "never reuse reports the script called stale", the writers' "the gate
-is your caller's" — and each of those now sits in exactly one agent file.
+writers' "the gate is your caller's" — and each of those now sits in exactly one
+agent file. The checker's "never reuse reports the script called stale" became
+code in `check.mjs`.
 
 **Why `SKILL.md` doesn't restate any of it.** It named the file and then
 described its contents, and the command references pointed back up at that
@@ -198,6 +209,31 @@ What it cost to remove: on a first run in an awkward project — no committed
 block, non-standard scripts — the derivation reads three to five files into the
 main context and they stay there for the rest of the run. Once per project, and
 the answers are committed immediately after, so it doesn't repeat.
+
+**Why there is no checker agent any more (2026-11-22).** `qoq-checker` was a
+Haiku agent whose whole job was copying commands: `reports-current` → the check →
+`summarize`, then return the digest. The 2026-10-21 audit had already found that
+`summarize.mjs` did all the grouping. What was left needed no model, and a script
+does it identically every time. It also dodges the registration window, where a
+first-run dispatch fell back to `general-purpose` at the session tier, the same
+failure that ended the discovery agent. `check.mjs` is one Bash call on the `fix`
+thread. Only the digest enters that context, which is all the agent's return
+ever put there. It enforces in code what the agent's body asked for in prose:
+reports are reused only when the marker shows the same mode and script wrote
+them, so a ticket run's missing Knip report can't back a full verdict; the report
+files are emptied before a run, so a tool the project's script skips can't
+reappear from an old report; the CLI is built first when it's a workspace
+symlink. The guard hook, which existed to stop a reporter from editing, has
+nothing to guard, because the script never edits.
+
+The crash header is new. The CLI reports a thrown tool as a bare `Unknown error!`
+and writes no report for it, so a crashed tool used to read as a clean one.
+Without the agent there's nobody to say "the CLI errored", so `check.mjs` says
+it: a partial digest under a `⚠` header and exit 2, which `fix` reports as no
+verdict. A stderr tail wouldn't help, since all it would say is `Unknown error!`.
+
+With no agent to dispatch, `fix` no longer asks after a fresh agent install. It
+reports the install at the end of the run, like `refactor`.
 
 **Why `sync-agents.mjs` deletes as well as installs.** Dropping an agent from the
 skill left every project that had ever run it holding a registered, dispatchable
@@ -284,9 +320,8 @@ away — greppable, with real tags, instead of a search that has to find the rig
 repo first. `WebSearch` stays as the last rung for packages that ship nothing
 readable there, not as the default.
 
-**Why the agent frontmatter says what it says.** `qoq-checker` runs at
-`effort: low` — it runs tools and digests, nothing to deliberate. `qoq-checker`,
-`qoq-bumper` and `qoq-designer` set `omitClaudeMd`, because everything they act
+**Why the agent frontmatter says what it says.** `qoq-bumper` and
+`qoq-designer` set `omitClaudeMd`, because everything they act
 on arrives in the dispatch or is read from code; `qoq-test-reviewer` doesn't,
 because its dispatch never names the project's own conventions file, and
 "the project's file wins" is often met through CLAUDE.md. `qoq-architect` pins
@@ -298,11 +333,11 @@ tester runs were on record, so it takes the same cap.
 **Why the read-only tiers are what they are (audited 2026-10-21).** A tier only
 moves on a measured difference, and none of these showed one:
 
-| Agent               | Tier       | Tested against              | Quality                                                                                                                                          | Cost (median context tokens, wall time) | Decision |
-| ------------------- | ---------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- | -------- |
-| `qoq-test-reviewer` | sonnet     | opus, 6 cases × 3 runs each | 0/15 seeded defects missed and 0/3 false rejections on both tiers                                                                                | sonnet 60.6k, 10.8s · opus 76.5k, 21.6s | keep     |
-| `qoq-designer`      | sonnet     | opus, 2 cases × 2 runs each | both tiers: the one real smell found (Strategy, Record as the cheaper fix), zero findings on the clean scope, no low-confidence padding          | sonnet 77.5k, 14.0s · opus 90.7k, 25.6s | keep     |
-| `qoq-checker`       | haiku, low | 46 real runs, transcripts   | 0 of 159 digest locations dropped. 1 miscounted in-scope total (`haiku-4-5`); 0 errors in 29 `haiku-5-5` runs. `summarize.mjs` does the grouping | median 1.7k output tokens               | keep     |
+| Agent               | Tier       | Tested against              | Quality                                                                                                                                          | Cost (median context tokens, wall time) | Decision                        |
+| ------------------- | ---------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- | ------------------------------- |
+| `qoq-test-reviewer` | sonnet     | opus, 6 cases × 3 runs each | 0/15 seeded defects missed and 0/3 false rejections on both tiers                                                                                | sonnet 60.6k, 10.8s · opus 76.5k, 21.6s | keep                            |
+| `qoq-designer`      | sonnet     | opus, 2 cases × 2 runs each | both tiers: the one real smell found (Strategy, Record as the cheaper fix), zero findings on the clean scope, no low-confidence padding          | sonnet 77.5k, 14.0s · opus 90.7k, 25.6s | keep                            |
+| `qoq-checker`       | haiku, low | 46 real runs, transcripts   | 0 of 159 digest locations dropped. 1 miscounted in-scope total (`haiku-4-5`); 0 errors in 29 `haiku-5-5` runs. `summarize.mjs` does the grouping | median 1.7k output tokens               | retired 2026-11-22: `check.mjs` |
 
 The reviewer's cases are `evals/qoq-evals.json` 26–31, over
 `evals/fixtures/test-reviewer`. Each seeded spec survives a mutant of the
@@ -945,9 +980,9 @@ share nothing but `tdd` and `test-conventions.md`, which both read from disk any
 "reuse" buys no code — only a shared filename.
 
 **Why reporters' tools are guarded by a hook and not only by their bodies
-(added 2026-11-17).** `tools:` can't say "`Bash`, but only `git diff`", so four
-reporters (`qoq-checker`, `qoq-bumper`, `qoq-sheriff`, `qoq-reviewer`) held a
-shell that could write anything, and `qoq-tester` held `Write`/`Edit` over
+(added 2026-11-17).** `tools:` can't say "`Bash`, but only `git diff`", so the
+reporters (`qoq-bumper`, `qoq-sheriff`, `qoq-reviewer`, and `qoq-checker` until it
+was retired) held a shell that could write anything, and `qoq-tester` held `Write`/`Edit` over
 production source — the boundary was a sentence the agent promised to keep.
 `scripts/agent-guard.mjs` runs as a `PreToolUse` hook in each of those agents'
 frontmatter. It is an allowlist per role, not a denylist: a missed read costs a
@@ -1038,7 +1073,7 @@ cover" went, because criteria are ticked from the reviewer's mapping, and "what
 the suite said" went, because `green` already means the suite agreed. The status
 stays binary: a `partial` would be a third branch every caller has to invent
 handling for, and nearly-green work is a handoff with what's on disk listed.
-`qoq-checker`, `qoq-test-reviewer` and `qoq-designer` were already shaped —
+`qoq-checker` (since retired), `qoq-test-reviewer` and `qoq-designer` were already shaped —
 `summarize.mjs` plus its exit code, `APPROVED`/`REJECTED`, a per-finding table —
 and were left alone.
 
@@ -1157,7 +1192,7 @@ them is the one moment both the final code and the plan as written are in hand.
 
 **Why only prettier, not `qoq fix`.** The scribe adds comments and Markdown and
 nothing else. The only tool that has an opinion about either is prettier, which
-reflows JSDoc; a full fix loop would spend a checker dispatch to rediscover that.
+reflows JSDoc; a full fix loop would spend a whole check to rediscover that.
 
 **Why the ownership marker names its sources.** A fresh-context scribe can't
 tell its docs from a human's, nor which code a doc describes — and "touch only

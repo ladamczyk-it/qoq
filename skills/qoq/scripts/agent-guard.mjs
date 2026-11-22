@@ -63,11 +63,6 @@ const GIT_READ = [
 ];
 
 const ROLES = {
-  'qoq-checker': {
-    bash: ['npx qoq --check', 'node', 'npm run build', 'rm -f'],
-    // `rm -f` is the ticket form's knip-report delete and nothing else.
-    rm: /(^|\/)knip-report\.json$/,
-  },
   'qoq-sheriff': { bash: [], git: GIT_READ },
   'qoq-reviewer': { bash: [], git: GIT_READ },
   'qoq-bumper': {
@@ -243,9 +238,6 @@ const checkCommand = (policy, argv, projectDir) => {
   // `node` means this skill's own scripts — `node -e` would write anything.
   if (allowed === 'node' && !inside(real(argv[1] ?? ''), SCRIPTS_DIR)) {
     return "node may only run this skill's scripts";
-  }
-  if (allowed === 'rm -f' && !argv.slice(2).every((p) => policy.rm.test(p))) {
-    return 'rm may only remove knip-report.json';
   }
   return null;
 };
