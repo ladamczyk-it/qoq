@@ -84,10 +84,10 @@ test('stale reports run the project script with --json appended', () => {
   assert.match(stdout, /No findings/);
 });
 
-test('findings exit 1 with the digest', () => {
+test('findings exit 3 with the digest, never the 1 a node startup failure gives', () => {
   const dir = project({ fake: { exit: 1, write: ESLINT_FINDING } });
   const { status, stdout } = check(dir);
-  assert.equal(status, 1);
+  assert.equal(status, 3);
   assert.match(stdout, /ESLINT/);
 });
 

@@ -47,15 +47,19 @@ true.
 ## The check
 
 At the top of every loop, run the `check` form in [cli.yaml](cli.yaml) yourself,
-one Bash call (`ticket` when the caller asked to skip Knip). `<skill>` is this
-skill's absolute path, the root is `$CLAUDE_PROJECT_DIR`. It runs the
+one Bash call (`ticket` when the caller asked to skip Knip), from the project
+root. Write `<skill>` as the absolute path SKILL.md gives for it, never a relative
+`.claude/skills/qoq`. A plugin install has no copy there, and `$CLAUDE_PROJECT_DIR`
+isn't set in the shell. It runs the
 project's `qoq:check`, reuses reports only when they're demonstrably current,
 and prints the digest. Never run `npx qoq --check` or `npm run qoq:check` in its
 place: you'd lose the reuse rules and the stale-report cleanup, and you'd get
 thousands of report lines instead of a digest.
 
-**Exit 2 is no verdict**, never PASS: the project has no `qoq:check`, the build
-failed, or the CLI crashed. A crash prints a partial digest under a `⚠` header,
+**Exit 0 is clean, exit 3 is findings, and anything else is no verdict**, never
+PASS. 2 means the project has no `qoq:check`, the build failed, or the CLI
+crashed. 1 means node couldn't start the script at all: a wrong path or a wrong
+directory. A crash prints a partial digest under a `⚠` header,
 and a tool with no section in it didn't run. Stop and report:
 
 ```

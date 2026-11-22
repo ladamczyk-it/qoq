@@ -24,7 +24,7 @@ facts:
   - check and ticket are the gate; never run npx qoq --check or npm run qoq:check yourself
   - the gate runs the project's qoq:check, fix runs qoq:fix, both verbatim; no other script is read
   - each must be a single qoq command, because check appends -- --json
-  - check exit is 0 clean, 1 findings, 2 no verdict (missing script, failed build, CLI crash); 2 is never PASS
+  - check exit is 0 clean, 3 findings, anything else no verdict (2 is a missing script, failed build or CLI crash; 1 is node failing to start check.mjs at all); no verdict is never PASS
   - check reuses reports only when they are current and the same mode and script wrote them, empties them before a run, and builds first when the CLI is symlinked
   - the digest's first line quotes the script that ran
   - positional args are tool names, never paths

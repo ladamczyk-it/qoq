@@ -31,8 +31,10 @@
 //               It only decides reuse, so a wider scope is never wrong, just
 //               re-runs more often.
 //
-// Exit code: 0 no findings, 1 findings, 2 no verdict (no `qoq:check`, a failed
-// build, a CLI crash, or no reports at all). Exit 2 is never PASS.
+// Exit code: 0 no findings, 3 findings, 2 no verdict (no `qoq:check`, a failed
+// build, a CLI crash, or no reports at all). Findings are 3, not 1, because 1 is
+// what node exits with when it can't start this script at all (a wrong path, a
+// wrong working directory). Anything but 0 or 3 is no verdict, never PASS.
 
 import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -130,4 +132,4 @@ if (crashed !== undefined) {
 }
 
 (code === 2 ? process.stderr : process.stdout).write(`${header}${text}`);
-process.exit(code);
+process.exit(code === 1 ? 3 : code);

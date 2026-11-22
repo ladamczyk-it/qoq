@@ -232,6 +232,12 @@ Without the agent there's nobody to say "the CLI errored", so `check.mjs` says
 it: a partial digest under a `⚠` header and exit 2, which `fix` reports as no
 verdict. A stderr tail wouldn't help, since all it would say is `Unknown error!`.
 
+Findings exit 3, not 1. A node that can't start the script, given a relative path
+from the wrong directory or a plugin install with no `.claude/skills/qoq` copy,
+exits 1. Evals showed the fix thread writing that relative path, so with findings
+on 1 a script that never ran would have read as "findings" and started a fix
+loop over nothing. With findings on 3, any exit but 0 or 3 is no verdict.
+
 With no agent to dispatch, `fix` no longer asks after a fresh agent install. It
 reports the install at the end of the run, like `refactor`.
 

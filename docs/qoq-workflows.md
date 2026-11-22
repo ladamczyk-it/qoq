@@ -162,7 +162,7 @@ flowchart TD
         C0 -->|"no"| RUN["empty the report files<br/>*a tool the script skips leaves no<br/>stale report behind*<br/>build first if the CLI is a symlink<br/>then `npm run qoq:check -- --json<br/>[--skip-knip]`<br/>*the project's flags hold*"]
         C0 -->|"yes"| DIG
         RUN -->|"exit 0 or 1"| DIG["the digest, first line quoting<br/>the script that ran<br/>*never the raw reports*"]
-        RUN -->|"crash, failed build"| NOV(["**exit 2: no verdict**<br/>partial digest under a ⚠ header<br/>*never PASS*"])
+        RUN -->|"crash, failed build"| NOV(["**exit 2: no verdict**<br/>partial digest under a ⚠ header<br/>*never PASS — nor is any exit but<br/>0 or 3: 1 is node failing to start it*"])
     end
 
     CHK --> C00
