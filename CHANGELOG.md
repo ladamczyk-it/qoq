@@ -1,3 +1,24 @@
+# [7.3.0](https://github.com/ladamczyk-it/qoq/compare/v7.2.0...v7.3.0) (2026-11-22)
+
+
+### Bug Fixes
+
+* bump packages ([aee4120](https://github.com/ladamczyk-it/qoq/commit/aee41207b0787b5bc11c78db5e2d24687d0a41ed))
+* **cli:** jscpd ignores *.test.* by default ([c2300e4](https://github.com/ladamczyk-it/qoq/commit/c2300e42a361c263bd86003ada7a0a38c39fcebe))
+* **skill:** brief qoq-checker with the project root ([15453a8](https://github.com/ladamczyk-it/qoq/commit/15453a82f15f60ffc8384ff2d188142006f78c36))
+* **skill:** check grants to unattended processes at plan time ([3bf6ab2](https://github.com/ladamczyk-it/qoq/commit/3bf6ab2e67e07c9fd8f102f2c30211b49dba8c41))
+* **skill:** default check.mjs scope to the whole project ([d412179](https://github.com/ladamczyk-it/qoq/commit/d412179bcbbd04449d63a700aa614b8b760b898d))
+* **skill:** exit 3 on findings so a script that never ran isn't one ([2f227db](https://github.com/ladamczyk-it/qoq/commit/2f227db2c8281007d38f881384517e35399225dd))
+* **skill:** list what resolves or overrides a setting ([3b601f2](https://github.com/ladamczyk-it/qoq/commit/3b601f285a93800758f44ec4d0920c14d8cb6ed6))
+* **skill:** pinned literals aren't clones ([44aa70c](https://github.com/ladamczyk-it/qoq/commit/44aa70c79f8dab20ccb84ae266133e10f08dfdcf))
+* **skill:** show the checker the command shape it may run ([256788c](https://github.com/ladamczyk-it/qoq/commit/256788c97a621b832514bcdb99412689e01679f4))
+* **skill:** write consent keys in the shape Prettier prints ([b051696](https://github.com/ladamczyk-it/qoq/commit/b05169641481d9abe011656e088fc00e457c82e9))
+
+
+### Features
+
+* **skill:** gate on the project's qoq:check through check.mjs ([7ca97e8](https://github.com/ladamczyk-it/qoq/commit/7ca97e86e27f669cac3e7d917d5b5d926d05a489))
+
 # [7.2.0](https://github.com/ladamczyk-it/qoq/compare/v7.1.0...v7.2.0) (2026-11-20)
 
 

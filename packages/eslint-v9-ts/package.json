@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-ts",
-  "version": "7.2.0",
+  "version": "7.3.0",
   "description": "Eslint flat config template for TS",
   "keywords": [
     "eslint TypeScript template",
@@ -44,8 +44,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ladamczyk/qoq-eslint-v9-js": "^7.2.0",
-    "@ladamczyk/qoq-utils": "^7.2.0",
+    "@ladamczyk/qoq-eslint-v9-js": "^7.3.0",
+    "@ladamczyk/qoq-utils": "^7.3.0",
     "eslint-import-resolver-typescript": "4.4.5",
     "typescript-eslint": "8.73.0"
   },
