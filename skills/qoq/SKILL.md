@@ -39,21 +39,11 @@ hooks:
     - matcher: Bash
       hooks:
         - type: command
+          # CLAUDE_PLUGIN_ROOT is the plugin root when installed as a plugin, and the
+          # skill dir itself for a project skill (.claude/skills/qoq). Fails closed.
           command: |
-            node -e '
-            let s = "";
-            process.stdin.on("data", (d) => (s += d)).on("end", () => {
-              const c = JSON.parse(s).tool_input?.command ?? "";
-              if (/(^|[\s;&|(`])(?:npx|npm\s+(?:exec|x))\s+(?:-{1,2}[\w-]+\s+)*(?!qoq(?:\s|$))[^\s-]/.test(c)) {
-                process.stderr.write("qoq: npx is for qoq and nothing else. Run the project script verbatim (npm test, npm run <script>); a project with no script for this is a question for the user.\n");
-                process.exit(2);
-              }
-              if (/(^|[\s;&|(`])node\s+(?:-\S+\s+)*?(?:-[a-zA-Z]*[ep]|--eval|--print)(?=[\s=]|$)/.test(c)) {
-                process.stderr.write("qoq: node runs a script file here, never inline code (-e, -p). Use the skill\u0027s scripts or the project\u0027s own; anything else is a question for the user.\n");
-                process.exit(2);
-              }
-            });
-            '
+            f="$CLAUDE_PLUGIN_ROOT/skills/qoq/scripts/npx-guard.mjs"; [ -f "$f" ] || f="$CLAUDE_PLUGIN_ROOT/scripts/npx-guard.mjs"
+            node "$f" || exit 2
 ---
 
 # QoQ — quality over quantity

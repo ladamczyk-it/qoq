@@ -284,10 +284,17 @@ gate exited 0 having fetched nothing.
 
 **Why the `npx` rule is a hook.** Prose says why; the `PreToolUse` hook in
 SKILL.md's frontmatter makes it hold, including inside agents, since skill hooks
-apply to every tool call for the rest of the session. It's inline `node -e`
-because hook commands get no `${CLAUDE_SKILL_DIR}`, and the plugin and the
-symlinked checkout keep the script in different places. `npx-guard.node-test.mjs`
-runs the command exactly as the frontmatter ships it. It matches `npx` anywhere
+apply to every tool call for the rest of the session. The guard is
+`scripts/npx-guard.mjs`, found through `CLAUDE_PLUGIN_ROOT`, because hook commands
+get no `${CLAUDE_SKILL_DIR}`. A live probe (2026-11-22) showed what the docs
+don't say: in the installed plugin, the variable is the plugin root (this repo),
+and in a project skill (`.claude/skills/qoq`, symlinked or copied) it's the skill
+dir itself. So the hook tries `skills/qoq/scripts/` under it, then `scripts/`. It
+fails closed: if Claude Code ever changes that variable, every Bash call is
+refused with node's "cannot find module", and that's loud. Until then it was
+inline `node -e`, which needed no variable but couldn't be read or linted as
+code. `npx-guard.node-test.mjs` runs the command exactly as the frontmatter ships
+it, under both layouts. It matches `npx` anywhere
 in the command string, so a commit message quoting `npx vitest` is blocked too;
 rare, and the message says why. It has no exception for an `npx` the project's
 docs give, either. Discovery used to record one as an answer, which left a field
