@@ -9,7 +9,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -141,4 +141,18 @@ test('a missing or unknown command asks, runs nothing, and exits 0', () => {
     assert.match(stdout, /ACTION: ask which command/);
     assert.doesNotMatch(stdout, /^## (agents|discovery|stats)$/m);
   }
+});
+
+// A repo session launched before its `cd` lands in the feature's parent folder.
+// Nothing may be written there: no agents, no record, no stats.
+test('a feature parent folder stops the run and writes nothing', () => {
+  const project = fixture();
+  writeFileSync(join(project, 'feature.json'), '{"repos":[]}');
+  const { status, stdout } = run(project, 'plan');
+
+  assert.equal(status, 0);
+  assert.match(stdout, /^## project$/m);
+  assert.match(stdout, /ACTION: stop/);
+  assert.doesNotMatch(stdout, /^## (agents|discovery|stats)$/m);
+  assert.equal(existsSync(join(project, '.claude')), false);
 });

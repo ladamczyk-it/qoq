@@ -56,7 +56,9 @@ flowchart TD
 
     ENTRY --> CMD{"$0 a known<br/>command?"}
     CMD -->|"no — empty or unknown"| CASK(["**one `command` section, exit 0**<br/>ASK which command, then run the<br/>entry.mjs line it prints<br/>*a non-zero exit would abort the skill;<br/>nothing else runs, stats least of all*"])
-    CMD -->|yes| SYNC
+    CMD -->|yes| FROOT{"feature.json at<br/>--project?"}
+    FROOT -->|"yes — a feature's parent<br/>folder, not a repo"| FSTOP(["**one `project` section, exit 0**<br/>STOP — nothing runs, nothing is written;<br/>tell the chief of staff (or the user)<br/>to relaunch from inside the repo<br/>*a session launched before its `cd`<br/>would copy the agents here and read<br/>the wrong CLAUDE.md and qoq.config*"])
+    FROOT -->|no| SYNC
 
     subgraph HEAD["what entry.mjs runs, in order"]
         direction TB
