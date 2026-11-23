@@ -1,5 +1,7 @@
 import { getNoRestrictedImportsPaths } from '@ladamczyk/qoq-eslint-v9-js';
 
+import { websiteEslint } from './qoq.website.js';
+
 const rules = {
   'no-restricted-imports': [
     1,
@@ -13,6 +15,10 @@ export default {
   stats: true,
   prettier: {
     sources: ['.'],
+  },
+  // The React template widens the derived format list to js/jsx/tsx; keep jscpd on the TypeScript it has always scanned.
+  jscpd: {
+    format: ['typescript'],
   },
   knip: {
     entry: './src/index.{js,ts}',
@@ -30,7 +36,11 @@ export default {
       // The plugin's hooks module: Claude Code loads it through hooks/hooks.json and
       // provides 'claude-code' itself, so nothing here imports it or installs that.
       'hooks/**',
+      'qoq.website.js',
     ],
+    workspaces: {
+      website: { ignoreDependencies: ['@internal/docusaurus-theme-docusaurus-theme'] },
+    },
     ignoreDependencies: [
       // build specific
       'rolldown',
@@ -45,6 +55,8 @@ export default {
       'stylelint-*',
       'eslint-plugin-import-x',
       '@typescript-eslint/utils',
+      // website peer dependency of @internal/docusaurus-theme; nothing in website/ imports it
+      '@docusaurus/theme-common',
     ],
   },
   eslint: [
@@ -70,6 +82,7 @@ export default {
       ignores: [],
       rules,
     },
+    ...websiteEslint,
   ],
   skillslint: {
     path: './skills',

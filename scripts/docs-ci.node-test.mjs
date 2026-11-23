@@ -68,16 +68,17 @@ test(
 );
 
 test(
-  'check-docs.sh builds right after npm ci and differs in nothing else',
+  'check-docs.sh builds and relinks bins right after npm ci and differs in nothing else',
   { skip: skipTemplate },
   () => {
     const ci = 'npm ci --ignore-scripts --no-audit --no-fund\n';
     const expected = edit(template('scripts/check-docs.sh'), [
-      [ci, `${ci}npm run build --if-present\n`],
+      [ci, `${ci}npm run build --if-present\nnpm rebuild --ignore-scripts\n`],
     ]);
     assert.equal(ours('scripts/check-docs.sh'), expected);
     const lines = ours('scripts/check-docs.sh').split('\n');
     assert.equal(lines[lines.indexOf(ci.trim()) + 1], 'npm run build --if-present');
+    assert.equal(lines[lines.indexOf(ci.trim()) + 2], 'npm rebuild --ignore-scripts');
   }
 );
 

@@ -35,3 +35,32 @@ test('the root description is the README bold opener', () => {
 
   assert.equal(JSON.parse(read('package.json')).description, opener);
 });
+
+test('.gitignore ends on the un-ignore of website/.npmrc and ignores the config-inspector report', () => {
+  const lines = read('.gitignore')
+    .split('\n')
+    .filter((line) => line.trim() !== '');
+
+  assert.equal(lines.at(-1), '!website/.npmrc');
+  assert.ok(lines.includes('website/static/config-inspector'));
+});
+
+test('CLAUDE.md holds one docs-site block whose release bullet names master', () => {
+  const claude = read('CLAUDE.md');
+
+  assert.equal(claude.match(/<!-- docs-site -->/g)?.length, 1);
+  assert.equal(claude.match(/<!-- \/docs-site -->/g)?.length, 1);
+  const block = claude.slice(
+    claude.indexOf('<!-- docs-site -->'),
+    claude.indexOf('<!-- /docs-site -->')
+  );
+  assert.match(block, /Every release tag pushes[^\n]*to `master`/);
+});
+
+test('qoq.config.js lints the website through qoq.website.js and knips its workspace', () => {
+  const config = read('qoq.config.js');
+
+  assert.match(config, /import \{ websiteEslint \} from '\.\/qoq\.website\.js'/);
+  assert.match(config, /\.\.\.websiteEslint/);
+  assert.match(config, /ignoreDependencies: \['@internal\/docusaurus-theme-docusaurus-theme'\]/);
+});

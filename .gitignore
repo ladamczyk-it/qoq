@@ -35,3 +35,9 @@ plans
 
 # eval fixtures carry their own plans
 !evals/fixtures/repo/plans
+
+# the docs site's built config-inspector report
+website/static/config-inspector
+
+# tools ignore .npmrc; the last matching rule wins, so this stays last
+!website/.npmrc
