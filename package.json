@@ -17,7 +17,7 @@
     "config-inspector": "node ./scripts/config-inspector.js",
     "config-inspector:clean": "rimraf -g ./packages/eslint-v9-*/stats/",
     "config:diff": "node ./scripts/config-diff.js",
-    "husky:pre-push": "run-s build smoke:bins check:engine test test:skill qoq:check",
+    "husky:pre-push": "run-s build smoke:bins check:engine test test:skill test:site qoq:check",
     "pre:test": "npm run config-inspector",
     "prepare": "husky",
     "publish:full": "run-s husky:pre-push publish:release",
@@ -32,6 +32,7 @@
     "test:coverage": "npm run pre:test && npm run test -- --coverage",
     "test:execute": "vitest run",
     "test:skill": "node --test 'skills/*/scripts/*.node-test.mjs'",
+    "test:site": "node --test 'scripts/*.node-test.mjs' 'website/scripts/*.node-test.mjs'",
     "typecheck": "lerna run typecheck"
   },
   "devDependencies": {
