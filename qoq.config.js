@@ -37,6 +37,8 @@ export default {
       // provides 'claude-code' itself, so nothing here imports it or installs that.
       'hooks/**',
       'qoq.website.js',
+      // imported by nothing until M3 Ticket 3.5's preset pages; remove then
+      'website/src/components/ConfigInspector/**',
     ],
     workspaces: {
       website: { ignoreDependencies: ['@internal/docusaurus-theme-docusaurus-theme'] },
@@ -55,7 +57,7 @@ export default {
       'stylelint-*',
       'eslint-plugin-import-x',
       '@typescript-eslint/utils',
-      // website peer dependency of @internal/docusaurus-theme; nothing in website/ imports it
+      // imported by ConfigInspector, which nothing consumes until M3's preset pages; remove then
       '@docusaurus/theme-common',
     ],
   },

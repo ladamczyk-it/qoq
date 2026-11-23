@@ -64,3 +64,14 @@ test('qoq.config.js lints the website through qoq.website.js and knips its works
   assert.match(config, /\.\.\.websiteEslint/);
   assert.match(config, /ignoreDependencies: \['@internal\/docusaurus-theme-docusaurus-theme'\]/);
 });
+
+test('ConfigInspector keeps its temporary knip ignores until M3 and exports no IInspectorVariant', () => {
+  const config = read('qoq.config.js');
+
+  assert.match(config, /until M3[^\n]*\n\s*'website\/src\/components\/ConfigInspector\/\*\*'/);
+  assert.match(config, /until M3[^\n]*\n\s*'@docusaurus\/theme-common'/);
+  assert.doesNotMatch(
+    read('website/src/components/ConfigInspector/variants.ts'),
+    /export (interface|type) IInspectorVariant/
+  );
+});
