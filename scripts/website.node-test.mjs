@@ -28,6 +28,7 @@ test('website/package.json is written the way mergePackageJson writes it', () =>
   assert.equal(JSON.stringify(pkg, null, 2) + '\n', raw);
   assert.equal(pkg.name, 'qoq-website');
   assert.equal(pkg.dependencies['@docusaurus/theme-common'], pkg.dependencies['@docusaurus/core']);
+  assert.equal(pkg.dependencies['@docusaurus/theme-mermaid'], pkg.dependencies['@docusaurus/core']);
 });
 
 test('the root description is the README bold opener', () => {
