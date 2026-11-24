@@ -8,6 +8,9 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const DOCS = fileURLToPath(new URL('../docs', import.meta.url));
+const { version: VERSION } = JSON.parse(
+  readFileSync(fileURLToPath(new URL('../../package.json', import.meta.url)), 'utf8')
+);
 const PRESETS = ['js', 'js-react', 'js-jest', 'js-jest-rtl', 'js-vitest', 'js-vitest-rtl'].flatMap(
   (stack) => [stack, stack.replace('js', 'ts')]
 );
@@ -46,7 +49,7 @@ const walk = (dir) =>
   );
 
 // Returns one "file:line message" string per violation.
-const violations = (root) => {
+const violations = (root, version = VERSION) => {
   const found = [];
   const present = new Set();
   for (const path of walk(root)) {
@@ -55,7 +58,7 @@ const violations = (root) => {
     if (!ALLOWED.has(file)) found.push(`${file}:1 is outside the allowed layout`);
     const lines = readFileSync(path, 'utf8').split('\n');
     if (file.endsWith('.md')) checkMd(file, lines, found);
-    if (file === 'index.mdx') checkIndex(file, lines, found);
+    if (file === 'index.mdx') checkIndex(file, lines, found, version);
   }
   for (const file of ALLOWED) if (!present.has(file)) found.push(`${file}:1 is missing`);
   return found;
@@ -87,21 +90,23 @@ const checkMd = (file, lines, found) => {
   });
 };
 
-const checkIndex = (file, lines, found) => {
+const checkIndex = (file, lines, found, version) => {
   const stamps = lines.flatMap((line, i) => (line.includes('verified against **') ? [i] : []));
   if (stamps.length !== 1) found.push(`${file}:1 holds ${stamps.length} stamps, not 1`);
   for (const i of stamps) {
-    const other = lines[i].replace('`@ladamczyk/qoq` v7.3.1', '').match(/v\d+\./);
-    if (other) found.push(`${file}:${i + 1} stamp line also says ${other[0]}`);
+    const stamp = `\`@ladamczyk/qoq\` v${version}**`;
+    const other = lines[i].replace(stamp, '').match(/v\d+\./);
+    if (!lines[i].includes(stamp)) found.push(`${file}:${i + 1} stamp is not v${version}`);
+    else if (other) found.push(`${file}:${i + 1} stamp line also says ${other[0]}`);
   }
 };
 
-const withDocs = (mutate) => {
+const withDocs = (mutate, version) => {
   const dir = mkdtempSync(join(tmpdir(), 'docs-guard-'));
   try {
     cpSync(DOCS, dir, { recursive: true });
     mutate(dir);
-    return violations(dir);
+    return violations(dir, version);
   } finally {
     rmSync(dir, { recursive: true });
   }
@@ -114,6 +119,11 @@ test('the committed docs tree has no violations', () => {
   assert.deepEqual(violations(DOCS), []);
 });
 
+const restamp = (version) => (dir) => {
+  const path = join(dir, 'index.mdx');
+  writeFileSync(path, readFileSync(path, 'utf8').replace(`v${VERSION}**`, `v${version}**`));
+};
+
 const cases = {
   'an import': add('installation.md', page("import x from 'y';")),
   'mdx in front matter': add('installation.md', page('x', 'title: X\nmdx: true')),
@@ -123,15 +133,16 @@ const cases = {
   'two stamps': (dir) => {
     const path = join(dir, 'index.mdx');
     const text = readFileSync(path, 'utf8');
-    writeFileSync(path, `${text}\n> verified against **\`@ladamczyk/qoq\` v7.3.1**\n`);
+    writeFileSync(path, `${text}\n> verified against **\`@ladamczyk/qoq\` v${VERSION}**\n`);
   },
   'another version on the stamp line': (dir) => {
     const path = join(dir, 'index.mdx');
     writeFileSync(
       path,
-      readFileSync(path, 'utf8').replace('v7.3.1**.', 'v7.3.1**, so **v7.2.0** too.')
+      readFileSync(path, 'utf8').replace(`v${VERSION}**.`, `v${VERSION}**, so **v7.2.0** too.`)
     );
   },
+  'a stamp at another version than the root package.json': restamp('9.9.9'),
   'a missing file': (dir) => rmSync(join(dir, 'installation.md')),
   'front matter that never closes': add('installation.md', '---\ntitle: X\n\nbody\n'),
   'a stray file': add('foo.json', '{}'),
@@ -145,6 +156,10 @@ for (const [name, mutate] of Object.entries(cases)) {
     assert.match(found[0], /^(installation\.md|index\.mdx|foo\.json):\d+ /);
   });
 }
+
+test('a release that restamps the index to the expected version passes', () => {
+  assert.deepEqual(withDocs(restamp('9.9.9'), '9.9.9'), []);
+});
 
 test('placeholders inside inline code pass', () => {
   const body = 'Use `m<N>` or `/qoq review <PR link>` here.';
