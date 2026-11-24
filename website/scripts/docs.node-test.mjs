@@ -72,7 +72,8 @@ const checkMd = (file, lines, found) => {
     if (line.startsWith('```')) fenced = !fenced;
     else if (!fenced) {
       if (/^(import|export) /.test(line)) found.push(`${at} line starts with import or export`);
-      if (/<[A-Z]/.test(line)) found.push(`${at} JSX component tag outside a fence`);
+      if (/<[A-Z]/.test(line.replace(/`[^`]*`/g, '')))
+        found.push(`${at} JSX component tag outside a fence`);
     }
     for (const [, target] of line.matchAll(/\]\(([^)\s#]*\.mdx)(?:#[^)]*)?\)/g)) {
       if (!/(^|\/)index\.mdx$|presets\/[^/]+\.mdx$/.test(target)) {
@@ -138,6 +139,19 @@ for (const [name, mutate] of Object.entries(cases)) {
     assert.match(found[0], /^(installation\.md|index\.mdx|foo\.json):\d+ /);
   });
 }
+
+test('placeholders inside inline code pass', () => {
+  const body = 'Use `m<N>` or `/qoq review <PR link>` here.';
+
+  assert.deepEqual(withDocs(add('installation.md', page(body))), []);
+});
+
+test('a bare JSX tag on a line with inline code still fails', () => {
+  const found = withDocs(add('installation.md', page('<Tabs> and `code`')));
+
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.match(found[0], /^installation\.md:\d+ /);
+});
 
 test('a JSX tag inside a fenced block passes', () => {
   assert.deepEqual(withDocs(add('installation.md', page('```jsx\n<Tabs>\n```'))), []);

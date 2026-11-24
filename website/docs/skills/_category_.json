@@ -1,0 +1,9 @@
+{
+  "label": "Agent Skills",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "title": "Agent Skills",
+    "description": "Claude Code Agent Skills that ship with QoQ — guided, repeatable workflows that drive the toolchain for you."
+  }
+}
