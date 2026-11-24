@@ -48,19 +48,23 @@ const walk = (dir) =>
 // Returns one "file:line message" string per violation.
 const violations = (root) => {
   const found = [];
+  const present = new Set();
   for (const path of walk(root)) {
     const file = relative(root, path);
+    present.add(file);
     if (!ALLOWED.has(file)) found.push(`${file}:1 is outside the allowed layout`);
     const lines = readFileSync(path, 'utf8').split('\n');
     if (file.endsWith('.md')) checkMd(file, lines, found);
     if (file === 'index.mdx') checkIndex(file, lines, found);
   }
+  for (const file of ALLOWED) if (!present.has(file)) found.push(`${file}:1 is missing`);
   return found;
 };
 
 const checkMd = (file, lines, found) => {
   if (lines[0] !== '---') found.push(`${file}:1 first line is not exactly ---`);
-  const end = lines.indexOf('---', 1);
+  const end = lines.findIndex((line, i) => i > 0 && line.startsWith('---'));
+  if (end === -1) found.push(`${file}:1 front matter is never closed`);
   let fenced = false;
   lines.forEach((line, i) => {
     const at = `${file}:${i + 1}`;
@@ -128,6 +132,8 @@ const cases = {
       readFileSync(path, 'utf8').replace('v7.3.1**.', 'v7.3.1**, so **v7.2.0** too.')
     );
   },
+  'a missing file': (dir) => rmSync(join(dir, 'installation.md')),
+  'front matter that never closes': add('installation.md', '---\ntitle: X\n\nbody\n'),
   'a stray file': add('foo.json', '{}'),
 };
 

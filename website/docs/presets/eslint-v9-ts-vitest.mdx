@@ -1,0 +1,31 @@
+---
+sidebar_position: 11
+title: TypeScript + Vitest
+description: ESLint Config Inspector for the @ladamczyk/qoq-eslint-v9-ts-vitest preset — every rule, plugin, and setting it enables for TypeScript + Vitest projects.
+---
+
+import ConfigInspector from '@site/src/components/ConfigInspector';
+
+# TypeScript + Vitest
+
+The **`@ladamczyk/qoq-eslint-v9-ts-vitest`** preset — an opinionated [flat-config](https://eslint.org/docs/latest/use/configure/configuration-files) bundle with every plugin and rule tuned for **TypeScript + Vitest** projects.
+
+```bash
+npm install -D @ladamczyk/qoq-eslint-v9-ts-vitest
+```
+
+Extend the preset's flat-config array with `defineConfig` and scope it with your own `files`:
+
+```js
+import { configs } from '@ladamczyk/qoq-eslint-v9-ts-vitest';
+import { defineConfig } from 'eslint/config';
+
+export default defineConfig({
+  files: ['src/**/*.{ts,tsx}'],
+  extends: [configs.base],
+});
+```
+
+Browse every enabled rule, plugin, and file match below — or [open the inspector in its own tab](pathname:///config-inspector/eslint-v9-ts-vitest/).
+
+<ConfigInspector variant="eslint-v9-ts-vitest" />
