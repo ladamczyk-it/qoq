@@ -14,22 +14,10 @@ const { version: VERSION } = JSON.parse(
 const PRESETS = ['js', 'js-react', 'js-jest', 'js-jest-rtl', 'js-vitest', 'js-vitest-rtl'].flatMap(
   (stack) => [stack, stack.replace('js', 'ts')]
 );
-const SKILL_PAGES = [
-  'index',
-  'fix',
-  'refactor',
-  'bump',
-  'plan',
-  'replan',
-  'execute',
-  'test',
-  'compress',
-  'document',
-  'mermaid',
-  'sheriff',
-  'review',
-  'feedback',
-];
+const SKILL_PAGES =
+  'index fix refactor bump plan replan execute test compress document mermaid sheriff review feedback'.split(
+    ' '
+  );
 const ALLOWED = new Set([
   'index.mdx',
   'installation.md',

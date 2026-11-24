@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 import { TerminalWindow } from '@internal/docusaurus-theme/TerminalWindow';
 
@@ -11,6 +11,9 @@ import styles from './styles.module.css';
  * are left out here: only each tool's heading and result line are shown, verbatim.
  */
 const PROMPT = '$ npx qoq --check';
+
+// Delay slots the prompt's typing takes before the first result line may appear.
+const TYPING_SLOTS = 2;
 
 const LINES = [
   { text: 'Running Knip:', className: styles.tool },
@@ -41,7 +44,7 @@ export const QoqAnimation = (): ReactNode => (
         <div
           key={text}
           className={`${styles.line} ${className}`}
-          style={{ '--i': i + 2 } as React.CSSProperties}
+          style={{ '--i': i + TYPING_SLOTS } as CSSProperties}
         >
           {text}
         </div>
