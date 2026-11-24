@@ -5,11 +5,11 @@ import Translate, { translate } from '@docusaurus/Translate';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
 import styles from './styles.module.css';
-import { INSPECTOR_VARIANTS } from './variants';
+import { INSPECTOR_VARIANTS, type TPresetVariant } from './variants';
 
 interface IConfigInspectorProps {
   // Preset to embed, e.g. `eslint-v9-ts-react`.
-  readonly variant: string;
+  readonly variant: TPresetVariant;
 }
 
 // VueUse `useColorMode` settings the inspector is built with.

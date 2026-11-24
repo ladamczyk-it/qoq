@@ -24,6 +24,8 @@ const VARIANT_SUFFIXES = [
   'ts-vitest-rtl',
 ] as const;
 
+export type TPresetVariant = `eslint-v9-${(typeof VARIANT_SUFFIXES)[number]}`;
+
 const TOKEN_LABELS: Record<string, string> = {
   js: 'JavaScript',
   ts: 'TypeScript',

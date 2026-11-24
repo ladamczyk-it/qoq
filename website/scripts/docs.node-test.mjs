@@ -8,6 +8,10 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const DOCS = fileURLToPath(new URL('../docs', import.meta.url));
+const PACKAGES = fileURLToPath(new URL('../../packages', import.meta.url));
+const VARIANTS_TS = fileURLToPath(
+  new URL('../src/components/ConfigInspector/variants.ts', import.meta.url)
+);
 const { version: VERSION } = JSON.parse(
   readFileSync(fileURLToPath(new URL('../../package.json', import.meta.url)), 'utf8')
 );
@@ -47,6 +51,7 @@ const violations = (root, version = VERSION) => {
     const lines = readFileSync(path, 'utf8').split('\n');
     if (file.endsWith('.md')) checkMd(file, lines, found);
     if (file === 'index.mdx') checkIndex(file, lines, found, version);
+    if (/^presets\/eslint-v9-.*\.mdx$/.test(file)) checkVariant(file, lines, found);
   }
   for (const file of ALLOWED) if (!present.has(file)) found.push(`${file}:1 is missing`);
   return found;
@@ -87,6 +92,25 @@ const checkIndex = (file, lines, found, version) => {
     if (!lines[i].includes(stamp)) found.push(`${file}:${i + 1} stamp is not v${version}`);
     else if (other) found.push(`${file}:${i + 1} stamp line also says ${other[0]}`);
   }
+};
+
+const checkVariant = (file, lines, found) => {
+  const expected = `variant="${file.replace(/^presets\/|\.mdx$/g, '')}"`;
+  const used = lines.flatMap((line, i) => (line.includes('variant=') ? [i] : []));
+  if (used.length !== 1) found.push(`${file}:1 holds ${used.length} variant=, not 1`);
+  for (const i of used) {
+    if (!lines[i].includes(expected)) found.push(`${file}:${i + 1} variant is not ${expected}`);
+  }
+};
+
+// Returns one message per suffix that is not in all three lists.
+const suffixDrift = (lists) => {
+  const all = new Set(Object.values(lists).flat());
+  return [...all].flatMap((suffix) =>
+    Object.entries(lists)
+      .filter(([, list]) => !list.includes(suffix))
+      .map(([name]) => `${suffix} is missing from ${name}`)
+  );
 };
 
 const withDocs = (mutate, version) => {
@@ -164,4 +188,44 @@ test('a bare JSX tag on a line with inline code still fails', () => {
 
 test('a JSX tag inside a fenced block passes', () => {
   assert.deepEqual(withDocs(add('installation.md', page('```jsx\n<Tabs>\n```'))), []);
+});
+
+test('the guard names the page when a preset page embeds another variant', () => {
+  const found = withDocs((dir) => {
+    const path = join(dir, 'presets/eslint-v9-ts.mdx');
+    writeFileSync(
+      path,
+      readFileSync(path, 'utf8').replace('variant="eslint-v9-ts"', 'variant="eslint-v9-js"')
+    );
+  });
+
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.match(found[0], /^presets\/eslint-v9-ts\.mdx:\d+ /);
+});
+
+const treeSuffixes = () => ({
+  PRESETS,
+  packages: readdirSync(PACKAGES)
+    .filter((name) => name.startsWith('eslint-v9-'))
+    .map((name) => name.replace('eslint-v9-', '')),
+  'variants.ts': [
+    ...readFileSync(VARIANTS_TS, 'utf8')
+      .match(/VARIANT_SUFFIXES = \[([^\]]*)\]/)[1]
+      .matchAll(/'([^']+)'/g),
+  ].map(([, suffix]) => suffix),
+});
+
+test('PRESETS, the eslint-v9 packages and variants.ts list the same suffixes', () => {
+  const lists = treeSuffixes();
+
+  assert.equal(lists['variants.ts'].length, 12);
+  assert.deepEqual(suffixDrift(lists), []);
+});
+
+test('suffix drift names the list that lacks the suffix', () => {
+  const lists = treeSuffixes();
+
+  assert.deepEqual(suffixDrift({ ...lists, packages: lists.packages.slice(1) }), [
+    `${lists.packages[0]} is missing from packages`,
+  ]);
 });
