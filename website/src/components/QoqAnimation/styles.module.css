@@ -1,0 +1,79 @@
+/*
+ * One 12s loop: the command types in, then each tool's result line appears in
+ * turn, hold, reset. Base styles are the final frame, so reduced motion just
+ * switches animations off.
+ */
+
+.wrapper {
+  --loop: 12s;
+  --green: oklch(0.75 0.16 150);
+  --yellow: oklch(0.85 0.15 90);
+}
+
+.terminal {
+  padding: 0.6rem 0.9rem 0.75rem;
+  line-height: 1.6em;
+}
+
+.prompt {
+  width: 18ch;
+  overflow: hidden;
+  color: var(--muted);
+  white-space: nowrap;
+  animation: type var(--loop) infinite both;
+}
+
+.line {
+  animation: lineIn var(--loop) infinite both;
+  animation-delay: calc(var(--i) * 0.15s);
+}
+
+.tool {
+  margin-top: 0.6em;
+  color: var(--muted);
+}
+
+.ok {
+  color: var(--green);
+}
+
+.warn {
+  color: var(--yellow);
+}
+
+@keyframes type {
+  0% {
+    width: 0;
+    animation-timing-function: steps(18, end);
+  }
+  12%,
+  92% {
+    width: 18ch;
+  }
+  96%,
+  100% {
+    width: 0;
+  }
+}
+
+@keyframes lineIn {
+  0%,
+  14% {
+    opacity: 0;
+  }
+  18%,
+  90% {
+    opacity: 1;
+  }
+  94%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media screen and (max-width: 996px) {
+  .terminal {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}

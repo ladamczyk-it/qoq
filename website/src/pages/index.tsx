@@ -1,30 +1,33 @@
 import type { ReactNode } from 'react';
 
 import { HomePage } from '@internal/docusaurus-theme/HomePage';
-import frame from '@internal/docusaurus-theme/terminal-window.module.css';
-import { TerminalWindow } from '@internal/docusaurus-theme/TerminalWindow';
 
-// Placeholder homepage: replace the opener, features and animation in every Tool.
+import { QoqAnimation } from '../components/QoqAnimation';
+
 const FEATURES = [
-  { title: 'First feature', description: 'What the Tool does that nothing else does.' },
-  { title: 'Second feature', description: 'Where it fits: CLI, CI, API.' },
-  { title: 'Third feature', description: 'Why a team keeps it once installed.' },
+  {
+    title: 'One gate, every tool',
+    description:
+      '`qoq --check` runs Prettier, ESLint, Knip, JSCPD, Stylelint and npm-outdated behind one config, the same in CI and pre-push.',
+  },
+  {
+    title: 'Presets you extend',
+    description:
+      'Each `@ladamczyk/qoq-eslint-v9-*` package exports `configs.*` flat-config arrays you extend with `defineConfig`.',
+  },
+  {
+    title: 'A delivery loop for agents',
+    description:
+      'The `qoq` Claude Code skill plans, executes and fixes work with the qoq gate as its bar, not just a lint helper.',
+  },
 ];
 
-const OPENER = 'One or two sentences on the problem this Tool removes.';
+const OPENER =
+  'One command formats, lints and analyzes any JavaScript/TypeScript project with Prettier, ESLint, Knip, JSCPD, Stylelint and more, and a Claude Code skill turns it into a guarded delivery loop.';
 
 const Home = (): ReactNode => (
-  <HomePage
-    features={FEATURES}
-    install="npm install --save-dev @ladamczyk/cli-template"
-    opener={OPENER}
-  >
-    <TerminalWindow label="Animation: the Tool runs and passes.">
-      <div className={frame.terminal}>
-        <div className={frame.prompt}>$ npx cli-template</div>
-        <div>✔ All good.</div>
-      </div>
-    </TerminalWindow>
+  <HomePage features={FEATURES} install="npx -y @ladamczyk/qoq-cli --init" opener={OPENER}>
+    <QoqAnimation />
   </HomePage>
 );
 
