@@ -76,3 +76,23 @@ test('ConfigInspector has no temporary knip ignores and exports no IInspectorVar
     /export (interface|type) IInspectorVariant/
   );
 });
+
+test('.templateignore lists the template FILES plus package.json, one per line', () => {
+  assert.equal(
+    read('.templateignore'),
+    [
+      'tsconfig.json',
+      'commitlint.config.js',
+      'eslint.config.js',
+      '.prettierrc',
+      '.prettierignore',
+      '.npmrc.dist',
+      '.nvmrc',
+      '.husky/pre-push',
+      '.husky/commit-msg',
+      'vitest.config.js',
+      'rolldown.config.js',
+      'package.json',
+    ].join('\n') + '\n'
+  );
+});
