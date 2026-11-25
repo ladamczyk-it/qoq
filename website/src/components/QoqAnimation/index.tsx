@@ -10,6 +10,8 @@ import styles from './styles.module.css';
  * findings (npm-outdated rows, two JSCPD clones, justify-disable warnings) that
  * are left out here: only each tool's heading and result line are shown, verbatim.
  */
+// Its length (17) is hard-coded in styles.module.css: `.prompt`'s width and
+// `@keyframes type` (`width` and `steps()`). Change them with it.
 const PROMPT = '$ npx qoq --check';
 
 // Delay slots the prompt's typing takes before the first result line may appear.

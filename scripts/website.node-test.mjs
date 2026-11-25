@@ -96,3 +96,13 @@ test('.templateignore lists the template FILES plus package.json, one per line',
     ].join('\n') + '\n'
   );
 });
+
+test('a comment beside or directly above const PROMPT names styles.module.css', () => {
+  const lines = read('website/src/components/QoqAnimation/index.tsx').split('\n');
+  const at = lines.findIndex((line) => line.startsWith('const PROMPT ='));
+  const above = [];
+  for (let i = at - 1; i >= 0 && lines[i].trimStart().startsWith('//'); i--) above.push(lines[i]);
+  const beside = lines[at].includes('//') ? lines[at].slice(lines[at].indexOf('//')) : '';
+
+  assert.match([...above, beside].join('\n'), /styles\.module\.css/);
+});
