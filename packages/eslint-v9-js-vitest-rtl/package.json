@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-js-vitest-rtl",
-  "version": "7.3.1",
+  "version": "7.4.0",
   "description": "Eslint flat config template for JS + Vitest + RTL",
   "keywords": [
     "eslint JavaScript + Vitest + RTL template",
@@ -44,14 +44,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ladamczyk/qoq-eslint-v9-js": "^7.3.1",
-    "@ladamczyk/qoq-eslint-v9-js-vitest": "^7.3.1",
-    "@ladamczyk/qoq-utils": "^7.3.1",
-    "eslint-plugin-testing-library": "7.16.2"
+    "@ladamczyk/qoq-eslint-v9-js": "^7.4.0",
+    "@ladamczyk/qoq-eslint-v9-js-vitest": "^7.4.0",
+    "@ladamczyk/qoq-utils": "^7.4.0",
+    "eslint-plugin-testing-library": "7.16.3"
   },
   "devDependencies": {
     "rimraf": "6.1.4",
-    "rolldown": "1.3.3",
+    "rolldown": "1.3.4",
     "typescript": "7.0.2"
   },
   "peerDependencies": {

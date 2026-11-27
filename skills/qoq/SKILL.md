@@ -201,7 +201,10 @@ two axes on `code-review` and pastes its smell baseline into the Standards one. 
 agent** by its `skills:` frontmatter, never invoked here: `tdd` under every spec
 `execute` and `test` write, and `codebase-design` under `qoq-architect`'s
 contracts. All seven normally arrive with qoq as plugin dependencies; each
-reference states what to do when one is missing anyway.
+reference states what to do when one is missing anyway. An external skill's
+output format is written for a person reading that turn. Inside a qoq run its
+findings are the next step's input, never the turn's final text, so carry on to
+the step that called it.
 
 ## Standing rules
 
@@ -228,7 +231,7 @@ with no script for something is a project that has to be asked.
 patches, not anything that edits or commits. Every check that matters is an
 attribution question — "did _this_ change break it?" — which a second agent
 writing concurrently makes unanswerable. Read-only agents may run together
-where a reference says so (`review`'s two axes); `refactor`'s assessments stay
+where a reference says so (`review`'s two axes, `bump`'s bumpers); `refactor`'s assessments stay
 sequential for their own reason ([references/refactor.md](references/refactor.md)).
 
 **An agent that reports never fixes.** `qoq-bumper`,

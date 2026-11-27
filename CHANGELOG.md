@@ -1,3 +1,19 @@
+# [7.4.0](https://github.com/ladamczyk-it/qoq/compare/v7.3.1...v7.4.0) (2026-11-27)
+
+
+### Bug Fixes
+
+* bump packages ([97db5fa](https://github.com/ladamczyk-it/qoq/commit/97db5fa9db3f37939894847ed63a9056cc9d46a2))
+* **skill:** qoq ticket gate refuses a qoq-cli too old for staged --json ([ae61005](https://github.com/ladamczyk-it/qoq/commit/ae61005e5601bd8d98e923e0d9edfee61220bf39))
+* **skill:** qoq-fullstack copies the report rule verbatim and nudges without a run ([6ea4ac8](https://github.com/ladamczyk-it/qoq/commit/6ea4ac8a44f99c61abea32eb921688ccf925ead8))
+* **skill:** qoq-fullstack repo sessions report per ticket and never end silently ([4e85e31](https://github.com/ladamczyk-it/qoq/commit/4e85e31f99beda380b670e3e6d06234c9313bcbf))
+
+
+### Features
+
+* **skill:** qoq bump dispatches a round's bumpers in parallel ([4ba5780](https://github.com/ladamczyk-it/qoq/commit/4ba57803d22d131d801b5bddaca9d94161c121be))
+* **skill:** qoq ticket gate runs qoq staged over the ticket's files ([cd58456](https://github.com/ladamczyk-it/qoq/commit/cd584565c9908e285ee84b3993e2822e5bb91652))
+
 ## [7.3.1](https://github.com/ladamczyk-it/qoq/compare/v7.3.0...v7.3.1) (2026-11-22)
 
 

@@ -6,7 +6,7 @@ reports: node_modules/@ladamczyk/qoq-cli/bin/report
 
 run:
   check: node <skill>/scripts/check.mjs <reports> [<scope>...]
-  ticket: node <skill>/scripts/check.mjs <reports> --skip-knip [<scope>...]
+  ticket: node <skill>/scripts/check.mjs <reports> --skip-knip <file>...
   fix: npm run qoq:fix
   fix_if_symlinked: npm run build && npm run qoq:fix
   scoped: npx qoq staged <file>...
@@ -23,18 +23,19 @@ exit: { 0: clean, 1: findings }
 facts:
   - check and ticket are the gate; never run npx qoq --check or npm run qoq:check yourself
   - the gate runs the project's qoq:check, fix runs qoq:fix, both verbatim; no other script is read
+  - the ticket form runs qoq staged over its files instead, with qoq:check's flags forwarded; a flag staged lacks, or a qoq-cli below 6.4.1 (no staged --json), is no verdict
   - each must be a single qoq command, because check appends -- --json
   - check exit is 0 clean, 3 findings, anything else no verdict (2 is a missing script, failed build or CLI crash; 1 is node failing to start check.mjs at all); no verdict is never PASS
   - check reuses reports only when they are current and the same mode and script wrote them, empties them before a run, and builds first when the CLI is symlinked
   - the digest's first line quotes the script that ran
   - positional args are tool names, never paths
   - staged is the only path-scoped form
-  - staged takes no --json and no --fix, and writes no reports
+  - staged takes no --fix; only the ticket form passes it --json, which is what gives it reports
   - no --json, no reports, no digest
   - never pass --output
   - scan is a subcommand, not a tool name; it reads package-lock.json, needs the network, and is never part of --check
-  - knip ignores the file list; staged runs it repo-wide like every other form
-  - ticket forms drop knip because half the milestone does not exist yet
+  - knip, jscpd, npm and structurelint ignore the file list; staged runs them repo-wide
+  - ticket forms drop knip because half the milestone does not exist yet; the ticket gate drops npm too, whose findings are never about a ticket's files
 
 digest:
   raw: open one report only for one finding's line numbers; clone code is read from the source files at the digest's line ranges
