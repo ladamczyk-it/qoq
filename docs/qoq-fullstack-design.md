@@ -31,6 +31,18 @@ sessions started with `claude --bg` each start in their own repo and survive
 the chief of staff dying. Cross-session messaging plus `notify_when_idle` is
 the whole coordination channel that's needed.
 
+**Why a report per ticket, and a heartbeat.** In a real run (learning record
+30, 2026-11), a repo session committed four tickets and sent nothing, because
+the launch prompt said how to report but not when. At the milestone gate an
+external review skill's reply-to-the-user format then became its final text
+and ended the turn. Its idle notice never arrived either, because it ran in a
+different permission mode and the session list kept showing it busy. A
+background session's final text reaches nobody, so the report cadence is
+spelled out and every turn ends on a `SendMessage`. The 30-minute heartbeat
+covers a session that hangs or dies, which no rule inside that session can.
+It nudges once, then asks the user, and never restarts the session, because a
+session still listed as busy would make two writers in one checkout.
+
 **Why the master plan is business-only.** The chief of staff has read none of
 the repos. A technology decision made there would bind code whose conventions
 it hasn't seen, and each repo's `qoq plan` would then have to either obey a

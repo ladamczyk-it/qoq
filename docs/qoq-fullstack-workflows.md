@@ -32,7 +32,7 @@ flowchart LR
     CON[("contracts/")]
     USER <-->|"business grilling ·<br/>relayed questions"| COS
     COS -->|"launch · wake"| REPOS
-    REPOS -.->|"plan file first,<br/>then SendMessage"| COS
+    REPOS -.->|"plan file first, then SendMessage<br/>per ticket · gate · stop"| COS
     COS --> STATUS
     BE & TEL -->|"provider writes"| CON
     CON -->|"consumer plans against"| UI
@@ -82,7 +82,7 @@ flowchart TD
     PDUE -->|no| PWAIT
     PDEL --> PWAIT
     PFAIL -.-> PWAIT
-    PWAIT["wait: a message or an idle notice<br/>*a repo writes its plan file first,<br/>then messages*"] --> PLOOP
+    PWAIT["wait: a message, an idle notice<br/>or the 30-min heartbeat<br/>*a repo writes its plan file first,<br/>then messages; silent twice → ask the user*"] --> PLOOP
     PWAIT -->|"escalation relayed"| PESC(["**ASK THE USER**<br/>only repos waiting on it stop"])
     PESC -.-> PLOOP
 

@@ -997,5 +997,6 @@ by [`qoq-fullstack`](qoq-fullstack-workflows.md). It carries a **Feature** heade
 line, a **Serves** column, and `<repo>:M<N>` dependencies
 ([plan-template.md](../skills/qoq/assets/plan-template.md#a-repos-share-of-a-feature)).
 `execute` asks `scripts/feature-status.mjs` whether its next milestone may start,
-and sends its questions to the chief of staff. Everything else in the `plan` and
+and sends its questions to the chief of staff, plus a one-line report after
+every ticket commit, gate and stop. Everything else in the `plan` and
 `execute` charts above is unchanged.

@@ -116,6 +116,27 @@
         "The chief does not answer a repo's limit question before the user has answered",
         "After the user's yes, later /qoq execute instructions carry no limit flags, and a repo's later limit question gets the user's earlier answer, quoted as theirs"
       ]
+    },
+    {
+      "id": 8,
+      "name": "execute-report-cadence-and-heartbeat",
+      "target": "agent",
+      "setup": "As eval 2: be and telemetry have next.runnable true and no session running yet; ui waits on be:M1. Later, trackbook-be commits two tickets and sends nothing; no idle notice arrives and ListAgents lists it as busy.",
+      "prompt": "/qoq-fullstack execute track-io",
+      "followups": [
+        "(the heartbeat fires; be's plan files and git log -1 unchanged since the last one)",
+        "(the next heartbeat fires; still unchanged, still no message)"
+      ],
+      "expected_output": "Each launch prompt names the chief of staff and says to report after every ticket commit, every milestone gate and every stop, and never to end a turn without messaging. Before waiting, the chief starts one background 30-minute heartbeat. On the first silent heartbeat it sends trackbook-be one status message; on the second it asks the user, naming be, and doesn't restart the session.",
+      "files": [],
+      "assertions": [
+        "Every launch prompt says to SendMessage the chief of staff after every ticket commit, every milestone gate and every stop",
+        "Every launch prompt says a turn never ends without that message",
+        "The chief starts a background heartbeat (sleep 1800, run in background) before waiting, and only one at a time",
+        "On the first silent heartbeat the chief sends trackbook-be one status SendMessage and doesn't ask the user yet",
+        "On the second silent heartbeat the chief asks the user, naming trackbook-be",
+        "The chief never relaunches or restarts trackbook-be itself while it is listed as busy"
+      ]
     }
   ]
 }
