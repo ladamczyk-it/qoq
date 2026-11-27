@@ -212,10 +212,12 @@ built isn't the one that was estimated.
 
 **Gate 1 — `qoq fix --skip-knip`, scoped** to the developer's `files`, spec and
 source both. Scoped, because the verdict has to be about this ticket and nothing
-else.
+else, and because the `ticket` form runs `qoq staged` over just those files. A
+ticket doesn't pay for a repo-wide run.
 
-**Knip is off here, and it's the only tool that is.** Scoping the others is just
-reading the digest for the ticket's files; Knip can't be scoped that way, because
+**Knip is off here.** So is npm-outdated, whose findings are never about a
+ticket's files and wait for the milestone gate. Scoping the other tools is
+exact; Knip can't be scoped, because
 what it answers — is this export reachable — is computed from the whole repo, and
 mid-milestone that repo is missing every ticket after this one. An export ticket 4
 consumes is unreachable while ticket 3 is the newest code on disk, so Knip reports
@@ -223,7 +225,7 @@ it, the gate FAILs, and the fix the developer is sent back to make is deleting t
 thing the plan told it to build. The finding isn't early; it's false.
 
 That's true of the developer's own scoped run too, which is why it uses
-`ticket_scoped`. Everything else — Prettier, ESLint, JSCPD, the rest — is a
+`ticket_scoped`. Everything else but npm — Prettier, ESLint, JSCPD, the rest — is a
 property of the file in front of it and stays on.
 
 **Gate 2 — `qoq-test-reviewer`**, read-only, over the developer's `specs`. Its

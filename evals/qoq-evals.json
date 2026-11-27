@@ -1556,6 +1556,22 @@
       ],
       "target": "fixture-repo",
       "setup": "Replace eslint.config.js's body with `throw new Error('broken config');` and commit."
+    },
+    {
+      "id": 84,
+      "name": "ticket-gate-runs-staged",
+      "prompt": "/qoq fix --skip-knip src/lint/slugify.ts — this is ticket 2.1's Gate 1, mid-milestone",
+      "expected_output": "Runs check.mjs's ticket form over src/lint/slugify.ts. The gate runs `qoq staged --json --skip-knip --skip-npm` over that file instead of the full qoq:check, and the digest's first line says so. It fixes the Prettier and ESLint findings and ends on a PASS line that says knip and npm were skipped.",
+      "files": ["evals/fixtures/repo/src/lint/slugify.ts"],
+      "assertions": [
+        "Runs check.mjs's ticket form: --skip-knip followed by src/lint/slugify.ts",
+        "Never runs npm run qoq:check or npx qoq --check directly",
+        "The ticket gate's digest header names qoq staged",
+        "The final verdict line says both knip and npm were skipped",
+        "Ends on a PASS verdict for the scope"
+      ],
+      "target": "fixture-repo",
+      "setup": "Install @ladamczyk/qoq-cli >= 6.4.1 (the fixture pins 6.3.0, which has no `staged --json`)."
     }
   ]
 }

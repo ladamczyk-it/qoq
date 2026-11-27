@@ -146,9 +146,9 @@ that failed to carry `check` was a set of flags for an agent to invent.
 **Why the CLI's real shape is written down where it can't be guessed.** Two of
 its properties fail silently: positional arguments are tool _names_, so
 `npx qoq --check src/auth` quietly asks for a tool that doesn't exist; and
-`staged`, the only path-scoped command, takes no `--json` and therefore writes no
-reports. An agent reasoning from "the scope is positional everywhere" would get
-both wrong and report a clean project. Neither is derivable from the skill's own
+`staged`, the only path-scoped command, writes no reports unless it's given
+`--json`, which only the gate's ticket form passes. An agent reasoning from "the
+scope is positional everywhere" would get both wrong and report a clean project. Neither is derivable from the skill's own
 conventions, so both are stated rather than left to inference.
 
 **Why that statement is a YAML file and not prose.** `references/cli.yaml` is the
@@ -462,15 +462,28 @@ as current would make the command declare PASS over code nothing checked.
 tools, and it's what makes the loop head safe to call five times in a row
 without five full tool runs.
 
-**Why a scoped `fix` still runs the whole check.** `--check` takes no paths, so
-scope is a property of the verdict rather than the invocation: the command runs
-the full check and reports on the files it was asked about. The alternative —
-`staged`, which does take paths — writes no reports, and a gate with no digest
-has nothing to hand back on a FAIL.
+**Why a scoped `fix` still runs the whole check, except a ticket's.** `--check`
+takes no paths, so scope is a property of the verdict rather than the
+invocation: the command runs the full check and reports on the files it was
+asked about. That's affordable once. It wasn't affordable on every ticket of a
+plan: a repo-wide run per ticket took about three times as long as a scoped
+one here (87s against 27s), and every
+finding it bought outside the ticket was discarded. So the ticket form runs
+`staged --json` over the ticket's files, which writes the same reports. The
+project's `qoq:check` stays the source of truth by having its flags forwarded,
+and a flag `staged` can't take is no verdict, not a quietly different gate.
+So is a qoq-cli older than 6.4.1, the first with `staged --json`: falling back
+to the full run would have kept old projects slow without telling anyone, and
+the upgrade is one install.
+Nothing is lost: JSCPD and Structurelint ignore the file list and still read
+the whole repo, and the milestone gate is still the full `qoq:check`. The ticket
+form also skips npm-outdated, whose answer is never about a ticket's files and
+costs network calls on every one. The other scoped callers (`test`, a hand-run
+`fix <files>`) keep the full run, since they run once rather than per ticket.
 
 **Why Knip is the one tool with an opt-out.** Every other tool answers a question
-about the file in front of it, so scoping the verdict by reading the digest is
-exact. Knip answers a whole-repo question — is this export reachable — which the
+about the file in front of it, so scoping the verdict (by `staged` or by
+reading the digest) is exact. Knip answers a whole-repo question — is this export reachable — which the
 digest can attribute to a file in scope but cannot recompute for a scope. That
 makes it the only tool whose verdict depends on code that isn't written yet, and
 `--skip-knip` exists for exactly the callers that know it isn't: `execute`

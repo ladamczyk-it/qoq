@@ -24,7 +24,10 @@ on it — only exist here.
 
 Scope is a property of the verdict, not of the invocation: `--check` takes no paths,
 so a scoped `fix` runs the whole check and reports on the scope. The findings
-outside it are somebody else's, and saying so is the whole answer.
+outside it are somebody else's, and saying so is the whole answer. The `ticket`
+form is the exception: it runs `qoq staged` over the scope itself (see below).
+JSCPD and Structurelint still read the whole repo there, so out-of-scope
+findings can still appear and get the same answer.
 
 ### `--skip-knip`, and why one tool gets an opt-out
 
@@ -35,10 +38,12 @@ exist yet. Mid-plan, an export ticket 4 will consume looks exactly like dead cod
 to ticket 3, and the fix this command would apply is deleting it.
 
 So `execute` passes `--skip-knip` on its per-ticket gate, and this command runs
-the `ticket` form instead of `check`; everything else here is unchanged. **Carry
-it into the verdict line** — `PASS — 0 findings across 4
-tools (knip skipped)` — because a caller reading a bare PASS will believe dead
-code was checked for.
+the `ticket` form instead of `check`. That form runs `qoq staged` over the given
+files, with `qoq:check`'s own flags forwarded, and skips npm-outdated too: its
+findings are never about a ticket's files, and the milestone gate runs it. A
+ticket pays for its files, not the repo's. **Carry both skips into the verdict
+line** — `PASS — 0 findings across 4 tools (knip, npm skipped)` — because a
+caller reading a bare PASS will believe dead code was checked for.
 
 Only a caller who knows the code is mid-flight may ask for it. A bare `/qoq fix`
 never skips a tool on its own: with no next ticket coming, the finding is just
@@ -57,8 +62,9 @@ place: you'd lose the reuse rules and the stale-report cleanup, and you'd get
 thousands of report lines instead of a digest.
 
 **Exit 0 is clean, exit 3 is findings, and anything else is no verdict**, never
-PASS. 2 means the project has no `qoq:check`, the build failed, or the CLI
-crashed. 1 means node couldn't start the script at all: a wrong path or a wrong
+PASS. 2 means the project has no `qoq:check`, the build failed, the CLI
+crashed, or (the `ticket` form) the CLI is older than 6.4.1 and can't scope:
+bring the user the upgrade line it prints. 1 means node couldn't start the script at all: a wrong path or a wrong
 directory. A crash prints a partial digest under a `⚠` header,
 and a tool with no section in it didn't run. Stop and report:
 

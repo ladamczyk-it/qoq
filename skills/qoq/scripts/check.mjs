@@ -8,9 +8,16 @@
 //
 // The project's `qoq:check` script is the source of truth for what runs, so its
 // `--skip-<tool>` flags hold. Only that name is read: guessing at `lint` or
-// `foo:check` is how unrelated flags would quietly change the gate. `--json` (and
-// `--skip-knip` for a ticket) is appended through `npm run qoq:check -- …`, which
-// is why the script must be a single `qoq --check …` command.
+// `foo:check` is how unrelated flags would quietly change the gate. `--json` is
+// appended through `npm run qoq:check -- …`, which is why the script must be a
+// single `qoq --check …` command.
+//
+// The ticket form (`--skip-knip`) doesn't run that script: it runs `qoq staged`
+// over the scope, with the script's own flags forwarded, so a ticket pays for its
+// files and not the repo's. Knip and npm-outdated are skipped there — Knip's
+// answer is false mid-milestone, npm's is never about the ticket's files — and
+// the milestone gate's full run is where both are true. A script flag `staged`
+// doesn't take is no verdict rather than a gate quietly running something else.
 //
 // What it does that no npm script can:
 //   - reuse: skips the run when the reports are newer than the scope, and the
@@ -28,8 +35,9 @@
 // Usage:   node check.mjs <report-dir> [--skip-knip] [<scope...>]
 //   run from the project root. <report-dir> is cli.yaml's `reports`.
 //   <scope...>  files or directories the verdict is about; defaults to `.`.
-//               It only decides reuse, so a wider scope is never wrong, just
-//               re-runs more often.
+//               In the full form it only decides reuse, so a wider scope is
+//               never wrong, just re-runs more often. In the ticket form it is
+//               what `staged` checks, and it is required.
 //
 // Exit code: 0 no findings, 3 findings, 2 no verdict (no `qoq:check`, a failed
 // build, a CLI crash, or no reports at all). Findings are 3, not 1, because 1 is
@@ -72,7 +80,71 @@ if (!script) {
   );
 }
 
+// `qoq --check` plus the flags `qoq staged` also takes; anything else can't be
+// forwarded faithfully.
+const stagedArgs = (body) => {
+  const [bin, ...tokens] = body.trim().split(/\s+/);
+  const out = new Set(['--json', '--skip-knip', '--skip-npm']);
+  if (bin !== 'qoq' || !tokens.includes('--check')) {
+    fail(
+      `the ticket gate needs "qoq:check" to be a single \`qoq --check …\` command, got: ${body}`
+    );
+  }
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token === '--check') {
+      continue;
+    }
+    if (
+      /^--skip-[a-z-]+$/.test(token) ||
+      ['--disable-cache', '--no-config-hints', '--silent'].includes(token)
+    ) {
+      out.add(token);
+    } else if (token === '--concurrency' && tokens[i + 1]) {
+      out.add(`--concurrency=${tokens[++i]}`);
+    } else if (token.startsWith('--concurrency=')) {
+      out.add(token);
+    } else {
+      fail(
+        `"qoq:check" flag ${token} has no \`qoq staged\` equivalent, so the ticket gate can't run it.`
+      );
+    }
+  }
+  return [...out];
+};
+
 const mode = skipKnip ? 'ticket' : 'full';
+const forwarded = skipKnip ? stagedArgs(script) : [];
+
+// `staged --json` arrived in qoq-cli 6.4.1. Older, it's rejected and writes no
+// reports, so the gate refuses up front rather than reading an empty digest.
+const STAGED_JSON = [6, 4, 1];
+const cliVersion = () => {
+  try {
+    return JSON.parse(readFileSync(join(LINK, 'package.json'), 'utf8')).version;
+  } catch {
+    return undefined;
+  }
+};
+const atLeast = (version, min) => {
+  const parts = version.split('.').map((n) => parseInt(n, 10));
+  const i = min.findIndex((n, j) => parts[j] !== n);
+  return i === -1 || parts[i] > min[i];
+};
+
+if (skipKnip) {
+  const version = cliVersion();
+  if (!version || !atLeast(version, STAGED_JSON)) {
+    fail(
+      `the ticket gate needs @ladamczyk/qoq-cli >= ${STAGED_JSON.join('.')} for \`qoq staged --json\`; ` +
+        `installed: ${version ?? 'none'}. Upgrade it, e.g. \`npm install -D @ladamczyk/qoq-cli@latest\`.`
+    );
+  }
+}
+
+if (skipKnip && !given.length) {
+  fail("the ticket form needs the ticket's files: check.mjs <report-dir> --skip-knip <file...>");
+}
 const markerPath = join(reportDir, MARKER);
 const readMarker = () => {
   try {
@@ -106,8 +178,9 @@ if (!reuse) {
     }
   }
 
-  const extra = skipKnip ? ['--json', '--skip-knip'] : ['--json'];
-  const run = spawnSync('npm', ['run', '-s', 'qoq:check', '--', ...extra], { stdio: 'ignore' });
+  const run = skipKnip
+    ? spawnSync('npx', ['--no', 'qoq', 'staged', ...forwarded, ...given], { stdio: 'ignore' })
+    : spawnSync('npm', ['run', '-s', 'qoq:check', '--', '--json'], { stdio: 'ignore' });
   if (run.status !== 0 && run.status !== 1) {
     crashed = run.status ?? run.signal;
   } else if (existsSync(reportDir)) {
@@ -115,9 +188,9 @@ if (!reuse) {
   }
 }
 
-const header = `gate: qoq:check → ${script}${skipKnip ? ' + --skip-knip (ticket: knip skipped)' : ''}${
-  reuse ? ' (reports reused)' : ''
-}\n`;
+const header = `gate: qoq:check → ${script}${
+  skipKnip ? ` → qoq staged ${forwarded.join(' ')} <scope> (ticket: knip, npm skipped)` : ''
+}${reuse ? ' (reports reused)' : ''}\n`;
 // Spawned, not imported: summarize.mjs is a top-level script, and its exit code
 // (0 none, 1 findings, 2 no reports) is the verdict.
 const digest = spawnSync(process.execPath, [SUMMARIZE, reportDir], { encoding: 'utf8' });
