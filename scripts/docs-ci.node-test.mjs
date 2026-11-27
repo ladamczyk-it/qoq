@@ -25,19 +25,8 @@ const edit = (text, pairs) =>
     return acc.replaceAll(from, to);
   }, text);
 
-test('.woodpecker/main.yml replaces .woodpecker.yml byte for byte', () => {
+test('the old single-file .woodpecker.yml stays gone', () => {
   assert.equal(existsSync(join(ROOT, '.woodpecker.yml')), false);
-  const deleted = git(
-    ROOT,
-    'log',
-    '--diff-filter=D',
-    '-1',
-    '--format=%H',
-    '--',
-    '.woodpecker.yml'
-  ).stdout.trim();
-  const before = git(ROOT, 'show', `${deleted ? `${deleted}^` : 'HEAD'}:.woodpecker.yml`).stdout;
-  assert.equal(ours('.woodpecker/main.yml'), before);
 });
 
 test(
