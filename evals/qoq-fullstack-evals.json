@@ -156,7 +156,7 @@
         "While trackbook-be is listed busy, the chief sends it a status SendMessage and doesn't relaunch it",
         "Once trackbook-be is gone from ListAgents, the chief relaunches it with claude --bg and /qoq execute <planDir>",
         "The relaunch happens without asking the user first",
-        "The relaunch uses the same session name, trackbook-be, and feature.json's model and permissionMode"
+        "The relaunch uses the same session name, trackbook-be, with --model opus and --permission-mode auto (feature.json's values in eval 2's setup)"
       ]
     }
   ]
