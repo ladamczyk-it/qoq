@@ -1,6 +1,6 @@
 {
   "name": "@ladamczyk/qoq-eslint-v9-js-vitest",
-  "version": "7.3.1",
+  "version": "7.4.0",
   "description": "Eslint flat config template for JS + Vitest",
   "keywords": [
     "eslint JavaScript + Vitest template",
@@ -44,8 +44,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ladamczyk/qoq-eslint-v9-js": "^7.3.1",
-    "@ladamczyk/qoq-utils": "^7.3.1",
+    "@ladamczyk/qoq-eslint-v9-js": "^7.4.0",
+    "@ladamczyk/qoq-utils": "^7.4.0",
     "@vitest/eslint-plugin": "1.6.28"
   },
   "devDependencies": {
