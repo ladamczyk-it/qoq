@@ -1,0 +1,55 @@
+---
+sidebar_position: 1
+title: Introduction | v6.x
+sidebar_label: Introduction | v6.x
+description: 'QoQ 6.x: one CLI for ESLint, Prettier, Knip, JSCPD, Stylelint, Structurelint and Skillslint, flat-config ESLint presets built with defineConfig, and the qoq Claude Code skill. | v6.x'
+---
+
+import styles from '@internal/docusaurus-theme/github-button.module.css';
+
+<a
+  href="https://github.com/ladamczyk-it/qoq"
+  target="_blank"
+  rel="noopener noreferrer"
+  className={styles.githubButton}
+>
+  <span aria-hidden="true" className={styles.githubButtonIcon} />
+  <span>GitHub</span>
+</a>
+
+# QoQ
+
+A streamlined suite of tools to format, lint, and analyze any JavaScript/TypeScript project with minimal setup — and a Claude Code skill that turns those checks into a guarded delivery loop.
+
+> Historical docs for **`@ladamczyk/qoq-cli` v6.x**, verified against **v6.8.2**. For the current release, see the latest docs. See [`CHANGELOG.md`](https://github.com/ladamczyk-it/qoq/blob/v6.8.2/CHANGELOG.md) to verify accuracy.
+
+QoQ (_Quality over Quantity_) orchestrates [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [Knip](https://knip.dev/), [JSCPD](https://github.com/kucherenko/jscpd) and an npm dependency check by default, and [Stylelint](https://stylelint.io/), [Structurelint](https://adamczyk.ovh/docs/structurelint), [Skillslint](https://adamczyk.ovh/docs/skillslint) and [Justify-disable](https://adamczyk.ovh/docs/justify-disable) on demand, behind a single CLI.
+
+| Command       | Typical use                                                     |
+| ------------- | --------------------------------------------------------------- |
+| `qoq --check` | Full code check — CI lint step or `pre-push` hook.              |
+| `qoq staged`  | Checks only staged changes — `pre-commit` hook.                 |
+| `qoq --fix`   | Auto-fixes what it can — run manually after a failure.          |
+| `qoq scan`    | On-demand vulnerability scan of `package-lock.json` (from 6.3). |
+
+Monorepos are supported out of the box, derived from the `workspaces` entry in your `package.json`.
+
+## What 6.x added
+
+- **`defineConfig` ESLint presets (6.0).** Every `@ladamczyk/qoq-eslint-v9-*` preset exports `configs.base`, a flat-config array, plus its own delta layer (`jsLayer`, `tsLayer`, `reactLayer`, `jestLayer`, …) instead of a pre-merged object. See [Packages](./packages.md).
+- **Usage statistics (6.0).** Opt-in, asked once, stored as `stats` in `qoq.config.js`.
+- **Marketplace in lockstep (6.1).** The `qoq-agent-skills` plugin version, 2.1.0 at 6.0, follows the packages from 6.1.0, so one changelog covers the CLI and the [qoq skill](./skill.md).
+- **`qoq scan` (6.3).** OSV.dev vulnerability scan with pluggable adapters, see [Configuration](./configuration.md#scan).
+- **`@ladamczyk/outdated` (6.2).** The npm check flags outdated, deprecated and stale dependencies, not only outdated ones.
+- **Justify-disable (6.8).** An optional check that every lint-disable comment carries a justification.
+- **Skill hints.** Interactive runs name the `/qoq` command that handles what they found; `hints: false` hides them.
+
+The full list, minor by minor, is in [Release notes](./release-notes.md).
+
+## Usage statistics
+
+Added in 6.0, opt-in. The first interactive run asks and stores the answer as `stats: true | false` in `qoq.config.js`; the skill reads the same key. Each run sends two values to `https://stats.adamczyk.ovh`: the tool (`"qoq"` or `"qoq-skill"`) and the command (the value-less flags, e.g. `["--check"]`, or the skill command). Where an outbound POST is blocked, the same two values go as a query string on an image GET. Code, paths, config, findings and anything identifying you are never sent. The send is fire-and-forget with a 2s cap, and `--warmup` doesn't count.
+
+## Requirements
+
+Node `^22.22.2 || ^24.15.0 || >=26.0.0` and npm `>=10` from **6.2.0**; Node `>=22.15.0` before that.

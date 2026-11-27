@@ -1,0 +1,54 @@
+---
+sidebar_position: 1
+title: Introduction | v5.x
+sidebar_label: Introduction | v5.x
+description: 'QoQ 5.x: one CLI running ESLint, Prettier, Stylelint and JSCPD through their JavaScript APIs, with progress bars, CI mode and the first plan/execute qoq skill. | v5.x'
+---
+
+import styles from '@internal/docusaurus-theme/github-button.module.css';
+
+<a
+  href="https://github.com/ladamczyk-it/qoq"
+  target="_blank"
+  rel="noopener noreferrer"
+  className={styles.githubButton}
+>
+  <span aria-hidden="true" className={styles.githubButtonIcon} />
+  <span>GitHub</span>
+</a>
+
+# QoQ
+
+A streamlined suite of tools to format, lint, and analyze any JavaScript/TypeScript project with minimal setup.
+
+> Historical docs for **`@ladamczyk/qoq-cli` v5.x**, verified against **v5.3.2**. For the current release, see the latest docs. See [`CHANGELOG.md`](https://github.com/ladamczyk-it/qoq/blob/v5.3.2/CHANGELOG.md) to verify accuracy.
+
+QoQ (_Quality over Quantity_) runs [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [Knip](https://knip.dev/), [JSCPD](https://github.com/kucherenko/jscpd) and `npm outdated` by default, and [Stylelint](https://stylelint.io/), [Structurelint](https://adamczyk.ovh/docs/structurelint) and [Skillslint](https://adamczyk.ovh/docs/skillslint) when configured, behind one CLI.
+
+| Command       | Typical use                                            |
+| ------------- | ------------------------------------------------------ |
+| `qoq --check` | Full code check — CI lint step or `pre-push` hook.     |
+| `qoq staged`  | Checks only staged changes — `pre-commit` hook.        |
+| `qoq --fix`   | Auto-fixes what it can — run manually after a failure. |
+
+Monorepos are supported out of the box through `package.json` `workspaces`.
+
+## What 5.x added
+
+- **JavaScript API execution (5.0, breaking).** ESLint, Prettier, Stylelint and JSCPD run in-process through their JavaScript APIs instead of spawned CLIs, with one shared execution-time measurement.
+- **Progress output (5.0).** ESLint, Prettier and Stylelint report progress while they run.
+- **CI mode (5.0, 5.1).** `CI=true` is recognised from 5.0; from 5.1 it also leaves out the ESLint Prettier rules that only serve IDE previews.
+- **`configType` override (5.0.1).** Force CJS or ESM config output instead of detecting it from `package.json` `type`.
+- **`strictConfig` (5.1).** `qoq-eslint-v9-ts` gains an opt-in strict layer, alongside a reconfigured `sonarjs` and `import-x` setup.
+- **More Knip options (5.2).** `ignoreFiles`, `ignoreMembers` and `ignoreUnresolved`.
+- **Rolldown builds (5.3).** Packages are bundled with Rolldown; TypeScript 7 where possible.
+- **`testing-gate` and `planning-gate` skills (5.2.1, 5.2.3).** Test writing and ticket planning, each gated by `/qoq gate`.
+- **qoq skill v2 (5.3.2).** One skill with `fix`, `refactor`, `bump`, `plan`, `execute`, `test` and `compress`. See [The qoq skill](./skill.md).
+
+Removed: `@ladamczyk/qoq-eslint-v9-ts-react-structure` (5.0). For file/folder structure, use the Structurelint check added in 4.5.
+
+The full list is in [Release notes](./release-notes.md).
+
+## Requirements
+
+Node `>=22.15.0`.
