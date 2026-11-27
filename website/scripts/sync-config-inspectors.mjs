@@ -8,6 +8,8 @@
 // resolved against `window.__NUXT__.config.app.baseURL`, so the only paths
 // that must be rewritten are the hardcoded ones in the HTML shell:
 //   - the entry `<link>`/`<script>` `/_nuxt/...` references
+//   - the importmap's `"#entry":"/_nuxt/..."`, which lazy chunks import —
+//     left at the root, every chunk import 404s and the app never mounts
 //   - the `/favicon.svg` icon
 //   - `app.baseURL` itself
 // `buildAssetsDir` is deliberately left as `/_nuxt/`: at runtime Nuxt joins it
@@ -56,6 +58,7 @@ async function findInspectorPackages(packagesDir) {
 function rebaseHtml(html, base) {
   return html
     .replaceAll('="/_nuxt/', `="${base}_nuxt/`)
+    .replaceAll('":"/_nuxt/', `":"${base}_nuxt/`)
     .replaceAll('="/favicon.svg"', `="${base}favicon.svg"`)
     .replaceAll('baseURL:"/"', `baseURL:"${base}"`);
 }

@@ -11,7 +11,9 @@ import { syncConfigInspectors } from './sync-config-inspectors.mjs';
 
 const run = promisify(execFile);
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), 'sync-config-inspectors.mjs');
-const SHELL = '<link href="/_nuxt/x.js"><link href="/favicon.svg">{baseURL:"/"}';
+const SHELL =
+  '<script type="importmap">{"imports":{"#entry":"/_nuxt/x.js"}}</script>' +
+  '<link href="/_nuxt/x.js"><link href="/favicon.svg">{baseURL:"/",buildAssetsDir:"/_nuxt/"}';
 
 const exists = (path) =>
   access(path).then(
@@ -49,6 +51,8 @@ describe('syncConfigInspectors', () => {
     assert.ok(html.includes('="/config-inspector/eslint-v9-a/_nuxt/x.js"'));
     assert.ok(html.includes('="/config-inspector/eslint-v9-a/favicon.svg"'));
     assert.ok(html.includes('baseURL:"/config-inspector/eslint-v9-a/"'));
+    assert.ok(html.includes('"#entry":"/config-inspector/eslint-v9-a/_nuxt/x.js"'));
+    assert.ok(html.includes('buildAssetsDir:"/_nuxt/"'));
   });
 
   it('prefixes the site baseUrl', async () => {
