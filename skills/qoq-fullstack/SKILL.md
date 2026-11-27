@@ -103,7 +103,9 @@ Each session starts in its own repo, so it loads that repo's CLAUDE.md,
 doesn't already list one with that name. If it's listed, `SendMessage` the
 instruction to it instead.
 
-Every launch prompt and every instruction message contains:
+Every launch prompt and every instruction message contains the four items
+below. Copy the italic rules word for word, in both: a paraphrase tends to
+drop the half that matters.
 
 1. **What to run.** A `/qoq` invocation, and nothing more specific than that.
    While a spending limit is armed, every `/qoq execute` carries both limit

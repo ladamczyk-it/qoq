@@ -33,8 +33,10 @@ Run the setup from SKILL.md, then loop:
    is already running. It's the heartbeat for a session that hangs or dies
    without an idle notice. When it fires, a repo that ListAgents still lists as
    busy, whose plan files and `git log -1` haven't moved, and which hasn't
-   messaged since the last heartbeat, gets one status `SendMessage`. Still
-   silent at the next heartbeat → ask the user, naming the repo. Never restart
+   messaged since the last heartbeat, gets one status `SendMessage`: a request
+   for a one-line status, never a `/qoq` invocation, since a busy session would
+   queue a second run behind the one it's in. Still silent at the next
+   heartbeat → ask the user, naming the repo. Never restart
    a busy session yourself: it would become a second writer in that checkout.
    A session that's gone is step 2's to restart.
 

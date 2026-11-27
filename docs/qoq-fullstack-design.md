@@ -38,7 +38,9 @@ external review skill's reply-to-the-user format then became its final text
 and ended the turn. Its idle notice never arrived either, because it ran in a
 different permission mode and the session list kept showing it busy. A
 background session's final text reaches nobody, so the report cadence is
-spelled out and every turn ends on a `SendMessage`. The 30-minute heartbeat
+spelled out and every turn ends on a `SendMessage`. The rules are copied word
+for word, because in an eval a paraphrased instruction message dropped the
+"never end silently" half. The 30-minute heartbeat
 covers a session that hangs or dies, which no rule inside that session can.
 It nudges once, then asks the user, and never restarts the session, because a
 session still listed as busy would make two writers in one checkout.

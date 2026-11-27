@@ -121,7 +121,7 @@
       "id": 8,
       "name": "execute-report-cadence-and-heartbeat",
       "target": "agent",
-      "setup": "As eval 2: be and telemetry have next.runnable true and no session running yet; ui waits on be:M1. trackbook-be commits two tickets before the first heartbeat and sends nothing; after that its plan files and git log -1 stop moving. No idle notice arrives and ListAgents lists it as busy throughout.",
+      "setup": "As eval 2: be and telemetry have next.runnable true and no session running yet; ui waits on be:M1. trackbook-be commits two tickets before the first heartbeat and sends nothing; after that its plan files and git log -1 stop moving. No idle notice arrives and ListAgents lists it as busy from its launch on.",
       "prompt": "/qoq-fullstack execute track-io",
       "followups": [
         "(the first heartbeat fires; be's commits are visible but it never messaged)",
@@ -132,10 +132,11 @@
       "files": [],
       "assertions": [
         "Every launch prompt says to SendMessage the chief of staff after every ticket commit, every milestone gate and every stop",
-        "Every launch prompt says a turn never ends without that message",
+        "Every launch prompt and every instruction message says a turn never ends without that message",
         "The chief starts a background heartbeat (sleep 1800, run in background) before waiting",
         "At the first heartbeat be's new commits count as movement: no nudge and no question",
         "At the second heartbeat (no movement, no message) the chief sends trackbook-be one status SendMessage and doesn't ask the user yet",
+        "The status message to trackbook-be asks for a one-line status and contains no /qoq invocation",
         "At the third heartbeat the chief asks the user, naming trackbook-be",
         "The chief never relaunches trackbook-be while ListAgents lists it as busy"
       ]
