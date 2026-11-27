@@ -290,7 +290,7 @@ flowchart TD
     TSUG --> MAJ
     TOUT --> MAJ
     MAJ{"majors, or queued<br/>failures, among them?"}
-    MAJ -->|yes| BUMPER["dispatch **qoq-bumper**<br/>(Sonnet, one per package)<br/>*(name, current version,<br/>repository URL)*"]
+    MAJ -->|yes| BUMPER["dispatch **qoq-bumper**<br/>(Sonnet, one per package,<br/>**all in one message**;<br/>a failed one → *analysis failed*)<br/>*(name, current version,<br/>repository URL)*"]
     MAJ -->|no| BAPPR
 
     subgraph BUMPFLOW["qoq-bumper flow *(everything the agent does)*"]

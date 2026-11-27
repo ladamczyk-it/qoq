@@ -231,7 +231,7 @@ with no script for something is a project that has to be asked.
 patches, not anything that edits or commits. Every check that matters is an
 attribution question — "did _this_ change break it?" — which a second agent
 writing concurrently makes unanswerable. Read-only agents may run together
-where a reference says so (`review`'s two axes); `refactor`'s assessments stay
+where a reference says so (`review`'s two axes, `bump`'s bumpers); `refactor`'s assessments stay
 sequential for their own reason ([references/refactor.md](references/refactor.md)).
 
 **An agent that reports never fixes.** `qoq-bumper`,

@@ -545,6 +545,12 @@ at the end then look at a smaller, already-deduplicated tree.
 
 ## `bump`
 
+**Why the bumpers run in parallel.** They read changelogs and grep, and edit
+nothing, so attribution — the reason writers run one at a time — isn't at
+stake. The plan can't be shown until every one is back, so serial dispatch
+only added wall-clock time. A failed one is reported, not retried higher,
+because a dearer retry is silent spend on a package the user may exclude.
+
 **Why re-cutting a failed patch never needs re-approval.** It changes how the
 approved bumps are sliced, not which ones were approved. The cost is many more
 validate cycles than one grouped patch, which is the trade: the alternative is
