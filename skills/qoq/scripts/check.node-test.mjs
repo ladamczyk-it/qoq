@@ -105,7 +105,7 @@ test('a changed script body or mode re-runs', () => {
   check(dir);
   check(dir, '--skip-knip');
   assert.equal(calls(dir).length, 2, 'ticket after full');
-  assert.equal(calls(dir)[1], '--check --json --skip-knip');
+  assert.equal(calls(dir)[1], 'staged --json --skip-knip --skip-npm src');
 
   const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
   pkg.scripts['qoq:check'] = 'qoq --check --skip-npm';
@@ -124,9 +124,37 @@ test('a report from an earlier run is gone after a run that skipped its tool', (
   assert.doesNotMatch(stdout, /ESLINT/);
 });
 
-test('the ticket form says knip was skipped', () => {
+test('the ticket form says knip and npm were skipped', () => {
   const { stdout } = check(project(), '--skip-knip');
-  assert.match(stdout, /knip skipped/);
+  assert.match(stdout, /knip, npm skipped/);
+});
+
+test('the ticket form runs staged over its files with the script flags forwarded', () => {
+  const dir = project({ qoqCheck: 'qoq --check --skip-jscpd --concurrency auto' });
+  const { status, stdout } = check(dir, '--skip-knip');
+  assert.equal(status, 0, stdout);
+  assert.deepEqual(calls(dir), [
+    'staged --json --skip-knip --skip-npm --skip-jscpd --concurrency=auto src',
+  ]);
+});
+
+test('a qoq:check flag staged has no equivalent is no verdict in the ticket form', () => {
+  const dir = project({ qoqCheck: 'qoq --check --fix' });
+  const { status, stderr } = check(dir, '--skip-knip');
+  assert.equal(status, 2);
+  assert.match(stderr, /--fix has no `qoq staged` equivalent/);
+  assert.deepEqual(calls(dir), []);
+});
+
+test('the ticket form without files is no verdict, never a repo-wide staged run', () => {
+  const dir = project();
+  const bare = spawnSync(process.execPath, [SCRIPT, REPORTS, '--skip-knip'], {
+    cwd: dir,
+    encoding: 'utf8',
+  });
+  assert.equal(bare.status, 2);
+  assert.match(bare.stderr, /needs the ticket's files/);
+  assert.deepEqual(calls(dir), []);
 });
 
 test('a CLI crash is no verdict, with the partial digest under a crash header', () => {

@@ -161,7 +161,7 @@ flowchart TD
         C00{"package.json has<br/>a qoq:check script?"}
         C00 -->|no| NOV
         C00 -->|yes| C0{"reports current, **and** the marker<br/>says the same mode + script<br/>wrote them?"}
-        C0 -->|"no"| RUN["empty the report files<br/>*a tool the script skips leaves no<br/>stale report behind*<br/>build first if the CLI is a symlink<br/>then `npm run qoq:check -- --json<br/>[--skip-knip]`<br/>*the project's flags hold*"]
+        C0 -->|"no"| RUN["empty the report files<br/>*a tool the script skips leaves no<br/>stale report behind*<br/>build first if the CLI is a symlink<br/>then `npm run qoq:check -- --json`<br/>*the project's flags hold*<br/>**with --skip-knip:** `npx qoq staged<br/>--json --skip-knip --skip-npm<br/>&lt;its flags&gt; &lt;files&gt;` instead<br/>*a ticket pays for its files only*"]
         C0 -->|"yes"| DIG
         RUN -->|"exit 0 or 1"| DIG["the digest, first line quoting<br/>the script that ran<br/>*never the raw reports*"]
         RUN -->|"crash, failed build"| NOV(["**exit 2: no verdict**<br/>partial digest under a ⚠ header<br/>*never PASS — nor is any exit but<br/>0 or 3: 1 is node failing to start it*"])
@@ -545,7 +545,7 @@ flowchart TD
 
     EDISP --> T0
     EDISP -.->|"model error — the tier<br/>has no model on this host"| EUNRES(["**not an attempt** — no estimate filed,<br/>no escalation. `model-tiers.mjs --failed`:<br/>name the tier, ASK for an id + local/user<br/>scope, `--set` only once confirmed, then<br/>re-dispatch at the same tier<br/>*never another tier on our own, never<br/>a model choice in memory*"])
-    TRET --> EGATE["**GATE 1 — qoq fix --skip-knip**, scoped<br/>to the developer's `files`.<br/>*knip is the one tool that can't be scoped —<br/>it asks whether an export is reachable in a<br/>repo missing every ticket after this one, so<br/>it calls ticket 4's dependency dead code and<br/>the gate sends ticket 3 back to delete it*"]
+    TRET --> EGATE["**GATE 1 — qoq fix --skip-knip**, scoped<br/>to the developer's `files`:<br/>`qoq staged` over just those files,<br/>npm skipped too (milestone runs it).<br/>*knip is the one tool that can't be scoped —<br/>it asks whether an export is reachable in a<br/>repo missing every ticket after this one, so<br/>it calls ticket 4's dependency dead code and<br/>the gate sends ticket 3 back to delete it*"]
     EGATE -->|FAIL| EATT
     EGATE -->|PASS| EGATE2["**GATE 2 — qoq-test-reviewer**, read-only,<br/>over the developer's `specs`. rejects on<br/>integrity: a criterion with no assertion,<br/>one that can't fail, a **tautology**, an<br/>**implementation-coupled** spec *(tdd's anti-patterns)*.<br/>*fix first: it rewrites formatting, so a<br/>semantic read before it would be spent<br/>on text about to change*"]
     EGATE2 -->|"REJECTED — file:line per defect"| EATT
