@@ -1,0 +1,50 @@
+---
+sidebar_position: 1
+title: Introduction | v4.x
+sidebar_label: Introduction | v4.x
+description: 'QoQ 4.x: the first @ladamczyk/qoq-* release line, one CLI for ESLint v9, Prettier, Knip, JSCPD and Stylelint, adding Skillslint, Structurelint and the qoq Claude Code skill. | v4.x'
+---
+
+import styles from '@internal/docusaurus-theme/github-button.module.css';
+
+<a
+  href="https://github.com/ladamczyk-it/qoq"
+  target="_blank"
+  rel="noopener noreferrer"
+  className={styles.githubButton}
+>
+  <span aria-hidden="true" className={styles.githubButtonIcon} />
+  <span>GitHub</span>
+</a>
+
+# QoQ
+
+A streamlined suite of tools to format, lint, and analyze any JavaScript/TypeScript project with minimal setup.
+
+> Historical docs for **`@ladamczyk/qoq-cli` v4.x**, verified against **v4.5.2**. For the current release, see the latest docs. See [`CHANGELOG.md`](https://github.com/ladamczyk-it/qoq/blob/v4.5.2/CHANGELOG.md) to verify accuracy.
+
+QoQ (_Quality over Quantity_) runs [ESLint v9](https://eslint.org/), [Prettier](https://prettier.io/), [Knip](https://knip.dev/), [JSCPD](https://github.com/kucherenko/jscpd) and `npm outdated` by default, and [Stylelint](https://stylelint.io/), [Skillslint](https://adamczyk.ovh/docs/skillslint) and [Structurelint](https://adamczyk.ovh/docs/structurelint) when configured, behind one CLI.
+
+| Command       | Typical use                                            |
+| ------------- | ------------------------------------------------------ |
+| `qoq --check` | Full code check — CI lint step or `pre-push` hook.     |
+| `qoq staged`  | Checks only staged changes — `pre-commit` hook.        |
+| `qoq --fix`   | Auto-fixes what it can — run manually after a failure. |
+
+Monorepos are supported out of the box through `package.json` `workspaces`.
+
+## What 4.x added
+
+- **New npm scope (4.0, breaking).** Every package moved from `@saashub/qoq-*` to `@ladamczyk/qoq-*`, and the repository to `ladamczyk-it/qoq`. Replace the scope in `package.json`, `.prettierrc`, `eslint.config.js` and `stylelint.config.js`.
+- **Agent skills (4.1–4.3).** `npm-bump-packages` in 4.1, `qoq-code-review` and `qoq-code-refactor` in 4.2, folded into one `qoq` skill in 4.3.1. See [The qoq skill](./skill.md).
+- **Skillslint (4.3).** Optional check that lints Claude Code skill docs.
+- **React structure preset (4.3).** `qoq-eslint-v9-ts-react-structure`, plus a custom `no-multi-comp` rule and `react-refresh/only-export-components` in the React presets.
+- **Config type from `package.json` (4.3.2).** CJS or ESM output follows `package.json` `type`.
+- **Config self-check (4.4).** The CLI warns when `qoq.config.js` repeats a default, or an ESLint rule its template already sets.
+- **Structurelint (4.5).** Optional file/folder structure check; from 4.5.2 its rules live in `qoq.config.js`.
+
+The full list is in [Release notes](./release-notes.md).
+
+## Requirements
+
+Node `>=22.15.0`.
