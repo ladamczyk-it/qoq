@@ -1,0 +1,9 @@
+{
+  "label": "ESLint Presets",
+  "position": 6,
+  "link": {
+    "type": "generated-index",
+    "title": "ESLint Presets",
+    "description": "Browse every @ladamczyk/qoq-eslint-v9-* preset with its built-in ESLint Config Inspector — the exact rules, plugins, and settings each one enables."
+  }
+}

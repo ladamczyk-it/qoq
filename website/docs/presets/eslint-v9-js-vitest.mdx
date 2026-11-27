@@ -1,0 +1,31 @@
+---
+sidebar_position: 5
+title: JavaScript + Vitest
+description: ESLint Config Inspector for the @ladamczyk/qoq-eslint-v9-js-vitest preset — every rule, plugin, and setting it enables for JavaScript + Vitest projects.
+---
+
+import ConfigInspector from '@site/src/components/ConfigInspector';
+
+# JavaScript + Vitest
+
+The **`@ladamczyk/qoq-eslint-v9-js-vitest`** preset — an opinionated [flat-config](https://eslint.org/docs/latest/use/configure/configuration-files) bundle with every plugin and rule tuned for **JavaScript + Vitest** projects.
+
+```bash
+npm install -D @ladamczyk/qoq-eslint-v9-js-vitest
+```
+
+Extend the preset's flat-config array with `defineConfig` and scope it with your own `files`:
+
+```js
+import { configs } from '@ladamczyk/qoq-eslint-v9-js-vitest';
+import { defineConfig } from 'eslint/config';
+
+export default defineConfig({
+  files: ['src/**/*.{js,jsx}'],
+  extends: [configs.base],
+});
+```
+
+Browse every enabled rule, plugin, and file match below — or [open the inspector in its own tab](pathname:///config-inspector/eslint-v9-js-vitest/).
+
+<ConfigInspector variant="eslint-v9-js-vitest" />

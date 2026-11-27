@@ -1,0 +1,33 @@
+---
+sidebar_position: 7
+title: TypeScript
+description: ESLint Config Inspector for the @ladamczyk/qoq-eslint-v9-ts preset — every rule, plugin, and setting it enables for TypeScript projects.
+---
+
+import ConfigInspector from '@site/src/components/ConfigInspector';
+
+# TypeScript
+
+The **`@ladamczyk/qoq-eslint-v9-ts`** preset — an opinionated [flat-config](https://eslint.org/docs/latest/use/configure/configuration-files) bundle with every plugin and rule tuned for **TypeScript** projects.
+
+```bash
+npm install -D @ladamczyk/qoq-eslint-v9-ts
+```
+
+Extend the preset's flat-config array with `defineConfig` and scope it with your own `files`:
+
+```js
+import { configs } from '@ladamczyk/qoq-eslint-v9-ts';
+import { defineConfig } from 'eslint/config';
+
+export default defineConfig({
+  files: ['src/**/*.{ts,tsx}'],
+  extends: [configs.base],
+});
+```
+
+This preset is the only one with more than one bundle: `configs.base`, `configs.test` (the relaxations test files need) and `configs.strict`. It also exports its raw delta layer, `tsLayer`, for building your own chain — that's what the `-react`, `-jest` and `-vitest` presets compose on top of `jsLayer`.
+
+Browse every enabled rule, plugin, and file match below — or [open the inspector in its own tab](pathname:///config-inspector/eslint-v9-ts/).
+
+<ConfigInspector variant="eslint-v9-ts" />

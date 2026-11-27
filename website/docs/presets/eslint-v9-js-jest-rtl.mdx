@@ -1,0 +1,31 @@
+---
+sidebar_position: 4
+title: JavaScript + Jest + React Testing Library
+description: ESLint Config Inspector for the @ladamczyk/qoq-eslint-v9-js-jest-rtl preset — every rule, plugin, and setting it enables for JavaScript + Jest + React Testing Library projects.
+---
+
+import ConfigInspector from '@site/src/components/ConfigInspector';
+
+# JavaScript + Jest + React Testing Library
+
+The **`@ladamczyk/qoq-eslint-v9-js-jest-rtl`** preset — an opinionated [flat-config](https://eslint.org/docs/latest/use/configure/configuration-files) bundle with every plugin and rule tuned for **JavaScript + Jest + React Testing Library** projects.
+
+```bash
+npm install -D @ladamczyk/qoq-eslint-v9-js-jest-rtl
+```
+
+Extend the preset's flat-config array with `defineConfig` and scope it with your own `files`:
+
+```js
+import { configs } from '@ladamczyk/qoq-eslint-v9-js-jest-rtl';
+import { defineConfig } from 'eslint/config';
+
+export default defineConfig({
+  files: ['src/**/*.{js,jsx}'],
+  extends: [configs.base],
+});
+```
+
+Browse every enabled rule, plugin, and file match below — or [open the inspector in its own tab](pathname:///config-inspector/eslint-v9-js-jest-rtl/).
+
+<ConfigInspector variant="eslint-v9-js-jest-rtl" />

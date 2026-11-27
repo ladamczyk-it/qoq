@@ -1,0 +1,75 @@
+---
+title: Introduction
+sidebar_position: 1
+---
+
+import styles from '@internal/docusaurus-theme/github-button.module.css';
+
+<a
+  href="https://github.com/ladamczyk-it/qoq"
+  target="_blank"
+  rel="noopener noreferrer"
+  className={styles.githubButton}
+>
+  <span aria-hidden="true" className={styles.githubButtonIcon} />
+  <span>GitHub</span>
+</a>
+
+# QoQ
+
+> Content is verified against **`@ladamczyk/qoq` v7.4.0**. See [`CHANGELOG.md`](https://github.com/ladamczyk-it/qoq/blob/master/CHANGELOG.md) to verify accuracy.
+
+The [qoq skill](./skills/qoq/index.md) ships from the same repo through the `qoq-agent-skills` plugin marketplace.
+The marketplace version is kept in lockstep with the packages.
+
+A streamlined suite of tools to format, lint, and analyze any JavaScript/TypeScript project with minimal setup — and a Claude Code skill that turns those checks into a guarded delivery loop.
+
+QoQ orchestrates the static-analysis tools you already rely on — [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [Knip](https://knip.dev/), [JSCPD](https://github.com/kucherenko/jscpd), [Stylelint](https://stylelint.io/), [Structurelint](https://adamczyk.ovh/docs/structurelint) (file/folder structure linting), and [Skillslint](https://adamczyk.ovh/docs/skillslint) (agent-skill linting), and [Justify-disable](https://adamczyk.ovh/docs/justify-disable) (justified lint-disable comments) — behind a single CLI with sensible, opinionated defaults.
+
+- 🛠 **Zero-hassle configuration** — set up once with a guided wizard and focus on coding.
+- ⚡ **Optimized performance** — run every tool through one process without redundant overhead.
+- 🔬 **Precision over bulk** — well-curated presets shaped by years of development experience.
+
+> **v6.0.0 is a breaking release for the ESLint presets.** Each one now exports `configs.base` — a flat-config **array** to `extends`, not a pre-merged object to spread — plus its own delta layer (`jsLayer`, `tsLayer`, …). See [Packages](./packages.md) for the migration.
+
+Each tool ships as an independent package under the `@ladamczyk/qoq-*` namespace, so you can adopt the whole pipeline through the CLI or pull in individual presets à la carte. The whole suite is exposed through three commands:
+
+| Command       | Typical use                                            |
+| ------------- | ------------------------------------------------------ |
+| `qoq --check` | Full code check — CI lint step or `pre-push` hook.     |
+| `qoq staged`  | Checks only staged changes — `pre-commit` hook.        |
+| `qoq --fix`   | Auto-fixes what it can — run manually after a failure. |
+
+Monorepos are supported out of the box, derived from the `workspaces` entry in your `package.json` — no extra configuration required.
+
+## The qoq skill
+
+The CLI is a gate. The [qoq skill](./skills/qoq/index.md) is a guarded delivery loop built on it: `plan` cuts work into tickets, `execute` builds them one at a time under TDD, and nothing is committed until the CLI passes it and an independent reviewer approves the tests. `fix`, `refactor`, `test` and `bump` keep the codebase healthy between deliveries.
+
+In an interactive terminal, the CLI mentions the skill at the end of a run, `qoq scan` included, if it isn't installed yet. When the run found something the skill handles, the hint names the command for it:
+
+- ESLint or Stylelint findings `--fix` can't resolve, or Knip, Structurelint or Justify-disable findings → `/qoq fix`
+- duplicated code (JSCPD) → `/qoq refactor`
+- outdated or deprecated dependencies, or `qoq scan` vulnerabilities → `/qoq bump`
+
+The hint is skipped when the skill is already installed, inside Claude Code, or with [`hints: false`](./configuration.md#general).
+
+## Usage statistics
+
+QoQ counts its own runs, and only with your say-so. The first interactive run asks; the answer is stored as `stats: true | false` in your [`qoq.config.js`](./configuration.md#general) and never asked again. The [qoq skill](./skills/qoq/index.md) reads the same key, so one answer covers both entry points.
+
+![QoQ CLI monthly usage — runs per month and which commands they used](https://adamczyk.ovh/img/stats/qoq.png)
+![QoQ skill monthly usage — runs per month and which commands they used](https://adamczyk.ovh/img/stats/qoq-skill.png)
+
+Each run posts exactly two values to `https://stats.adamczyk.ovh`:
+
+- the tool name — the literal `"qoq"` from the CLI, `"qoq-skill"` from the skill;
+- the command that ran — the value-less flags you typed (`["--check", "--fix"]`) or the skill command (`["fix"]`).
+
+Where an outbound POST never leaves the network, the same two values go as a query string on a plain image GET instead — `https://adamczyk.ovh/img/stats/pixel.png?tool=qoq&options=--fix` — which counts the same run and carries nothing more.
+
+Never sent: your code, file names, paths, config contents, tool findings, project or package names, and nothing identifying you or your machine. The send is fire-and-forget with a 2s cap shared by both attempts, so a slow or dead endpoint can't hold a run up, and `--warmup` doesn't count as a run at all.
+
+## Changelog
+
+Release history lives in the repo — [Releases](https://github.com/ladamczyk-it/qoq/releases) and [`CHANGELOG.md`](https://github.com/ladamczyk-it/qoq/blob/master/CHANGELOG.md). The `qoq-agent-skills` marketplace version tracks the packages in lockstep since v6.1.1, so one changelog covers both.
