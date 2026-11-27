@@ -16,7 +16,7 @@ flowchart TD
     CLEAN -->|no| BSTOP(["<b>stop</b> — commit or<br/>stash first"])
     CLEAN -->|yes| PLAN["<b>impact analysis</b> — what's outdated,<br/>minor/patch grouped,<br/><b>one major step per package</b><br/><i>(nothing written, no patches yet)</i>"]
     PLAN --> MAJ{"majors, or queued<br/>failures, among them?"}
-    MAJ -->|yes| BUMPER["dispatch <b>qoq-bumper</b><br/>(Sonnet, one per package)<br/><i>(name, current version)</i>"]
+    MAJ -->|yes| BUMPER["dispatch <b>qoq-bumper</b><br/>(Sonnet, one per package,<br/><b>all in one message</b>;<br/>a failed one → <i>analysis failed</i>)<br/><i>(name, current version)</i>"]
     MAJ -->|no| BAPPR
 
     subgraph BUMPFLOW["qoq-bumper flow <i>(everything the agent does)</i>"]
@@ -68,7 +68,7 @@ flowchart TD
 
 ## The plan is an impact analysis, not a patch set
 
-The planning phase **writes nothing** — not the tree, not a patch file. It works out what's outdated, groups minor and patch bumps, and plans **at most one major step per package**. Majors (and any package queued from a previous round's failure) get a `qoq-bumper` dispatch, which is the analysis itself:
+The planning phase **writes nothing** — not the tree, not a patch file. It works out what's outdated, groups minor and patch bumps, and plans **at most one major step per package**. Majors (and any package queued from a previous round's failure) get a `qoq-bumper` dispatch, which is the analysis itself. A round's bumpers all go out at once and the plan waits for every one; a bumper that fails is reported as _analysis failed_, never retried on a dearer model:
 
 > `qoq-bumper` reads the changelog, release notes and migration guide for _current → target_, then greps **this codebase** for the APIs that actually changed. It returns the breaking changes that land here, the migration steps, and a risk read — and edits nothing.
 
