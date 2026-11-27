@@ -18,7 +18,12 @@ check's throttle; the result is `npm-report.json` in the record's report directo
 the Read tool, never an inline `node -e`), groups minor and
 patch bumps, and plans **at most one major step per package**. Majors (and any
 package queued from a previous round's failure) get a `qoq-bumper` dispatch,
-which is the analysis itself and has to happen before the choice.
+which is the analysis itself and has to happen before the choice. Send every
+dispatch of a round in one message, in the foreground, at the agent's own
+tier: the plan waits for all of them, since the user picks only once it's
+whole. One that errors or comes back unusable doesn't hold up the rest: its
+package goes into the plan as `analysis failed: <reason>`, still the user's to
+pick or exclude, and it's never re-dispatched at a dearer tier.
 
 Read the report, not just the version gap: `majorBump` separates the majors,
 `latestInMajor` is the minor/patch target (above `current`, it's a bump even

@@ -1572,6 +1572,22 @@
       ],
       "target": "fixture-repo",
       "setup": "Install @ladamczyk/qoq-cli >= 6.4.1 (the fixture pins 6.3.0, which has no `staged --json`)."
+    },
+    {
+      "id": 85,
+      "name": "bump-bumpers-dispatched-together",
+      "prompt": "/qoq bump",
+      "expected_output": "Plans from `npx qoq npm --json` and dispatches one qoq-bumper per major package, all in one message, in the foreground, at the agent's own Sonnet tier. The plan is presented only after every bumper has returned. A bumper that fails shows as `analysis failed: <reason>` and is never re-dispatched at a dearer tier. The planning phase writes nothing.",
+      "files": [],
+      "assertions": [
+        "Dispatches at least 2 qoq-bumper agents",
+        "Sends every qoq-bumper dispatch in one message",
+        "No qoq-bumper dispatch runs in the background",
+        "No qoq-bumper dispatch overrides the model away from Sonnet",
+        "The planning phase changes no tracked file"
+      ],
+      "target": "fixture-repo",
+      "setup": "None: the fixture's qoq packages, typescript and @types/node are each a major behind, which gives the plan several bumpers. Grade from the stream-json transcript by grouping the top-level qoq-bumper tool_use calls by message id."
     }
   ]
 }
