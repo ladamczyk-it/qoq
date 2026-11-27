@@ -31,11 +31,12 @@ Run the setup from SKILL.md, then loop:
 4. **Wait** for the next message or idle notice, then go back to 1. Before
    waiting, start one background `sleep 1800` (`run_in_background`) unless one
    is already running. It's the heartbeat for a session that hangs or dies
-   without an idle notice. When it fires, a repo whose plan files and
-   `git log -1` haven't moved, and which hasn't messaged since the last
-   heartbeat, gets one status `SendMessage`. Still silent at the next
-   heartbeat → ask the user, naming the repo. Never restart it yourself: a
-   session still listed as busy would become a second writer in that checkout.
+   without an idle notice. When it fires, a repo that ListAgents still lists as
+   busy, whose plan files and `git log -1` haven't moved, and which hasn't
+   messaged since the last heartbeat, gets one status `SendMessage`. Still
+   silent at the next heartbeat → ask the user, naming the repo. Never restart
+   a busy session yourself: it would become a second writer in that checkout.
+   A session that's gone is step 2's to restart.
 
 **A repo in trouble.** When a repo relays an escalation or a top-rung
 `blocked`, ask the user. Only the repos whose `waitingOn` names that repo's
