@@ -41,7 +41,12 @@ const ESLINT_FINDING = {
   ],
 };
 
-const project = ({ qoqCheck = 'qoq --check', fake = { write: CLEAN }, scripts = {} } = {}) => {
+const project = ({
+  qoqCheck = 'qoq --check',
+  fake = { write: CLEAN },
+  scripts = {},
+  cliVersion = '7.0.0',
+} = {}) => {
   const dir = mkdtempSync(join(tmpdir(), 'check-'));
   const pkgScripts = { ...scripts };
   if (qoqCheck) {
@@ -52,6 +57,11 @@ const project = ({ qoqCheck = 'qoq --check', fake = { write: CLEAN }, scripts = 
   mkdirSync(join(dir, 'node_modules', '.bin'), { recursive: true });
   writeFileSync(join(dir, 'node_modules', '.bin', 'qoq'), FAKE_QOQ);
   chmodSync(join(dir, 'node_modules', '.bin', 'qoq'), 0o755);
+  if (cliVersion) {
+    const cli = join(dir, 'node_modules', '@ladamczyk', 'qoq-cli');
+    mkdirSync(cli, { recursive: true });
+    writeFileSync(join(cli, 'package.json'), JSON.stringify({ version: cliVersion }));
+  }
   mkdirSync(join(dir, 'src'));
   writeFileSync(join(dir, 'src', 'a.ts'), 'export const a = 1;\n');
   // Source older than any report written from here on.
@@ -146,6 +156,15 @@ test('a qoq:check flag staged has no equivalent is no verdict in the ticket form
   assert.deepEqual(calls(dir), []);
 });
 
+test('a CLI older than staged --json is no verdict in the ticket form, with the upgrade', () => {
+  const dir = project({ cliVersion: '6.4.0' });
+  const { status, stderr } = check(dir, '--skip-knip');
+  assert.equal(status, 2);
+  assert.match(stderr, />= 6\.4\.1 .*installed: 6\.4\.0/);
+  assert.deepEqual(calls(dir), []);
+  assert.equal(check(project({ cliVersion: '6.10.0' }), '--skip-knip').status, 0, '6.10 > 6.4');
+});
+
 test('the ticket form without files is no verdict, never a repo-wide staged run', () => {
   const dir = project();
   const bare = spawnSync(process.execPath, [SCRIPT, REPORTS, '--skip-knip'], {
@@ -171,6 +190,7 @@ test('a CLI crash is no verdict, with the partial digest under a crash header', 
 
 test('a symlinked CLI is built before the gate runs', () => {
   const dir = project({
+    cliVersion: null,
     scripts: { build: "node -e \"require('fs').writeFileSync('built','')\"" },
   });
   mkdirSync(join(dir, 'node_modules', '@ladamczyk'), { recursive: true });
@@ -180,7 +200,7 @@ test('a symlinked CLI is built before the gate runs', () => {
 });
 
 test('a failed build is no verdict', () => {
-  const dir = project({ scripts: { build: 'exit 1' } });
+  const dir = project({ cliVersion: null, scripts: { build: 'exit 1' } });
   mkdirSync(join(dir, 'node_modules', '@ladamczyk'), { recursive: true });
   symlinkSync(join(dir, 'src'), join(dir, 'node_modules', '@ladamczyk', 'qoq-cli'));
   const { status, stderr } = check(dir);

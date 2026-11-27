@@ -161,7 +161,7 @@ flowchart TD
         C00{"package.json has<br/>a qoq:check script?"}
         C00 -->|no| NOV
         C00 -->|yes| C0{"reports current, **and** the marker<br/>says the same mode + script<br/>wrote them?"}
-        C0 -->|"no"| RUN["empty the report files<br/>*a tool the script skips leaves no<br/>stale report behind*<br/>build first if the CLI is a symlink<br/>then `npm run qoq:check -- --json`<br/>*the project's flags hold*<br/>**with --skip-knip:** `npx qoq staged<br/>--json --skip-knip --skip-npm<br/>&lt;its flags&gt; &lt;files&gt;` instead<br/>*a ticket pays for its files only*"]
+        C0 -->|"no"| RUN["empty the report files<br/>*a tool the script skips leaves no<br/>stale report behind*<br/>build first if the CLI is a symlink<br/>then `npm run qoq:check -- --json`<br/>*the project's flags hold*<br/>**with --skip-knip:** `npx qoq staged<br/>--json --skip-knip --skip-npm<br/>&lt;its flags&gt; &lt;files&gt;` instead<br/>*a ticket pays for its files only;<br/>qoq-cli below 6.4.1 → no verdict, upgrade*"]
         C0 -->|"yes"| DIG
         RUN -->|"exit 0 or 1"| DIG["the digest, first line quoting<br/>the script that ran<br/>*never the raw reports*"]
         RUN -->|"crash, failed build"| NOV(["**exit 2: no verdict**<br/>partial digest under a ⚠ header<br/>*never PASS — nor is any exit but<br/>0 or 3: 1 is node failing to start it*"])

@@ -116,6 +116,32 @@ const stagedArgs = (body) => {
 const mode = skipKnip ? 'ticket' : 'full';
 const forwarded = skipKnip ? stagedArgs(script) : [];
 
+// `staged --json` arrived in qoq-cli 6.4.1. Older, it's rejected and writes no
+// reports, so the gate refuses up front rather than reading an empty digest.
+const STAGED_JSON = [6, 4, 1];
+const cliVersion = () => {
+  try {
+    return JSON.parse(readFileSync(join(LINK, 'package.json'), 'utf8')).version;
+  } catch {
+    return undefined;
+  }
+};
+const atLeast = (version, min) => {
+  const parts = version.split('.').map((n) => parseInt(n, 10));
+  const i = min.findIndex((n, j) => parts[j] !== n);
+  return i === -1 || parts[i] > min[i];
+};
+
+if (skipKnip) {
+  const version = cliVersion();
+  if (!version || !atLeast(version, STAGED_JSON)) {
+    fail(
+      `the ticket gate needs @ladamczyk/qoq-cli >= ${STAGED_JSON.join('.')} for \`qoq staged --json\`; ` +
+        `installed: ${version ?? 'none'}. Upgrade it, e.g. \`npm install -D @ladamczyk/qoq-cli@latest\`.`
+    );
+  }
+}
+
 if (skipKnip && !given.length) {
   fail("the ticket form needs the ticket's files: check.mjs <report-dir> --skip-knip <file...>");
 }

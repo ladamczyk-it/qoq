@@ -472,6 +472,9 @@ finding it bought outside the ticket was discarded. So the ticket form runs
 `staged --json` over the ticket's files, which writes the same reports. The
 project's `qoq:check` stays the source of truth by having its flags forwarded,
 and a flag `staged` can't take is no verdict, not a quietly different gate.
+So is a qoq-cli older than 6.4.1, the first with `staged --json`: falling back
+to the full run would have kept old projects slow without telling anyone, and
+the upgrade is one install.
 Nothing is lost: JSCPD and Structurelint ignore the file list and still read
 the whole repo, and the milestone gate is still the full `qoq:check`. The ticket
 form also skips npm-outdated, whose answer is never about a ticket's files and

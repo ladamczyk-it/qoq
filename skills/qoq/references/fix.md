@@ -62,8 +62,9 @@ place: you'd lose the reuse rules and the stale-report cleanup, and you'd get
 thousands of report lines instead of a digest.
 
 **Exit 0 is clean, exit 3 is findings, and anything else is no verdict**, never
-PASS. 2 means the project has no `qoq:check`, the build failed, or the CLI
-crashed. 1 means node couldn't start the script at all: a wrong path or a wrong
+PASS. 2 means the project has no `qoq:check`, the build failed, the CLI
+crashed, or (the `ticket` form) the CLI is older than 6.4.1 and can't scope:
+bring the user the upgrade line it prints. 1 means node couldn't start the script at all: a wrong path or a wrong
 directory. A crash prints a partial digest under a `⚠` header,
 and a tool with no section in it didn't run. Stop and report:
 
