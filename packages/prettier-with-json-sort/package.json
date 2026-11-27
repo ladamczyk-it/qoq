@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@ladamczyk/qoq-prettier": "^7.3.1",
-    "prettier-plugin-sort-json": "4.2.0"
+    "prettier-plugin-sort-json": "4.3.0"
   },
   "devDependencies": {
     "rimraf": "6.1.4"

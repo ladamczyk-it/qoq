@@ -28,7 +28,17 @@ Run the setup from SKILL.md, then loop:
    milestone. Fail → ask the user, giving the failure verbatim and which
    repo should take it. The fix goes back to that repo as a
    `qoq replan` that adds a milestone serving the same master milestone.
-4. **Wait** for the next message or idle notice, then go back to 1.
+4. **Wait** for the next message or idle notice, then go back to 1. Before
+   waiting, start one background `sleep 1800` (`run_in_background`) unless one
+   is already running. It's the heartbeat for a session that hangs or dies
+   without an idle notice. When it fires, a repo that ListAgents still lists as
+   busy, whose plan files and `git log -1` haven't moved, and which hasn't
+   messaged since the last heartbeat, gets one status `SendMessage`: a request
+   for a one-line status, never a `/qoq` invocation, since a busy session would
+   queue a second run behind the one it's in. Still silent at the next
+   heartbeat → ask the user, naming the repo. Never restart
+   a busy session yourself: it would become a second writer in that checkout.
+   A session that's gone is step 2's to restart.
 
 **A repo in trouble.** When a repo relays an escalation or a top-rung
 `blocked`, ask the user. Only the repos whose `waitingOn` names that repo's

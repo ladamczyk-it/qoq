@@ -71,7 +71,10 @@ integration yet, the same way as any other dependency that isn't delivered.
 When `next.runnable` is false, stop at that milestone boundary and report what
 `waitingOn` lists. That's a normal pause, not a blocked ticket. Every question
 this run would ask the user goes to the chief of staff named in the launch
-prompt, using `SendMessage`. Write to the plan file before you send it.
+prompt, using `SendMessage`. So does a one-line report after every ticket
+commit, every milestone gate and every stop. Write to the plan file before you
+send it. Nobody reads this session's final text, so never end a turn without
+that message.
 
 A ticket sitting at `in-progress` means a previous run died mid-flight.
 Reconcile against `git log`: if the ticket's files were committed, mark it

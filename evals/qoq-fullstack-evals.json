@@ -116,6 +116,49 @@
         "The chief does not answer a repo's limit question before the user has answered",
         "After the user's yes, later /qoq execute instructions carry no limit flags, and a repo's later limit question gets the user's earlier answer, quoted as theirs"
       ]
+    },
+    {
+      "id": 8,
+      "name": "execute-report-cadence-and-heartbeat",
+      "target": "agent",
+      "setup": "As eval 2: be and telemetry have next.runnable true and no session running yet; ui waits on be:M1. trackbook-be commits two tickets before the first heartbeat and sends nothing; after that its plan files and git log -1 stop moving. No idle notice arrives and ListAgents lists it as busy from its launch on.",
+      "prompt": "/qoq-fullstack execute track-io",
+      "followups": [
+        "(the first heartbeat fires; be's commits are visible but it never messaged)",
+        "(the second heartbeat fires; be's plan files and git log -1 unchanged since the first, still no message)",
+        "(the third heartbeat fires; still unchanged, still no message)"
+      ],
+      "expected_output": "Each launch prompt names the chief of staff and says to report after every ticket commit, every milestone gate and every stop, and never to end a turn without messaging. Before waiting, the chief starts one background 30-minute heartbeat. At the first heartbeat be's commits count as movement, so nothing is sent. At the second, be is silent: one status message. At the third it asks the user, naming be, and doesn't restart the session while it's listed busy.",
+      "files": [],
+      "assertions": [
+        "Every launch prompt says to SendMessage the chief of staff after every ticket commit, every milestone gate and every stop",
+        "Every launch prompt and every instruction message says a turn never ends without that message",
+        "The chief starts a background heartbeat (sleep 1800, run in background) before waiting",
+        "At the first heartbeat be's new commits count as movement: no nudge and no question",
+        "At the second heartbeat (no movement, no message) the chief sends trackbook-be one status SendMessage and doesn't ask the user yet",
+        "The status message to trackbook-be asks for a one-line status and contains no /qoq invocation",
+        "At the third heartbeat the chief asks the user, naming trackbook-be",
+        "The chief never relaunches trackbook-be while ListAgents lists it as busy"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "execute-heartbeat-busy-vs-gone",
+      "target": "agent",
+      "setup": "As eval 8 up to be's status nudge at a silent heartbeat. Then at the next heartbeat ListAgents no longer lists trackbook-be, and be's next.runnable is still true.",
+      "prompt": "/qoq-fullstack execute track-io",
+      "followups": [
+        "(heartbeat: be silent, listed busy)",
+        "(heartbeat: be still silent, and ListAgents no longer lists it)"
+      ],
+      "expected_output": "While be is listed busy, the chief only nudges it. Once be is gone, the loop's wake step relaunches it with claude --bg … /qoq execute <planDir> without asking the user, because restarting a dead session is safe: a resumed execute reconciles an in-progress ticket against git log. It doesn't ask about a silent session that is gone.",
+      "files": [],
+      "assertions": [
+        "While trackbook-be is listed busy, the chief sends it a status SendMessage and doesn't relaunch it",
+        "Once trackbook-be is gone from ListAgents, the chief relaunches it with claude --bg and /qoq execute <planDir>",
+        "The relaunch happens without asking the user first",
+        "The relaunch uses the same session name, trackbook-be, with --model opus and --permission-mode auto (feature.json's values in eval 2's setup)"
+      ]
     }
   ]
 }

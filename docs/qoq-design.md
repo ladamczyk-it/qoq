@@ -1656,3 +1656,15 @@ milestone, so a repo session can't start work the feature hasn't unblocked,
 even if the chief of staff is dead. The dependency goes one way:
 `qoq-fullstack` depends on `qoq`, and nothing in `qoq` names it. The rationale
 for the chief of staff itself is in [qoq-fullstack-design.md](qoq-fullstack-design.md).
+
+**Why a feature run reports after every ticket, gate and stop, and never ends a
+turn silently.** A background session's final text reaches nobody, and only a
+`SendMessage` gets to the chief of staff. A rule saying only _how_ to report
+let four ticket commits go by unreported in a real run (learning record 30,
+2026-11).
+
+**Why an external skill's report never ends the turn.** Skills such as
+`ponytail-review` and `code-review` format their output for a person reading
+that turn. Inside a qoq run, and above all an unattended one at
+`--decisions auto`, printing it as the final text ends the run mid-gate. In
+that same record 30 run, that's how a milestone gate stalled.

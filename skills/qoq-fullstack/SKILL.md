@@ -103,13 +103,19 @@ Each session starts in its own repo, so it loads that repo's CLAUDE.md,
 doesn't already list one with that name. If it's listed, `SendMessage` the
 instruction to it instead.
 
-Every launch prompt and every instruction message contains:
+Every launch prompt and every instruction message contains the four items
+below. Copy the italic rules word for word, in both: a paraphrase tends to
+drop the half that matters.
 
 1. **What to run.** A `/qoq` invocation, and nothing more specific than that.
    While a spending limit is armed, every `/qoq execute` carries both limit
    flags, restarts included.
-2. **Who to report to.** This session's name, and the rule: _write to your plan
-   files first, then `SendMessage` the chief of staff a one-line summary._
+2. **Who to report to, and when.** This session's name, and the rule: _write
+   to your plan files first, then `SendMessage` the chief of staff a one-line
+   summary after every ticket commit, every milestone gate and every stop.
+   Nobody reads this session's final text, so a turn that ends without that
+   message, on a question, a stop, a wait or another skill's report, is
+   never seen._
 3. **Where the work goes.** _Work on `feature/<slug>` in this checkout, and
    commit there as the plan says. Commits on that branch are part of the
    approved plan. Never create or enter a worktree, and never switch branches._
@@ -120,7 +126,9 @@ Every launch prompt and every instruction message contains:
    there.
 
 After each launch or instruction, `SendMessage` the session again with
-`notify_when_idle` set. A session that stops without messaging still wakes you up.
+`notify_when_idle` set. A session that stops without messaging still wakes you
+up, but not reliably: the notice can fail to arrive, so `execute`'s heartbeat
+is the backstop.
 
 A question from a repo goes to the user **verbatim**, prefixed with the repo's
 name. The answer goes back verbatim too. Never answer one yourself: a
