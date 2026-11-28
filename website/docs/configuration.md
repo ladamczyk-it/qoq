@@ -61,6 +61,8 @@ For example, an ESLint config stored at `configs/eslint.config.local.js` is refe
 }
 ```
 
+The dependency check of `qoq --check` is [Outdated](https://outdated.adamczyk.ovh/docs/qoq): advisory, throttled by `checkOutdatedEvery`, skipped with `--skip-npm`. `qoq npm --json` writes its report for `/qoq bump`; the format is described in [Outdated's JSON output](https://outdated.adamczyk.ovh/docs/json-output).
+
 ## Prettier
 
 ```js
@@ -147,7 +149,7 @@ Use a standard Stylelint [config object](https://stylelint.io/user-guide/configu
 
 ## Structurelint
 
-Validates your project's file/folder structure via [Structurelint](https://adamczyk.ovh/docs/structurelint). It runs only when a `structurelint` section is present; omit the section to disable it. Unlike the other sections, this one isn't a separate config-file pointer — the block mirrors Structurelint's own config shape (`IStructureConfig`) directly, so you author the rules inline in `qoq.config.*` instead of a standalone `structure.config.{ts,js,mjs}`:
+Validates your project's file/folder structure via [Structurelint](https://structurelint.adamczyk.ovh/docs/qoq). It runs only when a `structurelint` section is present; omit the section to disable it. Unlike the other sections, this one isn't a separate config-file pointer — the block mirrors Structurelint's own config shape (`IStructureConfig`) directly, so you author the rules inline in `qoq.config.*` instead of a standalone `structure.config.{ts,js,mjs}`:
 
 ```js
 {
@@ -162,11 +164,11 @@ Validates your project's file/folder structure via [Structurelint](https://adamc
 }
 ```
 
-`structure` is required — the CLI errors out if the `structurelint` section is present without it. See the [Structurelint](https://adamczyk.ovh/docs/structurelint) page for the full `structure`/`rules` syntax and worked examples.
+`structure` is required — the CLI errors out if the `structurelint` section is present without it. See the [Structurelint rules](https://structurelint.adamczyk.ovh/docs/rules) page for the full `structure`/`rules` syntax and worked examples.
 
 ## Skillslint
 
-Lints your [agent skills](https://adamczyk.ovh/docs/skillslint) (`SKILL.md` files) as part of the pipeline — markdown prose quality plus structured quality scoring. It runs only when a `skillslint` section is present **and** `@ladamczyk/skillslint` is installed; omit the section to disable it. The [Config Wizard](./installation.md) adds the section and installs the package when you opt into agent-skills linting.
+Lints your [agent skills](https://skillslint.adamczyk.ovh/docs/qoq) (`SKILL.md` files) as part of the pipeline — markdown prose quality plus structured quality scoring. It runs only when a `skillslint` section is present **and** `@ladamczyk/skillslint` is installed; omit the section to disable it. The [Config Wizard](./installation.md) adds the section and installs the package when you opt into agent-skills linting.
 
 ```js
 {
@@ -183,11 +185,13 @@ Lints your [agent skills](https://adamczyk.ovh/docs/skillslint) (`SKILL.md` file
 }
 ```
 
-Only `path` is required; everything else falls back to Skillslint's own defaults. `qoq --fix` forwards `--fix` so Skillslint auto-corrects what textlint can resolve. See the [Skillslint](https://adamczyk.ovh/docs/skillslint) page for the scoring categories and bundled rules.
+Only `path` is required; everything else falls back to Skillslint's own defaults. `qoq --fix` forwards `--fix` so Skillslint auto-corrects what textlint can resolve. See the [Skillslint scoring](https://skillslint.adamczyk.ovh/docs/scoring) page for the scoring categories and bundled rules.
 
 ## Justify-disable
 
-Checks that lint-disable comments carry a justification, via [Justify-disable](https://adamczyk.ovh/docs/justify-disable). It runs only when a `justifyDisable` section is present with `severity` set to `warn` or `error`; omit the section, or leave `severity` at `'off'`, to disable it. It is backed by the optional peer `@ladamczyk/justify-disable`, which the [Config Wizard](./installation.md) installs, and writes the section for, only when you choose `warn` or `error`.
+Checks that lint-disable comments carry a justification, via [Justify-disable](https://justify-disable.adamczyk.ovh/docs/qoq). It runs only when a `justifyDisable` section is present with `severity` set to `warn` or `error`; omit the section, or leave `severity` at `'off'`, to disable it. It is backed by the optional peer `@ladamczyk/justify-disable`, which the [Config Wizard](./installation.md) installs, and writes the section for, only when you choose `warn` or `error`.
+
+Each disable directive needs a written `@todo` reason directly above it, which can expire on a date or version; see [how Justify-disable compares with ESLint's and Stylelint's own options](https://justify-disable.adamczyk.ovh/docs/alternatives).
 
 ```js
 {

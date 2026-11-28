@@ -160,7 +160,7 @@ _Feel free to join us, please read [Contributing Guidelines](https://github.com/
 
 ## Last 12 months usage statistics (>=6.0.0)
 
-Regenerated on each release, for daily updated numbers click on chart or visit [https://adamczyk.ovh/docs/qoq/introduction#usage-statistics](https://adamczyk.ovh/docs/qoq/introduction#usage-statistics).
+Regenerated on each release, for daily updated numbers click on chart or visit [https://qoq.adamczyk.ovh/docs/#usage-statistics](https://qoq.adamczyk.ovh/docs/#usage-statistics).
 
 [![Last 12 months usage statistics](https://adamczyk.ovh/img/stats/qoq.png?date=2026-08-18)](https://adamczyk.ovh/img/stats/qoq.png)
 
