@@ -1,10 +1,12 @@
-# Builds qoq's Docs site and replaces the vhost root nginx serves, ~/artifacts/qoq. Runs on pushes to master,
+# Builds a Tool's Docs site and replaces the vhost root nginx serves, ~/artifacts/<repo>. Runs on pushes to the default branch,
 # which include the release commit and docs.yml's `docs: sync` commit; tags only regenerate the docs (docs.yml).
-# Volumes need the repo marked trusted in Woodpecker.
+# cli-template holds the example site, so it never deploys. Volumes need the repo marked trusted in Woodpecker.
 when:
   - event: push
-    branch: master
+    branch: ${CI_REPO_DEFAULT_BRANCH}
+    evaluate: 'CI_REPO_NAME != "cli-template"'
   - event: manual
+    evaluate: 'CI_REPO_NAME != "cli-template"'
 
 # Full history: the sitemap's <lastmod> and each doc's "last updated" read the page's last commit date.
 clone:
@@ -15,24 +17,14 @@ clone:
       depth: 0
 
 steps:
-  # Holds only the Verdaccio token. Lifecycle scripts stay off, so no package code runs beside it. First, because
-  # every later step runs package code that could rewrite the workspace's .npmrc.
-  - name: install-website
+  # Holds only the Verdaccio token. Lifecycle scripts stay off, so no package code runs beside it.
+  - name: install
     image: node:22
     environment:
       VERDACCIO_CI_TOKEN:
         from_secret: verdaccio_ci_token
     commands:
       - npm ci --prefix website --ignore-scripts
-
-  # Holds no secret. Unlike the siblings, the site's preset pages embed config inspectors, and their
-  # packages/eslint-v9-*/stats are gitignored: the website's prebuild copies them from here.
-  - name: build-inspectors
-    image: node:22
-    commands:
-      - npm ci
-      - npm run build
-      - npm run config-inspector -- all
 
   # Holds no secret: the Docusaurus build loads the installed packages' code.
   - name: build
@@ -47,4 +39,4 @@ steps:
       - find /usr/build -mindepth 1 -delete
       - cp -r website/build/. /usr/build/
     volumes:
-      - /home/joke/artifacts/qoq:/usr/build
+      - /home/joke/artifacts/${CI_REPO_NAME}:/usr/build
