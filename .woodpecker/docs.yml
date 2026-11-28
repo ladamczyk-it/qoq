@@ -24,7 +24,7 @@ steps:
       - bash scripts/update-docs.sh install
 
   # Holds only the Claude secret. It runs before freeze, so only npm with --ignore-scripts has run in the workspace.
-  # Nothing it writes reaches main until check and publish pass.
+  # Nothing it writes reaches the default branch until check and publish pass.
   - name: generate
     image: node:22
     environment:
@@ -48,7 +48,7 @@ steps:
     commands:
       - bash scripts/check-docs.sh
 
-  # Holds GITHUB_TOKEN only, and runs nothing from the workspace: publish-docs.sh comes from a fresh clone of main.
+  # Holds GITHUB_TOKEN only, and runs nothing from the workspace: publish-docs.sh comes from a fresh clone of the default branch.
   - name: publish
     image: node:22
     environment:
