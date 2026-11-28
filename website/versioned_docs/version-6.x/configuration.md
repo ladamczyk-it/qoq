@@ -80,15 +80,15 @@ Skip with `--skip-stylelint`.
 
 ## Structurelint
 
-Optional, backed by [`@ladamczyk/structurelint`](https://adamczyk.ovh/docs/structurelint). The block mirrors structurelint's own config: `structure` (required for any validation), `structureRoot` (default `.`), `rules` and `ignorePatterns`. Runs before Skillslint. Skip with `--skip-structurelint`.
+Optional, backed by [`@ladamczyk/structurelint`](https://structurelint.adamczyk.ovh/docs/qoq). The block mirrors structurelint's own config: `structure` (required for any validation), `structureRoot` (default `.`), `rules` and `ignorePatterns`. Runs before Skillslint. Skip with `--skip-structurelint`.
 
 ## Skillslint
 
-Optional, backed by [`@ladamczyk/skillslint`](https://adamczyk.ovh/docs/skillslint): lints Claude Code skill docs. `path` defaults to `./skills`. Skip with `--skip-skillslint`.
+Optional, backed by [`@ladamczyk/skillslint`](https://skillslint.adamczyk.ovh/docs/qoq): lints Claude Code skill docs. `path` defaults to `./skills`. Skip with `--skip-skillslint`.
 
 ## Justify-disable
 
-Optional, added in **6.8**, backed by [`@ladamczyk/justify-disable`](https://adamczyk.ovh/docs/justify-disable): checks that lint-disable comments carry a justification.
+Optional, added in **6.8**, backed by [`@ladamczyk/justify-disable`](https://justify-disable.adamczyk.ovh/docs/qoq): checks that lint-disable comments carry a justification.
 
 ```js
 {

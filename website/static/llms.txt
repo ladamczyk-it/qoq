@@ -1,0 +1,51 @@
+# qoq
+
+> qoq (Quality over Quantity, @ladamczyk/qoq-cli) is one CLI and one config that formats, lints and analyzes any JavaScript/TypeScript project with Prettier, ESLint, Knip, JSCPD, Stylelint and an npm dependency check, plus optional Structurelint, Skillslint and Justify-disable. Its Claude Code Agent Skill turns the same checks into a guarded delivery loop for AI coding agents.
+
+Full docs: https://qoq.adamczyk.ovh/llms-full.txt (each page also as Markdown at <page URL>.md)
+
+Install and run: `npx -y @ladamczyk/qoq-cli --init` runs the Config Wizard, which installs the matching `@ladamczyk/qoq-eslint-v9-*` preset and writes `.prettierrc`, `eslint.config.js`, `qoq.config.js` and, with Stylelint, `stylelint.config.js`. Needs Node ^22.22.2, ^24.15.0 or >=26 and npm 10+.
+
+CLI: `qoq --check` runs every enabled tool and exits 1 on findings; `qoq --fix` re-runs them in fix mode; `qoq <tool...>` runs only the named tools; `qoq staged [files...]` checks staged files; `qoq --warmup` pre-generates tool configs (use it as a `postinstall` script so IDEs find `eslint.config.js`); `qoq scan` checks the lockfile for known vulnerabilities. Common flags: `--skip-<tool>` (npm, prettier, jscpd, knip, eslint, stylelint, structurelint, skillslint, justify-disable), `--disable-cache`, `--concurrency off|auto`, `--json --output <dir>` for JSON reports, `--silent`.
+
+Config: `qoq.config.js` (CommonJS or ESM; `.ts` also accepted) with one section per tool: `srcPath`, `npm`, `prettier`, `jscpd`, `knip`, `eslint` (array of `{ template, files, rules }` blocks, template one of `qoq-eslint-v9-{js,ts}[-react|-jest|-vitest][-rtl]`), `stylelint`, `structurelint`, `skillslint`, `justifyDisable`, `scan`. qoq regenerates each tool's config on every run, so edit `qoq.config.js`, not the generated files.
+
+ESLint presets: each `@ladamczyk/qoq-eslint-v9-*` package exports `configs.*` flat-config arrays you can extend with `defineConfig` outside qoq.
+
+Agent Skills: `/qoq fix|refactor|bump|plan|replan|execute|test|compress|document|mermaid|sheriff|review|feedback` in Claude Code, and `/qoq-fullstack` for one feature spanning several repos.
+
+## Docs
+
+- [Introduction](https://qoq.adamczyk.ovh/docs/): What qoq is: one CLI and config running Prettier, ESLint, Knip, JSCPD, Stylelint and npm checks on JS/TS projects, plus a Claude Code delivery-loop skill.
+- [Installation](https://qoq.adamczyk.ovh/docs/installation): Install the CLI, run the Config Wizard, and wire up the generated config files.
+- [Configuration](https://qoq.adamczyk.ovh/docs/configuration): Every qoq.config.js section and its defaults, from Prettier and Knip to ESLint, Stylelint, and Skillslint.
+- [Packages](https://qoq.adamczyk.ovh/docs/packages): Each @ladamczyk/qoq-* package — the CLI, ESLint presets, formatters, and analyzers.
+- [qoq skill](https://qoq.adamczyk.ovh/docs/skills/qoq/): One Claude Code Agent Skill, thirteen commands, twelve subagents — all starting from a single cached project discovery.
+- [/qoq fix](https://qoq.adamczyk.ovh/docs/skills/qoq/fix): The check/fix loop over tool findings — Prettier, ESLint, Knip, JSCPD, Stylelint — ending on the PASS/FAIL verdict every other qoq command calls.
+- [/qoq refactor](https://qoq.adamczyk.ovh/docs/skills/qoq/refactor): Four sequential judgement passes over a scope — duplication, project conventions, ponytail, design — run on top of a green base.
+- [/qoq bump](https://qoq.adamczyk.ovh/docs/skills/qoq/bump): Staged npm dependency upgrades — impact analysis first, then one attributable patch at a time, each validated and refactored before the next.
+- [/qoq plan](https://qoq.adamczyk.ovh/docs/skills/qoq/plan): Three phases — scope, design, breakdown — turning a spec into a milestone/ticket plan directory under ./plans/ that a cold subagent can pick up and execute can deliver.
+- [/qoq replan](https://qoq.adamczyk.ovh/docs/skills/qoq/replan): Reshapes an existing plan against what's been learned — delivered milestones stay frozen, the live half gets the full three-phase treatment again.
+- [/qoq execute](https://qoq.adamczyk.ovh/docs/skills/qoq/execute): Delivers an approved plan ticket by ticket — one qoq-developer per ticket under TDD, two gates before every commit, then a milestone gate and delivery.
+- [/qoq test](https://qoq.adamczyk.ovh/docs/skills/qoq/test): Unit and integration coverage on Vitest or Jest for code that already exists — sliced, written by qoq-tester, gated with fix, tidied with refactor.
+- [/qoq compress](https://qoq.adamczyk.ovh/docs/skills/qoq/compress): Strips agent-facing markdown — CLAUDE.md, AGENTS.md, skill and reference docs — down to what an agent actually acts on, checked literal by literal.
+- [/qoq document](https://qoq.adamczyk.ovh/docs/skills/qoq/document): Experimental — qoq-scribe writes down the why behind a scope as JSDoc, ./docs behind a table-of-contents index and the README's Documentation link, standalone or after every delivered milestone.
+- [/qoq mermaid](https://qoq.adamczyk.ovh/docs/skills/qoq/mermaid): qoq-artist turns a flow, lifecycle, data model or architecture into a Mermaid chart validated to parse — printed, written into a doc, or drawn into plans and milestone docs.
+- [/qoq sheriff](https://qoq.adamczyk.ovh/docs/skills/qoq/sheriff): Always on in execute — qoq-sheriff sweeps a change for logic-level security problems a linter can't see, standalone over paths, a range or a pull request, or after every milestone.
+- [/qoq review](https://qoq.adamczyk.ovh/docs/skills/qoq/review): Experimental in execute — qoq-reviewer judges, on a Spec and a Standards axis, a delivery against the plan that asked for it, or a pull request against its description, for wrong turns the gates can't see.
+- [/qoq feedback](https://qoq.adamczyk.ovh/docs/skills/qoq/feedback): Sends what you think of a command or agent to the qoq maintainers — a target, a category and optional text, rewritten to name nothing from your project.
+- [/qoq-fullstack](https://qoq.adamczyk.ovh/docs/skills/qoq-fullstack): A chief of staff for one feature that spans several repos — a business-only BRD, one qoq plan per repo, and every repo's plan delivered in parallel.
+
+## Included tools
+
+- [Outdated](https://outdated.adamczyk.ovh/): the advisory dependency check of qoq --check, throttled by npm.checkOutdatedEvery and skipped with --skip-npm; qoq npm --json writes its JSON report for the /qoq bump skill. llms.txt: https://outdated.adamczyk.ovh/llms.txt
+- [Structurelint](https://structurelint.adamczyk.ovh/): optional blocking check of file and folder structure, enabled by a structurelint block in qoq.config.js. llms.txt: https://structurelint.adamczyk.ovh/llms.txt
+- [Skillslint](https://skillslint.adamczyk.ovh/): optional linting and 0-100 scoring of Agent Skills (SKILL.md), enabled by a skillslint block. llms.txt: https://skillslint.adamczyk.ovh/llms.txt
+- [Justify-disable](https://justify-disable.adamczyk.ovh/): optional check that every eslint-disable and stylelint-disable carries a written @todo reason, enabled by justifyDisable.severity warn or error. llms.txt: https://justify-disable.adamczyk.ovh/llms.txt
+
+## Optional
+
+- [ESLint presets](https://qoq.adamczyk.ovh/docs/category/eslint-presets): one page per @ladamczyk/qoq-eslint-v9-* preset with its ESLint Config Inspector, e.g. https://qoq.adamczyk.ovh/docs/presets/eslint-v9-ts-react
+- [GitHub repository](https://github.com/ladamczyk-it/qoq): source, issues and changelog
+- [npm package](https://www.npmjs.com/package/@ladamczyk/qoq-cli): @ladamczyk/qoq-cli
+- [Author's tools](https://adamczyk.ovh/llms.txt): hub llms.txt listing qoq and its sibling tools

@@ -58,7 +58,7 @@ Optional: `template` (`qoq-stylelint-css` or `qoq-stylelint-scss`) and `strict` 
 
 ## Structurelint
 
-Optional, backed by [`@ladamczyk/structurelint`](https://adamczyk.ovh/docs/structurelint). The block mirrors structurelint's config directly, so no separate `structure.config.*` file is read:
+Optional, backed by [`@ladamczyk/structurelint`](https://structurelint.adamczyk.ovh/docs/qoq). The block mirrors structurelint's config directly, so no separate `structure.config.*` file is read:
 
 ```js
 {
@@ -73,4 +73,4 @@ Optional, backed by [`@ladamczyk/structurelint`](https://adamczyk.ovh/docs/struc
 
 ## Skillslint
 
-Optional, backed by [`@ladamczyk/skillslint`](https://adamczyk.ovh/docs/skillslint). `path` defaults to `./skills`. Skip with `--skip-skillslint`.
+Optional, backed by [`@ladamczyk/skillslint`](https://skillslint.adamczyk.ovh/docs/qoq). `path` defaults to `./skills`. Skip with `--skip-skillslint`.

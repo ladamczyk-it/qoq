@@ -57,11 +57,11 @@ Optional: `template` (`qoq-stylelint-css` or `qoq-stylelint-scss`) and `strict` 
 
 ## Skillslint
 
-Optional, added in **4.3**, backed by [`@ladamczyk/skillslint`](https://adamczyk.ovh/docs/skillslint): lints Claude Code skill docs with textlint. `path` defaults to `./skills`. Skip with `--skip-skillslint`.
+Optional, added in **4.3**, backed by [`@ladamczyk/skillslint`](https://skillslint.adamczyk.ovh/docs/qoq): lints Claude Code skill docs with textlint. `path` defaults to `./skills`. Skip with `--skip-skillslint`.
 
 ## Structurelint
 
-Optional, added in **4.5**, backed by [`@ladamczyk/structurelint`](https://adamczyk.ovh/docs/structurelint). Runs before Skillslint.
+Optional, added in **4.5**, backed by [`@ladamczyk/structurelint`](https://structurelint.adamczyk.ovh/docs/qoq). Runs before Skillslint.
 
 - **4.5.0–4.5.1** read rules from `structure.config.{ts,js,mjs}`; the block takes only `path` (default `.`).
 - **4.5.2** reads them from the block itself, mirroring structurelint's own config:

@@ -80,15 +80,15 @@ Stylelint config template for SCSS.
 
 ## `structurelint`
 
-A standalone [file/folder structure linter](https://adamczyk.ovh/docs/structurelint), published as `@ladamczyk/structurelint` in its own repository with its own release cadence — it isn't versioned lockstep with the `qoq-*` packages above. The CLI's optional Structurelint check installs and drives it — enable it via a `structurelint` block in `qoq.config.js` (see [Configuration](./configuration.md#structurelint)).
+A standalone [file/folder structure linter](https://structurelint.adamczyk.ovh/), published as `@ladamczyk/structurelint` in its own repository with its own release cadence — it isn't versioned lockstep with the `qoq-*` packages above. The CLI's optional Structurelint check installs and drives it — enable it via a `structurelint` block in `qoq.config.js` (see [Configuration](./configuration.md#structurelint)).
 
 ## `skillslint`
 
-A standalone [agent-skill linter](https://adamczyk.ovh/docs/skillslint), published as `@ladamczyk/skillslint` in its own repository with its own release cadence — like Structurelint, it isn't versioned lockstep with the `qoq-*` packages. The CLI's optional Skillslint check installs and drives it — enable it via a `skillslint` block in `qoq.config.js` (see [Configuration](./configuration.md#skillslint)).
+A standalone [agent-skill linter](https://skillslint.adamczyk.ovh/), published as `@ladamczyk/skillslint` in its own repository with its own release cadence — like Structurelint, it isn't versioned lockstep with the `qoq-*` packages. The CLI's optional Skillslint check installs and drives it — enable it via a `skillslint` block in `qoq.config.js` (see [Configuration](./configuration.md#skillslint)).
 
 ## `justify-disable`
 
-A standalone [lint-disable justification checker](https://adamczyk.ovh/docs/justify-disable), published as `@ladamczyk/justify-disable` in its own repository with its own release cadence — like Structurelint and Skillslint, it isn't versioned lockstep with the `qoq-*` packages. The CLI's optional Justify-disable check drives it as an optional peer, installed only when you set a `justifyDisable` block to `warn` or `error` in `qoq.config.js` (see [Configuration](./configuration.md#justify-disable)).
+A standalone [lint-disable justification checker](https://justify-disable.adamczyk.ovh/), published as `@ladamczyk/justify-disable` in its own repository with its own release cadence — like Structurelint and Skillslint, it isn't versioned lockstep with the `qoq-*` packages. The CLI's optional Justify-disable check drives it as an optional peer, installed only when you set a `justifyDisable` block to `warn` or `error` in `qoq.config.js` (see [Configuration](./configuration.md#justify-disable)).
 
 ## `qoq-utils`
 
